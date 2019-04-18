@@ -14,11 +14,12 @@ Copyright 2019 UCAR/NCAR/RAL, Colorado State University, Regents of the Universi
 
 import sys
 from lxml import etree
-from lxml import objectify
 import METdb.METdbLoad.ush.constants as CN
+
 
 class XmlLoadFile:
     def __init__(self, xmlfile):
+        # set the defaults
         self.xmlfilename = xmlfile
         self.db_host = None
         self.db_name = None
@@ -49,12 +50,14 @@ class XmlLoadFile:
 
     def read_xml(self):
         try:
+            # parse the XML file
             tree = etree.parse(self.xmlfilename)
             root = tree.getroot()
             print (root.tag)
         except:
             print("Couldn't read XML file")
 
+        # extract the values from the load_spec XML tags and store them in attributes of class XmlLoadFile
         for child in root:
             print ("child: ", child.tag, child.text)
             for subchild in child.getchildren():
@@ -74,6 +77,12 @@ class XmlLoadFile:
             elif child.tag == "verbose":
                 if child.text.lower() == "true":
                     self.verbose = True
+            elif child.tag == "drop_indexes":
+                if child.text.lower() == "true":
+                    self.drop_indexes = True
+            elif child.tag == "apply_indexes":
+                if child.text.lower() == "false":
+                    self.apply_indexes = False
             elif child.tag == "stat_header_db_check":
                 if child.text.lower() == "false":
                     self.stat_header_db_check = False
@@ -91,28 +100,32 @@ class XmlLoadFile:
                     self.load_mode = False
             elif child.tag == "load_mtd":
                 if child.text.lower() == "false":
-                    self.load_std = False
+                    self.load_mtd = False
             elif child.tag == "load_mpr":
                 if child.text.lower() == "true":
                     self.load_mpr = True
             elif child.tag == "load_orank":
                 if child.text.lower() == "true":
                     self.load_orank = True
+            elif child.tag == "force_dup_file":
+                if child.text.lower() == "true":
+                    self.force_dup_file = True
+            elif child.tag == "insert_size":
+                if child.text.isdigit():
+                    self.insert_size = child.text.int()
+            # group and description for putting databases into groups/categories
             elif child.tag == "group":
                 self.group = child.text
             elif child.tag == "description":
                 self.description = child.text
-            elif child.tag == "force_dup_file":
-                if child.text.lower() == "true":
-                    self.load_orank = True
-            elif child.tag == "drop_indexes":
-                if child.text.lower() == "true":
-                    self.drop_indexes = True
-            elif child.tag == "apply_indexes":
+            # load_note and load_xml are used to put a note in the database
+            elif child.tag == "load_note":
+                self.load_note = child.text
+            elif child.tag == "load_xml":
                 if child.text.lower() == "false":
-                    self.apply_indexes = False
+                    self.load_xml = False
 
         print("group is:", self.group)
         print("db_name is:", self.db_name)
-        print("load_mode is:", self.load_mode)
+        print("insert_size is:", self.insert_size)
 
