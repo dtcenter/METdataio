@@ -158,46 +158,56 @@ class XmlLoadFile:
         print("group is:", self.group)
         print("db_name is:", self.db_name)
 
-        try:
-            if folder_template is not None:
-                print("folder template is:", folder_template)
-                print("template_fillins are:", template_fillins)
+        if folder_template is not None:
+            self.load_files = self.generate_filenames_from_template(folder_template, template_fillins)
 
-                fillins_open = folder_template.count("{")
-                fillins_close = folder_template.count("}")
-                if fillins_open == fillins_close:
-                    # remove any values that are not in the template
-                    if len(template_fillins) > 0:
-                        copy_template_fillins = dict(template_fillins)
-                        for key in copy_template_fillins:
-                            if key not in folder_template:
-                                del template_fillins[key]
-                    if fillins_open > len(template_fillins):
-                        raise ValueError("not enough template fillin values")
-                    # generate a list of directories with all combinations of values filled in
-                    load_dirs = [folder_template]
-                    for key in template_fillins:
-                        alist = []
-                        for fvalue in template_fillins[key]:
-                            for wvalue in load_dirs:
-                                wstring = wvalue.replace("{" + key + "}", fvalue)
-                                alist.append(wstring)
-                        load_dirs = alist
-                    # find all the files in the directories, append path to them, and put on load_files list
-                    for file_dir in load_dirs:
-                        for file_name in os.listdir(file_dir):
-                            self.load_files.append(file_dir + "/" + file_name)
-                    print("used template_fillins are:", template_fillins)
-                    print("load_dirs", load_dirs)
-                else:
-                    raise ValueError("mismatched curly braces")
+        print("load_files are:", len(self.load_files), self.load_files)
+
+    def generate_filenames_from_template(self, folder_template, template_fillins):
+        """! given a folder template and the values to fill in, generates list of filenames
+            Returns:
+               list of filenames
+        """
+        print("folder template is:", folder_template)
+        print("template_fillins are:", template_fillins)
+
+        try:
+
+            fillins_open = folder_template.count("{")
+            fillins_close = folder_template.count("}")
+            if fillins_open == fillins_close:
+                # remove any values that are not in the template
+                if len(template_fillins) > 0:
+                    copy_template_fillins = dict(template_fillins)
+                    for key in copy_template_fillins:
+                        if key not in folder_template:
+                            del template_fillins[key]
+                if fillins_open > len(template_fillins):
+                    raise ValueError("not enough template fillin values")
+                # generate a list of directories with all combinations of values filled in
+                load_dirs = [folder_template]
+                for key in template_fillins:
+                    alist = []
+                    for fvalue in template_fillins[key]:
+                        for wvalue in load_dirs:
+                            wstring = wvalue.replace("{" + key + "}", fvalue)
+                            alist.append(wstring)
+                    load_dirs = alist
+                # find all the files in the directories, append path to them, and put on load_files list
+                file_list = []
+                for file_dir in load_dirs:
+                    for file_name in os.listdir(file_dir):
+                        file_list.append(file_dir + "/" + file_name)
+                print("used template_fillins are:", template_fillins)
+                print("load_dirs", load_dirs)
+                return file_list
+            else:
+                raise ValueError("mismatched curly braces")
         except ValueError as ve:
             print("***", sys.exc_info()[0], "occurred in readLoadXML ***")
             print(ve)
         except:
             print("***", sys.exc_info()[0], "occurred while processing folder template in readLoadXML ***")
-
-        print("load_files are:", len(self.load_files), self.load_files)
 
 
 
