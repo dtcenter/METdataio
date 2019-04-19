@@ -44,7 +44,7 @@ def main():
         # read in the XML file and get the information out of its tags
         xml_loadfile.read_xml()
     except:
-        print("No XML filename")
+        print("***", sys.exc_info()[0], "occurred in Main ***")
 
     if not xml_loadfile.stat_header_db_check:
         print("Do not check stat headers")
