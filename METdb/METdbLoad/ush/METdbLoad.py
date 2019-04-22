@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Program Name: METdbLoad.py
 Contact(s): Venita Hagerty
 Abstract:
@@ -10,13 +10,13 @@ Parameters: -index
 Input Files: load_spec XML file
 Output Files: N/A
 Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
-'''
+"""
 
 import argparse
 import sys
-import pymysql
 
 import METdb.METdbLoad.ush.read_load_xml as RX
+import METdb.METdbLoad.ush.read_data_files as RD
 
 
 def main():
@@ -48,11 +48,20 @@ def main():
 
         # read in the XML file and get the information out of its tags
         xml_loadfile.read_xml()
+
+    except (RuntimeError, TypeError, NameError):
+        print("***", sys.exc_info()[0], "occurred in Main ***")
+
+    try:
+        file_data = RD.ReadDataFiles()
+
+        file_data.read_data(xml_loadfile.load_files)
+
     except (RuntimeError, TypeError, NameError):
         print("***", sys.exc_info()[0], "occurred in Main ***")
 
     print("--- End METdbLoad ---")
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     main()

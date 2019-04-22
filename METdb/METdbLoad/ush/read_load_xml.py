@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Program Name: read_load_xml.py
 Contact(s): Venita Hagerty
 Abstract:
@@ -10,7 +10,7 @@ Parameters: N/A
 Input Files: load_spec XML file
 Output Files: N/A
 Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
-'''
+"""
 
 import sys
 import os
@@ -57,7 +57,7 @@ class XmlLoadFile:
         self.line_types = []
 
     def read_xml(self):
-        """! Read in load_spec xml file, sotre values as attributes
+        """! Read in load_spec xml file, store values as class attributes
             Returns:
                N/A
         """
@@ -70,7 +70,7 @@ class XmlLoadFile:
             print("***", sys.exc_info()[0], "in", "read_xml", "***")
 
         folder_template = None
-        template_fillins = {}
+        template_fills = {}
 
         try:
             # extract values from load_spec XML tags, store in attributes of class XmlLoadFile
@@ -102,7 +102,7 @@ class XmlLoadFile:
                         template_values = []
                         for template_value in list(subchild):
                             template_values.append(template_value.text)
-                        template_fillins[template_key] = template_values
+                        template_fills[template_key] = template_values
                 elif child.tag.lower() == "verbose":
                     if child.text.lower() == CN.LCTRUE:
                         self.verbose = True
@@ -163,16 +163,21 @@ class XmlLoadFile:
         except (RuntimeError, TypeError, NameError):
             print("***", sys.exc_info()[0], "in", "read_xml", "***")
 
-
         print("group is:", self.group)
         print("db_name is:", self.db_name)
 
+        # generate all possible path/filenames from folder template
         if folder_template is not None:
-            self.load_files = self.filenames_from_template(folder_template, template_fillins)
+            self.load_files = self.filenames_from_template(folder_template, template_fills)
+
+        # this removes duplicate file names. do we want that?
+        if self.load_files is not None:
+            self.load_files = list(dict.fromkeys(self.load_files))
 
         print("load_files are:", len(self.load_files), self.load_files)
 
-    def filenames_from_template(self, folder_template, template_fillins):
+    @staticmethod
+    def filenames_from_template(folder_template, template_fills):
         """! given a folder template and the values to fill in, generates list of filenames
             Returns:
                list of filenames
@@ -181,31 +186,31 @@ class XmlLoadFile:
 
         try:
 
-            fillins_open = folder_template.count("{")
-            if fillins_open != folder_template.count("}"):
+            fills_open = folder_template.count("{")
+            if fills_open != folder_template.count("}"):
                 raise ValueError("mismatched curly braces")
-            # remove any values that are not in the template
-            if template_fillins:
-                copy_template_fillins = dict(template_fillins)
-                for key in copy_template_fillins:
+            # remove any fill values that are not in the template
+            if template_fills:
+                copy_template_fills = dict(template_fills)
+                for key in copy_template_fills:
                     if key not in folder_template:
-                        del template_fillins[key]
-            if fillins_open > len(template_fillins):
-                raise ValueError("not enough template fillin values")
+                        del template_fills[key]
+            if fills_open > len(template_fills):
+                raise ValueError("not enough template fill values")
             # generate a list of directories with all combinations of values filled in
             load_dirs = [folder_template]
-            for key in template_fillins:
+            for key in template_fills:
                 alist = []
-                for fvalue in template_fillins[key]:
-                    for wvalue in load_dirs:
-                        alist.append(wvalue.replace("{" + key + "}", fvalue))
+                for fvalue in template_fills[key]:
+                    for tvalue in load_dirs:
+                        alist.append(tvalue.replace("{" + key + "}", fvalue))
                 load_dirs = alist
             # find all files in directories, append path to them, and put on load_files list
             file_list = []
             for file_dir in load_dirs:
                 for file_name in os.listdir(file_dir):
                     file_list.append(file_dir + "/" + file_name)
-            print("template_fillins are:", template_fillins)
+            print("template_fills are:", template_fills)
             print("load_dirs", load_dirs)
 
         except ValueError as value_error:
