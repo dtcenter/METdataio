@@ -12,11 +12,14 @@ Output Files: N/A
 Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
 """
 
+# pylint:disable=no-member
+# constants exist in constants.py
+
 import sys
 from pathlib import Path
 import pandas as pd
 
-import METdb.METdbLoad.ush.constants as CN
+import constants as CN
 
 
 class ReadDataFiles:

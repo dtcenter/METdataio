@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Define constants."""
 
+# pylint:disable=no-member
+# constants exist in constants.py
+
 # name to use for a group when no group tag is included in load_spec
 DEFAULT_DATABASE_GROUP = "NO GROUP"
 

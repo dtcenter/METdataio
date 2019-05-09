@@ -12,11 +12,14 @@ Output Files: N/A
 Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
 """
 
+# pylint:disable=import-error
+# imported modules exist
+
 import argparse
 import sys
 
-import METdb.METdbLoad.ush.read_load_xml as RX
-import METdb.METdbLoad.ush.read_data_files as RD
+from read_load_xml import XmlLoadFile
+from read_data_files import ReadDataFiles
 
 
 def main():
@@ -44,7 +47,7 @@ def main():
         print("XML filename is ", args.xmlfile)
 
         # instantiate a load_spec XML file
-        xml_loadfile = RX.XmlLoadFile(args.xmlfile)
+        xml_loadfile = XmlLoadFile(args.xmlfile)
 
         # read in the XML file and get the information out of its tags
         xml_loadfile.read_xml()
@@ -53,7 +56,7 @@ def main():
         print("***", sys.exc_info()[0], "occurred in Main ***")
 
     try:
-        file_data = RD.ReadDataFiles()
+        file_data = ReadDataFiles()
 
         file_data.read_data(xml_loadfile.load_files)
 

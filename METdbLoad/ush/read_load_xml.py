@@ -12,10 +12,14 @@ Output Files: N/A
 Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
 """
 
+# pylint:disable=no-member
+# constants exist in constants.py
+
 import sys
 import os
 from lxml import etree
-import METdb.METdbLoad.ush.constants as CN
+
+import constants as CN
 
 
 class XmlLoadFile:
