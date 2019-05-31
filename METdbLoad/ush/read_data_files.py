@@ -17,7 +17,7 @@ Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 
 import sys
 from pathlib import Path
-from datetime import timedelta
+import numpy as np
 import pandas as pd
 
 import constants as CN
@@ -32,7 +32,7 @@ class ReadDataFiles:
     def __init__(self):
         self.cache = {}
 
-    def read_data(self, load_files):
+    def read_data(self, load_files, load_flags, line_types):
         """ Read in data files as given in load_spec xml file.
             Returns:
                N/A
@@ -54,37 +54,51 @@ class ReadDataFiles:
                     # older MET files may be missing DESC
                     # handle variable number of fields
                     if filename.lower().endswith(".stat"):
-                        file_hdr = pd.read_csv(filename, delim_whitespace=True, names=range(100),nrows=1)
+                        file_hdr = \
+                            pd.read_csv(filename, delim_whitespace=True,
+                                        names=range(CN.MAX_COL), nrows=1)
                         print(file_hdr.iloc[0])
 
                         if not file_hdr.iloc[0].str.contains(CN.DESC).any():
                             print("Old MET file - no DESC")
                             hdr_names = CN.SHORT_HEADER + CN.COL_NUMS
-                            one_file = pd.read_csv(filename, delim_whitespace=True, names=hdr_names, skiprows=1,
-                                                   parse_dates=[CN.FCST_VALID_BEG, CN.FCST_VALID_END,
-                                                                CN.OBS_VALID_BEG,CN.OBS_VALID_END],
-                                                   date_parser=self.cached_date_parser)
+                            one_file = pd.read_csv(filename, delim_whitespace=True,
+                                                   names=hdr_names, skiprows=1,
+                                                   parse_dates=[CN.FCST_VALID_BEG,
+                                                                CN.FCST_VALID_END,
+                                                                CN.OBS_VALID_BEG,
+                                                                CN.OBS_VALID_END],
+                                                   date_parser=self.cached_date_parser,
+                                                   keep_default_na=False, na_values='')
 
-                            one_file.insert(2, CN.DESC, "NA")
-                            one_file.insert(10, CN.FCST_UNITS, "NA")
-                            one_file.insert(13, CN.OBS_UNITS, "NA")
+                            one_file.insert(2, CN.DESC, CN.NOTAV)
+                            one_file.insert(10, CN.FCST_UNITS, CN.NOTAV)
+                            one_file.insert(13, CN.OBS_UNITS, CN.NOTAV)
 
                         elif not file_hdr.iloc[0].str.contains(CN.FCST_UNITS).any():
                             print("Older MET file - no FCST_UNITS")
                             hdr_names = CN.MID_HEADER + CN.COL_NUMS
-                            one_file = pd.read_csv(filename, delim_whitespace=True, names=hdr_names, skiprows=1,
-                                                   parse_dates=[CN.FCST_VALID_BEG, CN.FCST_VALID_END,
-                                                                CN.OBS_VALID_BEG, CN.OBS_VALID_END],
-                                                   date_parser=self.cached_date_parser)
-                            one_file.insert(10, CN.FCST_UNITS, "NA")
-                            one_file.insert(13, CN.OBS_UNITS, "NA")
+                            one_file = pd.read_csv(filename, delim_whitespace=True,
+                                                   names=hdr_names, skiprows=1,
+                                                   parse_dates=[CN.FCST_VALID_BEG,
+                                                                CN.FCST_VALID_END,
+                                                                CN.OBS_VALID_BEG,
+                                                                CN.OBS_VALID_END],
+                                                   date_parser=self.cached_date_parser,
+                                                   keep_default_na=False, na_values='')
+                            one_file.insert(10, CN.FCST_UNITS, CN.NOTAV)
+                            one_file.insert(13, CN.OBS_UNITS, CN.NOTAV)
 
                         else:
                             hdr_names = CN.LONG_HEADER + CN.COL_NUMS
-                            one_file = pd.read_csv(filename, delim_whitespace=True, names=hdr_names, skiprows=1,
-                                                   parse_dates=[CN.FCST_VALID_BEG, CN.FCST_VALID_END,
-                                                                CN.OBS_VALID_BEG, CN.OBS_VALID_END],
-                                                   date_parser=self.cached_date_parser)
+                            one_file = pd.read_csv(filename, delim_whitespace=True,
+                                                   names=hdr_names, skiprows=1,
+                                                   parse_dates=[CN.FCST_VALID_BEG,
+                                                                CN.FCST_VALID_END,
+                                                                CN.OBS_VALID_BEG,
+                                                                CN.OBS_VALID_END],
+                                                   date_parser=self.cached_date_parser,
+                                                   keep_default_na=False, na_values='')
 
                         print(one_file.iloc[0])
                     elif filename.lower().endswith(".vsdb"):
@@ -100,27 +114,70 @@ class ReadDataFiles:
 
                     # re-initialize pandas dataframes before reading next file
                     if not one_file.empty:
-                        all_stat = all_stat.append(one_file)
+                        all_stat = all_stat.append(one_file, ignore_index=True)
                         print("Size of", filename, one_file.size)
                         file_hdr = file_hdr.iloc[0:0]
                         one_file = one_file.iloc[0:0]
 
-        except (RuntimeError, TypeError, NameError):
+        except (RuntimeError, TypeError, NameError, KeyError):
             print("***", sys.exc_info()[0], "in", "read_data", "***")
 
-        print("Size of all files", all_stat.size)
-        # todo: figure out how to calculate the fcst_init_beg column
-        # all_stat[CN.FCST_INIT_BEG] = \
-        #    all_stat[CN.FCST_VALID_BEG].sub(timedelta(seconds=all_stat[CN.FCST_LEAD].mul(.36)))
-        print(all_stat.iloc[0])
+        print("Shape of all_stat before", all_stat.shape)
+        print(all_stat.groupby(CN.LINE_TYPE).count())
 
-    def cached_date_parser(self, s):
+        try:
+
+            # remove any lines that have invalid line_types
+            all_stat = all_stat.drop(all_stat[~all_stat.LINE_TYPE.isin(CN.UC_LINE_TYPES)].index)
+            all_stat.reset_index(drop=True, inplace=True)
+
+            # if user specified line types to load, delete the rest
+            if load_flags["line_type_load"]:
+                all_stat = all_stat.drop(all_stat[~all_stat.LINE_TYPE.isin(line_types)].index)
+                all_stat.reset_index(drop=True, inplace=True)
+
+            # if XML has flag to not load MPR records, delete them
+            if not load_flags["load_mpr"]:
+                all_stat = all_stat.drop(all_stat[all_stat.LINE_TYPE == CN.MPR.upper()].index)
+                all_stat.reset_index(drop=True, inplace=True)
+
+            # if XML has flag to not load ORANK records, delete them
+            if not load_flags["load_orank"]:
+                all_stat = all_stat.drop(all_stat[all_stat.LINE_TYPE == CN.ORANK.upper()].index)
+                all_stat.reset_index(drop=True, inplace=True)
+
+            # Copy forecast lead times, without trailing 0000 if they have them
+            all_stat[CN.FCST_LEAD_HR] = \
+                np.where(all_stat[CN.FCST_LEAD] > 9999,
+                         all_stat[CN.FCST_LEAD] // 10000,
+                         all_stat[CN.FCST_LEAD])
+
+            # Calculate fcst_init_beg = fcst_valid_beg - fcst_lead hours
+            all_stat.insert(6, CN.FCST_INIT_BEG, CN.NOTAV)
+            all_stat[CN.FCST_INIT_BEG] = all_stat[CN.FCST_VALID_BEG] - \
+                                         pd.to_timedelta(all_stat[CN.FCST_LEAD_HR], unit='h')
+            print(all_stat.iloc[0])
+
+            print("Shape of all_stat after", all_stat.shape)
+            print(all_stat.groupby(CN.LINE_TYPE).count())
+
+            print(all_stat.COV_THRESH.unique())
+            print(all_stat.ALPHA.unique())
+            print(all_stat.dtypes)
+
+        except (RuntimeError, TypeError, NameError, KeyError):
+            print("***", sys.exc_info()[0], "in", "read_data", "***")
+
+    def cached_date_parser(self, date_str):
+        """ if date is repeated and already converted, return that value.
+            Returns:
+               date in datetime format
+        """
         # if date is repeated and already converted, return that value
-        if s in self.cache:
-            return self.cache[s]
-        if (s.startswith('F') or s.startswith('O')):
+        if date_str in self.cache:
+            return self.cache[date_str]
+        if (date_str.startswith('F') or date_str.startswith('O')):
             return pd.to_datetime('20000101_000000', format='%Y%m%d_%H%M%S')
-        dt = pd.to_datetime(s, format='%Y%m%d_%H%M%S')
-        self.cache[s] = dt
-        return dt
-
+        date_time = pd.to_datetime(date_str, format='%Y%m%d_%H%M%S')
+        self.cache[date_str] = date_time
+        return date_time

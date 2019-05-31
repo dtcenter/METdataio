@@ -71,7 +71,7 @@ class XmlLoadFile:
             tree = etree.parse(self.xmlfilename)
             root = tree.getroot()
             print(root.tag)
-        except (RuntimeError, TypeError, NameError):
+        except (RuntimeError, TypeError, NameError, KeyError):
             print("***", sys.exc_info()[0], "in", "read_xml", "***")
 
         folder_template = None
@@ -165,7 +165,7 @@ class XmlLoadFile:
                         self.line_types.append(subchild.text)
                 else:
                     print("unknown tag:", child.tag)
-        except (RuntimeError, TypeError, NameError):
+        except (RuntimeError, TypeError, NameError, KeyError):
             print("***", sys.exc_info()[0], "in", "read_xml", "***")
 
         print("group is:", self.group)
@@ -221,7 +221,7 @@ class XmlLoadFile:
         except ValueError as value_error:
             print("***", sys.exc_info()[0], "in", "filenames_from_template", "***")
             print(value_error)
-        except (RuntimeError, TypeError, NameError):
+        except (RuntimeError, TypeError, NameError, KeyError):
             print("***", sys.exc_info()[0], "in", "filenames_from_template", "***")
 
         return file_list

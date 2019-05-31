@@ -52,15 +52,17 @@ def main():
         # read in the XML file and get the information out of its tags
         xml_loadfile.read_xml()
 
-    except (RuntimeError, TypeError, NameError):
+    except (RuntimeError, TypeError, NameError, KeyError):
         print("***", sys.exc_info()[0], "occurred in Main ***")
 
     try:
         file_data = ReadDataFiles()
 
-        file_data.read_data(xml_loadfile.load_files)
+        file_data.read_data(xml_loadfile.load_files,
+                            xml_loadfile.flags,
+                            xml_loadfile.line_types)
 
-    except (RuntimeError, TypeError, NameError):
+    except (RuntimeError, TypeError, NameError, KeyError):
         print("***", sys.exc_info()[0], "occurred in Main ***")
 
     print("--- End METdbLoad ---")
