@@ -11,42 +11,46 @@ DEFAULT_DATABASE_GROUP = "NO GROUP"
 MAX_COL = 120
 
 # line types
-FHO = "fho"
-CTC = "ctc"
-CTS = "cts"
-MCTC = "mctc"
-MCTS = "mcts"
-CNT = "cnt"
-SL1L2 = "sl1l2"
-SAL1L2 = "sal1l2"
-VL1L2 = "vl1l2"
-VAL1L2 = "val1l2"
-PCT = "pct"
-PSTD = "pstd"
-PJC = "pjc"
-PRC = "prc"
-ECLV = "eclv"
-MPR = "mpr"
-NBRCTC = "nbrctc"
-NBRCTS = "nbrcts"
-NBRCNT = "nbrcnt"
-ISC = "isc"
-RHIST = "rhist"
-PHIST = "phist"
-ORANK = "orank"
-SSVAR = "ssvar"
-GRAD = "grad"
-VCNT = "vcnt"
-RELP = "relp"
-ECNT = "ecnt"
-ENSCNT = "enscnt"
-PERC = "perc"
+FHO = "FHO"
+CTC = "CTC"
+CTS = "CTS"
+MCTC = "MCTC"
+MCTS = "MCTS"
+CNT = "CNT"
+SL1L2 = "SL1L2"
+SAL1L2 = "SAL1L2"
+VL1L2 = "VL1L2"
+VAL1L2 = "VAL1L2"
+PCT = "PCT"
+PSTD = "PSTD"
+PJC = "PJC"
+PRC = "PRC"
+ECLV = "ECLV"
+MPR = "MPR"
+NBRCTC = "NBRCTC"
+NBRCTS = "NBRCTS"
+NBRCNT = "NBRCNT"
+ISC = "ISC"
+RHIST = "RHIST"
+PHIST = "PHIST"
+ORANK = "ORANK"
+SSVAR = "SSVAR"
+GRAD = "GRAD"
+VCNT = "VCNT"
+RELP = "RELP"
+ECNT = "ECNT"
+ENSCNT = "ENSCNT"
+PERC = "PERC"
 
 LINE_TYPES = [FHO, CTC, CTS, MCTC, MCTS, CNT, SL1L2, SAL1L2, VL1L2, VAL1L2,
               PCT, PSTD, PJC, PRC, ECLV, MPR, NBRCTC, NBRCTS, NBRCNT, ISC,
               RHIST, PHIST, ORANK, SSVAR, GRAD, VCNT, RELP, ECNT, ENSCNT, PERC]
 
-UC_LINE_TYPES = [ltype.upper() for ltype in LINE_TYPES]
+LC_LINE_TYPES = [ltype.lower() for ltype in LINE_TYPES]
+
+ALPHA_LINE_TYPES = [CTS, CNT, PSTD, NBRCTS, NBRCNT, MCTS, SSVAR, VCNT]
+
+COV_THRESH_LINE_TYPES = [NBRCTC, NBRCTS, PCT, PSTD, PJC, PRC]
 
 # Lower Case true and false
 LCTRUE = "true"

@@ -17,6 +17,7 @@ Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 
 import sys
 import os
+import logging
 from lxml import etree
 
 import constants as CN
@@ -66,13 +67,16 @@ class XmlLoadFile:
             Returns:
                N/A
         """
+
+        logging.debug("--- Start read_xml ---")
+
         try:
             # parse the XML file
             tree = etree.parse(self.xmlfilename)
             root = tree.getroot()
-            print(root.tag)
+
         except (RuntimeError, TypeError, NameError, KeyError):
-            print("***", sys.exc_info()[0], "in", "read_xml", "***")
+            logging.error("*** %s in read_xml ***", sys.exc_info()[0])
 
         folder_template = None
         template_fills = {}
@@ -80,9 +84,6 @@ class XmlLoadFile:
         try:
             # extract values from load_spec XML tags, store in attributes of class XmlLoadFile
             for child in root:
-                print("child: ", child.tag, child.text)
-                for subchild in list(child):
-                    print("subchild: ", subchild.tag, subchild.text)
                 if child.tag.lower() == "connection":
                     for subchild in list(child):
                         if subchild.tag.lower() == "host":
@@ -162,14 +163,14 @@ class XmlLoadFile:
                 elif child.tag.lower() == "line_type":
                     self.flags['line_type_load'] = True
                     for subchild in list(child):
-                        self.line_types.append(subchild.text)
+                        self.line_types.append(subchild.text.upper())
                 else:
-                    print("unknown tag:", child.tag)
+                    logging.warning("Unknown tag: %s", child.tag)
         except (RuntimeError, TypeError, NameError, KeyError):
-            print("***", sys.exc_info()[0], "in", "read_xml", "***")
+            logging.error("*** %s in read_xml ***", sys.exc_info()[0])
 
-        print("group is:", self.group)
-        print("db_name is:", self.db_name)
+        logging.debug("group is: %s", self.group)
+        logging.debug("db_name is: %s", self.db_name)
 
         # generate all possible path/filenames from folder template
         if folder_template is not None:
@@ -179,7 +180,10 @@ class XmlLoadFile:
         if self.load_files is not None:
             self.load_files = list(dict.fromkeys(self.load_files))
 
-        print("load_files are:", len(self.load_files), self.load_files)
+        logging.debug("Load_files are: %s %s", str(len(self.load_files)), self.load_files)
+
+        logging.debug("--- End read_xml ---")
+
 
     @staticmethod
     def filenames_from_template(folder_template, template_fills):
@@ -187,7 +191,7 @@ class XmlLoadFile:
             Returns:
                list of filenames
         """
-        print("folder template is:", folder_template)
+        logging.debug("folder template is: %s", folder_template)
 
         try:
 
@@ -215,13 +219,11 @@ class XmlLoadFile:
             for file_dir in load_dirs:
                 for file_name in os.listdir(file_dir):
                     file_list.append(file_dir + "/" + file_name)
-            print("template_fills are:", template_fills)
-            print("load_dirs", load_dirs)
 
         except ValueError as value_error:
-            print("***", sys.exc_info()[0], "in", "filenames_from_template", "***")
-            print(value_error)
+            logging.debug("*** %s in filenames_from_template ***", sys.exc_info()[0])
+            logging.debug(value_error)
         except (RuntimeError, TypeError, NameError, KeyError):
-            print("***", sys.exc_info()[0], "in", "filenames_from_template", "***")
+            logging.debug("*** %s in filenames_from_template ***", sys.exc_info()[0])
 
         return file_list
