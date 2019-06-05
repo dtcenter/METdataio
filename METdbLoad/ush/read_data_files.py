@@ -32,6 +32,7 @@ class ReadDataFiles:
 
     def __init__(self):
         self.cache = {}
+        self.stat_data = pd.DataFrame()
 
     def read_data(self, load_files, load_flags, line_types):
         """ Read in data files as given in load_spec xml file.
@@ -48,6 +49,7 @@ class ReadDataFiles:
         one_file = pd.DataFrame()
         all_stat = pd.DataFrame()
 
+
         try:
             # Check to make sure files exist
             for filename in load_files:
@@ -58,22 +60,19 @@ class ReadDataFiles:
                     # handle variable number of fields
                     if filename.lower().endswith(".stat"):
                         # Get the first line of the .stat file that has the headers
-                        file_hdr = \
-                            pd.read_csv(filename, delim_whitespace=True,
-                                        names=range(CN.MAX_COL), nrows=1)
+                        file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                                               names=range(CN.MAX_COL), nrows=1)
+
+                        # MET file has no headers and no test - it's empty
+                        if file_hdr.empty:
+                            logging.warning("Stat file %s is empty", filename)
+                            continue
 
                         # Add a DESC column if the data file does not have one
                         if not file_hdr.iloc[0].str.contains(CN.DESC).any():
                             logging.debug("Old MET file - no DESC")
                             hdr_names = CN.SHORT_HEADER + CN.COL_NUMS
-                            one_file = pd.read_csv(filename, delim_whitespace=True,
-                                                   names=hdr_names, skiprows=1,
-                                                   parse_dates=[CN.FCST_VALID_BEG,
-                                                                CN.FCST_VALID_END,
-                                                                CN.OBS_VALID_BEG,
-                                                                CN.OBS_VALID_END],
-                                                   date_parser=self.cached_date_parser,
-                                                   keep_default_na=False, na_values='')
+                            one_file = self.read_stat(filename, hdr_names)
 
                             # If the file has no DESC column, add UNITS as well
                             one_file.insert(2, CN.DESC, CN.NOTAV)
@@ -84,27 +83,14 @@ class ReadDataFiles:
                         elif not file_hdr.iloc[0].str.contains(CN.FCST_UNITS).any():
                             logging.debug("Older MET file - no FCST_UNITS")
                             hdr_names = CN.MID_HEADER + CN.COL_NUMS
-                            one_file = pd.read_csv(filename, delim_whitespace=True,
-                                                   names=hdr_names, skiprows=1,
-                                                   parse_dates=[CN.FCST_VALID_BEG,
-                                                                CN.FCST_VALID_END,
-                                                                CN.OBS_VALID_BEG,
-                                                                CN.OBS_VALID_END],
-                                                   date_parser=self.cached_date_parser,
-                                                   keep_default_na=False, na_values='')
+                            one_file = self.read_stat(filename, hdr_names)
+
                             one_file.insert(10, CN.FCST_UNITS, CN.NOTAV)
                             one_file.insert(13, CN.OBS_UNITS, CN.NOTAV)
 
                         else:
                             hdr_names = CN.LONG_HEADER + CN.COL_NUMS
-                            one_file = pd.read_csv(filename, delim_whitespace=True,
-                                                   names=hdr_names, skiprows=1,
-                                                   parse_dates=[CN.FCST_VALID_BEG,
-                                                                CN.FCST_VALID_END,
-                                                                CN.OBS_VALID_BEG,
-                                                                CN.OBS_VALID_END],
-                                                   date_parser=self.cached_date_parser,
-                                                   keep_default_na=False, na_values='')
+                            one_file = self.read_stat(filename, hdr_names)
 
                     elif filename.lower().endswith(".vsdb"):
                         one_file = pd.read_csv(filename, delim_whitespace=True, names=range(100))
@@ -114,14 +100,17 @@ class ReadDataFiles:
 
                     # keep track of files containing data for creating data_file records later
 
-                    # after file is transformed, add this data to collection(s) of data
-
                     # re-initialize pandas dataframes before reading next file
                     if not one_file.empty:
                         all_stat = all_stat.append(one_file, ignore_index=True)
-                        logging.debug("Size of %s is %s", filename, str(one_file.size))
+                        logging.debug("Lines in %s: %s", filename, str(one_file.size))
                         file_hdr = file_hdr.iloc[0:0]
                         one_file = one_file.iloc[0:0]
+                    else:
+                        logging.warning("Empty file %s", filename)
+                        continue
+                else:
+                    logging.warning("No file %s", filename)
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data ***", sys.exc_info()[0])
@@ -193,10 +182,26 @@ class ReadDataFiles:
             logging.debug("Unique COV_THRESH values: %s", str(all_stat.COV_THRESH.unique()))
             logging.debug("Unique INTERP_PNTS: %s", str(all_stat.INTERP_PNTS.unique()))
 
+            self.stat_data = all_stat
+
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data ***", sys.exc_info()[0])
 
         logging.debug("--- End read_data ---")
+
+    def read_stat(self, filename, hdr_names):
+        """ Read in all of the lines except the header of a stat file.
+            Returns:
+               all the stat lines in a dataframe, with dates converted to datetime
+        """
+        return pd.read_csv(filename, delim_whitespace=True,
+                           names=hdr_names, skiprows=1,
+                           parse_dates=[CN.FCST_VALID_BEG,
+                                        CN.FCST_VALID_END,
+                                        CN.OBS_VALID_BEG,
+                                        CN.OBS_VALID_END],
+                           date_parser=self.cached_date_parser,
+                           keep_default_na=False, na_values='')
 
     def cached_date_parser(self, date_str):
         """ if date is repeated and already converted, return that value.

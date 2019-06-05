@@ -26,7 +26,7 @@ from read_data_files import ReadDataFiles
 
 
 def main():
-    """! Class to read in load_spec xml file
+    """ Main program to load files into the METdb/METviewer database
         Returns:
            N/A
     """
@@ -64,19 +64,65 @@ def main():
         logging.error("*** %s occurred in Main reading XML ***", sys.exc_info()[0])
 
     try:
-        # instantiate a read data files object
-        file_data = ReadDataFiles()
+        # If user set flags to not read files, remove those files from load_files list
+        xml_loadfile.load_files = purge_files(xml_loadfile.load_files, xml_loadfile.flags)
 
-        # read in the data files, with options specified by XML flags
-        file_data.read_data(xml_loadfile.load_files,
-                            xml_loadfile.flags,
-                            xml_loadfile.line_types)
+    except (RuntimeError, TypeError, NameError, KeyError):
+        logging.error("*** %s occurred in Main purging files not selected ***", sys.exc_info()[0])
+
+
+    try:
+
+        if xml_loadfile.load_files:
+            # instantiate a read data files object
+            file_data = ReadDataFiles()
+
+            # read in the data files, with options specified by XML flags
+            file_data.read_data(xml_loadfile.load_files,
+                                xml_loadfile.flags,
+                                xml_loadfile.line_types)
+        else:
+            # Warn user if no files were given or if no files left after purge
+            logging.warning("No files to load")
 
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main reading data ***", sys.exc_info()[0])
 
     logging.info("End time: %s", str(datetime.now()))
     logging.info("--- *** --- End METdbLoad --- *** ---")
+
+def purge_files(load_files, xml_flags):
+    """ remove any files from load list that user has disallowed in XML tags
+        Returns:
+           List with files user wants to load
+    """
+
+    updated_list = load_files
+
+    try:
+        # Remove names of MET and VSDB files if user set load_stat tag to false
+        if not xml_flags["load_stat"]:
+            updated_list = [item for item in updated_list
+                            if not (item.lower().endswith(".stat") or
+                                    item.lower().endswith(".vsdb"))]
+
+        # Remove names of MODE files if user set load_mode tag to false
+        if not xml_flags["load_mode"] and updated_list:
+            updated_list = [item for item in updated_list
+                            if not (item.lower().endswith("cts.txt") or
+                                    item.lower().endswith("obj.txt"))]
+
+        # Remove names of MTD files if user set load_mtd tag to false
+        if not xml_flags["load_mtd"] and updated_list:
+            updated_list = [item for item in updated_list
+                            if not (item.lower().endswith("2d.txt") or
+                                    "3d_s" in item.lower() or
+                                    "3d_p" in item.lower())]
+
+    except (RuntimeError, TypeError, NameError, KeyError):
+        logging.error("*** %s occurred in purge_files ***", sys.exc_info()[0])
+
+    return updated_list
 
 
 if __name__ == '__main__':
