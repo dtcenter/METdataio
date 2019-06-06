@@ -95,7 +95,13 @@ class XmlLoadFile:
                         elif subchild.tag.lower() == "database":
                             self.db_name = subchild.text
                         elif subchild.tag.lower() == "management_system":
-                            self.db_user = subchild.text
+                            self.db_management_system = subchild.text
+                    if (not self.db_host) or (not self.db_name):
+                        logging.warning("XML must include host and database tags")
+                    if (not self.db_user) or (not self.db_password):
+                        logging.warning("XML must include user and passsword tags")
+                    if not self.db_name.startswith("mv_"):
+                        logging.warning("Database not visible unless name starts with mv_")
                 elif child.tag.lower() == "load_files":
                     for subchild in list(child):
                         self.load_files.append(subchild.text)
@@ -221,9 +227,9 @@ class XmlLoadFile:
                     file_list.append(file_dir + "/" + file_name)
 
         except ValueError as value_error:
-            logging.debug("*** %s in filenames_from_template ***", sys.exc_info()[0])
-            logging.debug(value_error)
+            logging.error("*** %s in filenames_from_template ***", sys.exc_info()[0])
+            logging.error(value_error)
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.debug("*** %s in filenames_from_template ***", sys.exc_info()[0])
+            logging.error("*** %s in filenames_from_template ***", sys.exc_info()[0])
 
         return file_list
