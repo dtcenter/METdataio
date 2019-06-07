@@ -122,10 +122,13 @@ class ReadDataFiles:
             # delete any lines that have invalid line_types
             invalid_line_indexes = all_stat[~all_stat.LINE_TYPE.isin(CN.LINE_TYPES)].index
 
-            logging.warning("Warning, invalid line_types:")
-            logging.warning("line types: %s", str(all_stat.iloc[invalid_line_indexes].LINE_TYPE))
+            if not invalid_line_indexes.empty:
 
-            all_stat = all_stat.drop(invalid_line_indexes, axis=0)
+                logging.warning("Warning, invalid line_types:")
+                logging.warning("line types: %s",
+                                str(all_stat.iloc[invalid_line_indexes].LINE_TYPE))
+
+                all_stat = all_stat.drop(invalid_line_indexes, axis=0)
 
             # if user specified line types to load, delete the rest
             if load_flags["line_type_load"]:
@@ -156,14 +159,18 @@ class ReadDataFiles:
             logging.debug("Shape of all_stat after: %s", str(all_stat.shape))
 
             # print a warning message with data if value of alpha for an alpha line type is NA
-            logging.warning("ALPHA line_type has ALPHA value of NA:\r\n %s",
-                            str(all_stat[(all_stat.LINE_TYPE.isin(CN.ALPHA_LINE_TYPES)) &
-                                         (all_stat.ALPHA == 'NA')].LINE_TYPE))
+            alpha_lines = all_stat[(all_stat.LINE_TYPE.isin(CN.ALPHA_LINE_TYPES)) &
+                                   (all_stat.ALPHA == 'NA')].LINE_TYPE
+            if not alpha_lines.empty:
+                logging.warning("ALPHA line_type has ALPHA value of NA:\r\n %s",
+                                str(alpha_lines))
 
             # print a warning message with data if non-alpha line type has float value
-            logging.warning("non-ALPHA line_type has ALPHA float value:\r\n %s",
-                            str(all_stat[(~all_stat.LINE_TYPE.isin(CN.ALPHA_LINE_TYPES)) &
-                                         (all_stat.ALPHA != 'NA')].LINE_TYPE))
+            non_alpha_lines = all_stat[(~all_stat.LINE_TYPE.isin(CN.ALPHA_LINE_TYPES)) &
+                                       (all_stat.ALPHA != 'NA')].LINE_TYPE
+            if not non_alpha_lines.empty:
+                logging.warning("non-ALPHA line_type has ALPHA float value:\r\n %s",
+                                str(non_alpha_lines))
 
             # Change ALL items in column ALPHA to -9999 if they are 'NA'
             all_stat.loc[all_stat.ALPHA == 'NA', CN.ALPHA] = -9999
