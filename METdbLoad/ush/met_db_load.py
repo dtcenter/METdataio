@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Program Name: METdbLoad.py
+Program Name: met_db_load.py
 Contact(s): Venita Hagerty
 Abstract:
 History Log:  Initial version
@@ -21,9 +21,11 @@ import logging
 import sys
 import os
 
+import constants as CN
+
 from read_load_xml import XmlLoadFile
 from read_data_files import ReadDataFiles
-
+from write_stat_sql import WriteStatSql
 
 def main():
     """ Main program to load files into the METdb/METviewer database
@@ -47,10 +49,9 @@ def main():
     # get the command line arguments
     args = parser.parse_args()
 
-    # if -index is used, only process the index
-    if args.index:
-        logging.debug("-index is true - only process index")
-
+    #
+    #  Read the XML file
+    #
     try:
         logging.debug("XML filename is %s", args.xmlfile)
 
@@ -63,6 +64,11 @@ def main():
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main reading XML ***", sys.exc_info()[0])
 
+
+    # if -index is used, only process the index
+    if args.index:
+        logging.debug("-index is true - only process index")
+
     try:
         # If user set flags to not read files, remove those files from load_files list
         xml_loadfile.load_files = purge_files(xml_loadfile.load_files, xml_loadfile.flags)
@@ -70,7 +76,9 @@ def main():
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main purging files not selected ***", sys.exc_info()[0])
 
-
+    #
+    #  Read the data files
+    #
     try:
 
         if xml_loadfile.load_files:
@@ -88,8 +96,23 @@ def main():
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main reading data ***", sys.exc_info()[0])
 
+    #
+    #  Write the data to a database
+    #
+    try:
+
+        if not file_data.stat_data.empty and \
+                xml_loadfile.connection['db_management_system'] in CN.RELATIONAL:
+            stat_lines = WriteStatSql()
+
+            stat_lines.write_sql_data(xml_loadfile.connection, file_data.stat_data)
+
+    except (RuntimeError, TypeError, NameError, KeyError):
+        logging.error("*** %s occurred in Main writing data ***", sys.exc_info()[0])
+
     logging.info("End time: %s", str(datetime.now()))
     logging.info("--- *** --- End METdbLoad --- *** ---")
+
 
 def purge_files(load_files, xml_flags):
     """ remove any files from load list that user has disallowed in XML tags

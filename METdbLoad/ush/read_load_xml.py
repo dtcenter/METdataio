@@ -32,11 +32,15 @@ class XmlLoadFile:
     def __init__(self, xmlfile):
         # set the defaults
         self.xmlfilename = xmlfile
-        self.db_host = None
-        self.db_name = None
-        self.db_user = None
-        self.db_password = None
-        self.db_management_system = "mysql"
+
+        self.connection = {}
+        self.connection['db_host'] = None
+        self.connection['db_port'] = CN.SQL_PORT
+        self.connection['db_name'] = None
+        self.connection['db_user'] = None
+        self.connection['db_password'] = None
+        self.connection['db_management_system'] = "mysql"
+
         self.db_driver = None
         self.insert_size = 1
         self.load_note = None
@@ -87,20 +91,24 @@ class XmlLoadFile:
                 if child.tag.lower() == "connection":
                     for subchild in list(child):
                         if subchild.tag.lower() == "host":
-                            self.db_host = subchild.text
+                            host_and_port = subchild.text.split(":")
                         elif subchild.tag.lower() == "user":
-                            self.db_user = subchild.text
+                            self.connection['db_user'] = subchild.text
                         elif subchild.tag.lower() == "password":
-                            self.db_password = subchild.text
+                            self.connection['db_password'] = subchild.text
                         elif subchild.tag.lower() == "database":
-                            self.db_name = subchild.text
+                            self.connection['db_name'] = subchild.text
                         elif subchild.tag.lower() == "management_system":
-                            self.db_management_system = subchild.text
-                    if (not self.db_host) or (not self.db_name):
+                            self.connection['db_management_system'] = subchild.text
+                    # separate out the port if there is one
+                    self.connection['db_host'] = host_and_port[0]
+                    if len(host_and_port) > 1:
+                        self.connection['db_port'] = int(host_and_port[1])
+                    if (not self.connection['db_host']) or (not self.connection['db_name']):
                         logging.warning("XML must include host and database tags")
-                    if (not self.db_user) or (not self.db_password):
+                    if (not self.connection['db_user']) or (not self.connection['db_password']):
                         logging.warning("XML must include user and passsword tags")
-                    if not self.db_name.startswith("mv_"):
+                    if not self.connection['db_name'].startswith("mv_"):
                         logging.warning("Database not visible unless name starts with mv_")
                 elif child.tag.lower() == "load_files":
                     for subchild in list(child):
@@ -176,7 +184,7 @@ class XmlLoadFile:
             logging.error("*** %s in read_xml ***", sys.exc_info()[0])
 
         logging.debug("group is: %s", self.group)
-        logging.debug("db_name is: %s", self.db_name)
+        logging.debug("db_name is: %s", self.connection['db_name'])
 
         # generate all possible path/filenames from folder template
         if folder_template is not None:
