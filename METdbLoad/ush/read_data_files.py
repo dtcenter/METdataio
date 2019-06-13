@@ -18,6 +18,8 @@ Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 import sys
 from pathlib import Path
 import logging
+import time
+from datetime import timedelta
 import numpy as np
 import pandas as pd
 
@@ -41,6 +43,8 @@ class ReadDataFiles:
         """
 
         logging.debug("--- Start read_data ---")
+
+        read_time_start = time.perf_counter()
 
         # handle MET files, VSDB files, MODE files, and MTD files
 
@@ -193,6 +197,11 @@ class ReadDataFiles:
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data ***", sys.exc_info()[0])
+
+        read_time_end = time.perf_counter()
+        read_time = timedelta(seconds=read_time_end - read_time_start)
+
+        logging.info("    >>> Read time: %s", str(read_time))
 
         logging.debug("--- End read_data ---")
 

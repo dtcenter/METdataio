@@ -16,8 +16,10 @@ Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 # imported modules exist
 
 import argparse
-from datetime import datetime
 import logging
+import time
+from datetime import datetime
+from datetime import timedelta
 import sys
 import os
 
@@ -41,6 +43,9 @@ def main():
 
     logging.info("--- *** --- Start METdbLoad --- *** ---")
     logging.info("Begin time: %s", begin_time)
+
+    # time execution
+    load_time_start = time.perf_counter()
 
     parser = argparse.ArgumentParser()
     parser.add_argument("xmlfile", help="Please provide required xml load_spec filename")
@@ -110,6 +115,10 @@ def main():
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main writing data ***", sys.exc_info()[0])
 
+    load_time_end = time.perf_counter()
+    load_time = timedelta(seconds=load_time_end - load_time_start)
+
+    logging.info("    >>> Total load time: %s", str(load_time))
     logging.info("End time: %s", str(datetime.now()))
     logging.info("--- *** --- End METdbLoad --- *** ---")
 
