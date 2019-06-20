@@ -72,7 +72,7 @@ class XmlLoadFile:
                N/A
         """
 
-        logging.debug("--- Start read_xml ---")
+        logging.debug("[--- Start read_xml ---]")
 
         try:
             # parse the XML file
@@ -105,11 +105,11 @@ class XmlLoadFile:
                     if len(host_and_port) > 1:
                         self.connection['db_port'] = int(host_and_port[1])
                     if (not self.connection['db_host']) or (not self.connection['db_name']):
-                        logging.warning("XML must include host and database tags")
+                        logging.warning("!!! XML must include host and database tags")
                     if (not self.connection['db_user']) or (not self.connection['db_password']):
-                        logging.warning("XML must include user and passsword tags")
+                        logging.warning("!!! XML must include user and passsword tags")
                     if not self.connection['db_name'].startswith("mv_"):
-                        logging.warning("Database not visible unless name starts with mv_")
+                        logging.warning("!!! Database not visible unless name starts with mv_")
                 elif child.tag.lower() == "load_files":
                     for subchild in list(child):
                         self.load_files.append(subchild.text)
@@ -124,40 +124,40 @@ class XmlLoadFile:
                             template_values.append(template_value.text)
                         template_fills[template_key] = template_values
                 elif child.tag.lower() == "verbose":
-                    if child.text.lower() == CN.LCTRUE:
+                    if child.text.lower() == CN.LC_TRUE:
                         self.flags['verbose'] = True
                 elif child.tag.lower() == "drop_indexes":
-                    if child.text.lower() == CN.LCTRUE:
+                    if child.text.lower() == CN.LC_TRUE:
                         self.flags['drop_indexes'] = True
                 elif child.tag.lower() == "apply_indexes":
-                    if child.text.lower() == CN.LCFALSE:
+                    if child.text.lower() == CN.LC_FALSE:
                         self.flags['apply_indexes'] = False
                 elif child.tag.lower() == "stat_header_db_check":
-                    if child.text.lower() == CN.LCFALSE:
+                    if child.text.lower() == CN.LC_FALSE:
                         self.flags['stat_header_db_check'] = False
                 elif child.tag.lower() == "mode_header_db_check":
-                    if child.text.lower() == CN.LCFALSE:
+                    if child.text.lower() == CN.LC_FALSE:
                         self.flags['mode_header_db_check'] = False
                 elif child.tag.lower() == "mtd_header_db_check":
-                    if child.text.lower() == CN.LCFALSE:
+                    if child.text.lower() == CN.LC_FALSE:
                         self.flags['mtd_header_db_check'] = False
                 elif child.tag.lower() == "load_stat":
-                    if child.text.lower() == CN.LCFALSE:
+                    if child.text.lower() == CN.LC_FALSE:
                         self.flags['load_stat'] = False
                 elif child.tag.lower() == "load_mode":
-                    if child.text.lower() == CN.LCFALSE:
+                    if child.text.lower() == CN.LC_FALSE:
                         self.flags['load_mode'] = False
                 elif child.tag.lower() == "load_mtd":
-                    if child.text.lower() == CN.LCFALSE:
+                    if child.text.lower() == CN.LC_FALSE:
                         self.flags['load_mtd'] = False
                 elif child.tag.lower() == "load_mpr":
-                    if child.text.lower() == CN.LCTRUE:
+                    if child.text.lower() == CN.LC_TRUE:
                         self.flags['load_mpr'] = True
                 elif child.tag.lower() == "load_orank":
-                    if child.text.lower() == CN.LCTRUE:
+                    if child.text.lower() == CN.LC_TRUE:
                         self.flags['load_orank'] = True
                 elif child.tag.lower() == "force_dup_file":
-                    if child.text.lower() == CN.LCTRUE:
+                    if child.text.lower() == CN.LC_TRUE:
                         self.flags['force_dup_file'] = True
                 elif child.tag.lower() == "insert_size":
                     if child.text.isdigit():
@@ -171,7 +171,7 @@ class XmlLoadFile:
                 elif child.tag.lower() == "load_note":
                     self.load_note = child.text
                 elif child.tag.lower() == "load_xml":
-                    if child.text.lower() == CN.LCFALSE:
+                    if child.text.lower() == CN.LC_FALSE:
                         self.flags['load_xml'] = False
                 # MET line types to load. If omitted, all line types are loaded
                 elif child.tag.lower() == "line_type":
@@ -179,7 +179,7 @@ class XmlLoadFile:
                     for subchild in list(child):
                         self.line_types.append(subchild.text.upper())
                 else:
-                    logging.warning("Unknown tag: %s", child.tag)
+                    logging.warning("!!! Unknown tag: %s", child.tag)
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_xml ***", sys.exc_info()[0])
 
@@ -196,7 +196,7 @@ class XmlLoadFile:
 
         logging.debug("Load_files are: %s %s", str(len(self.load_files)), self.load_files)
 
-        logging.debug("--- End read_xml ---")
+        logging.debug("[--- End read_xml ---]")
 
 
     @staticmethod

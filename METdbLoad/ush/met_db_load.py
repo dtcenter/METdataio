@@ -96,7 +96,7 @@ def main():
                                 xml_loadfile.line_types)
         else:
             # Warn user if no files were given or if no files left after purge
-            logging.warning("No files to load")
+            logging.warning("!!! No files to load")
 
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main reading data ***", sys.exc_info()[0])
@@ -108,9 +108,9 @@ def main():
 
         if not file_data.stat_data.empty and \
                 xml_loadfile.connection['db_management_system'] in CN.RELATIONAL:
-            stat_lines = WriteStatSql()
+            stat_lines = WriteStatSql(xml_loadfile.connection)
 
-            stat_lines.write_sql_data(xml_loadfile.connection, file_data.stat_data)
+            stat_lines.write_sql_data(xml_loadfile.flags, file_data.stat_data)
 
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main writing data ***", sys.exc_info()[0])

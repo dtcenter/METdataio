@@ -42,7 +42,7 @@ class ReadDataFiles:
                N/A
         """
 
-        logging.debug("--- Start read_data ---")
+        logging.debug("[--- Start read_data ---]")
 
         read_time_start = time.perf_counter()
 
@@ -69,22 +69,22 @@ class ReadDataFiles:
 
                         # MET file has no headers and no test - it's empty
                         if file_hdr.empty:
-                            logging.warning("Stat file %s is empty", filename)
+                            logging.warning("!!! Stat file %s is empty", filename)
                             continue
 
                         # Add a DESC column if the data file does not have one
-                        if not file_hdr.iloc[0].str.contains(CN.DESC).any():
+                        if not file_hdr.iloc[0].str.contains(CN.UC_DESC).any():
                             logging.debug("Old MET file - no DESC")
                             hdr_names = CN.SHORT_HEADER + CN.COL_NUMS
                             one_file = self.read_stat(filename, hdr_names)
 
                             # If the file has no DESC column, add UNITS as well
-                            one_file.insert(2, CN.DESC, CN.NOTAV)
+                            one_file.insert(2, CN.DESCR, CN.NOTAV)
                             one_file.insert(10, CN.FCST_UNITS, CN.NOTAV)
                             one_file.insert(13, CN.OBS_UNITS, CN.NOTAV)
 
                         # If the file has a DESC column, but no UNITS columns
-                        elif not file_hdr.iloc[0].str.contains(CN.FCST_UNITS).any():
+                        elif not file_hdr.iloc[0].str.contains(CN.UC_FCST_UNITS).any():
                             logging.debug("Older MET file - no FCST_UNITS")
                             hdr_names = CN.MID_HEADER + CN.COL_NUMS
                             one_file = self.read_stat(filename, hdr_names)
@@ -96,25 +96,30 @@ class ReadDataFiles:
                             hdr_names = CN.LONG_HEADER + CN.COL_NUMS
                             one_file = self.read_stat(filename, hdr_names)
 
+                        # add line numbers and count the header line, for stat files
+                        one_file[CN.LINE_NUM] = one_file.index + 2
+
                     elif filename.lower().endswith(".vsdb"):
                         one_file = pd.read_csv(filename, delim_whitespace=True, names=range(100))
                         # make this data look like a Met file
                     else:
-                        logging.warning("This file type is not handled yet")
+                        logging.warning("!!! This file type is not handled yet")
 
                     # keep track of files containing data for creating data_file records later
 
                     # re-initialize pandas dataframes before reading next file
                     if not one_file.empty:
+                        # temp - add real data_file_ids later
+                        one_file[CN.DATA_FILE_ID] = load_files.index(filename) + 1
                         all_stat = all_stat.append(one_file, ignore_index=True)
                         logging.debug("Lines in %s: %s", filename, str(one_file.size))
                         file_hdr = file_hdr.iloc[0:0]
                         one_file = one_file.iloc[0:0]
                     else:
-                        logging.warning("Empty file %s", filename)
+                        logging.warning("!!! Empty file %s", filename)
                         continue
                 else:
-                    logging.warning("No file %s", filename)
+                    logging.warning("!!! No file %s", filename)
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data ***", sys.exc_info()[0])
@@ -122,29 +127,28 @@ class ReadDataFiles:
         logging.debug("Shape of all_stat before: %s", str(all_stat.shape))
 
         try:
-
             # delete any lines that have invalid line_types
-            invalid_line_indexes = all_stat[~all_stat.LINE_TYPE.isin(CN.LINE_TYPES)].index
+            invalid_line_indexes = all_stat[~all_stat.line_type.isin(CN.UC_LINE_TYPES)].index
 
             if not invalid_line_indexes.empty:
 
-                logging.warning("Warning, invalid line_types:")
+                logging.warning("!!! Warning, invalid line_types:")
                 logging.warning("line types: %s",
-                                str(all_stat.iloc[invalid_line_indexes].LINE_TYPE))
+                                str(all_stat.iloc[invalid_line_indexes].line_type))
 
                 all_stat = all_stat.drop(invalid_line_indexes, axis=0)
 
             # if user specified line types to load, delete the rest
             if load_flags["line_type_load"]:
-                all_stat = all_stat.drop(all_stat[~all_stat.LINE_TYPE.isin(line_types)].index)
+                all_stat = all_stat.drop(all_stat[~all_stat.line_type.isin(line_types)].index)
 
             # if XML has flag to not load MPR records, delete them
             if not load_flags["load_mpr"]:
-                all_stat = all_stat.drop(all_stat[all_stat.LINE_TYPE == CN.MPR].index)
+                all_stat = all_stat.drop(all_stat[all_stat.line_type == CN.MPR].index)
 
             # if XML has flag to not load ORANK records, delete them
             if not load_flags["load_orank"]:
-                all_stat = all_stat.drop(all_stat[all_stat.LINE_TYPE == CN.ORANK].index)
+                all_stat = all_stat.drop(all_stat[all_stat.line_type == CN.ORANK].index)
 
             # reset the index, in case any lines have been deleted
             all_stat.reset_index(drop=True, inplace=True)
@@ -162,36 +166,37 @@ class ReadDataFiles:
 
             logging.debug("Shape of all_stat after: %s", str(all_stat.shape))
 
-            # print a warning message with data if value of alpha for an alpha line type is NA
-            alpha_lines = all_stat[(all_stat.LINE_TYPE.isin(CN.ALPHA_LINE_TYPES)) &
-                                   (all_stat.ALPHA == 'NA')].LINE_TYPE
+            # give a warning message with data if value of alpha for an alpha line type is NA
+            alpha_lines = all_stat[(all_stat.line_type.isin(CN.ALPHA_LINE_TYPES)) &
+                                   (all_stat.alpha == CN.NOTAV)].line_type
             if not alpha_lines.empty:
-                logging.warning("ALPHA line_type has ALPHA value of NA:\r\n %s",
+                logging.warning("!!! ALPHA line_type has ALPHA value of NA:\r\n %s",
                                 str(alpha_lines))
 
-            # print a warning message with data if non-alpha line type has float value
-            non_alpha_lines = all_stat[(~all_stat.LINE_TYPE.isin(CN.ALPHA_LINE_TYPES)) &
-                                       (all_stat.ALPHA != 'NA')].LINE_TYPE
+            # give a warning message with data if non-alpha line type has float value
+            non_alpha_lines = all_stat[(~all_stat.line_type.isin(CN.ALPHA_LINE_TYPES)) &
+                                       (all_stat.alpha != CN.NOTAV)].line_type
             if not non_alpha_lines.empty:
-                logging.warning("non-ALPHA line_type has ALPHA float value:\r\n %s",
+                logging.warning("!!! non-ALPHA line_type has ALPHA float value:\r\n %s",
                                 str(non_alpha_lines))
 
             # Change ALL items in column ALPHA to -9999 if they are 'NA'
-            all_stat.loc[all_stat.ALPHA == 'NA', CN.ALPHA] = -9999
+            all_stat.loc[all_stat.alpha == CN.NOTAV, CN.ALPHA] = -9999
 
             # Make ALPHA column into a decimal with no trailing zeroes after the decimal
-            all_stat.ALPHA = all_stat.ALPHA.astype(float).map('{0:g}'.format)
+            all_stat.alpha = all_stat.alpha.astype(float).map('{0:g}'.format)
 
             # Change ALL items in column COV_THRESH to '-9999' if they are 'NA'
-            all_stat.loc[all_stat.COV_THRESH == 'NA', CN.COV_THRESH] = '-9999'
+            all_stat.loc[all_stat.cov_thresh == CN.NOTAV, CN.COV_THRESH] = '-9999'
 
-            # Change 'NA' values in column INTERP_PNTS to 0
-            all_stat.loc[all_stat.INTERP_PNTS == 'NA', CN.INTERP_PNTS] = 0
-            all_stat.INTERP_PNTS = all_stat.INTERP_PNTS.astype(int)
+            # Change 'NA' values in column INTERP_PNTS to 0 if present
+            if not all_stat.interp_pnts.dtypes == 'int':
+                all_stat.loc[all_stat.interp_pnts == CN.NOTAV, CN.INTERP_PNTS] = 0
+                all_stat.interp_pnts = all_stat.interp_pnts.astype(int)
 
-            logging.debug("Unique ALPHA values: %s", str(all_stat.ALPHA.unique()))
-            logging.debug("Unique COV_THRESH values: %s", str(all_stat.COV_THRESH.unique()))
-            logging.debug("Unique INTERP_PNTS: %s", str(all_stat.INTERP_PNTS.unique()))
+            logging.debug("Unique ALPHA values: %s", str(all_stat.alpha.unique()))
+            logging.debug("Unique COV_THRESH values: %s", str(all_stat.cov_thresh.unique()))
+            logging.debug("Unique INTERP_PNTS: %s", str(all_stat.interp_pnts.unique()))
 
             self.stat_data = all_stat
 
@@ -203,7 +208,7 @@ class ReadDataFiles:
 
         logging.info("    >>> Read time: %s", str(read_time))
 
-        logging.debug("--- End read_data ---")
+        logging.debug("[--- End read_data ---]")
 
     def read_stat(self, filename, hdr_names):
         """ Read in all of the lines except the header of a stat file.
