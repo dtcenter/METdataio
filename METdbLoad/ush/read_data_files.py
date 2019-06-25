@@ -16,10 +16,12 @@ Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 # constants exist in constants.py
 
 import sys
+import os
 from pathlib import Path
 import logging
 import time
 from datetime import timedelta
+from datetime import datetime
 import numpy as np
 import pandas as pd
 
@@ -36,7 +38,7 @@ class ReadDataFiles:
         self.cache = {}
         self.stat_data = pd.DataFrame()
 
-    def read_data(self, load_files, load_flags, line_types):
+    def read_data(self, load_flags, load_files, line_types):
         """ Read in data files as given in load_spec xml file.
             Returns:
                N/A
@@ -53,22 +55,37 @@ class ReadDataFiles:
         one_file = pd.DataFrame()
         all_stat = pd.DataFrame()
 
+        data_file_records = pd.DataFrame({CN.FULL_FILE: load_files})
+        data_file_records[CN.DATA_FILE_ID] = CN.NO_KEY
+        data_file_records[CN.PATH] = data_file_records[CN.FULL_FILE].str.rpartition('/')[0]
+        data_file_records[CN.FILENAME] = data_file_records[CN.FULL_FILE].str.rpartition('/')[2]
+        # current date and time for load date
+        data_file_records[CN.LOAD_DATE] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data_file_records[CN.MOD_DATE] = None
 
         try:
             # Check to make sure files exist
             for filename in load_files:
                 # Read in each file. Add columns if needed. Append to all_stat dataframe.
                 file_and_path = Path(filename)
+
                 if file_and_path.is_file():
                     # check for blank files or, for MET, no data after header line files
                     # handle variable number of fields
+                    # get file info like size of file and last modified date of file
+                    stat_info = os.stat(file_and_path)
+                    # get last modified date of file in standard time format
+                    mod_date = time.strftime('%Y-%m-%d %H:%M:%S',
+                                             time.localtime(stat_info.st_mtime))
+                    data_file_records.at[load_files.index(filename), CN.MOD_DATE] = mod_date
+
                     if filename.lower().endswith(".stat"):
                         # Get the first line of the .stat file that has the headers
                         file_hdr = pd.read_csv(filename, delim_whitespace=True,
                                                names=range(CN.MAX_COL), nrows=1)
 
-                        # MET file has no headers and no test - it's empty
-                        if file_hdr.empty:
+                        # MET file has no headers or no text - it's empty
+                        if file_hdr.empty or stat_info.st_size == 0:
                             logging.warning("!!! Stat file %s is empty", filename)
                             continue
 

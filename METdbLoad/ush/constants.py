@@ -131,15 +131,26 @@ STAT_HEADER_KEYS = [VERSION, MODEL, DESCR, FCST_VAR, FCST_UNITS, FCST_LEV,
                     OBS_VAR, OBS_UNITS, OBS_LEV, OBTYPE, VX_MASK,
                     INTERP_MTHD, INTERP_PNTS, FCST_THRESH, OBS_THRESH]
 
+Q_FILE = "SELECT data_file_id FROM data_file WHERE " + \
+           "path=%s AND filename=%s"
+
 Q_HEADER = "SELECT stat_header_id FROM stat_header WHERE " + \
            "=%s AND ".join(STAT_HEADER_KEYS) + "=%s"
 
 STAT_HEADER = 'stat_header'
 STAT_HEADER_ID = 'stat_header_id'
 LINE_HEADER_ID = 'line_data_id'
-DATA_FILE_ID = 'data_file_id'
 LINE_NUM = 'line_num'
 TOTAL_LC = 'total'
+
+DATA_FILE = 'data_file'
+DATA_FILE_ID = 'data_file_id'
+DATA_FILE_LU_ID = 'data_file_lu_id'
+FULL_FILE = 'full_file'
+FILENAME = 'filename'
+PATH = 'path'
+LOAD_DATE = 'load_date'
+MOD_DATE = 'mod_date'
 
 STAT_HEADER_FIELDS = [STAT_HEADER_ID, VERSION, MODEL, DESCR,
                       FCST_VAR, FCST_UNITS, FCST_LEV,

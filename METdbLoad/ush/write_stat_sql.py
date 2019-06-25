@@ -45,7 +45,7 @@ class WriteStatSql:
 
         self.cur = self.conn.cursor()
 
-    def write_sql_data(self, load_flags, stat_data):
+    def write_sql_data(self, load_flags, load_files, stat_data):
         """ write stat files (MET and VSDB) to a SQL database.
             Returns:
                N/A
@@ -59,6 +59,39 @@ class WriteStatSql:
             self.cur.execute("SHOW GLOBAL VARIABLES LIKE 'local_infile';")
             result = self.cur.fetchall()
             logging.debug("local_infile is %s", result[0][1])
+
+            # write out records for data files, but first:
+            # check for duplicates if flag on - delete if found
+            # put dat file keys into lines in dataframe
+
+            next_file_id = self.get_next_id(CN.DATA_FILE, CN.DATA_FILE_ID)
+
+            for full_file in load_files:
+                # split path and filename
+                split_file = full_file.rpartition('/')
+                # add filename and path to the appropriate columns
+                # add load date and mod date to columns
+                # look for existing record
+                self.cur.execute(CN.Q_FILE, [split_file[0], split_file[2]])
+
+                result = self.cur.fetchone()
+                # If you find a match, check the force_dup_file tag/flag
+                if self.cur.rowcount > 0:
+                    print("found file")
+                    if not load_flags['force_dup_file']:
+                        stat_data = stat_data.drop(stat_data[stat_data.data_file_id == \
+                                                             load_files.index(full_file) + 1])
+                        logging.warning("!!! Duplicate file %s without FORCE_DUP_FILE tag",
+                                        full_file)
+                    else:
+                        data_file_records.loc[stat_data.data_file_id == \
+                                              load_files.index(full_file) + 1,
+                                              CN.DATA_FILE_ID] = result[0]
+
+            # write out the data files. Put the keys into stat_data
+
+            # reset the index in case any records were dropped
+            stat_data.reset_index(drop=True, inplace=True)
 
             # find the unique headers for this current load job
             # for now, including VERSION to make pandas code easier - unlike MVLoad
@@ -84,7 +117,7 @@ class WriteStatSql:
                         stat_headers.loc[stat_headers.index[row_num], CN.STAT_HEADER_ID] = result[0]
 
             # For new headers add the next id to the row number/index to make a new key
-            stat_headers.loc[stat_headers.stat_header_id == -1, CN.STAT_HEADER_ID] = \
+            stat_headers.loc[stat_headers.stat_header_id == CN.NO_KEY, CN.STAT_HEADER_ID] = \
                         stat_headers.index + next_header_id
 
             # get just the new headers with their keys
@@ -101,6 +134,7 @@ class WriteStatSql:
             # put the header ids back into the dataframe of all the line data
             stat_data = pd.merge(left=stat_data, right=stat_headers)
 
+            # find all of the line types in the data
             line_types = stat_data.line_type.unique()
 
             # process one kind of line data at a time
@@ -109,12 +143,14 @@ class WriteStatSql:
                 # use the UC line type to index into the list of table names
                 line_table = CN.LINE_TABLES[CN.UC_LINE_TYPES.index(line_type)]
 
+                # Only variablw length lines have a line_data_id
+                # more needs to be done on this
                 if line_type in CN.VAR_LINE_TYPES:
                     # Get next valid line data id. Set it to zero (first valid id) if no records yet
                     next_line_id = \
                         self.get_next_id(line_table, CN.LINE_HEADER_ID)
 
-                # get the line data of this type and re-index
+                # get the line data of just this type and re-index
                 line_data = stat_data[stat_data[CN.LINE_TYPE] == line_type]
                 line_data.reset_index(drop=True, inplace=True)
 

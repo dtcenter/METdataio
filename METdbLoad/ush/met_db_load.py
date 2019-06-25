@@ -91,8 +91,8 @@ def main():
             file_data = ReadDataFiles()
 
             # read in the data files, with options specified by XML flags
-            file_data.read_data(xml_loadfile.load_files,
-                                xml_loadfile.flags,
+            file_data.read_data(xml_loadfile.flags,
+                                xml_loadfile.load_files,
                                 xml_loadfile.line_types)
         else:
             # Warn user if no files were given or if no files left after purge
@@ -110,7 +110,9 @@ def main():
                 xml_loadfile.connection['db_management_system'] in CN.RELATIONAL:
             stat_lines = WriteStatSql(xml_loadfile.connection)
 
-            stat_lines.write_sql_data(xml_loadfile.flags, file_data.stat_data)
+            stat_lines.write_sql_data(xml_loadfile.flags,
+                                      xml_loadfile.load_files,
+                                      file_data.stat_data)
 
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main writing data ***", sys.exc_info()[0])
