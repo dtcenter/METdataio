@@ -37,6 +37,8 @@ class ReadDataFiles:
     def __init__(self):
         self.cache = {}
         self.stat_data = pd.DataFrame()
+        self.data_files = pd.DataFrame()
+
 
     def read_data(self, load_flags, load_files, line_types):
         """ Read in data files as given in load_spec xml file.
@@ -55,15 +57,19 @@ class ReadDataFiles:
         one_file = pd.DataFrame()
         all_stat = pd.DataFrame()
 
-        data_file_records = pd.DataFrame({CN.FULL_FILE: load_files})
-        data_file_records[CN.DATA_FILE_ID] = CN.NO_KEY
-        data_file_records[CN.PATH] = data_file_records[CN.FULL_FILE].str.rpartition('/')[0]
-        data_file_records[CN.FILENAME] = data_file_records[CN.FULL_FILE].str.rpartition('/')[2]
-        # current date and time for load date
-        data_file_records[CN.LOAD_DATE] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        data_file_records[CN.MOD_DATE] = None
-
         try:
+
+            self.data_files[CN.FULL_FILE] = load_files
+            self.data_files[CN.DATA_FILE_ID] = CN.NO_KEY
+            self.data_files[CN.DATA_FILE_LU_ID] = \
+                np.vectorize(self.get_lookup)(self.data_files[CN.FULL_FILE])
+            self.data_files[CN.FILEPATH] = self.data_files[CN.FULL_FILE].str.rpartition('/')[0]
+            self.data_files[CN.FILENAME] = self.data_files[CN.FULL_FILE].str.rpartition('/')[2]
+            # current date and time for load date
+            self.data_files[CN.LOAD_DATE] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            self.data_files[CN.MOD_DATE] = None
+
+
             # Check to make sure files exist
             for filename in load_files:
                 # Read in each file. Add columns if needed. Append to all_stat dataframe.
@@ -77,7 +83,7 @@ class ReadDataFiles:
                     # get last modified date of file in standard time format
                     mod_date = time.strftime('%Y-%m-%d %H:%M:%S',
                                              time.localtime(stat_info.st_mtime))
-                    data_file_records.at[load_files.index(filename), CN.MOD_DATE] = mod_date
+                    self.data_files.at[load_files.index(filename), CN.MOD_DATE] = mod_date
 
                     if filename.lower().endswith(".stat"):
                         # Get the first line of the .stat file that has the headers
@@ -126,8 +132,8 @@ class ReadDataFiles:
 
                     # re-initialize pandas dataframes before reading next file
                     if not one_file.empty:
-                        # temp - add real data_file_ids later
-                        one_file[CN.DATA_FILE_ID] = load_files.index(filename) + 1
+                        # initially, match line data to the index of the file names
+                        one_file[CN.DATA_FILE_ID] = load_files.index(filename)
                         all_stat = all_stat.append(one_file, ignore_index=True)
                         logging.debug("Lines in %s: %s", filename, str(one_file.size))
                         file_hdr = file_hdr.iloc[0:0]
@@ -226,6 +232,25 @@ class ReadDataFiles:
         logging.info("    >>> Read time: %s", str(read_time))
 
         logging.debug("[--- End read_data ---]")
+
+    @staticmethod
+    def get_lookup(filename):
+        """ Given the name of a file, determine its lookup type.
+            Returns:
+               lookup type, integer, based on data_file_lu table
+        """
+        lc_filename = filename.lower()
+        lu_type = -1
+        # incomplete
+        if lc_filename.endswith(".stat"):
+            lu_type = 7
+        elif lc_filename.endswith(".vsdb"):
+            lu_type = 6
+        elif lc_filename.endswith("cts.txt"):
+            lu_type = 2
+        elif lc_filename.endswith("obj.txt"):
+            lu_type = 3
+        return lu_type
 
     def read_stat(self, filename, hdr_names):
         """ Read in all of the lines except the header of a stat file.

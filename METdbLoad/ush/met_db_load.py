@@ -111,7 +111,7 @@ def main():
             stat_lines = WriteStatSql(xml_loadfile.connection)
 
             stat_lines.write_sql_data(xml_loadfile.flags,
-                                      xml_loadfile.load_files,
+                                      file_data.data_files,
                                       file_data.stat_data)
 
     except (RuntimeError, TypeError, NameError, KeyError):

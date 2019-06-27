@@ -45,7 +45,7 @@ class WriteStatSql:
 
         self.cur = self.conn.cursor()
 
-    def write_sql_data(self, load_flags, load_files, stat_data):
+    def write_sql_data(self, load_flags, data_files, stat_data):
         """ write stat files (MET and VSDB) to a SQL database.
             Returns:
                N/A
@@ -64,34 +64,44 @@ class WriteStatSql:
             # check for duplicates if flag on - delete if found
             # put dat file keys into lines in dataframe
 
-            next_file_id = self.get_next_id(CN.DATA_FILE, CN.DATA_FILE_ID)
-
-            for full_file in load_files:
-                # split path and filename
-                split_file = full_file.rpartition('/')
-                # add filename and path to the appropriate columns
-                # add load date and mod date to columns
+            for row_num, file_line in data_files.iterrows():
                 # look for existing record
-                self.cur.execute(CN.Q_FILE, [split_file[0], split_file[2]])
+                self.cur.execute(CN.Q_FILE, [file_line[CN.FILEPATH], file_line[CN.FILENAME]])
 
                 result = self.cur.fetchone()
                 # If you find a match, check the force_dup_file tag/flag
                 if self.cur.rowcount > 0:
                     print("found file")
                     if not load_flags['force_dup_file']:
+                        # delete line data rows that match index of duplicated file
                         stat_data = stat_data.drop(stat_data[stat_data.data_file_id == \
-                                                             load_files.index(full_file) + 1])
+                                                             row_num])
                         logging.warning("!!! Duplicate file %s without FORCE_DUP_FILE tag",
-                                        full_file)
+                                        file_line[CN.FULL_FILE])
                     else:
-                        data_file_records.loc[stat_data.data_file_id == \
-                                              load_files.index(full_file) + 1,
-                                              CN.DATA_FILE_ID] = result[0]
+                        stat_data.loc[stat_data.data_file_id == row_num,
+                                      CN.DATA_FILE_ID] = result[0]
+                        data_files.loc[data_files.index[row_num], CN.DATA_FILE_ID] = result[0]
 
-            # write out the data files. Put the keys into stat_data
-
-            # reset the index in case any records were dropped
+            # reset the stat_data index in case any records were dropped
             stat_data.reset_index(drop=True, inplace=True)
+
+            # data files start counting from 1
+            next_file_id = self.get_next_id(CN.DATA_FILE, CN.DATA_FILE_ID)
+            if next_file_id == 0:
+                next_file_id = 1
+
+            # For new files add the next id to the row number/index to make a new key
+            data_files.loc[data_files.data_file_id == CN.NO_KEY, CN.DATA_FILE_ID] = \
+                        data_files.index + next_file_id
+
+            # write out the data files.
+            if not data_files.empty:
+                # later in development, may wish to delete this file to clean up after writing
+                tmpfile = os.getenv('HOME') + '/METdbLoadFiles.csv'
+                data_files[CN.DATA_FILE_FIELDS].to_csv(tmpfile, na_rep='-9999',
+                                                       index=False, header=False, sep=CN.SEP)
+                self.cur.execute(CN.L_TABLE.format(tmpfile, CN.DATA_FILE, CN.SEP))
 
             # find the unique headers for this current load job
             # for now, including VERSION to make pandas code easier - unlike MVLoad
@@ -129,7 +139,7 @@ class WriteStatSql:
                 tmpfile = os.getenv('HOME') + '/METdbLoadHeaders.csv'
                 new_headers[CN.STAT_HEADER_FIELDS].to_csv(tmpfile, na_rep='-9999',
                                                           index=False, header=False, sep=CN.SEP)
-                self.cur.execute(CN.L_HEADER.format(tmpfile, CN.STAT_HEADER, CN.SEP))
+                self.cur.execute(CN.L_TABLE.format(tmpfile, CN.STAT_HEADER, CN.SEP))
 
             # put the header ids back into the dataframe of all the line data
             stat_data = pd.merge(left=stat_data, right=stat_headers)
@@ -160,7 +170,7 @@ class WriteStatSql:
                 line_data[CN.LINE_DATA_COLS[line_type]].to_csv(tmpfile, na_rep='-9999',
                                                                index=False, header=False,
                                                                sep=CN.SEP)
-                self.cur.execute(CN.L_HEADER.format(tmpfile, line_table, CN.SEP))
+                self.cur.execute(CN.L_TABLE.format(tmpfile, line_table, CN.SEP))
 
             self.conn.commit()
 

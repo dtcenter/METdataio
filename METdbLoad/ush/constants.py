@@ -144,13 +144,16 @@ LINE_NUM = 'line_num'
 TOTAL_LC = 'total'
 
 DATA_FILE = 'data_file'
+FULL_FILE = 'full_file'
 DATA_FILE_ID = 'data_file_id'
 DATA_FILE_LU_ID = 'data_file_lu_id'
-FULL_FILE = 'full_file'
 FILENAME = 'filename'
-PATH = 'path'
+FILEPATH = 'path'
 LOAD_DATE = 'load_date'
 MOD_DATE = 'mod_date'
+
+DATA_FILE_FIELDS = [DATA_FILE_ID, DATA_FILE_LU_ID, FILENAME, FILEPATH,
+                    LOAD_DATE, MOD_DATE]
 
 STAT_HEADER_FIELDS = [STAT_HEADER_ID, VERSION, MODEL, DESCR,
                       FCST_VAR, FCST_UNITS, FCST_LEV,
@@ -164,7 +167,7 @@ VALUE_SLOTS = VALUE_SLOTS[:-2]
 I_HEADER = "INSERT INTO stat_header (" + ",".join(STAT_HEADER_FIELDS) + \
            ") VALUES (" + VALUE_SLOTS + ")"
 
-L_HEADER = "LOAD DATA LOCAL INFILE '{}' INTO TABLE {} FIELDS TERMINATED BY '{}';"
+L_TABLE = "LOAD DATA LOCAL INFILE '{}' INTO TABLE {} FIELDS TERMINATED BY '{}';"
 
 ALL_LINE_DATA_FIELDS = [STAT_HEADER_ID, DATA_FILE_ID, LINE_NUM,
                         FCST_LEAD, FCST_VALID_BEG, FCST_VALID_END, FCST_INIT_BEG,
