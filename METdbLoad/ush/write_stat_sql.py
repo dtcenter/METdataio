@@ -62,25 +62,25 @@ class WriteStatSql:
 
             # write out records for data files, but first:
             # check for duplicates if flag on - delete if found
-            # put dat file keys into lines in dataframe
 
             for row_num, file_line in data_files.iterrows():
-                # look for existing record
+                # look for existing data file record
                 self.cur.execute(CN.Q_FILE, [file_line[CN.FILEPATH], file_line[CN.FILENAME]])
 
                 result = self.cur.fetchone()
                 # If you find a match, check the force_dup_file tag/flag
                 if self.cur.rowcount > 0:
-                    print("found file")
                     if not load_flags['force_dup_file']:
                         # delete line data rows that match index of duplicated file
-                        stat_data = stat_data.drop(stat_data[stat_data.data_file_id == \
-                                                             row_num])
+                        stat_data = stat_data.drop(stat_data[stat_data.file_row == \
+                                                             file_line.file_row].index)
+                        data_files = data_files.drop(row_num)
                         logging.warning("!!! Duplicate file %s without FORCE_DUP_FILE tag",
                                         file_line[CN.FULL_FILE])
                     else:
-                        stat_data.loc[stat_data.data_file_id == row_num,
-                                      CN.DATA_FILE_ID] = result[0]
+                        # stat_data.loc[stat_data.data_file_id == row_num,
+                        #               CN.DATA_FILE_ID] = result[0]
+                        # if duplicate files allowed, save the existing id for the file
                         data_files.loc[data_files.index[row_num], CN.DATA_FILE_ID] = result[0]
 
             # reset the stat_data index in case any records were dropped
@@ -94,6 +94,11 @@ class WriteStatSql:
             # For new files add the next id to the row number/index to make a new key
             data_files.loc[data_files.data_file_id == CN.NO_KEY, CN.DATA_FILE_ID] = \
                         data_files.index + next_file_id
+
+            # Replace the temporary id value with the actual index in the stat line data
+            for row_num, row in data_files.iterrows():
+                stat_data.loc[stat_data[CN.FILE_ROW] == row[CN.FILE_ROW], CN.DATA_FILE_ID] = \
+                    row[CN.DATA_FILE_ID]
 
             # write out the data files.
             if not data_files.empty:

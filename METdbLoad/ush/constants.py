@@ -29,7 +29,7 @@ LC_FALSE = "false"
 # Not Available - NA
 NOTAV = "NA"
 
-# seperator for csv files
+# separator for csv files
 SEP = '$'
 
 # No key is a number that would not be a valid key that is put in as a placeholder
@@ -147,6 +147,7 @@ DATA_FILE = 'data_file'
 FULL_FILE = 'full_file'
 DATA_FILE_ID = 'data_file_id'
 DATA_FILE_LU_ID = 'data_file_lu_id'
+FILE_ROW = 'file_row'
 FILENAME = 'filename'
 FILEPATH = 'path'
 LOAD_DATE = 'load_date'
@@ -297,3 +298,18 @@ LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
 for line_type in UC_LINE_TYPES:
     LINE_DATA_COLS[line_type] = ALL_LINE_DATA_FIELDS + \
                                 COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - ALL_COUNT)]
+
+# From the data_file_lu table - to lookup file type
+POINT_STAT = 0
+GRID_STAT = 1
+MODE_CTS = 2
+MODE_OBJ = 3
+WAVELET_STAT = 4
+ENSEMBLE_STAT = 5
+VSDB_POINT_STAT = 6
+STAT = 7
+MTD_2D = 8
+MTD_3D_PC = 9
+MTD_3D_PS = 10
+MTD_3D_SC = 11
+MTD_3D_SS = 12

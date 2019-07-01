@@ -59,21 +59,26 @@ class ReadDataFiles:
 
         try:
 
+            # Put the list of files into a dataframe to collect info to write to database
             self.data_files[CN.FULL_FILE] = load_files
+            # Won't know database key until we interact with the database, so no keys yet
             self.data_files[CN.DATA_FILE_ID] = CN.NO_KEY
+            # Store the index in a column to make later merging with stat data easier
+            self.data_files[CN.FILE_ROW] = self.data_files.index
+            # Add the code that describes what kind of file this is - stat, vsdb, etc
             self.data_files[CN.DATA_FILE_LU_ID] = \
                 np.vectorize(self.get_lookup)(self.data_files[CN.FULL_FILE])
+            # Break the full file name into path and filename
             self.data_files[CN.FILEPATH] = self.data_files[CN.FULL_FILE].str.rpartition('/')[0]
             self.data_files[CN.FILENAME] = self.data_files[CN.FULL_FILE].str.rpartition('/')[2]
             # current date and time for load date
             self.data_files[CN.LOAD_DATE] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.data_files[CN.MOD_DATE] = None
 
-
             # Check to make sure files exist
-            for filename in load_files:
+            for row_num, filename in self.data_files.iterrows():
                 # Read in each file. Add columns if needed. Append to all_stat dataframe.
-                file_and_path = Path(filename)
+                file_and_path = Path(filename[CN.FULL_FILE])
 
                 if file_and_path.is_file():
                     # check for blank files or, for MET, no data after header line files
@@ -83,23 +88,24 @@ class ReadDataFiles:
                     # get last modified date of file in standard time format
                     mod_date = time.strftime('%Y-%m-%d %H:%M:%S',
                                              time.localtime(stat_info.st_mtime))
-                    self.data_files.at[load_files.index(filename), CN.MOD_DATE] = mod_date
+                    self.data_files.at[row_num, CN.MOD_DATE] = mod_date
 
-                    if filename.lower().endswith(".stat"):
+                    # Process stat files
+                    if filename[CN.DATA_FILE_LU_ID] == CN.STAT:
                         # Get the first line of the .stat file that has the headers
-                        file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                        file_hdr = pd.read_csv(filename[CN.FULL_FILE], delim_whitespace=True,
                                                names=range(CN.MAX_COL), nrows=1)
 
                         # MET file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
-                            logging.warning("!!! Stat file %s is empty", filename)
+                            logging.warning("!!! Stat file %s is empty", filename[CN.FULL_FILE])
                             continue
 
                         # Add a DESC column if the data file does not have one
                         if not file_hdr.iloc[0].str.contains(CN.UC_DESC).any():
                             logging.debug("Old MET file - no DESC")
                             hdr_names = CN.SHORT_HEADER + CN.COL_NUMS
-                            one_file = self.read_stat(filename, hdr_names)
+                            one_file = self.read_stat(filename[CN.FULL_FILE], hdr_names)
 
                             # If the file has no DESC column, add UNITS as well
                             one_file.insert(2, CN.DESCR, CN.NOTAV)
@@ -110,39 +116,39 @@ class ReadDataFiles:
                         elif not file_hdr.iloc[0].str.contains(CN.UC_FCST_UNITS).any():
                             logging.debug("Older MET file - no FCST_UNITS")
                             hdr_names = CN.MID_HEADER + CN.COL_NUMS
-                            one_file = self.read_stat(filename, hdr_names)
+                            one_file = self.read_stat(filename[CN.FULL_FILE], hdr_names)
 
                             one_file.insert(10, CN.FCST_UNITS, CN.NOTAV)
                             one_file.insert(13, CN.OBS_UNITS, CN.NOTAV)
 
                         else:
                             hdr_names = CN.LONG_HEADER + CN.COL_NUMS
-                            one_file = self.read_stat(filename, hdr_names)
+                            one_file = self.read_stat(filename[CN.FULL_FILE], hdr_names)
 
                         # add line numbers and count the header line, for stat files
                         one_file[CN.LINE_NUM] = one_file.index + 2
 
-                    elif filename.lower().endswith(".vsdb"):
-                        one_file = pd.read_csv(filename, delim_whitespace=True, names=range(100))
+                    # Process vsdb files
+                    elif filename[CN.DATA_FILE_LU_ID] == CN.VSDB_POINT_STAT:
+                        one_file = pd.read_csv(filename[CN.FULL_FILE], delim_whitespace=True,
+                                               names=range(100))
                         # make this data look like a Met file
                     else:
                         logging.warning("!!! This file type is not handled yet")
 
-                    # keep track of files containing data for creating data_file records later
-
                     # re-initialize pandas dataframes before reading next file
                     if not one_file.empty:
                         # initially, match line data to the index of the file names
-                        one_file[CN.DATA_FILE_ID] = load_files.index(filename)
+                        one_file[CN.FILE_ROW] = row_num
                         all_stat = all_stat.append(one_file, ignore_index=True)
-                        logging.debug("Lines in %s: %s", filename, str(one_file.size))
+                        logging.debug("Lines in %s: %s", filename[CN.FULL_FILE], str(one_file.size))
                         file_hdr = file_hdr.iloc[0:0]
                         one_file = one_file.iloc[0:0]
                     else:
-                        logging.warning("!!! Empty file %s", filename)
+                        logging.warning("!!! Empty file %s", filename[CN.FULL_FILE])
                         continue
                 else:
-                    logging.warning("!!! No file %s", filename)
+                    logging.warning("!!! No file %s", filename[CN.FULL_FILE])
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data ***", sys.exc_info()[0])
@@ -175,6 +181,13 @@ class ReadDataFiles:
 
             # reset the index, in case any lines have been deleted
             all_stat.reset_index(drop=True, inplace=True)
+
+            # all lines from a file may have been deleted. if so, remove filename
+            files_to_drop = ~self.data_files.index.isin(all_stat[CN.FILE_ROW])
+            self.data_files = \
+                self.data_files.drop(self.data_files[files_to_drop].index)
+
+            self.data_files.reset_index(drop=True, inplace=True)
 
             # Copy forecast lead times, without trailing 0000 if they have them
             all_stat[CN.FCST_LEAD_HR] = \
