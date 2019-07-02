@@ -137,6 +137,8 @@ Q_FILE = "SELECT data_file_id FROM data_file WHERE " + \
 Q_HEADER = "SELECT stat_header_id FROM stat_header WHERE " + \
            "=%s AND ".join(STAT_HEADER_KEYS) + "=%s"
 
+Q_METADATA = "SELECT category, description FROM metadata"
+
 STAT_HEADER = 'stat_header'
 STAT_HEADER_ID = 'stat_header_id'
 LINE_HEADER_ID = 'line_data_id'
@@ -153,6 +155,9 @@ FILEPATH = 'path'
 LOAD_DATE = 'load_date'
 MOD_DATE = 'mod_date'
 
+INSTANCE_INFO = 'instance_info'
+INSTANCE_INFO_ID = 'instance_info_id'
+
 DATA_FILE_FIELDS = [DATA_FILE_ID, DATA_FILE_LU_ID, FILENAME, FILEPATH,
                     LOAD_DATE, MOD_DATE]
 
@@ -167,6 +172,13 @@ VALUE_SLOTS = VALUE_SLOTS[:-2]
 
 I_HEADER = "INSERT INTO stat_header (" + ",".join(STAT_HEADER_FIELDS) + \
            ") VALUES (" + VALUE_SLOTS + ")"
+
+I_METADATA = "INSERT INTO metadata (category, description) VALUES (%s, %s)"
+
+I_INSTANCE = "INSERT INTO instance_info (instance_info_id, updater, update_date, " + \
+             "update_detail, load_xml) VALUES (%s, %s, %s, %s, %s)"
+
+U_METADATA = "UPDATE metadata SET category=%s, description=%s"
 
 L_TABLE = "LOAD DATA LOCAL INFILE '{}' INTO TABLE {} FIELDS TERMINATED BY '{}';"
 

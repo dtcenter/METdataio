@@ -45,7 +45,8 @@ class WriteStatSql:
 
         self.cur = self.conn.cursor()
 
-    def write_sql_data(self, load_flags, data_files, stat_data):
+    def write_sql_data(self, load_flags, data_files, stat_data, group, description,
+                       load_note, xml_str):
         """ write stat files (MET and VSDB) to a SQL database.
             Returns:
                N/A
@@ -62,12 +63,11 @@ class WriteStatSql:
 
             # write out records for data files, but first:
             # check for duplicates if flag on - delete if found
-
             for row_num, file_line in data_files.iterrows():
                 # look for existing data file record
                 self.cur.execute(CN.Q_FILE, [file_line[CN.FILEPATH], file_line[CN.FILENAME]])
-
                 result = self.cur.fetchone()
+
                 # If you find a match, check the force_dup_file tag/flag
                 if self.cur.rowcount > 0:
                     if not load_flags['force_dup_file']:
@@ -78,8 +78,6 @@ class WriteStatSql:
                         logging.warning("!!! Duplicate file %s without FORCE_DUP_FILE tag",
                                         file_line[CN.FULL_FILE])
                     else:
-                        # stat_data.loc[stat_data.data_file_id == row_num,
-                        #               CN.DATA_FILE_ID] = result[0]
                         # if duplicate files allowed, save the existing id for the file
                         data_files.loc[data_files.index[row_num], CN.DATA_FILE_ID] = result[0]
 
@@ -125,8 +123,8 @@ class WriteStatSql:
                 # For each header, query with unique fields to try to find a match in the database
                 for row_num, data_line in stat_headers.iterrows():
                     self.cur.execute(CN.Q_HEADER, data_line.values[:-1].tolist())
-
                     result = self.cur.fetchone()
+
                     # If you find a match, put the key into the stat_headers dataframe
                     if self.cur.rowcount > 0:
                         stat_headers.loc[stat_headers.index[row_num], CN.STAT_HEADER_ID] = result[0]
@@ -164,6 +162,7 @@ class WriteStatSql:
                     # Get next valid line data id. Set it to zero (first valid id) if no records yet
                     next_line_id = \
                         self.get_next_id(line_table, CN.LINE_HEADER_ID)
+                    logging.debug("next_line_id is %s", next_line_id)
 
                 # get the line data of just this type and re-index
                 line_data = stat_data[stat_data[CN.LINE_TYPE] == line_type]
@@ -176,6 +175,25 @@ class WriteStatSql:
                                                                index=False, header=False,
                                                                sep=CN.SEP)
                 self.cur.execute(CN.L_TABLE.format(tmpfile, line_table, CN.SEP))
+
+            # insert or update the group and description fields in the metadata table
+            if group != CN.DEFAULT_DATABASE_GROUP:
+                self.cur.execute(CN.Q_METADATA)
+                result = self.cur.fetchone()
+
+                # If you find a match, update the category and description
+                if self.cur.rowcount > 0:
+                    if group != result[0] or description != result[1]:
+                        self.cur.execute(CN.U_METADATA, [group, description])
+                # otherwise, insert the category and description
+                else:
+                    self.cur.execute(CN.I_METADATA, [group, description])
+
+            if load_flags['load_xml'] and not data_files.empty:
+                update_date = data_files[CN.LOAD_DATE].iloc[0]
+                next_instance_id = self.get_next_id(CN.INSTANCE_INFO, CN.INSTANCE_INFO_ID)
+                self.cur.execute(CN.I_INSTANCE, [next_instance_id, 'mvuser', update_date,
+                                                 load_note, xml_str])
 
             self.conn.commit()
 

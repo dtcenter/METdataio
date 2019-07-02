@@ -112,7 +112,11 @@ def main():
 
             stat_lines.write_sql_data(xml_loadfile.flags,
                                       file_data.data_files,
-                                      file_data.stat_data)
+                                      file_data.stat_data,
+                                      xml_loadfile.group,
+                                      xml_loadfile.description,
+                                      xml_loadfile.load_note,
+                                      xml_loadfile.xml_str)
 
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main writing data ***", sys.exc_info()[0])

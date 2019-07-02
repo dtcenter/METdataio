@@ -46,6 +46,7 @@ class XmlLoadFile:
         self.load_note = None
         self.group = CN.DEFAULT_DATABASE_GROUP
         self.description = None
+        self.xml_str = None
 
         self.flags = {}
         self.flags['line_type_load'] = False
@@ -180,6 +181,11 @@ class XmlLoadFile:
                         self.line_types.append(subchild.text.upper())
                 else:
                     logging.warning("!!! Unknown tag: %s", child.tag)
+
+            # if requested, get a string of the XML to put in the database
+            if self.flags['load_xml']:
+                self.xml_str = etree.tostring(tree).decode().replace('\n', '').replace(' ', '')
+
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_xml ***", sys.exc_info()[0])
 
