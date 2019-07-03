@@ -199,16 +199,35 @@ ALL_COUNT = len(ALL_LINE_DATA_FIELDS)
 LINE_DATA_FIELDS = dict()
 LINE_DATA_COLS = dict()
 
-# incomplete
 LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
-                        ['fbar', 'fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu']
+                        ['fbar', 'fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
+                         'fstdev', 'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
+                         'obar', 'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
+                         'ostdev', 'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl', 'ostdev_bcu',
+                         'pr_corr', 'pr_corr_ncl', 'pr_corr_ncu', 'pr_corr_bcl', 'pr_corr_bcu,'
+                         'sp_corr', 'dt_corr', 'ranks', 'frank_ties', 'orank_ties',
+                         'me', 'me_ncl', 'me_ncu', 'me_bcl', 'me_bcu',
+                         'estdev', 'estdev_ncl', 'estdev_ncu', 'estdev_bcl', 'estdev_bcu',
+                         'mbias', 'mbias_bcl', 'mbias_bcu', 'mae', 'mae_bcl', 'mae_bcu',
+                         'mse', 'mse_bcl', 'mse_bcu', 'bcmse', 'bcmse_bcl', 'bcmse_bcu',
+                         'rmse', 'rmse_bcl', 'rmse_bcu', 'e10', 'e10_bcl', 'e10_bcu',
+                         'e25', 'e25_bcl', 'e25_bcu', 'e50', 'e50_bcl', 'e50_bcu',
+                         'e75', 'e75_bcl', 'e75_bcu', 'e90', 'e90_bcl', 'e90_bcu',
+                         'iqr', 'iqr_bcl', 'iqr_bcu', 'mad', 'mad_bcl', 'mad_bcu'
+                         'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu',
+                         'anom_corr_bcl', 'anom_corr_bcu',
+                         'me2', 'me2_bcl', 'me2_bcu', 'msess', 'msess_bcl', 'msess_bcu',
+                         'rmsfa', 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa', 'rmsoa_bcl', 'rmsoa_bcu']
 
 LINE_DATA_FIELDS[CTC] = TOT_LINE_DATA_FIELDS + \
                         ['fy_oy', 'fy_on', 'fn_oy', 'fn_on']
 
 # incomplete
 LINE_DATA_FIELDS[CTS] = ALPH_LINE_DATA_FIELDS + \
-                        ['baser', 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu']
+                        ['baser', 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
+                         'fmean', 'fmean_ncl', 'fmean_ncu', 'fmean_bcl', 'fmean_bcu',
+                         'acc_ncl', 'acc_ncu', 'acc_bcl', 'acc_bcu',
+                         'podn', 'podn_ncl', 'podn_ncu', 'podn_bcl', 'podn_bcu']
 
 LINE_DATA_FIELDS[ECLV] = TOT_LINE_DATA_FIELDS + \
                          ['baser', 'value_baser', 'n_pnt']

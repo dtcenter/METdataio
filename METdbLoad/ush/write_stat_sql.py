@@ -21,6 +21,7 @@ import os
 import logging
 import time
 from datetime import timedelta
+import getpass
 import pymysql
 import numpy as np   # without this, pylint throws a maximum recursion error
 import pandas as pd
@@ -78,7 +79,7 @@ class WriteStatSql:
                         logging.warning("!!! Duplicate file %s without FORCE_DUP_FILE tag",
                                         file_line[CN.FULL_FILE])
                     else:
-                        # if duplicate files allowed, save the existing id for the file
+                        # With duplicate files allowed, save the existing id for the file
                         data_files.loc[data_files.index[row_num], CN.DATA_FILE_ID] = result[0]
 
             # reset the stat_data index in case any records were dropped
@@ -135,6 +136,7 @@ class WriteStatSql:
 
             # get just the new headers with their keys
             new_headers = stat_headers[stat_headers[CN.STAT_HEADER_ID] > (next_header_id - 1)]
+            logging.info("New headers: %s rows",  str(len(new_headers.index)))
 
             # Write any new headers out to a CSV file, and then load them into database
             if not new_headers.empty:
@@ -167,6 +169,7 @@ class WriteStatSql:
                 # get the line data of just this type and re-index
                 line_data = stat_data[stat_data[CN.LINE_TYPE] == line_type]
                 line_data.reset_index(drop=True, inplace=True)
+                logging.info("%s: %s rows", line_type, str(len(line_data.index)))
 
                 # write the lines out to a CSV file, and then load them into database
                 # for debugging, unique. may want to reuse same name later - and delete
@@ -192,7 +195,7 @@ class WriteStatSql:
             if load_flags['load_xml'] and not data_files.empty:
                 update_date = data_files[CN.LOAD_DATE].iloc[0]
                 next_instance_id = self.get_next_id(CN.INSTANCE_INFO, CN.INSTANCE_INFO_ID)
-                self.cur.execute(CN.I_INSTANCE, [next_instance_id, 'mvuser', update_date,
+                self.cur.execute(CN.I_INSTANCE, [next_instance_id, getpass.getuser(), update_date,
                                                  load_note, xml_str])
 
             self.conn.commit()
