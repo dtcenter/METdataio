@@ -180,7 +180,7 @@ I_INSTANCE = "INSERT INTO instance_info (instance_info_id, updater, update_date,
 
 U_METADATA = "UPDATE metadata SET category=%s, description=%s"
 
-L_TABLE = "LOAD DATA LOCAL INFILE '{}' INTO TABLE {} FIELDS TERMINATED BY '{}';"
+LD_TABLE = "LOAD DATA LOCAL INFILE '{}' INTO TABLE {} FIELDS TERMINATED BY '{}';"
 
 ALL_LINE_DATA_FIELDS = [STAT_HEADER_ID, DATA_FILE_ID, LINE_NUM,
                         FCST_LEAD, FCST_VALID_BEG, FCST_VALID_END, FCST_INIT_BEG,
@@ -222,23 +222,42 @@ LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
 LINE_DATA_FIELDS[CTC] = TOT_LINE_DATA_FIELDS + \
                         ['fy_oy', 'fy_on', 'fn_oy', 'fn_on']
 
-# incomplete
 LINE_DATA_FIELDS[CTS] = ALPH_LINE_DATA_FIELDS + \
                         ['baser', 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
                          'fmean', 'fmean_ncl', 'fmean_ncu', 'fmean_bcl', 'fmean_bcu',
-                         'acc_ncl', 'acc_ncu', 'acc_bcl', 'acc_bcu',
-                         'podn', 'podn_ncl', 'podn_ncu', 'podn_bcl', 'podn_bcu']
+                         'acc', 'acc_ncl', 'acc_ncu', 'acc_bcl', 'acc_bcu',
+                         'fbias', 'fbias_bcl', 'fbias_bcu',
+                         'pody', 'pody_ncl', 'pody_ncu', 'pody_bcl', 'pody_bcu',
+                         'podn', 'podn_ncl', 'podn_ncu', 'podn_bcl', 'podn_bcu',
+                         'pofd', 'pofd_ncl', 'pofd_ncu', 'pofd_bcl', 'pofd_bcu',
+                         'far', 'far_ncl', 'far_ncu', 'far_bcl', 'far_bcu',
+                         'csi', 'csi_ncl', 'csi_ncu', 'csi_bcl', 'csi_bcu',
+                         'gss', 'gss_bcl', 'gss_bcu',
+                         'hk', 'hk_ncl', 'hk_ncu', 'hk_bcl', 'hk_bcu',
+                         'hss', 'hss_bcl', 'hss_bcu',
+                         'odds', 'odds_ncl', 'odds_ncu', 'odds_bcl', 'odds_bcu',
+                         'lodds', 'lodds_ncl', 'lodds_ncu', 'lodds_bcl', 'lodds_bcu',
+                         'orss', 'orss_ncl', 'orss_ncu', 'orss_bcl', 'orss_bcu',
+                         'eds', 'eds_ncl', 'eds_ncu', 'eds_bcl', 'eds_bcu',
+                         'seds', 'seds_ncl', 'seds_ncu', 'seds_bcl', 'seds_bcu',
+                         'edi', 'edi_ncl', 'edi_ncu', 'edi_bcl', 'edi_bcu',
+                         'sedi', 'sedi_ncl', 'sedi_ncu', 'sedi_bcl', 'sedi_bcu',
+                         'bagss', 'bagss_bcl', 'bagss_bcu']
 
 LINE_DATA_FIELDS[ECLV] = TOT_LINE_DATA_FIELDS + \
                          ['baser', 'value_baser', 'n_pnt']
 
-# incomplete
 LINE_DATA_FIELDS[ECNT] = TOT_LINE_DATA_FIELDS + \
-                         ['n_ens', 'crps,crpss', 'ign,me', 'rmse,spread']
+                         ['n_ens', 'crps', 'crpss', 'ign', 'me', 'rmse', 'spread',
+                          'me_oerr', 'rmse_oerr', 'spread_oerr', 'spread_plus_oerr']
 
-# incomplete
 LINE_DATA_FIELDS[ENSCNT] = ALL_LINE_DATA_FIELDS + \
-                           ['rpsf', 'rpsf_ncl', 'rpsf_ncu', 'rpsf_bcl', 'rpsf_bcu']
+                           ['rpsf', 'rpsf_ncl', 'rpsf_ncu', 'rpsf_bcl', 'rpsf_bcu',
+                            'rpscl', 'rpscl_ncl', 'rpscl_ncu', 'rpscl_bcl', 'rpscl_bcu',
+                            'rpss', 'rpss_ncl', 'rpss_ncu', 'rpss_bcl', 'rpss_bcu',
+                            'crpsf', 'crpsf_ncl', 'crpsf_ncu', 'crpsf_bcl', 'crpsf_bcu',
+                            'crpscl', 'crpscl_ncl', 'crpscl_ncu', 'crpscl_bcl', 'crpscl_bcu',
+                            'crpss', 'crpss_ncl', 'crpss_ncu', 'crpss_bcl', 'crpss_bcu']
 
 LINE_DATA_FIELDS[FHO] = TOT_LINE_DATA_FIELDS + \
                         ['f_rate', 'h_rate', 'o_rate']
@@ -258,13 +277,16 @@ LINE_DATA_FIELDS[MCTS] = ALPH_LINE_DATA_FIELDS + \
                           'hk', 'hk_bcl', 'hk_bcu', 'hss', 'hss_bcl', 'hss_bcu',
                           'ger', 'ger_bcl', 'ger_bcu']
 
-# incomplete
 LINE_DATA_FIELDS[MPR] = TOT_LINE_DATA_FIELDS + \
-                         ['mp_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl', 'obs_elv']
+                         ['mp_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl', 'obs_elv',
+                          'mpr_fcst', 'mpr_obs', 'mpr_climo', 'obs_qc',
+                          'climo_mean', 'climo_stdev', 'climo_cdf']
 
-# incomplete
 LINE_DATA_FIELDS[NBRCNT] = ALPH_LINE_DATA_FIELDS + \
-                           ['fbs', 'fbs_bcl', 'fbs_bcu']
+                           ['fbs', 'fbs_bcl', 'fbs_bcu', 'fss', 'fss_bcl', 'fss_bcu',
+                            'afss', 'afss_bcl', 'afss_bcu', 'ufss', 'ufss_bcl', 'ufss_bcu',
+                            'f_rate', 'f_rate_bcl', 'f_rate_bcu',
+                            'o_rate', 'o_rate_bcl', 'o_rate_bcu']
 
 LINE_DATA_FIELDS[NBRCTC] = COV_LINE_DATA_FIELDS + \
                            ['fy_oy', 'fy_on', 'fn_oy', 'fn_on']
