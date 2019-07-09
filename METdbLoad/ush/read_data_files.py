@@ -254,15 +254,26 @@ class ReadDataFiles:
         """
         lc_filename = filename.lower()
         lu_type = -1
-        # incomplete
+
+        # Set lookup type from file extensions and the values in the data_file_lu table
         if lc_filename.endswith(".stat"):
-            lu_type = 7
+            lu_type = CN.STAT
         elif lc_filename.endswith(".vsdb"):
-            lu_type = 6
+            lu_type = CN.VSDB_POINT_STAT
         elif lc_filename.endswith("cts.txt"):
-            lu_type = 2
+            lu_type = CN.MODE_CTS
         elif lc_filename.endswith("obj.txt"):
-            lu_type = 3
+            lu_type = CN.MODE_OBJ
+        elif lc_filename.endswith("2d.txt"):
+            lu_type = CN.MTD_2D
+        elif lc_filename.endswith("3d_pair_cluster.txt"):
+            lu_type = CN.MTD_3D_PC
+        elif lc_filename.endswith("3d_pair_simple.txt"):
+            lu_type = CN.MTD_3D_PS
+        elif lc_filename.endswith("3d_single_cluster.txt"):
+            lu_type = CN.MTD_3D_SC
+        elif lc_filename.endswith("3d_single_simple.txt"):
+            lu_type = CN.MTD_3D_SS
         return lu_type
 
     def read_stat(self, filename, hdr_names):

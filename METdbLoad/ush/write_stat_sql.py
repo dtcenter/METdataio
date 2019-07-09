@@ -62,6 +62,10 @@ class WriteStatSql:
             result = self.cur.fetchall()
             logging.debug("local_infile is %s", result[0][1])
 
+            #
+            # Write Data Files
+            #
+
             # write out records for data files, but first:
             # check for duplicates if flag on - delete if found
             for row_num, file_line in data_files.iterrows():
@@ -107,6 +111,10 @@ class WriteStatSql:
                                                        index=False, header=False, sep=CN.SEP)
                 self.cur.execute(CN.L_TABLE.format(tmpfile, CN.DATA_FILE, CN.SEP))
 
+            #
+            # Write Stat Headers
+            #
+
             # find the unique headers for this current load job
             # for now, including VERSION to make pandas code easier - unlike MVLoad
             stat_headers = stat_data[CN.STAT_HEADER_KEYS].drop_duplicates()
@@ -136,7 +144,7 @@ class WriteStatSql:
 
             # get just the new headers with their keys
             new_headers = stat_headers[stat_headers[CN.STAT_HEADER_ID] > (next_header_id - 1)]
-            logging.info("New headers: %s rows",  str(len(new_headers.index)))
+            logging.info("New headers: %s rows", str(len(new_headers.index)))
 
             # Write any new headers out to a CSV file, and then load them into database
             if not new_headers.empty:
@@ -149,6 +157,10 @@ class WriteStatSql:
             # put the header ids back into the dataframe of all the line data
             stat_data = pd.merge(left=stat_data, right=stat_headers)
 
+            #
+            # Write Line Data
+            #
+
             # find all of the line types in the data
             line_types = stat_data.line_type.unique()
 
@@ -158,7 +170,7 @@ class WriteStatSql:
                 # use the UC line type to index into the list of table names
                 line_table = CN.LINE_TABLES[CN.UC_LINE_TYPES.index(line_type)]
 
-                # Only variablw length lines have a line_data_id
+                # Only variable length lines have a line_data_id
                 # more needs to be done on this
                 if line_type in CN.VAR_LINE_TYPES:
                     # Get next valid line data id. Set it to zero (first valid id) if no records yet
@@ -171,6 +183,8 @@ class WriteStatSql:
                 line_data.reset_index(drop=True, inplace=True)
                 logging.info("%s: %s rows", line_type, str(len(line_data.index)))
 
+                line_data = line_data.replace('NA', '-9999')
+
                 # write the lines out to a CSV file, and then load them into database
                 # for debugging, unique. may want to reuse same name later - and delete
                 tmpfile = os.getenv('HOME') + '/METdbLoadLines' + line_type + '.csv'
@@ -178,6 +192,10 @@ class WriteStatSql:
                                                                index=False, header=False,
                                                                sep=CN.SEP)
                 self.cur.execute(CN.L_TABLE.format(tmpfile, line_table, CN.SEP))
+
+            #
+            # Write Metadata - group and description
+            #
 
             # insert or update the group and description fields in the metadata table
             if group != CN.DEFAULT_DATABASE_GROUP:
@@ -191,6 +209,9 @@ class WriteStatSql:
                 # otherwise, insert the category and description
                 else:
                     self.cur.execute(CN.I_METADATA, [group, description])
+
+            #
+            # Write Instance Info
 
             if load_flags['load_xml'] and not data_files.empty:
                 update_date = data_files[CN.LOAD_DATE].iloc[0]

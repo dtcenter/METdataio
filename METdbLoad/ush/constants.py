@@ -204,7 +204,7 @@ LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
                          'fstdev', 'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
                          'obar', 'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
                          'ostdev', 'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl', 'ostdev_bcu',
-                         'pr_corr', 'pr_corr_ncl', 'pr_corr_ncu', 'pr_corr_bcl', 'pr_corr_bcu,'
+                         'pr_corr', 'pr_corr_ncl', 'pr_corr_ncu', 'pr_corr_bcl', 'pr_corr_bcu',
                          'sp_corr', 'dt_corr', 'ranks', 'frank_ties', 'orank_ties',
                          'me', 'me_ncl', 'me_ncu', 'me_bcl', 'me_bcu',
                          'estdev', 'estdev_ncl', 'estdev_ncu', 'estdev_bcl', 'estdev_bcu',
@@ -213,7 +213,7 @@ LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
                          'rmse', 'rmse_bcl', 'rmse_bcu', 'e10', 'e10_bcl', 'e10_bcu',
                          'e25', 'e25_bcl', 'e25_bcu', 'e50', 'e50_bcl', 'e50_bcu',
                          'e75', 'e75_bcl', 'e75_bcu', 'e90', 'e90_bcl', 'e90_bcu',
-                         'iqr', 'iqr_bcl', 'iqr_bcu', 'mad', 'mad_bcl', 'mad_bcu'
+                         'iqr', 'iqr_bcl', 'iqr_bcu', 'mad', 'mad_bcl', 'mad_bcu',
                          'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu',
                          'anom_corr_bcl', 'anom_corr_bcu',
                          'me2', 'me2_bcl', 'me2_bcu', 'msess', 'msess_bcl', 'msess_bcu',
@@ -274,7 +274,7 @@ LINE_DATA_FIELDS[NBRCTS] = COVA_LINE_DATA_FIELDS + \
                            ['baser', 'baser_ncl', 'baser_ncu']
 
 # incomplete
-LINE_DATA_FIELDS[ORANK] = COVA_LINE_DATA_FIELDS + \
+LINE_DATA_FIELDS[ORANK] = TOT_LINE_DATA_FIELDS + \
                           ['orank_index', 'obs_sid']
 
 LINE_DATA_FIELDS[PCT] = COV_LINE_DATA_FIELDS + \
@@ -327,8 +327,17 @@ LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
                          ['fbar', 'fbar_bcl', 'fbar_bcu']
 
 for line_type in UC_LINE_TYPES:
-    LINE_DATA_COLS[line_type] = ALL_LINE_DATA_FIELDS + \
-                                COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - ALL_COUNT)]
+    if line_type in COV_THRESH_LINE_TYPES:
+        LINE_DATA_COLS[line_type] = COV_LINE_DATA_FIELDS[0:-1] + \
+                                    COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - (ALL_COUNT + 1))]
+    elif line_type in ALPHA_LINE_TYPES:
+        LINE_DATA_COLS[line_type] = ALPH_LINE_DATA_FIELDS[0:-1] + \
+                                    COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - (ALL_COUNT + 1))]
+    else:
+        LINE_DATA_COLS[line_type] = ALL_LINE_DATA_FIELDS + \
+                                    COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - ALL_COUNT)]
+    # maybe this could be done more elegantly/automatically
+    # if this works, have to handle alpha cov as well
 
 # From the data_file_lu table - to lookup file type
 POINT_STAT = 0
