@@ -109,7 +109,7 @@ class WriteStatSql:
                 tmpfile = os.getenv('HOME') + '/METdbLoadFiles.csv'
                 data_files[CN.DATA_FILE_FIELDS].to_csv(tmpfile, na_rep='-9999',
                                                        index=False, header=False, sep=CN.SEP)
-                self.cur.execute(CN.L_TABLE.format(tmpfile, CN.DATA_FILE, CN.SEP))
+                self.cur.execute(CN.LD_TABLE.format(tmpfile, CN.DATA_FILE, CN.SEP))
 
             #
             # Write Stat Headers
@@ -152,7 +152,7 @@ class WriteStatSql:
                 tmpfile = os.getenv('HOME') + '/METdbLoadHeaders.csv'
                 new_headers[CN.STAT_HEADER_FIELDS].to_csv(tmpfile, na_rep='-9999',
                                                           index=False, header=False, sep=CN.SEP)
-                self.cur.execute(CN.L_TABLE.format(tmpfile, CN.STAT_HEADER, CN.SEP))
+                self.cur.execute(CN.LD_TABLE.format(tmpfile, CN.STAT_HEADER, CN.SEP))
 
             # put the header ids back into the dataframe of all the line data
             stat_data = pd.merge(left=stat_data, right=stat_headers)
@@ -191,7 +191,7 @@ class WriteStatSql:
                 line_data[CN.LINE_DATA_COLS[line_type]].to_csv(tmpfile, na_rep='-9999',
                                                                index=False, header=False,
                                                                sep=CN.SEP)
-                self.cur.execute(CN.L_TABLE.format(tmpfile, line_table, CN.SEP))
+                self.cur.execute(CN.LD_TABLE.format(tmpfile, line_table, CN.SEP))
 
             #
             # Write Metadata - group and description
