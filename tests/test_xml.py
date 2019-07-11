@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Test reading XML file."""
 
-from lxml import etree
-
 from read_load_xml import XmlLoadFile
 
 XML_FILE = '/Users/venita.hagerty/metviewer/testloadv10few3.xml'
@@ -41,5 +39,3 @@ def test_connection():
 def test_insertsize():
     """Read insert_size from XML file."""
     assert xml_loadfile.insert_size == 1
-
-
