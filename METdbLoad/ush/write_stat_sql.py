@@ -66,8 +66,6 @@ class WriteStatSql:
             self.cur.execute("SHOW GLOBAL VARIABLES LIKE 'local_infile';")
             result = self.cur.fetchall()
             self.local_infile = result[0][1]
-            # for testing, set to False
-            self.local_infile = False
             logging.debug("local_infile is %s", result[0][1])
 
             # --------------------
@@ -191,9 +189,9 @@ class WriteStatSql:
                 line_data[CN.LINE_DATA_COLS[line_type]].to_csv(tmpfile, na_rep='-9999',
                                                                index=False, header=False,
                                                                sep=CN.SEP)
-                self.cur.execute(CN.LD_TABLE.format(tmpfile, line_table, CN.SEP))
-                # self.write_to_sql(line_data, CN.LINE_DATA_COLS[line_type], line_table,
-                #                  CN.LINE_DATA_Q[line_type])
+                # self.cur.execute(CN.LD_TABLE.format(tmpfile, line_table, CN.SEP))
+                self.write_to_sql(line_data, CN.LINE_DATA_COLS[line_type], line_table,
+                                  CN.LINE_DATA_Q[line_type])
 
             # --------------------
             # Write Metadata - group and description
@@ -272,8 +270,18 @@ class WriteStatSql:
                 self.cur.execute(CN.LD_TABLE.format(tmpfile, sql_table, CN.SEP))
             else:
                 # fewer permissions required, but slower
+                # Make sure there are no NaN values
+                raw_data = raw_data.fillna('-9999')
                 # make a copy of the dataframe that is a list of lists and write to database
                 dfile = raw_data[col_list].values.tolist()
+                # only line_data has timestamps in dataframe - change to datetime strings
+                if 'line_data' in sql_query:
+                    for line_num in range(len(dfile)):
+                        dfile[line_num][4] = dfile[line_num][4].strftime("%Y-%m-%d %H:%M:%S")
+                        dfile[line_num][5] = dfile[line_num][5].strftime("%Y-%m-%d %H:%M:%S")
+                        dfile[line_num][6] = dfile[line_num][6].strftime("%Y-%m-%d %H:%M:%S")
+                        dfile[line_num][8] = dfile[line_num][8].strftime("%Y-%m-%d %H:%M:%S")
+                        dfile[line_num][9] = dfile[line_num][9].strftime("%Y-%m-%d %H:%M:%S")
                 self.cur.executemany(sql_query, dfile)
 
         except (RuntimeError, TypeError, NameError, KeyError):
