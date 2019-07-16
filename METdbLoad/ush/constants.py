@@ -167,11 +167,14 @@ STAT_HEADER_FIELDS = [STAT_HEADER_ID, VERSION, MODEL, DESCR,
                       OBTYPE, VX_MASK, INTERP_MTHD, INTERP_PNTS,
                       FCST_THRESH, OBS_THRESH]
 
-VALUE_SLOTS = '"%s", ' * len(STAT_HEADER_FIELDS)
+VALUE_SLOTS = '%s, ' * len(STAT_HEADER_FIELDS)
 VALUE_SLOTS = VALUE_SLOTS[:-2]
 
 I_HEADER = "INSERT INTO stat_header (" + ",".join(STAT_HEADER_FIELDS) + \
            ") VALUES (" + VALUE_SLOTS + ")"
+
+I_DATA_FILES = "INSERT INTO data_file (" + ",".join(DATA_FILE_FIELDS) + \
+               ") VALUES (%s, %s, %s, %s, %s, %s)"
 
 I_METADATA = "INSERT INTO metadata (category, description) VALUES (%s, %s)"
 
@@ -198,6 +201,7 @@ ALL_COUNT = len(ALL_LINE_DATA_FIELDS)
 
 LINE_DATA_FIELDS = dict()
 LINE_DATA_COLS = dict()
+LINE_DATA_Q = dict()
 
 LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
                         ['fbar', 'fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
@@ -349,6 +353,7 @@ LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
                          ['fbar', 'fbar_bcl', 'fbar_bcu']
 
 for line_type in UC_LINE_TYPES:
+    # for each line type, create a list of the columns in the dataframe
     if line_type in COV_THRESH_LINE_TYPES:
         LINE_DATA_COLS[line_type] = COV_LINE_DATA_FIELDS[0:-1] + \
                                     COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - (ALL_COUNT + 1))]
@@ -360,6 +365,16 @@ for line_type in UC_LINE_TYPES:
                                     COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - ALL_COUNT)]
     # maybe this could be done more elegantly/automatically
     # if this works, have to handle alpha cov as well
+
+    # For each line type, create insert queries
+    VALUE_SLOTS = '%s, ' * len(LINE_DATA_FIELDS[line_type])
+    VALUE_SLOTS = VALUE_SLOTS[:-2]
+
+    line_table = LINE_TABLES[UC_LINE_TYPES.index(line_type)]
+
+    i_line = "INSERT INTO " + line_table + " (" + ",".join(LINE_DATA_FIELDS[line_type]) + \
+               ") VALUES (" + VALUE_SLOTS + ")"
+    LINE_DATA_Q[line_type] = i_line
 
 # From the data_file_lu table - to lookup file type
 POINT_STAT = 0

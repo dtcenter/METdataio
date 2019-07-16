@@ -46,6 +46,10 @@ class WriteStatSql:
 
         self.cur = self.conn.cursor()
 
+        # Default to False since it requires extra permission
+        self.local_infile = False
+
+
     def write_sql_data(self, load_flags, data_files, stat_data, group, description,
                        load_note, xml_str):
         """ write stat files (MET and VSDB) to a SQL database.
@@ -58,13 +62,17 @@ class WriteStatSql:
         write_time_start = time.perf_counter()
 
         try:
+            # look at database to see whether we can use the local infile method
             self.cur.execute("SHOW GLOBAL VARIABLES LIKE 'local_infile';")
             result = self.cur.fetchall()
+            self.local_infile = result[0][1]
+            # for testing, set to False
+            self.local_infile = False
             logging.debug("local_infile is %s", result[0][1])
 
-            #
+            # --------------------
             # Write Data Files
-            #
+            # --------------------
 
             # write out records for data files, but first:
             # check for duplicates if flag on - delete if found
@@ -103,17 +111,13 @@ class WriteStatSql:
                 stat_data.loc[stat_data[CN.FILE_ROW] == row[CN.FILE_ROW], CN.DATA_FILE_ID] = \
                     row[CN.DATA_FILE_ID]
 
-            # write out the data files.
+            # write the data files out to the sql database
             if not data_files.empty:
-                # later in development, may wish to delete this file to clean up after writing
-                tmpfile = os.getenv('HOME') + '/METdbLoadFiles.csv'
-                data_files[CN.DATA_FILE_FIELDS].to_csv(tmpfile, na_rep='-9999',
-                                                       index=False, header=False, sep=CN.SEP)
-                self.cur.execute(CN.LD_TABLE.format(tmpfile, CN.DATA_FILE, CN.SEP))
+                self.write_to_sql(data_files, CN.DATA_FILE_FIELDS, CN.DATA_FILE, CN.I_DATA_FILES)
 
-            #
+            # --------------------
             # Write Stat Headers
-            #
+            # --------------------
 
             # find the unique headers for this current load job
             # for now, including VERSION to make pandas code easier - unlike MVLoad
@@ -146,20 +150,16 @@ class WriteStatSql:
             new_headers = stat_headers[stat_headers[CN.STAT_HEADER_ID] > (next_header_id - 1)]
             logging.info("New headers: %s rows", str(len(new_headers.index)))
 
-            # Write any new headers out to a CSV file, and then load them into database
+            # Write any new headers out to the sql database
             if not new_headers.empty:
-                # later in development, may wish to delete this file to clean up after writing
-                tmpfile = os.getenv('HOME') + '/METdbLoadHeaders.csv'
-                new_headers[CN.STAT_HEADER_FIELDS].to_csv(tmpfile, na_rep='-9999',
-                                                          index=False, header=False, sep=CN.SEP)
-                self.cur.execute(CN.LD_TABLE.format(tmpfile, CN.STAT_HEADER, CN.SEP))
+                self.write_to_sql(new_headers, CN.STAT_HEADER_FIELDS, CN.STAT_HEADER, CN.I_HEADER)
 
             # put the header ids back into the dataframe of all the line data
             stat_data = pd.merge(left=stat_data, right=stat_headers)
 
-            #
+            # --------------------
             # Write Line Data
-            #
+            # --------------------
 
             # find all of the line types in the data
             line_types = stat_data.line_type.unique()
@@ -192,10 +192,12 @@ class WriteStatSql:
                                                                index=False, header=False,
                                                                sep=CN.SEP)
                 self.cur.execute(CN.LD_TABLE.format(tmpfile, line_table, CN.SEP))
+                # self.write_to_sql(line_data, CN.LINE_DATA_COLS[line_type], line_table,
+                #                  CN.LINE_DATA_Q[line_type])
 
-            #
+            # --------------------
             # Write Metadata - group and description
-            #
+            # --------------------
 
             # insert or update the group and description fields in the metadata table
             if group != CN.DEFAULT_DATABASE_GROUP:
@@ -210,8 +212,9 @@ class WriteStatSql:
                 else:
                     self.cur.execute(CN.I_METADATA, [group, description])
 
-            #
+            # --------------------
             # Write Instance Info
+            # --------------------
 
             if load_flags['load_xml'] and not data_files.empty:
                 update_date = data_files[CN.LOAD_DATE].iloc[0]
@@ -252,3 +255,26 @@ class WriteStatSql:
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_sql_data get_next_id ***", sys.exc_info()[0])
+
+    def write_to_sql(self, raw_data, col_list, sql_table, sql_query):
+        """ given a dataframe of raw_data with specific columns to write to a sql_table,
+            write to a csv file and use local data infile for speed if allowed.
+            otherwise, do an executemany to use a SQL insert statement to write data
+        """
+
+        try:
+            if self.local_infile:
+                # later in development, may wish to delete these files to clean up when done
+                tmpfile = os.getenv('HOME') + '/METdbLoad_' + sql_table + '.csv'
+                # write the data out to a csv file, use local data infile to load to database
+                raw_data[col_list].to_csv(tmpfile, na_rep='-9999',
+                                          index=False, header=False, sep=CN.SEP)
+                self.cur.execute(CN.LD_TABLE.format(tmpfile, sql_table, CN.SEP))
+            else:
+                # fewer permissions required, but slower
+                # make a copy of the dataframe that is a list of lists and write to database
+                dfile = raw_data[col_list].values.tolist()
+                self.cur.executemany(sql_query, dfile)
+
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in write_stat_sql write_to_sql ***", sys.exc_info()[0])
