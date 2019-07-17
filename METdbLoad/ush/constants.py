@@ -295,9 +295,27 @@ LINE_DATA_FIELDS[NBRCNT] = ALPH_LINE_DATA_FIELDS + \
 LINE_DATA_FIELDS[NBRCTC] = COV_LINE_DATA_FIELDS + \
                            ['fy_oy', 'fy_on', 'fn_oy', 'fn_on']
 
-# incomplete
 LINE_DATA_FIELDS[NBRCTS] = COVA_LINE_DATA_FIELDS + \
-                           ['baser', 'baser_ncl', 'baser_ncu']
+                           ['baser', 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
+                            'fmean', 'fmean_ncl', 'fmean_ncu', 'fmean_bcl', 'fmean_bcu',
+                            'acc', 'acc_ncl', 'acc_ncu', 'acc_bcl', 'acc_bcu',
+                            'fbias', 'fbias_bcl', 'fbias_bcu',
+                            'pody', 'pody_ncl', 'pody_ncu', 'pody_bcl', 'pody_bcu',
+                            'podn', 'podn_ncl', 'podn_ncu', 'podn_bcl', 'podn_bcu',
+                            'pofd', 'pofd_ncl', 'pofd_ncu', 'pofd_bcl', 'pofd_bcu',
+                            'far', 'far_ncl', 'far_ncu', 'far_bcl', 'far_bcu',
+                            'csi', 'csi_ncl', 'csi_ncu', 'csi_bcl', 'csi_bcu',
+                            'gss', 'gss_bcl', 'gss_bcu',
+                            'hk', 'hk_ncl', 'hk_ncu', 'hk_bcl', 'hk_bcu',
+                            'hss', 'hss_bcl', 'hss_bcu',
+                            'odds', 'odds_ncl', 'odds_ncu', 'odds_bcl', 'odds_bcu',
+                            'lodds', 'lodds_ncl', 'lodds_ncu', 'lodds_bcl', 'lodds_bcu',
+                            'orss', 'orss_ncl', 'orss_ncu', 'orss_bcl', 'orss_bcu',
+                            'eds', 'eds_ncl', 'eds_ncu', 'eds_bcl', 'eds_bcu',
+                            'seds', 'seds_ncl', 'seds_ncu', 'seds_bcl', 'seds_bcu',
+                            'edi', 'edi_ncl', 'edi_ncu', 'edi_bcl', 'edi_bcu',
+                            'sedi', 'sedi_ncl', 'sedi_ncu', 'sedi_bcl', 'sedi_bcu',
+                            'bagss', 'bagss_bcl', 'bagss_bcu']
 
 # incomplete
 LINE_DATA_FIELDS[ORANK] = TOT_LINE_DATA_FIELDS + \
@@ -355,16 +373,19 @@ LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
 for line_type in UC_LINE_TYPES:
     # for each line type, create a list of the columns in the dataframe
     if line_type in COV_THRESH_LINE_TYPES:
-        LINE_DATA_COLS[line_type] = COV_LINE_DATA_FIELDS[0:-1] + \
-                                    COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - (ALL_COUNT + 1))]
+        # both alpha and cov_thresh
+        if line_type in ALPHA_LINE_TYPES:
+            LINE_DATA_COLS[line_type] = COVA_LINE_DATA_FIELDS[0:-1] + \
+                                        COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - (ALL_COUNT + 2))]
+        else:
+            LINE_DATA_COLS[line_type] = COV_LINE_DATA_FIELDS[0:-1] + \
+                                        COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - (ALL_COUNT + 1))]
     elif line_type in ALPHA_LINE_TYPES:
         LINE_DATA_COLS[line_type] = ALPH_LINE_DATA_FIELDS[0:-1] + \
                                     COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - (ALL_COUNT + 1))]
     else:
         LINE_DATA_COLS[line_type] = ALL_LINE_DATA_FIELDS + \
                                     COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - ALL_COUNT)]
-    # maybe this could be done more elegantly/automatically
-    # if this works, have to handle alpha cov as well
 
     # For each line type, create insert queries
     VALUE_SLOTS = '%s, ' * len(LINE_DATA_FIELDS[line_type])

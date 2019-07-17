@@ -44,6 +44,7 @@ cur.execute("delete from line_data_fho;")
 cur.execute("delete from line_data_grad;")
 cur.execute("delete from line_data_mcts;")
 cur.execute("delete from line_data_nbrctc;")
+cur.execute("delete from line_data_nbrcts;")
 cur.execute("delete from line_data_sl1l2;")
 cur.execute("delete from line_data_sal1l2;")
 cur.execute("delete from line_data_vl1l2;")
@@ -78,7 +79,7 @@ def test_counts():
     # Count the number of data_file records created
     cur.execute("SELECT COUNT(*) from data_file;")
     result = cur.fetchone()
-    assert result[0] == 3
+    assert result[0] == 4
 
     # Count the number of stat_header records created
     cur.execute("SELECT COUNT(*) from stat_header;")
@@ -88,27 +89,32 @@ def test_counts():
     # Count the number of line_data_fho records created
     cur.execute("SELECT COUNT(*) from line_data_fho;")
     result = cur.fetchone()
-    assert result[0] == 83
+    assert result[0] == 163
 
     # Count the number of line_data_ctc records created
     cur.execute("SELECT COUNT(*) from line_data_ctc;")
     result = cur.fetchone()
-    assert result[0] == 83
+    assert result[0] == 163
 
     # Count the number of line_data_cnt records created
     cur.execute("SELECT COUNT(*) from line_data_cnt;")
     result = cur.fetchone()
-    assert result[0] == 82
+    assert result[0] == 162
 
     # Count the number of line_data_sl1l2 records created
     cur.execute("SELECT COUNT(*) from line_data_sl1l2;")
     result = cur.fetchone()
-    assert result[0] == 10905
+    assert result[0] == 10945
 
     # Count the number of line_data_nbrctc records created
     cur.execute("SELECT COUNT(*) from line_data_nbrctc;")
     result = cur.fetchone()
-    assert result[0] == 40
+    assert result[0] == 80
+
+    # Count the number of line_data_nbrctc records created
+    cur.execute("SELECT COUNT(*) from line_data_nbrcts;")
+    result = cur.fetchone()
+    assert result[0] == 160
 
     # Count the number of line_data_mcts records created
     cur.execute("SELECT COUNT(*) from line_data_mcts;")
