@@ -317,9 +317,10 @@ LINE_DATA_FIELDS[NBRCTS] = COVA_LINE_DATA_FIELDS + \
                             'sedi', 'sedi_ncl', 'sedi_ncu', 'sedi_bcl', 'sedi_bcu',
                             'bagss', 'bagss_bcl', 'bagss_bcu']
 
-# incomplete
 LINE_DATA_FIELDS[ORANK] = TOT_LINE_DATA_FIELDS + \
-                          ['orank_index', 'obs_sid']
+                          ['orank_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl', 'obs_elv',
+                           'mpr_fcst', 'mpr_obs', 'mpr_climo', 'obs_qc',
+                           'climo_mean', 'climo_stdev', 'climo_cdf']
 
 LINE_DATA_FIELDS[PCT] = COV_LINE_DATA_FIELDS + \
                         ['n_thresh', 'pct_thresh']
@@ -354,9 +355,13 @@ LINE_DATA_FIELDS[SL1L2] = TOT_LINE_DATA_FIELDS + \
 LINE_DATA_FIELDS[SAL1L2] = TOT_LINE_DATA_FIELDS + \
                            ['fabar', 'oabar', 'foabar', 'ffabar', 'ooabar', 'mae']
 
-# incomplete
 LINE_DATA_FIELDS[SSVAR] = ALPH_LINE_DATA_FIELDS + \
-                          ['n_bin', 'bin_i', 'bin_n']
+                          ['n_bin', 'bin_i', 'bin_n', 'var_min', 'var_max', 'var_mean',
+                           'fbar', 'obar', 'fobar', 'ffbar', 'oobar',
+                           'fbar_ncl', 'fbar_ncu', 'fstdev', 'fstdev_ncl', 'fstdev_ncu',
+                           'obar_ncl', 'obar_ncu', 'ostdev', 'ostdev_ncl', 'ostdev_ncu',
+                           'pr_corr', 'pr_corr_ncl', 'pr_corr_ncu', 'me', 'me_ncl', 'me_ncu',
+                           'estdev', 'estdev_ncl', 'estdev_ncu', 'mbias', 'mse', 'bcmse', 'rmse']
 
 LINE_DATA_FIELDS[VL1L2] = TOT_LINE_DATA_FIELDS + \
                           ['ufbar', 'vfbar', 'uobar', 'vobar', 'uvfobar', 'uvffbar',
@@ -366,26 +371,43 @@ LINE_DATA_FIELDS[VAL1L2] = TOT_LINE_DATA_FIELDS + \
                            ['ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar', 'uvffabar',
                             'uvooabar']
 
-# incomplete
 LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
-                         ['fbar', 'fbar_bcl', 'fbar_bcu']
+                         ['fbar', 'fbar_bcl', 'fbar_bcu', 'obar', 'obar_bcl', 'obar_bcu',
+                          'fs_rms', 'fs_rms_bcl', 'fs_rms_bcu',
+                          'os_rms', 'os_rms_bcl', 'os_rms_bcu',
+                          'msve', 'msve_bcl', 'msve_bcu', 'rmsve', 'rmsve_bcl', 'rmsve_bcu',
+                          'fstdev', 'fstdev_bcl', 'fstdev_bcu',
+                          'ostdev', 'ostdev_bcl', 'ostdev_bcu',
+                          'fdir', 'fdir_bcl', 'fdir_bcu', 'odir', 'odir_bcl', 'odir_bcu',
+                          'fbar_speed', 'fbar_speed_bcl', 'fbar_speed_bcu',
+                          'obar_speed', 'obar_speed_bcl', 'obar_speed_bcu',
+                          'vdiff_speed', 'vdiff_speed_bcl', 'vdiff_speed_bcu',
+                          'vdiff_dir', 'vdiff_dir_bcl', 'vdiff_dir_bcu',
+                          'speed_err', 'speed_err_bcl', 'speed_err_bcu',
+                          'speed_abserr', 'speed_abserr_bcl', 'speed_abserr_bcu',
+                          'dir_err', 'dir_err_bcl', 'dir_err_bcu',
+                          'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu']
 
 for line_type in UC_LINE_TYPES:
     # for each line type, create a list of the columns in the dataframe
     if line_type in COV_THRESH_LINE_TYPES:
         # both alpha and cov_thresh
         if line_type in ALPHA_LINE_TYPES:
-            LINE_DATA_COLS[line_type] = COVA_LINE_DATA_FIELDS[0:-1] + \
-                                        COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - (ALL_COUNT + 2))]
+            LINE_DATA_COLS[line_type] = \
+                COVA_LINE_DATA_FIELDS[0:-1] + \
+                COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - (ALL_COUNT + 2))]
         else:
-            LINE_DATA_COLS[line_type] = COV_LINE_DATA_FIELDS[0:-1] + \
-                                        COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - (ALL_COUNT + 1))]
+            LINE_DATA_COLS[line_type] = \
+                COV_LINE_DATA_FIELDS[0:-1] + \
+                COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - (ALL_COUNT + 1))]
     elif line_type in ALPHA_LINE_TYPES:
-        LINE_DATA_COLS[line_type] = ALPH_LINE_DATA_FIELDS[0:-1] + \
-                                    COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - (ALL_COUNT + 1))]
+        LINE_DATA_COLS[line_type] = \
+            ALPH_LINE_DATA_FIELDS[0:-1] + \
+            COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - (ALL_COUNT + 1))]
     else:
-        LINE_DATA_COLS[line_type] = ALL_LINE_DATA_FIELDS + \
-                                    COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - ALL_COUNT)]
+        LINE_DATA_COLS[line_type] = \
+            ALL_LINE_DATA_FIELDS + \
+             COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - ALL_COUNT)]
 
     # For each line type, create insert queries
     VALUE_SLOTS = '%s, ' * len(LINE_DATA_FIELDS[line_type])
