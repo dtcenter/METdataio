@@ -109,9 +109,12 @@ class WriteStatSql:
                 stat_data.loc[stat_data[CN.FILE_ROW] == row[CN.FILE_ROW], CN.DATA_FILE_ID] = \
                     row[CN.DATA_FILE_ID]
 
-            # write the data files out to the sql database
-            if not data_files.empty:
-                self.write_to_sql(data_files, CN.DATA_FILE_FIELDS, CN.DATA_FILE, CN.I_DATA_FILES)
+            # get just the new data files
+            new_files = data_files[data_files[CN.DATA_FILE_ID] >= next_file_id]
+
+            # write the new data files out to the sql database
+            if not new_files.empty:
+                self.write_to_sql(new_files, CN.DATA_FILE_FIELDS, CN.DATA_FILE, CN.I_DATA_FILES)
 
             # --------------------
             # Write Stat Headers
