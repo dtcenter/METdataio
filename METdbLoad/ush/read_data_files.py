@@ -5,7 +5,7 @@ Program Name: read_data_files.py
 Contact(s): Venita Hagerty
 Abstract:
 History Log:  Initial version
-Usage: Read data files given in load_spec XML file.
+Usage: Read data files given in load_spec file.
 Parameters: N/A
 Input Files: data files of type MET, VSDB, MODE, MTD
 Output Files: N/A
@@ -29,7 +29,7 @@ import constants as CN
 
 
 class ReadDataFiles:
-    """! Class to read in data files given in load_spec xml file
+    """! Class to read in data files given in load_spec file
         Returns:
            N/A
     """
@@ -41,7 +41,7 @@ class ReadDataFiles:
 
 
     def read_data(self, load_flags, load_files, line_types):
-        """ Read in data files as given in load_spec xml file.
+        """ Read in data files as given in load_spec file.
             Returns:
                N/A
         """
@@ -171,11 +171,11 @@ class ReadDataFiles:
             if load_flags["line_type_load"]:
                 all_stat = all_stat.drop(all_stat[~all_stat.line_type.isin(line_types)].index)
 
-            # if XML has flag to not load MPR records, delete them
+            # if load_spec has flag to not load MPR records, delete them
             if not load_flags["load_mpr"]:
                 all_stat = all_stat.drop(all_stat[all_stat.line_type == CN.MPR].index)
 
-            # if XML has flag to not load ORANK records, delete them
+            # if load_spec has flag to not load ORANK records, delete them
             if not load_flags["load_orank"]:
                 all_stat = all_stat.drop(all_stat[all_stat.line_type == CN.ORANK].index)
 

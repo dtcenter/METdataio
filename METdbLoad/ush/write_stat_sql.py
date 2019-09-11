@@ -17,13 +17,12 @@ Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 
 import sys
 import os
-# from pathlib import Path
 import logging
 import time
 from datetime import timedelta
 import getpass
 import pymysql
-import numpy as np   # without this, pylint throws a maximum recursion error
+import numpy as np
 import pandas as pd
 
 import constants as CN
@@ -95,7 +94,7 @@ class WriteStatSql:
             # reset the stat_data index in case any records were dropped
             stat_data.reset_index(drop=True, inplace=True)
 
-            # data files start counting from 1
+            # get next valid data file id. data files start counting from 1
             next_file_id = self.get_next_id(CN.DATA_FILE, CN.DATA_FILE_ID)
             if next_file_id == 0:
                 next_file_id = 1
@@ -114,7 +113,7 @@ class WriteStatSql:
 
             # write the new data files out to the sql database
             if not new_files.empty:
-                self.write_to_sql(new_files, CN.DATA_FILE_FIELDS, CN.DATA_FILE, CN.I_DATA_FILES)
+                self.write_to_sql(new_files, CN.DATA_FILE_FIELDS, CN.DATA_FILE, CN.INS_DATA_FILES)
 
             # --------------------
             # Write Stat Headers
@@ -153,7 +152,7 @@ class WriteStatSql:
 
             # Write any new headers out to the sql database
             if not new_headers.empty:
-                self.write_to_sql(new_headers, CN.STAT_HEADER_FIELDS, CN.STAT_HEADER, CN.I_HEADER)
+                self.write_to_sql(new_headers, CN.STAT_HEADER_FIELDS, CN.STAT_HEADER, CN.INS_HEADER)
 
             # put the header ids back into the dataframe of all the line data
             stat_data = pd.merge(left=stat_data, right=stat_headers)
@@ -168,34 +167,131 @@ class WriteStatSql:
             # process one kind of line data at a time
             for line_type in line_types:
 
+                all_var = pd.DataFrame()
+
                 # use the UC line type to index into the list of table names
                 line_table = CN.LINE_TABLES[CN.UC_LINE_TYPES.index(line_type)]
+
+                # get the line data of just this type and re-index
+                line_data = stat_data[stat_data[CN.LINE_TYPE] == line_type].copy()
+                line_data.reset_index(drop=True, inplace=True)
+                logging.info("%s: %s rows", line_type, str(len(line_data.index)))
+
+                # change all Not Available values to METviewer not available (-9999)
+                line_data = line_data.replace('NA', CN.MV_NOTAV)
+
+                # change float numbers to have limited digits after the decimal point
+                line_data = np.round(line_data, decimals=7)
 
                 # Only variable length lines have a line_data_id
                 # more needs to be done on this
                 if line_type in CN.VAR_LINE_TYPES:
                     # Get next valid line data id. Set it to zero (first valid id) if no records yet
                     next_line_id = \
-                        self.get_next_id(line_table, CN.LINE_HEADER_ID)
+                        self.get_next_id(line_table, CN.LINE_DATA_ID)
                     logging.debug("next_line_id is %s", next_line_id)
 
-                # get the line data of just this type and re-index
-                line_data = stat_data[stat_data[CN.LINE_TYPE] == line_type]
-                line_data.reset_index(drop=True, inplace=True)
-                logging.info("%s: %s rows", line_type, str(len(line_data.index)))
+                    line_data[CN.LINE_DATA_ID] = line_data.index + next_line_id
 
-                line_data = line_data.replace('NA', '-9999')
+                    # index of the first column of the repeating variables
+                    var_index = line_data.columns.get_loc(CN.LINE_VAR_COUNTER[line_type]) + 1
+                    # need this later for old RHIST
+                    orig_index = var_index
+
+                    # There are 10 extra variables after n_thresh in PSTD records
+                    if line_type == CN.PSTD:
+                        var_index = var_index + 10
+
+                    for row_num, file_line in line_data.iterrows():
+                        # how many sets of repeating variables
+                        var_count = int(file_line[CN.LINE_VAR_COUNTER[line_type]])
+                        # these three variable line types are one group short
+                        if line_type in [CN.PCT, CN.PJC, CN.PRC]:
+                            var_count = var_count - 1
+                        # older versions of RHIST have varying ECNT data in them
+                        if line_type == CN.RHIST and file_line[CN.VERSION] in CN.RHIST_OLD:
+                            var_count = int(file_line['3'])
+                            var_index = orig_index + 2
+                            if file_line[CN.VERSION] in CN.RHIST_5:
+                                var_index = var_index + 1
+                            if file_line[CN.VERSION] in CN.RHIST_6:
+                                var_index = var_index + 2
+                        # MCTC needs an i and a j counter
+                        if line_type == CN.MCTC:
+                            basic_count = var_count
+                            var_count = var_count * var_count
+                        # The number of variables in the repeats
+                        var_repeats = CN.LINE_VAR_REPEATS[line_type]
+                        # number of sets of variables times the number of variables in the sets
+                        repeat_width = int(var_count * var_repeats)
+
+                        # pull out just the repeating data
+                        list_var_data = file_line.iloc[var_index:var_index + repeat_width]
+                        # put it into the right number of rows and columns
+                        var_data = \
+                            pd.DataFrame(list_var_data.values.reshape(var_count, var_repeats))
+
+                        # for older versions of RHIST, blank out repeating fields
+                        if line_type == CN.RHIST and file_line[CN.VERSION] in CN.RHIST_OLD:
+                            line_data.iloc[row_num, var_index:var_index + repeat_width] = CN.MV_NOTAV
+
+                        # add on the first two fields - line data id, and i value
+                        var_data.insert(0, CN.LINE_DATA_ID, file_line[CN.LINE_DATA_ID])
+                        var_data.insert(1, 'i_value', var_data.index + 1)
+
+                        # MCTC has i and j counters where j increments faster
+                        if line_type == CN.MCTC:
+                            var_data.loc[:, 'i_value'] = \
+                                np.repeat(np.array(range(1, basic_count + 1)), basic_count)
+                            j_indices = np.resize(range(1, basic_count + 1), var_count)
+                            var_data.insert(2, 'j_value', j_indices)
+
+                        # collect all of the variable data for a line type
+                        all_var = all_var.append(var_data, ignore_index=True)
+
+                    if line_type == CN.PSTD:
+                        # fill in the missing NA values that will otherwise write as zeroes
+                        line_data.insert(25, 'briercl', CN.MV_NOTAV)
+                        line_data.insert(26, 'briercl_ncl', CN.MV_NOTAV)
+                        line_data.insert(27, 'briercl_ncu', CN.MV_NOTAV)
+                        line_data.insert(28, 'bss', CN.MV_NOTAV)
+                        line_data.insert(29, 'bss_smpl', CN.MV_NOTAV)
+                        # add the missing 5 column names to the list of columns to write
+                        CN.LINE_DATA_COLS[line_type] = CN.LINE_DATA_COLS[line_type][0:-5] + \
+                                                       ['briercl', 'briercl_ncl', 'briercl_ncu',
+                                                        'bss', 'bss_smpl']
+
+                    if line_type == CN.RHIST:
+                        # copy the RHIST columns and create ECNT records from them
+                        line_data2 = line_data[line_data[CN.VERSION].isin(CN.RHIST_OLD)].copy()
+                        if not line_data2.empty:
+                            line_data2.line_type = CN.ECNT
+
+                            # put the fields in the correct order for ECNT
+                            line_data2 = \
+                                line_data2.rename(columns={'1':'2', '2':'4',
+                                                           '3':'1', '4':'3',
+                                                           '5':'7', '7':'5'})
+
+                            self.write_to_sql(line_data2, CN.LINE_DATA_COLS[CN.ECNT],
+                                              CN.LINE_TABLES[CN.UC_LINE_TYPES.index(CN.ECNT)],
+                                              CN.LINE_DATA_Q[CN.ECNT])
+
+                            # copy the value of n_rank two columns earlier for old RHIST
+                            line_data.loc[line_data[CN.VERSION].isin(CN.RHIST_OLD), '1'] = \
+                                        line_data['3']
 
                 # write the lines out to a CSV file, and then load them into database
-                # for debugging, unique. may want to reuse same name later - and delete
-                tmpfile = os.getenv('HOME') + '/METdbLoadLines' + line_type + '.csv'
-                line_data[CN.LINE_DATA_COLS[line_type]].to_csv(tmpfile, na_rep='-9999',
-                                                               index=False, header=False,
-                                                               sep=CN.SEP)
-                # self.cur.execute(CN.LD_TABLE.format(tmpfile, line_table, CN.SEP))
-                self.write_to_sql(line_data, CN.LINE_DATA_COLS[line_type], line_table,
-                                  CN.LINE_DATA_Q[line_type])
+                if not line_data.empty:
+                    self.write_to_sql(line_data, CN.LINE_DATA_COLS[line_type], line_table,
+                                      CN.LINE_DATA_Q[line_type])
 
+                # if there are variable length records, write them out also
+                if not all_var.empty:
+                    all_var.columns = CN.LINE_DATA_VAR_FIELDS[line_type]
+                    self.write_to_sql(all_var, CN.LINE_DATA_VAR_FIELDS[line_type],
+                                      CN.LINE_DATA_VAR_TABLES[line_type],
+                                      CN.LINE_DATA_VAR_Q[line_type])
             # --------------------
             # Write Metadata - group and description
             # --------------------
@@ -208,10 +304,10 @@ class WriteStatSql:
                 # If you find a match, update the category and description
                 if self.cur.rowcount > 0:
                     if group != result[0] or description != result[1]:
-                        self.cur.execute(CN.U_METADATA, [group, description])
+                        self.cur.execute(CN.UPD_METADATA, [group, description])
                 # otherwise, insert the category and description
                 else:
-                    self.cur.execute(CN.I_METADATA, [group, description])
+                    self.cur.execute(CN.INS_METADATA, [group, description])
 
             # --------------------
             # Write Instance Info
@@ -220,8 +316,8 @@ class WriteStatSql:
             if load_flags['load_xml'] and not data_files.empty:
                 update_date = data_files[CN.LOAD_DATE].iloc[0]
                 next_instance_id = self.get_next_id(CN.INSTANCE_INFO, CN.INSTANCE_INFO_ID)
-                self.cur.execute(CN.I_INSTANCE, [next_instance_id, getpass.getuser(), update_date,
-                                                 load_note, xml_str])
+                self.cur.execute(CN.INS_INSTANCE, [next_instance_id, getpass.getuser(), update_date,
+                                                   load_note, xml_str])
 
             self.conn.commit()
 
@@ -268,13 +364,13 @@ class WriteStatSql:
                 # later in development, may wish to delete these files to clean up when done
                 tmpfile = os.getenv('HOME') + '/METdbLoad_' + sql_table + '.csv'
                 # write the data out to a csv file, use local data infile to load to database
-                raw_data[col_list].to_csv(tmpfile, na_rep='-9999',
+                raw_data[col_list].to_csv(tmpfile, na_rep=CN.MV_NOTAV,
                                           index=False, header=False, sep=CN.SEP)
                 self.cur.execute(CN.LD_TABLE.format(tmpfile, sql_table, CN.SEP))
             else:
                 # fewer permissions required, but slower
                 # Make sure there are no NaN values
-                raw_data = raw_data.fillna('-9999')
+                raw_data = raw_data.fillna(CN.MV_NOTAV)
                 # make a copy of the dataframe that is a list of lists and write to database
                 dfile = raw_data[col_list].values.tolist()
                 # only line_data has timestamps in dataframe - change to datetime strings

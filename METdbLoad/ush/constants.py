@@ -29,43 +29,49 @@ LC_FALSE = "false"
 # Not Available - NA
 NOTAV = "NA"
 
+# METviewer value for Not Available
+MV_NOTAV = "-9999"
+
 # separator for csv files
 SEP = '$'
 
 # No key is a number that would not be a valid key that is put in as a placeholder
 NO_KEY = -1
 
-# line types
-FHO = "FHO"
-CTC = "CTC"
-CTS = "CTS"
-MCTC = "MCTC"
-MCTS = "MCTS"
-CNT = "CNT"
-SL1L2 = "SL1L2"
-SAL1L2 = "SAL1L2"
-VL1L2 = "VL1L2"
-VAL1L2 = "VAL1L2"
-PCT = "PCT"
-PSTD = "PSTD"
-PJC = "PJC"
-PRC = "PRC"
-ECLV = "ECLV"
-MPR = "MPR"
-NBRCTC = "NBRCTC"
-NBRCTS = "NBRCTS"
-NBRCNT = "NBRCNT"
-ISC = "ISC"
-RHIST = "RHIST"
-PHIST = "PHIST"
-ORANK = "ORANK"
-SSVAR = "SSVAR"
-GRAD = "GRAD"
-VCNT = "VCNT"
-RELP = "RELP"
-ECNT = "ECNT"
-ENSCNT = "ENSCNT"
-PERC = "PERC"
+# line types - comments from the v8.1.1 MET user's guide
+FHO = "FHO"        # Forecast, Hit, Observation Rates
+CTC = "CTC"        # Contingency Table Counts
+CTS = "CTS"        # Contingency Table Statistics
+MCTC = "MCTC"      # Multi-category Contingency Table Counts
+MCTS = "MCTS"      # Multi-category Contingency Table Statistics
+CNT = "CNT"        # Continuous Statistics
+SL1L2 = "SL1L2"    # Scalar L1L2 Partial Sums
+SAL1L2 = "SAL1L2"  # Scalar Anomaly L1L2 Partial Sums when climatological data is supplied
+VL1L2 = "VL1L2"    # Vector L1L2 Partial Sums
+VAL1L2 = "VAL1L2"  # Vector Anomaly L1L2 Partial Sums when climatological data is supplied
+PCT = "PCT"        # Contingency Table Counts for Probabilistic Forecasts
+PSTD = "PSTD"      # Contingency Table Stats for Probabilistic Forecasts with Dichotomous outcomes
+PJC = "PJC"        # Joint and Conditional Factorization for Probabilistic Forecasts
+PRC = "PRC"        # Receiver Operating Characteristic for Probabilistic Forecasts
+ECLV = "ECLV"      # Economic Cost/Loss Value derived from CTC and PCT lines
+MPR = "MPR"        # Matched Pair Data
+NBRCTC = "NBRCTC"  # Neighborhood Contingency Table Counts
+NBRCTS = "NBRCTS"  # Neighborhood Contingency Table Statistics
+NBRCNT = "NBRCNT"  # Neighborhood Continuous Statistics
+ISC = "ISC"        # Intensity-Scale
+RHIST = "RHIST"    # Rank Histogram
+PHIST = "PHIST"    # Probability Integral Transform Histogram
+ORANK = "ORANK"    # Observation Rank
+SSVAR = "SSVAR"    # Spread Skill Variance
+GRAD = "GRAD"      # Gradient statistics (S1 score)
+VCNT = "VCNT"      # Vector Continuous Statistics
+RELP = "RELP"      # Relative Position
+ECNT = "ECNT"      # Ensemble Continuous Statistics - only for HiRA
+ENSCNT = "ENSCNT"  #
+PERC = "PERC"      #
+
+# August 2019 - the last 5 fields of line_data_pstd are blank.
+PSTD2 = "PSTD2"
 
 UC_LINE_TYPES = [FHO, CTC, CTS, MCTC, MCTS, CNT, SL1L2, SAL1L2, VL1L2, VAL1L2,
                  PCT, PSTD, PJC, PRC, ECLV, MPR, NBRCTC, NBRCTS, NBRCNT, ISC,
@@ -141,7 +147,7 @@ Q_METADATA = "SELECT category, description FROM metadata"
 
 STAT_HEADER = 'stat_header'
 STAT_HEADER_ID = 'stat_header_id'
-LINE_HEADER_ID = 'line_data_id'
+LINE_DATA_ID = 'line_data_id'
 LINE_NUM = 'line_num'
 TOTAL_LC = 'total'
 
@@ -170,18 +176,18 @@ STAT_HEADER_FIELDS = [STAT_HEADER_ID, VERSION, MODEL, DESCR,
 VALUE_SLOTS = '%s, ' * len(STAT_HEADER_FIELDS)
 VALUE_SLOTS = VALUE_SLOTS[:-2]
 
-I_HEADER = "INSERT INTO stat_header (" + ",".join(STAT_HEADER_FIELDS) + \
+INS_HEADER = "INSERT INTO stat_header (" + ",".join(STAT_HEADER_FIELDS) + \
            ") VALUES (" + VALUE_SLOTS + ")"
 
-I_DATA_FILES = "INSERT INTO data_file (" + ",".join(DATA_FILE_FIELDS) + \
+INS_DATA_FILES = "INSERT INTO data_file (" + ",".join(DATA_FILE_FIELDS) + \
                ") VALUES (%s, %s, %s, %s, %s, %s)"
 
-I_METADATA = "INSERT INTO metadata (category, description) VALUES (%s, %s)"
+INS_METADATA = "INSERT INTO metadata (category, description) VALUES (%s, %s)"
 
-I_INSTANCE = "INSERT INTO instance_info (instance_info_id, updater, update_date, " + \
+INS_INSTANCE = "INSERT INTO instance_info (instance_info_id, updater, update_date, " + \
              "update_detail, load_xml) VALUES (%s, %s, %s, %s, %s)"
 
-U_METADATA = "UPDATE metadata SET category=%s, description=%s"
+UPD_METADATA = "UPDATE metadata SET category=%s, description=%s"
 
 LD_TABLE = "LOAD DATA LOCAL INFILE '{}' INTO TABLE {} FIELDS TERMINATED BY '{}';"
 
@@ -200,8 +206,24 @@ COVA_LINE_DATA_FIELDS = ALL_LINE_DATA_FIELDS + [COV_THRESH, ALPHA, TOTAL_LC]
 ALL_COUNT = len(ALL_LINE_DATA_FIELDS)
 
 LINE_DATA_FIELDS = dict()
+LINE_DATA_VAR_FIELDS = dict()
 LINE_DATA_COLS = dict()
 LINE_DATA_Q = dict()
+LINE_DATA_VAR_Q = dict()
+LINE_VAR_COUNTER = dict()
+LINE_VAR_REPEATS = dict()
+LINE_DATA_VAR_TABLES = dict()
+
+LINE_DATA_VAR_TABLES[PCT] = 'line_data_pct_thresh'
+LINE_DATA_VAR_TABLES[PSTD] = 'line_data_pstd_thresh'
+LINE_DATA_VAR_TABLES[PJC] = 'line_data_pjc_thresh'
+LINE_DATA_VAR_TABLES[PRC] = 'line_data_prc_thresh'
+LINE_DATA_VAR_TABLES[MCTC] = 'line_data_mctc_cnt'
+LINE_DATA_VAR_TABLES[RHIST] = 'line_data_rhist_rank'
+LINE_DATA_VAR_TABLES[RELP] = 'line_data_relp_ens'
+LINE_DATA_VAR_TABLES[PHIST] = 'line_data_phist_bin'
+LINE_DATA_VAR_TABLES[ORANK] = 'line_data_orank_ens'
+LINE_DATA_VAR_TABLES[ECLV] = 'line_data_eclv_pnt'
 
 LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
                         ['fbar', 'fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
@@ -319,11 +341,11 @@ LINE_DATA_FIELDS[NBRCTS] = COVA_LINE_DATA_FIELDS + \
 
 LINE_DATA_FIELDS[ORANK] = TOT_LINE_DATA_FIELDS + \
                           ['orank_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl', 'obs_elv',
-                           'mpr_fcst', 'mpr_obs', 'mpr_climo', 'obs_qc',
-                           'climo_mean', 'climo_stdev', 'climo_cdf']
+                           'obs', 'pit', 'rank', 'n_ens_vld', 'n_ens', 'obs_qc', 'ens_mean',
+                           'climo', 'spread', 'ens_mean_oerr', 'spread_oerr', 'spread_plus_oerr']
 
 LINE_DATA_FIELDS[PCT] = COV_LINE_DATA_FIELDS + \
-                        ['n_thresh', 'pct_thresh']
+                        ['n_thresh']
 
 LINE_DATA_FIELDS[PERC] = ALL_LINE_DATA_FIELDS + \
                          ['fcst_perc', 'obs_perc']
@@ -332,11 +354,12 @@ LINE_DATA_FIELDS[PHIST] = TOT_LINE_DATA_FIELDS + \
                           ['bin_size', 'n_bin']
 
 LINE_DATA_FIELDS[PJC] = COV_LINE_DATA_FIELDS + \
-                        ['n_thresh', 'pjc_thresh']
+                        ['n_thresh']
 
 LINE_DATA_FIELDS[PRC] = COV_LINE_DATA_FIELDS + \
-                        ['n_thresh', 'prc_thresh']
+                        ['n_thresh']
 
+# the last 5 fields are currently (August 2019) blank, filled in in write_stat_sql
 LINE_DATA_FIELDS[PSTD] = COVA_LINE_DATA_FIELDS + \
                          ['n_thresh', 'baser', 'baser_ncl', 'baser_ncu',
                           'reliability', 'resolution', 'uncertainty', 'roc_auc',
@@ -388,6 +411,30 @@ LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
                           'dir_err', 'dir_err_bcl', 'dir_err_bcu',
                           'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu']
 
+VAR_DATA_FIELDS = [LINE_DATA_ID, 'i_value']
+
+LINE_DATA_VAR_FIELDS[PCT] = VAR_DATA_FIELDS + ['thresh_i', 'oy_i', 'on_i']
+
+LINE_DATA_VAR_FIELDS[PSTD] = VAR_DATA_FIELDS + ['thresh_i']
+
+LINE_DATA_VAR_FIELDS[PJC] = VAR_DATA_FIELDS + \
+                               ['thresh_i', 'oy_tp_i', 'on_tp_i', 'calibration_i',
+                                'refinement_i', 'likelihood_i', 'baser_i']
+
+LINE_DATA_VAR_FIELDS[PRC] = VAR_DATA_FIELDS + ['thresh_i', 'pody_i', 'pofd_i']
+
+LINE_DATA_VAR_FIELDS[MCTC] = VAR_DATA_FIELDS + ['j_value', 'fi_oj']
+
+LINE_DATA_VAR_FIELDS[RHIST] = VAR_DATA_FIELDS + ['rank_i']
+
+LINE_DATA_VAR_FIELDS[RELP] = VAR_DATA_FIELDS + ['ens_i']
+
+LINE_DATA_VAR_FIELDS[PHIST] = VAR_DATA_FIELDS + ['bin_i']
+
+LINE_DATA_VAR_FIELDS[ORANK] = VAR_DATA_FIELDS + ['ens_i']
+
+LINE_DATA_VAR_FIELDS[ECLV] = VAR_DATA_FIELDS + ['x_pnt_i', 'y_pnt_i']
+
 for line_type in UC_LINE_TYPES:
     # for each line type, create a list of the columns in the dataframe
     if line_type in COV_THRESH_LINE_TYPES:
@@ -409,6 +456,9 @@ for line_type in UC_LINE_TYPES:
             ALL_LINE_DATA_FIELDS + \
              COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - ALL_COUNT)]
 
+    if line_type in VAR_LINE_TYPES:
+        LINE_DATA_COLS[line_type] = [LINE_DATA_ID] + LINE_DATA_COLS[line_type]
+
     # For each line type, create insert queries
     VALUE_SLOTS = '%s, ' * len(LINE_DATA_FIELDS[line_type])
     VALUE_SLOTS = VALUE_SLOTS[:-2]
@@ -418,6 +468,49 @@ for line_type in UC_LINE_TYPES:
     i_line = "INSERT INTO " + line_table + " (" + ",".join(LINE_DATA_FIELDS[line_type]) + \
                ") VALUES (" + VALUE_SLOTS + ")"
     LINE_DATA_Q[line_type] = i_line
+
+    if line_type in VAR_LINE_TYPES:
+
+        VALUE_SLOTS = '%s, ' * len(LINE_DATA_VAR_FIELDS[line_type])
+        VALUE_SLOTS = VALUE_SLOTS[:-2]
+
+        var_line_table = LINE_DATA_VAR_TABLES[line_type]
+
+        i_line = "INSERT INTO " + var_line_table + " (" + \
+                 ",".join(LINE_DATA_VAR_FIELDS[line_type]) + \
+                 ") VALUES (" + VALUE_SLOTS + ")"
+        LINE_DATA_VAR_Q[line_type] = i_line
+
+# column name of n_* after Total. phist, orank, and eclv have extra fields after Total
+LINE_VAR_COUNTER[PCT] = '1'
+LINE_VAR_COUNTER[PSTD] = '1'
+LINE_VAR_COUNTER[PJC] = '1'
+LINE_VAR_COUNTER[PRC] = '1'
+LINE_VAR_COUNTER[MCTC] = '1'
+LINE_VAR_COUNTER[RHIST] = '1'
+LINE_VAR_COUNTER[RELP] = '1'
+LINE_VAR_COUNTER[PHIST] = '2'
+LINE_VAR_COUNTER[ORANK] = '11'
+LINE_VAR_COUNTER[ECLV] = '3'
+
+# how many variables/fields appear after i_value (length of repeat)
+LINE_VAR_REPEATS[PCT] = 3
+LINE_VAR_REPEATS[PSTD] = 1
+LINE_VAR_REPEATS[PJC] = 7
+LINE_VAR_REPEATS[PRC] = 3
+LINE_VAR_REPEATS[MCTC] = 1
+LINE_VAR_REPEATS[RHIST] = 1
+LINE_VAR_REPEATS[RELP] = 1
+LINE_VAR_REPEATS[PHIST] = 1
+LINE_VAR_REPEATS[ORANK] = 1
+LINE_VAR_REPEATS[ECLV] = 2
+
+RHIST_OLD = ['V7.0', 'V6.1', 'V6.0', 'V5.2', 'V5.1', 'V5.0',
+             'V4.2', 'V4.1', 'V4.0', 'V3.1', 'V3.0']
+
+RHIST_4 = ['V4.2', 'V4.1', 'V4.0', 'V5.0', 'V3.1', 'V3.0']
+RHIST_5 = ['V5.2', 'V5.1']
+RHIST_6 = ['V6.1', 'V6.0', 'V7.0']
 
 # From the data_file_lu table - to lookup file type
 POINT_STAT = 0
