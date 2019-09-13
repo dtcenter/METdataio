@@ -40,6 +40,8 @@ cur = CONN.cursor()
 cur.execute("delete from data_file;")
 cur.execute("delete from line_data_cnt;")
 cur.execute("delete from line_data_ctc;")
+cur.execute("delete from line_data_cts;")
+cur.execute("delete from line_data_ecnt;")
 cur.execute("delete from line_data_fho;")
 cur.execute("delete from line_data_grad;")
 cur.execute("delete from line_data_mcts;")
@@ -79,12 +81,12 @@ def test_counts():
     # Count the number of data_file records created
     cur.execute("SELECT COUNT(*) from data_file;")
     result = cur.fetchone()
-    assert result[0] == 4
+    assert result[0] == 5
 
     # Count the number of stat_header records created
     cur.execute("SELECT COUNT(*) from stat_header;")
     result = cur.fetchone()
-    assert result[0] == 340
+    assert result[0] == 317
 
     # Count the number of line_data_fho records created
     cur.execute("SELECT COUNT(*) from line_data_fho;")
@@ -106,20 +108,15 @@ def test_counts():
     result = cur.fetchone()
     assert result[0] == 10945
 
-    # Count the number of line_data_nbrctc records created
-    cur.execute("SELECT COUNT(*) from line_data_nbrctc;")
+    # Count the number of line_data_cts records created
+    cur.execute("SELECT COUNT(*) from line_data_cts;")
     result = cur.fetchone()
-    assert result[0] == 80
+    assert result[0] == 326
 
-    # Count the number of line_data_nbrctc records created
-    cur.execute("SELECT COUNT(*) from line_data_nbrcts;")
+    # Count the number of line_data_ecnt records created
+    cur.execute("SELECT COUNT(*) from line_data_ecnt;")
     result = cur.fetchone()
-    assert result[0] == 160
-
-    # Count the number of line_data_mcts records created
-    cur.execute("SELECT COUNT(*) from line_data_mcts;")
-    result = cur.fetchone()
-    assert result[0] == 2
+    assert result[0] == 18
 
     # Count the number of line_data_grad records created
     cur.execute("SELECT COUNT(*) from line_data_grad;")

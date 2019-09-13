@@ -26,8 +26,9 @@ FILE_DATA.read_data(XML_LOADFILE.flags,
 def test_counts():
     """Count parts of the files loaded in."""
     # number of files
-    assert len(XML_LOADFILE.load_files) == 4
+    assert len(XML_LOADFILE.load_files) == 7
     # number of lines of data
-    assert FILE_DATA.stat_data.shape[0] == 11198
+    assert FILE_DATA.stat_data.shape[0] == 11780
     # number of line types
+    # FHO, CTC, CTS, CNT, SL1L2, ECNT, GRAD
     assert FILE_DATA.stat_data.line_type.unique().size == 7
