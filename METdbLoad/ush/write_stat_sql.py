@@ -91,6 +91,8 @@ class WriteStatSql:
                         # With duplicate files allowed, save the existing id for the file
                         data_files.loc[data_files.index[row_num], CN.DATA_FILE_ID] = result[0]
 
+            # end for for row_num, file_line
+
             # reset the stat_data index in case any records were dropped
             stat_data.reset_index(drop=True, inplace=True)
 
@@ -248,19 +250,18 @@ class WriteStatSql:
                             var_data.insert(2, 'j_value', j_indices)
 
                         if line_type == CN.ORANK:
-                            # move the values after the variable length data over them
+                            # move the values after the variable length data to the left
                             var_end = var_index + repeat_width
-                            # this is not quite right
                             line_data.iloc[row_num, var_index:var_index + 7] = \
                                 line_data.iloc[row_num, var_end:var_end + 7].values
 
                         # collect all of the variable data for a line type
                         all_var = all_var.append(var_data, ignore_index=True)
 
+                    # end for row_num, file_line
 
-
+                    # fill in the missing NA values that will otherwise write as zeroes
                     if line_type == CN.PSTD:
-                        # fill in the missing NA values that will otherwise write as zeroes
                         line_data.insert(25, 'briercl', CN.MV_NOTAV)
                         line_data.insert(26, 'briercl_ncl', CN.MV_NOTAV)
                         line_data.insert(27, 'briercl_ncu', CN.MV_NOTAV)
@@ -283,7 +284,7 @@ class WriteStatSql:
                                                            '3':'1', '4':'3',
                                                            '5':'7', '7':'5'})
 
-                            # Write out the ECNT lines created from RHIST lines
+                            # Write out the ECNT lines created from old RHIST lines
                             self.write_to_sql(line_data2, CN.LINE_DATA_COLS[CN.ECNT],
                                               CN.LINE_TABLES[CN.UC_LINE_TYPES.index(CN.ECNT)],
                                               CN.LINE_DATA_Q[CN.ECNT])
@@ -303,6 +304,9 @@ class WriteStatSql:
                     self.write_to_sql(all_var, CN.LINE_DATA_VAR_FIELDS[line_type],
                                       CN.LINE_DATA_VAR_TABLES[line_type],
                                       CN.LINE_DATA_VAR_Q[line_type])
+
+            # end for line_type
+
             # --------------------
             # Write Metadata - group and description
             # --------------------

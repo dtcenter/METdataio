@@ -70,9 +70,6 @@ ECNT = "ECNT"      # Ensemble Continuous Statistics - only for HiRA
 ENSCNT = "ENSCNT"  #
 PERC = "PERC"      #
 
-# August 2019 - the last 5 fields of line_data_pstd are blank.
-PSTD2 = "PSTD2"
-
 UC_LINE_TYPES = [FHO, CTC, CTS, MCTC, MCTS, CNT, SL1L2, SAL1L2, VL1L2, VAL1L2,
                  PCT, PSTD, PJC, PRC, ECLV, MPR, NBRCTC, NBRCTS, NBRCNT, ISC,
                  RHIST, PHIST, ORANK, SSVAR, GRAD, VCNT, RELP, ECNT, ENSCNT, PERC]
@@ -508,7 +505,6 @@ LINE_VAR_REPEATS[ECLV] = 2
 RHIST_OLD = ['V7.0', 'V6.1', 'V6.0', 'V5.2', 'V5.1', 'V5.0',
              'V4.2', 'V4.1', 'V4.0', 'V3.1', 'V3.0']
 
-RHIST_4 = ['V4.2', 'V4.1', 'V4.0', 'V5.0', 'V3.1', 'V3.0']
 RHIST_5 = ['V5.2', 'V5.1']
 RHIST_6 = ['V6.1', 'V6.0', 'V7.0']
 
