@@ -231,9 +231,10 @@ class WriteStatSql:
                         var_data = \
                             pd.DataFrame(list_var_data.values.reshape(var_count, var_repeats))
 
-                        # for older versions of RHIST, blank out repeating fields
+                        # for older versions of RHIST, blank out repeating fields in line data
                         if line_type == CN.RHIST and file_line[CN.VERSION] in CN.RHIST_OLD:
-                            line_data.iloc[row_num, var_index:var_index + repeat_width] = CN.MV_NOTAV
+                            line_data.iloc[row_num, var_index:var_index + repeat_width] = \
+                                CN.MV_NOTAV
 
                         # add on the first two fields - line data id, and i value
                         var_data.insert(0, CN.LINE_DATA_ID, file_line[CN.LINE_DATA_ID])
@@ -246,8 +247,17 @@ class WriteStatSql:
                             j_indices = np.resize(range(1, basic_count + 1), var_count)
                             var_data.insert(2, 'j_value', j_indices)
 
+                        if line_type == CN.ORANK:
+                            # move the values after the variable length data over them
+                            var_end = var_index + repeat_width
+                            # this is not quite right
+                            line_data.iloc[row_num, var_index:var_index + 7] = \
+                                line_data.iloc[row_num, var_end:var_end + 7].values
+
                         # collect all of the variable data for a line type
                         all_var = all_var.append(var_data, ignore_index=True)
+
+
 
                     if line_type == CN.PSTD:
                         # fill in the missing NA values that will otherwise write as zeroes
@@ -262,7 +272,7 @@ class WriteStatSql:
                                                         'bss', 'bss_smpl']
 
                     if line_type == CN.RHIST:
-                        # copy the RHIST columns and create ECNT records from them
+                        # copy the RHIST columns and create ECNT lines from them
                         line_data2 = line_data[line_data[CN.VERSION].isin(CN.RHIST_OLD)].copy()
                         if not line_data2.empty:
                             line_data2.line_type = CN.ECNT
@@ -273,6 +283,7 @@ class WriteStatSql:
                                                            '3':'1', '4':'3',
                                                            '5':'7', '7':'5'})
 
+                            # Write out the ECNT lines created from RHIST lines
                             self.write_to_sql(line_data2, CN.LINE_DATA_COLS[CN.ECNT],
                                               CN.LINE_TABLES[CN.UC_LINE_TYPES.index(CN.ECNT)],
                                               CN.LINE_DATA_Q[CN.ECNT])
