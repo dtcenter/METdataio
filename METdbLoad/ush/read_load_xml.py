@@ -237,8 +237,9 @@ class XmlLoadFile:
             # find all files in directories, append path to them, and put on load_files list
             file_list = []
             for file_dir in load_dirs:
-                for file_name in os.listdir(file_dir):
-                    file_list.append(file_dir + "/" + file_name)
+                if os.path.exists(file_dir):
+                    for file_name in os.listdir(file_dir):
+                        file_list.append(file_dir + "/" + file_name)
 
         except ValueError as value_error:
             logging.error("*** %s in filenames_from_template ***", sys.exc_info()[0])
