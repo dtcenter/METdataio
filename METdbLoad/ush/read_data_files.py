@@ -56,6 +56,7 @@ class ReadDataFiles:
 
         one_file = pd.DataFrame()
         all_stat = pd.DataFrame()
+        list_frames = []
 
         try:
 
@@ -140,8 +141,10 @@ class ReadDataFiles:
                     if not one_file.empty:
                         # initially, match line data to the index of the file names
                         one_file[CN.FILE_ROW] = row_num
-                        all_stat = all_stat.append(one_file, ignore_index=True)
-                        logging.debug("Lines in %s: %s", filename[CN.FULL_FILE], str(one_file.size))
+                        # keep the dataframes from each file in a list
+                        list_frames.append(one_file)
+                        logging.debug("Lines in %s: %s", filename[CN.FULL_FILE],
+                                      str(len(one_file.index)))
                         file_hdr = file_hdr.iloc[0:0]
                         one_file = one_file.iloc[0:0]
                     else:
@@ -149,6 +152,9 @@ class ReadDataFiles:
                         continue
                 else:
                     logging.warning("!!! No file %s", filename[CN.FULL_FILE])
+
+            # concatenate all the dataframes - much faster than doing an append each time
+            all_stat = pd.concat(list_frames)
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data ***", sys.exc_info()[0])
@@ -229,10 +235,6 @@ class ReadDataFiles:
             if not all_stat.interp_pnts.dtypes == 'int':
                 all_stat.loc[all_stat.interp_pnts == CN.NOTAV, CN.INTERP_PNTS] = 0
                 all_stat.interp_pnts = all_stat.interp_pnts.astype(int)
-
-            logging.debug("Unique ALPHA values: %s", str(all_stat.alpha.unique()))
-            logging.debug("Unique COV_THRESH values: %s", str(all_stat.cov_thresh.unique()))
-            logging.debug("Unique INTERP_PNTS: %s", str(all_stat.interp_pnts.unique()))
 
             self.stat_data = all_stat
 
