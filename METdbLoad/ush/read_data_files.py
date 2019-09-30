@@ -154,7 +154,7 @@ class ReadDataFiles:
                     logging.warning("!!! No file %s", filename[CN.FULL_FILE])
 
             # concatenate all the dataframes - much faster than doing an append each time
-            all_stat = pd.concat(list_frames)
+            all_stat = pd.concat(list_frames, ignore_index=True)
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data ***", sys.exc_info()[0])
