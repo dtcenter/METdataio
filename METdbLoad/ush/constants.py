@@ -35,6 +35,9 @@ MV_NOTAV = "-9999"
 # separator for csv files
 SEP = '$'
 
+# Equal Sign
+EQS = '='
+
 # No key is a number that would not be a valid key that is put in as a placeholder
 NO_KEY = -1
 
@@ -83,6 +86,10 @@ ALPHA_LINE_TYPES = [CTS, CNT, PSTD, NBRCTS, NBRCNT, MCTS, SSVAR, VCNT]
 COV_THRESH_LINE_TYPES = [NBRCTC, NBRCTS, PCT, PSTD, PJC, PRC]
 
 VAR_LINE_TYPES = [PCT, PSTD, PJC, PRC, MCTC, RHIST, PHIST, RELP, ORANK, ECLV]
+
+VSDB_LINE_TYPES = ['BSS', 'ECON', FHO, 'FSS', 'HIST', 'RELI', 'RMSE', 'RPS']
+
+VSDB_TO_STAT_TYPES = [PSTD, ECLV, CTC, NBRCNT, RHIST, PCT, CNT, ENSCNT]
 
 # column names
 # MET column names are UC, SQL are LC
@@ -134,8 +141,11 @@ STAT_HEADER_KEYS = [VERSION, MODEL, DESCR, FCST_VAR, FCST_UNITS, FCST_LEV,
                     OBS_VAR, OBS_UNITS, OBS_LEV, OBTYPE, VX_MASK,
                     INTERP_MTHD, INTERP_PNTS, FCST_THRESH, OBS_THRESH]
 
+VSDB_HEADER = [VERSION, MODEL, FCST_LEAD, FCST_VALID_BEG, OBTYPE,
+               VX_MASK, LINE_TYPE, FCST_VAR, FCST_LEV]
+
 Q_FILE = "SELECT data_file_id FROM data_file WHERE " + \
-           "path=%s AND filename=%s"
+         "path=%s AND filename=%s"
 
 Q_HEADER = "SELECT stat_header_id FROM stat_header WHERE " + \
            "=%s AND ".join(STAT_HEADER_KEYS) + "=%s"
@@ -174,15 +184,15 @@ VALUE_SLOTS = '%s, ' * len(STAT_HEADER_FIELDS)
 VALUE_SLOTS = VALUE_SLOTS[:-2]
 
 INS_HEADER = "INSERT INTO stat_header (" + ",".join(STAT_HEADER_FIELDS) + \
-           ") VALUES (" + VALUE_SLOTS + ")"
+             ") VALUES (" + VALUE_SLOTS + ")"
 
 INS_DATA_FILES = "INSERT INTO data_file (" + ",".join(DATA_FILE_FIELDS) + \
-               ") VALUES (%s, %s, %s, %s, %s, %s)"
+                 ") VALUES (%s, %s, %s, %s, %s, %s)"
 
 INS_METADATA = "INSERT INTO metadata (category, description) VALUES (%s, %s)"
 
 INS_INSTANCE = "INSERT INTO instance_info (instance_info_id, updater, update_date, " + \
-             "update_detail, load_xml) VALUES (%s, %s, %s, %s, %s)"
+               "update_detail, load_xml) VALUES (%s, %s, %s, %s, %s)"
 
 UPD_METADATA = "UPDATE metadata SET category=%s, description=%s"
 

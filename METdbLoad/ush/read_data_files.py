@@ -22,6 +22,7 @@ import logging
 import time
 from datetime import timedelta
 from datetime import datetime
+import io
 import numpy as np
 import pandas as pd
 
@@ -55,6 +56,7 @@ class ReadDataFiles:
         # speed up with dask delayed?
 
         one_file = pd.DataFrame()
+        file_hdr = pd.DataFrame()
         all_stat = pd.DataFrame()
         list_frames = []
 
@@ -131,9 +133,42 @@ class ReadDataFiles:
 
                     # Process vsdb files
                     elif filename[CN.DATA_FILE_LU_ID] == CN.VSDB_POINT_STAT:
-                        one_file = pd.read_csv(filename[CN.FULL_FILE], delim_whitespace=True,
-                                               names=range(100))
-                        # make this data look like a Met file
+                        hdr_names = CN.VSDB_HEADER + CN.COL_NUMS
+                        one_file = pd.read_csv(filename[CN.FULL_FILE], sep=CN.SEP, header=None)
+
+                        # VSDB file is empty
+                        if one_file.empty:
+                            logging.warning("!!! Vsdb file %s is empty", filename[CN.FULL_FILE])
+                            continue
+
+                        # remove equal sign if present. also solves no space before =
+                        one_file.iloc[:, 0] = one_file.iloc[:, 0].str.replace(CN.EQS, ' ')
+                        # put a space in front of hyphen in case space is missing
+                        one_file.iloc[:, 0] = one_file.iloc[:, 0].str.replace('-', ' -')
+                        # break fields out, separated by 1 or more spaces
+                        one_file = one_file.iloc[:, 0].str.split(' +', expand=True)
+
+                        # get thresh after slash in line
+                        # not working
+                        # FHO and FSS in the 6 column have thresh
+                        one_file.insert(9, CN.FCST_THRESH, CN.NOTAV)
+                        one_file.loc[one_file.iloc[:, 6].str.contains(CN.FHO), CN.FCST_THRESH] = \
+                            one_file[one_file.iloc[:, 6].str.contains(CN.FHO)][3:]
+
+                        # split out > from line types first?
+
+                        # do this after all files collected?
+                        # change line types from VSDB to STAT
+                        one_file.iloc[:, 6] = one_file.iloc[:, 6].replace(to_replace=CN.VSDB_LINE_TYPES,
+                                                                  value=CN.VSDB_TO_STAT_TYPES)
+
+                        # make this VSDB data look like a Met file
+                        # can/should this be done to all VSDB files at once?
+                        # In case of data error, where no space before equal sign
+                        #one_file.loc[one_file.fcst_lev.str.contains(CN.EQS), CN.FCST_LEV] = \
+                        #    one_file.loc[one_file.fcst_lev.str.contains(CN.EQS),
+                        #                 CN.FCST_LEV].str.rstrip(CN.EQS)
+
                     else:
                         logging.warning("!!! This file type is not handled yet")
 
@@ -145,8 +180,9 @@ class ReadDataFiles:
                         list_frames.append(one_file)
                         logging.debug("Lines in %s: %s", filename[CN.FULL_FILE],
                                       str(len(one_file.index)))
-                        file_hdr = file_hdr.iloc[0:0]
                         one_file = one_file.iloc[0:0]
+                        if not file_hdr.empty:
+                            file_hdr = file_hdr.iloc[0:0]
                     else:
                         logging.warning("!!! Empty file %s", filename[CN.FULL_FILE])
                         continue
