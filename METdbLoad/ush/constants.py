@@ -73,6 +73,8 @@ ECNT = "ECNT"      # Ensemble Continuous Statistics - only for HiRA
 ENSCNT = "ENSCNT"  #
 PERC = "PERC"      #
 
+FSS = "FSS"
+
 UC_LINE_TYPES = [FHO, CTC, CTS, MCTC, MCTS, CNT, SL1L2, SAL1L2, VL1L2, VAL1L2,
                  PCT, PSTD, PJC, PRC, ECLV, MPR, NBRCTC, NBRCTS, NBRCNT, ISC,
                  RHIST, PHIST, ORANK, SSVAR, GRAD, VCNT, RELP, ECNT, ENSCNT, PERC]
@@ -170,6 +172,8 @@ MOD_DATE = 'mod_date'
 
 INSTANCE_INFO = 'instance_info'
 INSTANCE_INFO_ID = 'instance_info_id'
+
+VSDB_COLS = {'0': VERSION, '1': MODEL, '2': FCST_LEAD, '3': FCST_VALID_BEG}
 
 DATA_FILE_FIELDS = [DATA_FILE_ID, DATA_FILE_LU_ID, FILENAME, FILEPATH,
                     LOAD_DATE, MOD_DATE]
