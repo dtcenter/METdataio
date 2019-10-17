@@ -22,7 +22,6 @@ import logging
 import time
 from datetime import timedelta
 from datetime import datetime
-import io
 import numpy as np
 import pandas as pd
 
@@ -147,7 +146,8 @@ class ReadDataFiles:
 
                         # put a space in front of hyphen between numbers in case space is missing
                         # but FHO can have negative thresh - so fix with regex, only between numbers
-                        one_file.iloc[:, 0] = one_file.iloc[:, 0].str.replace(r'(\d)-(\d)', r'\1 -\2')
+                        one_file.iloc[:, 0] = \
+                            one_file.iloc[:, 0].str.replace(r'(\d)-(\d)', r'\1 -\2')
 
                         # break fields out, separated by 1 or more spaces
                         one_file = one_file.iloc[:, 0].str.split(' +', expand=True)
@@ -155,24 +155,33 @@ class ReadDataFiles:
                         # get thresh after > in line type
                         # FHO and FSS in the 6 column have thresh
                         one_file.insert(9, CN.FCST_THRESH, CN.NOTAV)
+
                         if one_file.iloc[:, 6].str.contains(CN.FHO).any():
-                            one_file.loc[one_file.iloc[:, 6].str.contains(CN.FHO), CN.FCST_THRESH] = \
-                                one_file.loc[one_file.iloc[:, 6].str.contains(CN.FHO), 6].str.split(CN.FHO).str[1]
+                            one_file.loc[one_file.iloc[:, 6].str.contains(CN.FHO),
+                                         CN.FCST_THRESH] = \
+                                             one_file.loc[one_file.iloc[:, 6].str.contains(CN.FHO),
+                                                          6].str.split(CN.FHO).str[1]
+                            # change from the VSDB file type with thresh to Stat file type
                             one_file.loc[one_file.iloc[:, 6].str.contains(CN.FHO), 6] = CN.CTC
+
                         if one_file.iloc[:, 6].str.contains(CN.FSS).any():
-                            one_file.loc[one_file.iloc[:, 6].str.contains(CN.FSS), CN.FCST_THRESH] = \
-                                one_file.loc[one_file.iloc[:, 6].str.contains(CN.FSS), 6].str.split(CN.FSS).str[1]
+                            one_file.loc[one_file.iloc[:, 6].str.contains(CN.FSS),
+                                         CN.FCST_THRESH] = \
+                                             one_file.loc[one_file.iloc[:, 6].str.contains(CN.FSS),
+                                                          6].str.split(CN.FSS).str[1]
+                            # change from the VSDB file type with thresh to Stat file type
                             one_file.loc[one_file.iloc[:, 6].str.contains(CN.FSS), 6] = CN.NBRCNT
 
                         # do this after all files collected?
                         # change line types from VSDB to STAT
-                        one_file.iloc[:, 6] = one_file.iloc[:, 6].replace(to_replace=CN.VSDB_LINE_TYPES,
-                                                                          value=CN.VSDB_TO_STAT_TYPES)
+                        one_file.iloc[:, 6] = \
+                            one_file.iloc[:, 6].replace(to_replace=CN.VSDB_LINE_TYPES,
+                                                        value=CN.VSDB_TO_STAT_TYPES)
 
                         # make this VSDB data look like a Met file
                         # can/should this be done to all VSDB files at once?
 
-                        # rename columns - this is not working
+                        # rename columns
                         one_file.rename(columns=CN.VSDB_COLS, inplace=True)
 
                         # some need value after / split from model
@@ -182,19 +191,20 @@ class ReadDataFiles:
                         # reformat fcst_valid_beg
                         one_file.iloc[:, 4] = pd.to_datetime(one_file.iloc[:, 4], format='%Y%m%d%H')
                         # fcst_valid_end is the same as fcst_valid_beg
-                        one_file.loc[CN.FCST_VALID_END] = one_file.iloc[:, 4]
+                        one_file.loc[:, CN.FCST_VALID_END] = one_file.iloc[:, 4]
                         # copy obs values from fcst values
                         one_file.loc[:, CN.OBS_LEAD] = one_file.iloc[:, 3]
                         one_file.loc[:, CN.OBS_VALID_BEG] = one_file.iloc[:, 4]
                         one_file.loc[:, CN.OBS_VALID_END] = one_file.iloc[:, 4]
+                        one_file.loc[:, CN.OBS_THRESH] = one_file.loc[:, CN.FCST_THRESH]
                         # add units
                         one_file.insert(11, CN.FCST_UNITS, CN.NOTAV)
                         one_file.loc[:, CN.OBS_VAR] = one_file.iloc[:, 8]
                         one_file.insert(12, CN.OBS_UNITS, CN.NOTAV)
                         one_file.loc[:, CN.OBS_LEV] = one_file.iloc[:, 9]
+                        # add interp method and interp points with default values
                         one_file.insert(13, CN.INTERP_MTHD, CN.NOTAV)
                         one_file.insert(14, CN.INTERP_PNTS, "0")
-                        one_file.loc[:, CN.OBS_THRESH] = one_file.loc[:, CN.FCST_THRESH]
 
                     else:
                         logging.warning("!!! This file type is not handled yet")
