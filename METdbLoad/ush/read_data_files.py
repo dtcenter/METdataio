@@ -156,65 +156,71 @@ class ReadDataFiles:
                         hdr_names = CN.VSDB_HEADER + CN.COL_NUMS
                         one_file.columns = hdr_names[:len(one_file.columns)]
 
-                        # get thresh after > in line type
+                        # get thresh starting with > in line_type
                         # FHO and FSS in the 6 column have thresh
                         one_file.insert(9, CN.FCST_THRESH, CN.NOTAV)
 
-                        if one_file.iloc[:, 6].str.contains(CN.FHO).any():
-                            one_file.loc[one_file.iloc[:, 6].str.contains(CN.FHO),
+                        if one_file.line_type.str.contains(CN.FHO).any():
+                            one_file.loc[one_file.line_type.str.contains(CN.FHO),
                                          CN.FCST_THRESH] = \
-                                             one_file.loc[one_file.iloc[:, 6].str.contains(CN.FHO),
+                                             one_file.loc[one_file.line_type.str.contains(CN.FHO),
                                                           CN.LINE_TYPE].str.split(CN.FHO).str[1]
                             # change from the VSDB file type with thresh to Stat file type
-                            one_file.loc[one_file.iloc[:, 6].str.contains(CN.FHO),
+                            one_file.loc[one_file.line_type.str.contains(CN.FHO),
                                          CN.LINE_TYPE] = CN.CTC
 
-                        if one_file.iloc[:, 6].str.contains(CN.FSS).any():
-                            one_file.loc[one_file.iloc[:, 6].str.contains(CN.FSS),
+                        if one_file.line_type.str.contains(CN.FSS).any():
+                            one_file.loc[one_file.line_type.str.contains(CN.FSS),
                                          CN.FCST_THRESH] = \
-                                             one_file.loc[one_file.iloc[:, 6].str.contains(CN.FSS),
+                                             one_file.loc[one_file.line_type.str.contains(CN.FSS),
                                                           CN.LINE_TYPE].str.split(CN.FSS).str[1]
                             # change from the VSDB file type with thresh to Stat file type
-                            one_file.loc[one_file.iloc[:, 6].str.contains(CN.FSS),
+                            one_file.loc[one_file.line_type.str.contains(CN.FSS),
                                          CN.LINE_TYPE] = CN.NBRCNT
 
-                        # for RELI, get number after slash in model, add one, add text to be thresh
-                        if one_file.iloc[:, 6].str.contains(CN.RELI).any():
+                        # for RELI/PCT, get number after slash in model, add one,
+                        # prefix with string and put in thresh
+                        if one_file.line_type.str.contains(CN.RELI).any():
                             one_file.loc[one_file.line_type == CN.RELI,
                                          CN.FCST_THRESH] = \
                                          '==1/' + \
                                          one_file.loc[one_file.line_type == CN.RELI,
                                                       CN.MODEL].str.split('/').str[1].astype(int).add(1).astype(str)
 
+                        # Remove slash and text following it from certain line types
+                        one_file.loc[one_file.line_type.isin(CN.VSDB_MODEL_SLASH),
+                                     CN.MODEL] = \
+                            one_file.loc[one_file.line_type.isin(CN.VSDB_MODEL_SLASH),
+                                         CN.MODEL].str.split('/').str[0]
+
                         # do this after all files collected?
                         # change line types from VSDB to STAT
-                        one_file.iloc[:, 6] = \
-                            one_file.iloc[:, 6].replace(to_replace=CN.VSDB_LINE_TYPES,
-                                                        value=CN.VSDB_TO_STAT_TYPES)
+                        one_file.line_type = \
+                            one_file.line_type.replace(to_replace=CN.VSDB_LINE_TYPES,
+                                                       value=CN.VSDB_TO_STAT_TYPES)
 
                         # make this VSDB data look like a Met file
                         # can/should this be done to all VSDB files at once?
 
-                        # some need value after / split from model
-
                         # add description
                         one_file.insert(2, CN.DESCR, CN.NOTAV)
                         # reformat fcst_valid_beg
-                        one_file.iloc[:, 4] = pd.to_datetime(one_file.iloc[:, 4], format='%Y%m%d%H')
+                        one_file.fcst_valid_beg = pd.to_datetime(one_file.fcst_valid_beg,
+                                                                 format='%Y%m%d%H')
                         # fcst_valid_end is the same as fcst_valid_beg
-                        one_file.loc[:, CN.FCST_VALID_END] = one_file.iloc[:, 4]
+                        one_file.loc[:, CN.FCST_VALID_END] = one_file.fcst_valid_beg
                         # fcst_lead must be numeric for later calculations
-                        one_file[CN.FCST_LEAD] = pd.to_numeric(one_file[CN.FCST_LEAD])
-                        one_file[CN.OBS_LEAD] = 0
+                        one_file.fcst_lead = pd.to_numeric(one_file.fcst_lead)
+                        one_file.obs_lead = 0
                         # copy obs values from fcst values
-                        one_file.loc[:, CN.OBS_VALID_BEG] = one_file.iloc[:, 4]
-                        one_file.loc[:, CN.OBS_VALID_END] = one_file.iloc[:, 4]
-                        one_file.loc[:, CN.OBS_THRESH] = one_file.loc[:, CN.FCST_THRESH]
+                        one_file.loc[:, CN.OBS_VALID_BEG] = one_file.fcst_valid_beg
+                        one_file.loc[:, CN.OBS_VALID_END] = one_file.fcst_valid_beg
+                        one_file.loc[:, CN.OBS_VAR] = one_file.fcst_var
+                        one_file.loc[:, CN.OBS_LEV] = one_file.fcst_lev
+                        one_file.loc[:, CN.OBS_THRESH] = one_file.fcst_thresh
                         # add units
                         one_file.insert(11, CN.FCST_UNITS, CN.NOTAV)
-                        one_file.loc[:, CN.OBS_VAR] = one_file.iloc[:, 8]
                         one_file.insert(12, CN.OBS_UNITS, CN.NOTAV)
-                        one_file.loc[:, CN.OBS_LEV] = one_file.iloc[:, 9]
                         # add interp method and interp points with default values
                         one_file.insert(13, CN.INTERP_MTHD, CN.NOTAV)
                         one_file.insert(14, CN.INTERP_PNTS, "0")
