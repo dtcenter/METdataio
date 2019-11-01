@@ -181,11 +181,14 @@ class ReadDataFiles:
                         # for RELI/PCT, get number after slash in model, add one,
                         # prefix with string and put in thresh
                         if one_file.line_type.str.contains(CN.RELI).any():
-                            one_file.loc[one_file.line_type == CN.RELI,
+                            one_file.loc[one_file.line_type == \
+                                         CN.RELI,
                                          CN.FCST_THRESH] = \
-                                         '==1/' + \
-                                         one_file.loc[one_file.line_type == CN.RELI,
-                                                      CN.MODEL].str.split('/').str[1].astype(int).add(1).astype(str)
+                                 '==1/' + \
+                                 one_file.loc[one_file.line_type == \
+                                              CN.RELI,
+                                              CN.MODEL].str.split('/').str[1]\
+                                     .astype(int).add(1).astype(str)
 
                         # Remove slash and text following it from certain line types
                         one_file.loc[one_file.line_type.isin(CN.VSDB_MODEL_SLASH),
@@ -224,8 +227,11 @@ class ReadDataFiles:
                         # add interp method and interp points with default values
                         one_file.insert(13, CN.INTERP_MTHD, CN.NOTAV)
                         one_file.insert(14, CN.INTERP_PNTS, "0")
-                        one_file[CN.ALPHA] = -9999
-                        one_file[CN.COV_THRESH] = -9999
+                        # add alpha and cov_thresh
+                        one_file.insert(15, CN.ALPHA, -9999)
+                        one_file.insert(16, CN.COV_THRESH, -9999)
+                        # add total column with default of zero
+                        one_file.insert(17, CN.TOTAL_LC, "0")
 
                     else:
                         logging.warning("!!! This file type is not handled yet")

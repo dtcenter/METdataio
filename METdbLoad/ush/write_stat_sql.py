@@ -91,7 +91,7 @@ class WriteStatSql:
                         # With duplicate files allowed, save the existing id for the file
                         data_files.loc[data_files.index[row_num], CN.DATA_FILE_ID] = result[0]
 
-            # end for for row_num, file_line
+            # end for row_num, file_line
 
             # reset the stat_data index in case any records were dropped
             stat_data.reset_index(drop=True, inplace=True)
