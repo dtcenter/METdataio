@@ -160,23 +160,16 @@ class ReadDataFiles:
                         # FHO and FSS in the 6 column have thresh
                         one_file.insert(9, CN.FCST_THRESH, CN.NOTAV)
 
-                        if one_file.line_type.str.contains(CN.FHO).any():
-                            one_file.loc[one_file.line_type.str.contains(CN.FHO),
+                        if one_file.line_type.str.startswith('F').any():
+                            one_file.loc[one_file.line_type.str.startswith('F'),
                                          CN.FCST_THRESH] = \
-                                             one_file.loc[one_file.line_type.str.contains(CN.FHO),
-                                                          CN.LINE_TYPE].str.split(CN.FHO).str[1]
-                            # change from the VSDB file type with thresh to Stat file type
-                            one_file.loc[one_file.line_type.str.contains(CN.FHO),
-                                         CN.LINE_TYPE] = CN.CTC
-
-                        if one_file.line_type.str.contains(CN.FSS).any():
-                            one_file.loc[one_file.line_type.str.contains(CN.FSS),
-                                         CN.FCST_THRESH] = \
-                                             one_file.loc[one_file.line_type.str.contains(CN.FSS),
-                                                          CN.LINE_TYPE].str.split(CN.FSS).str[1]
-                            # change from the VSDB file type with thresh to Stat file type
-                            one_file.loc[one_file.line_type.str.contains(CN.FSS),
-                                         CN.LINE_TYPE] = CN.NBRCNT
+                                             one_file.loc[one_file.line_type.str.startswith('F'),
+                                                          CN.LINE_TYPE].str[3:]
+                            # remove the thresh value from the line type
+                            one_file.loc[one_file.line_type.str.startswith('F'),
+                                         CN.LINE_TYPE] = \
+                                one_file.loc[one_file.line_type.str.startswith('F'),
+                                             CN.LINE_TYPE].str[0:3]
 
                         # for RELI/PCT, get number after slash in model, add one,
                         # prefix with string and put in thresh
@@ -214,7 +207,7 @@ class ReadDataFiles:
                         one_file.loc[:, CN.FCST_VALID_END] = one_file.fcst_valid_beg
                         # fcst_lead must be numeric for later calculations
                         one_file.fcst_lead = pd.to_numeric(one_file.fcst_lead)
-                        one_file.obs_lead = 0
+                        one_file.insert(11, CN.OBS_LEAD, 0)
                         # copy obs values from fcst values
                         one_file.loc[:, CN.OBS_VALID_BEG] = one_file.fcst_valid_beg
                         one_file.loc[:, CN.OBS_VALID_END] = one_file.fcst_valid_beg
@@ -222,16 +215,16 @@ class ReadDataFiles:
                         one_file.loc[:, CN.OBS_LEV] = one_file.fcst_lev
                         one_file.loc[:, CN.OBS_THRESH] = one_file.fcst_thresh
                         # add units
-                        one_file.insert(11, CN.FCST_UNITS, CN.NOTAV)
-                        one_file.insert(12, CN.OBS_UNITS, CN.NOTAV)
+                        one_file.insert(12, CN.FCST_UNITS, CN.NOTAV)
+                        one_file.insert(13, CN.OBS_UNITS, CN.NOTAV)
                         # add interp method and interp points with default values
-                        one_file.insert(13, CN.INTERP_MTHD, CN.NOTAV)
-                        one_file.insert(14, CN.INTERP_PNTS, "0")
+                        one_file.insert(14, CN.INTERP_MTHD, CN.NOTAV)
+                        one_file.insert(15, CN.INTERP_PNTS, "0")
                         # add alpha and cov_thresh
-                        one_file.insert(15, CN.ALPHA, -9999)
-                        one_file.insert(16, CN.COV_THRESH, -9999)
+                        one_file.insert(16, CN.ALPHA, -9999)
+                        one_file.insert(17, CN.COV_THRESH, -9999)
                         # add total column with default of zero
-                        one_file.insert(17, CN.TOTAL_LC, "0")
+                        one_file.insert(18, CN.TOTAL_LC, "0")
 
                     else:
                         logging.warning("!!! This file type is not handled yet")
