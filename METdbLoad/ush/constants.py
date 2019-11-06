@@ -38,6 +38,9 @@ SEP = '$'
 # Equal Sign
 EQS = '='
 
+# Forward Slash
+FWD_SLASH = '/'
+
 # No key is a number that would not be a valid key that is put in as a placeholder
 NO_KEY = -1
 
@@ -75,6 +78,8 @@ PERC = "PERC"      #
 
 FSS = "FSS"
 RELI = "RELI"
+HIST = "HIST"
+ECON = "ECON"
 
 UC_LINE_TYPES = [FHO, CTC, CTS, MCTC, MCTS, CNT, SL1L2, SAL1L2, VL1L2, VAL1L2,
                  PCT, PSTD, PJC, PRC, ECLV, MPR, NBRCTC, NBRCTS, NBRCNT, ISC,
@@ -93,8 +98,6 @@ VAR_LINE_TYPES = [PCT, PSTD, PJC, PRC, MCTC, RHIST, PHIST, RELP, ORANK, ECLV]
 VSDB_LINE_TYPES = ['BSS', 'ECON', 'HIST', 'RELI', 'RMSE', 'RPS', 'FHO', 'FSS']
 
 VSDB_TO_STAT_TYPES = [PSTD, ECLV, RHIST, PCT, CNT, ENSCNT, CTC, NBRCNT]
-
-VSDB_MODEL_SLASH = VSDB_LINE_TYPES + ['RELP']
 
 # column names
 # MET column names are UC, SQL are LC

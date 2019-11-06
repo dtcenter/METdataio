@@ -55,9 +55,12 @@ class ReadDataFiles:
         # speed up with dask delayed?
 
         one_file = pd.DataFrame()
+        vsdb_file = pd.DataFrame()
         file_hdr = pd.DataFrame()
         all_stat = pd.DataFrame()
+        all_vsdb = pd.DataFrame()
         list_frames = []
+        list_vsdb = []
 
         try:
 
@@ -92,7 +95,9 @@ class ReadDataFiles:
                                              time.localtime(stat_info.st_mtime))
                     self.data_files.at[row_num, CN.MOD_DATE] = mod_date
 
+                    #
                     # Process stat files
+                    #
                     if filename[CN.DATA_FILE_LU_ID] == CN.STAT:
                         # Get the first line of the .stat file that has the headers
                         file_hdr = pd.read_csv(filename[CN.FULL_FILE], delim_whitespace=True,
@@ -130,101 +135,33 @@ class ReadDataFiles:
                         # add line numbers and count the header line, for stat files
                         one_file[CN.LINE_NUM] = one_file.index + 2
 
+                    #
                     # Process vsdb files
+                    #
                     elif filename[CN.DATA_FILE_LU_ID] == CN.VSDB_POINT_STAT:
 
                         # read each line in as 1 column so some fixes can be made
-                        one_file = pd.read_csv(filename[CN.FULL_FILE], sep=CN.SEP, header=None)
+                        vsdb_file = pd.read_csv(filename[CN.FULL_FILE], sep=CN.SEP, header=None)
 
                         # VSDB file is empty
-                        if one_file.empty:
+                        if vsdb_file.empty:
                             logging.warning("!!! Vsdb file %s is empty", filename[CN.FULL_FILE])
                             continue
 
                         # remove equal sign if present. also solves no space before =
-                        one_file.iloc[:, 0] = one_file.iloc[:, 0].str.replace(CN.EQS, ' ')
+                        vsdb_file.iloc[:, 0] = vsdb_file.iloc[:, 0].str.replace(CN.EQS, ' ')
 
                         # put a space in front of hyphen between numbers in case space is missing
                         # but FHO can have negative thresh - so fix with regex, only between numbers
-                        one_file.iloc[:, 0] = \
-                            one_file.iloc[:, 0].str.replace(r'(\d)-(\d)', r'\1 -\2')
+                        vsdb_file.iloc[:, 0] = \
+                            vsdb_file.iloc[:, 0].str.replace(r'(\d)-(\d)', r'\1 -\2')
 
                         # break fields out, separated by 1 or more spaces
-                        one_file = one_file.iloc[:, 0].str.split(' +', expand=True)
+                        vsdb_file = vsdb_file.iloc[:, 0].str.split(' +', expand=True)
 
                         # add column names
                         hdr_names = CN.VSDB_HEADER + CN.COL_NUMS
-                        one_file.columns = hdr_names[:len(one_file.columns)]
-
-                        # get thresh starting with > in line_type
-                        # FHO and FSS in the 6 column have thresh
-                        one_file.insert(9, CN.FCST_THRESH, CN.NOTAV)
-
-                        if one_file.line_type.str.startswith('F').any():
-                            one_file.loc[one_file.line_type.str.startswith('F'),
-                                         CN.FCST_THRESH] = \
-                                             one_file.loc[one_file.line_type.str.startswith('F'),
-                                                          CN.LINE_TYPE].str[3:]
-                            # remove the thresh value from the line type
-                            one_file.loc[one_file.line_type.str.startswith('F'),
-                                         CN.LINE_TYPE] = \
-                                one_file.loc[one_file.line_type.str.startswith('F'),
-                                             CN.LINE_TYPE].str[0:3]
-
-                        # for RELI/PCT, get number after slash in model, add one,
-                        # prefix with string and put in thresh
-                        if one_file.line_type.str.contains(CN.RELI).any():
-                            one_file.loc[one_file.line_type == \
-                                         CN.RELI,
-                                         CN.FCST_THRESH] = \
-                                 '==1/' + \
-                                 one_file.loc[one_file.line_type == \
-                                              CN.RELI,
-                                              CN.MODEL].str.split('/').str[1]\
-                                     .astype(int).add(1).astype(str)
-
-                        # Remove slash and text following it from certain line types
-                        one_file.loc[one_file.line_type.isin(CN.VSDB_MODEL_SLASH),
-                                     CN.MODEL] = \
-                            one_file.loc[one_file.line_type.isin(CN.VSDB_MODEL_SLASH),
-                                         CN.MODEL].str.split('/').str[0]
-
-                        # do this after all files collected?
-                        # change line types from VSDB to STAT
-                        one_file.line_type = \
-                            one_file.line_type.replace(to_replace=CN.VSDB_LINE_TYPES,
-                                                       value=CN.VSDB_TO_STAT_TYPES)
-
-                        # make this VSDB data look like a Met file
-                        # can/should this be done to all VSDB files at once?
-
-                        # add description
-                        one_file.insert(2, CN.DESCR, CN.NOTAV)
-                        # reformat fcst_valid_beg
-                        one_file.fcst_valid_beg = pd.to_datetime(one_file.fcst_valid_beg,
-                                                                 format='%Y%m%d%H')
-                        # fcst_valid_end is the same as fcst_valid_beg
-                        one_file.loc[:, CN.FCST_VALID_END] = one_file.fcst_valid_beg
-                        # fcst_lead must be numeric for later calculations
-                        one_file.fcst_lead = pd.to_numeric(one_file.fcst_lead)
-                        one_file.insert(11, CN.OBS_LEAD, 0)
-                        # copy obs values from fcst values
-                        one_file.loc[:, CN.OBS_VALID_BEG] = one_file.fcst_valid_beg
-                        one_file.loc[:, CN.OBS_VALID_END] = one_file.fcst_valid_beg
-                        one_file.loc[:, CN.OBS_VAR] = one_file.fcst_var
-                        one_file.loc[:, CN.OBS_LEV] = one_file.fcst_lev
-                        one_file.loc[:, CN.OBS_THRESH] = one_file.fcst_thresh
-                        # add units
-                        one_file.insert(12, CN.FCST_UNITS, CN.NOTAV)
-                        one_file.insert(13, CN.OBS_UNITS, CN.NOTAV)
-                        # add interp method and interp points with default values
-                        one_file.insert(14, CN.INTERP_MTHD, CN.NOTAV)
-                        one_file.insert(15, CN.INTERP_PNTS, "0")
-                        # add alpha and cov_thresh
-                        one_file.insert(16, CN.ALPHA, -9999)
-                        one_file.insert(17, CN.COV_THRESH, -9999)
-                        # add total column with default of zero
-                        one_file.insert(18, CN.TOTAL_LC, "0")
+                        vsdb_file.columns = hdr_names[:len(vsdb_file.columns)]
 
                     else:
                         logging.warning("!!! This file type is not handled yet")
@@ -240,20 +177,168 @@ class ReadDataFiles:
                         one_file = one_file.iloc[0:0]
                         if not file_hdr.empty:
                             file_hdr = file_hdr.iloc[0:0]
-                    else:
+                    elif not vsdb_file.empty:
+                        vsdb_file[CN.FILE_ROW] = row_num
+                        list_vsdb.append(vsdb_file)
+                        logging.debug("Lines in %s: %s", filename[CN.FULL_FILE],
+                                      str(len(vsdb_file.index)))
+                        vsdb_file = vsdb_file.iloc[0:0]
+                    elif one_file.empty and vsdb_file.empty:
                         logging.warning("!!! Empty file %s", filename[CN.FULL_FILE])
                         continue
                 else:
                     logging.warning("!!! No file %s", filename[CN.FULL_FILE])
 
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in read_data upper ***", sys.exc_info()[0])
+
+        try:
+
             # concatenate all the dataframes - much faster than doing an append each time
             # added sort=False on 10/21/19 because that will be new default behavior
-            all_stat = pd.concat(list_frames, ignore_index=True, sort=False)
+            if list_frames:
+                all_stat = pd.concat(list_frames, ignore_index=True, sort=False)
+
+                # THese warnings and transforms only apply to stat files
+                # give a warning message with data if value of alpha for an alpha line type is NA
+                alpha_lines = all_stat[(all_stat.line_type.isin(CN.ALPHA_LINE_TYPES)) &
+                                       (all_stat.alpha == CN.NOTAV)].line_type
+                if not alpha_lines.empty:
+                    logging.warning("!!! ALPHA line_type has ALPHA value of NA:\r\n %s",
+                                    str(alpha_lines))
+
+                # give a warning message with data if non-alpha line type has float value
+                non_alpha_lines = all_stat[(~all_stat.line_type.isin(CN.ALPHA_LINE_TYPES)) &
+                                           (all_stat.alpha != CN.NOTAV)].line_type
+                if not non_alpha_lines.empty:
+                    logging.warning("!!! non-ALPHA line_type has ALPHA float value:\r\n %s",
+                                    str(non_alpha_lines))
+
+                # Change ALL items in column ALPHA to -9999 if they are 'NA'
+                all_stat.loc[all_stat.alpha == CN.NOTAV, CN.ALPHA] = -9999
+
+                # Make ALPHA column into a decimal with no trailing zeroes after the decimal
+                all_stat.alpha = all_stat.alpha.astype(float).map('{0:g}'.format)
+
+                # Change ALL items in column COV_THRESH to '-9999' if they are 'NA'
+                all_stat.loc[all_stat.cov_thresh == CN.NOTAV, CN.COV_THRESH] = '-9999'
+
+                # Change 'NA' values in column INTERP_PNTS to 0 if present
+                if not all_stat.interp_pnts.dtypes == 'int':
+                    all_stat.loc[all_stat.interp_pnts == CN.NOTAV, CN.INTERP_PNTS] = 0
+                    all_stat.interp_pnts = all_stat.interp_pnts.astype(int)
+
+            # collect vsdb files separately so additional transforms can be done
+            if list_vsdb:
+                all_vsdb = pd.concat(list_vsdb, ignore_index=True, sort=False)
+
+                # Make VSDB files look like stat files
+                # get thresh starting with > in line_type
+                # FHO and FSS in the 6 column have thresh
+                all_vsdb.insert(9, CN.FCST_THRESH, CN.NOTAV)
+
+                if all_vsdb.line_type.str.startswith('F').any():
+                    all_vsdb.loc[all_vsdb.line_type.str.startswith('F'),
+                                 CN.FCST_THRESH] = \
+                        all_vsdb.loc[all_vsdb.line_type.str.startswith('F'),
+                                     CN.LINE_TYPE].str[3:]
+                    # remove the thresh value from the line type
+                    all_vsdb.loc[all_vsdb.line_type.str.startswith('F'),
+                                 CN.LINE_TYPE] = \
+                        all_vsdb.loc[all_vsdb.line_type.str.startswith('F'),
+                                     CN.LINE_TYPE].str[0:3]
+
+                # handle model names that contain a forward slash followed by a number
+                if all_vsdb.model.str.contains(CN.FWD_SLASH).any():
+                    all_vsdb.loc[:, 'n_var'] = 0
+                    # save the value after the slash in model
+                    all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH),
+                                 'n_var'] = \
+                        all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH),
+                                     CN.MODEL].str.split(CN.FWD_SLASH).str[1].astype(int)
+                    # change the extracted value to numeric
+                    # all_vsdb.n_var = pd.to_numeric(all_vsdb.n_var)
+                    # remove the slash and value from model
+                    all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH),
+                                 CN.MODEL] = \
+                        all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH),
+                                     CN.MODEL].str.split(CN.FWD_SLASH).str[0]
+
+                    # for RELI/PCT, get number after slash in model, add one,
+                    # prefix with string and put in thresh
+                    if CN.RELI in all_vsdb.line_type.values:
+                        all_vsdb.loc[all_vsdb.line_type == \
+                                     CN.RELI,
+                                     'n_var'] = \
+                            all_vsdb.loc[all_vsdb.line_type == \
+                                         CN.RELI,
+                                         'n_var'] + 1
+                        # RELI/PCT also uses this number in the threshold
+                        all_vsdb.loc[all_vsdb.line_type == \
+                                     CN.RELI,
+                                     CN.FCST_THRESH] = \
+                            '==1/' + \
+                            all_vsdb.loc[all_vsdb.line_type == \
+                                         CN.RELI,
+                                         'n_var'].astype(str)
+
+                    # HIST/RHIST also adds one
+                    if CN.HIST in all_vsdb.line_type.values:
+                        all_vsdb.loc[all_vsdb.line_type == \
+                                     CN.HIST,
+                                     'n_var'] = \
+                            all_vsdb.loc[all_vsdb.line_type == \
+                                         CN.HIST,
+                                         'n_var'] + 1
+
+                    # ECON/ECLV use a default of 18
+                    if CN.ECON in all_vsdb.line_type.values:
+                        all_vsdb.loc[all_vsdb.line_type == \
+                                     CN.ECON,
+                                     'n_var'] = 18
+
+                # change line types from VSDB to STAT
+                all_vsdb.line_type = \
+                    all_vsdb.line_type.replace(to_replace=CN.VSDB_LINE_TYPES,
+                                               value=CN.VSDB_TO_STAT_TYPES)
+
+                # add columns make these VSDB files look like Met stat files
+
+                # add description
+                all_vsdb.insert(2, CN.DESCR, CN.NOTAV)
+                # reformat fcst_valid_beg
+                all_vsdb.fcst_valid_beg = pd.to_datetime(all_vsdb.fcst_valid_beg,
+                                                         format='%Y%m%d%H')
+                # fcst_valid_end is the same as fcst_valid_beg
+                all_vsdb.loc[:, CN.FCST_VALID_END] = all_vsdb.fcst_valid_beg
+                # fcst_lead must be numeric for later calculations
+                all_vsdb.fcst_lead = pd.to_numeric(all_vsdb.fcst_lead)
+                all_vsdb.insert(11, CN.OBS_LEAD, 0)
+                # copy obs values from fcst values
+                all_vsdb.loc[:, CN.OBS_VALID_BEG] = all_vsdb.fcst_valid_beg
+                all_vsdb.loc[:, CN.OBS_VALID_END] = all_vsdb.fcst_valid_beg
+                all_vsdb.loc[:, CN.OBS_VAR] = all_vsdb.fcst_var
+                all_vsdb.loc[:, CN.OBS_LEV] = all_vsdb.fcst_lev
+                all_vsdb.loc[:, CN.OBS_THRESH] = all_vsdb.fcst_thresh
+                # add units
+                all_vsdb.insert(12, CN.FCST_UNITS, CN.NOTAV)
+                all_vsdb.insert(13, CN.OBS_UNITS, CN.NOTAV)
+                # add interp method and interp points with default values
+                all_vsdb.insert(14, CN.INTERP_MTHD, CN.NOTAV)
+                all_vsdb.insert(15, CN.INTERP_PNTS, "0")
+                # add alpha and cov_thresh
+                all_vsdb.insert(16, CN.ALPHA, -9999)
+                all_vsdb.insert(17, CN.COV_THRESH, -9999)
+                # add total column with default of zero
+                all_vsdb.insert(18, CN.TOTAL_LC, "0")
+
+                # combine stat and vsdb
+                all_stat = pd.concat([all_stat, all_vsdb], ignore_index=True, sort=False)
+
+            logging.debug("Shape of all_stat before transforms: %s", str(all_stat.shape))
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data ***", sys.exc_info()[0])
-
-        logging.debug("Shape of all_stat before: %s", str(all_stat.shape))
+            logging.error("*** %s in read_data middle ***", sys.exc_info()[0])
 
         try:
             # delete any lines that have invalid line_types
@@ -300,40 +385,12 @@ class ReadDataFiles:
             all_stat[CN.FCST_INIT_BEG] = all_stat[CN.FCST_VALID_BEG] - \
                                          pd.to_timedelta(all_stat[CN.FCST_LEAD_HR], unit='h')
 
-            logging.debug("Shape of all_stat after: %s", str(all_stat.shape))
-
-            # give a warning message with data if value of alpha for an alpha line type is NA
-            alpha_lines = all_stat[(all_stat.line_type.isin(CN.ALPHA_LINE_TYPES)) &
-                                   (all_stat.alpha == CN.NOTAV)].line_type
-            if not alpha_lines.empty:
-                logging.warning("!!! ALPHA line_type has ALPHA value of NA:\r\n %s",
-                                str(alpha_lines))
-
-            # give a warning message with data if non-alpha line type has float value
-            non_alpha_lines = all_stat[(~all_stat.line_type.isin(CN.ALPHA_LINE_TYPES)) &
-                                       (all_stat.alpha != CN.NOTAV)].line_type
-            if not non_alpha_lines.empty:
-                logging.warning("!!! non-ALPHA line_type has ALPHA float value:\r\n %s",
-                                str(non_alpha_lines))
-
-            # Change ALL items in column ALPHA to -9999 if they are 'NA'
-            all_stat.loc[all_stat.alpha == CN.NOTAV, CN.ALPHA] = -9999
-
-            # Make ALPHA column into a decimal with no trailing zeroes after the decimal
-            all_stat.alpha = all_stat.alpha.astype(float).map('{0:g}'.format)
-
-            # Change ALL items in column COV_THRESH to '-9999' if they are 'NA'
-            all_stat.loc[all_stat.cov_thresh == CN.NOTAV, CN.COV_THRESH] = '-9999'
-
-            # Change 'NA' values in column INTERP_PNTS to 0 if present
-            if not all_stat.interp_pnts.dtypes == 'int':
-                all_stat.loc[all_stat.interp_pnts == CN.NOTAV, CN.INTERP_PNTS] = 0
-                all_stat.interp_pnts = all_stat.interp_pnts.astype(int)
+            logging.debug("Shape of all_stat after transforms: %s", str(all_stat.shape))
 
             self.stat_data = all_stat
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data ***", sys.exc_info()[0])
+            logging.error("*** %s in read_data near end ***", sys.exc_info()[0])
 
         read_time_end = time.perf_counter()
         read_time = timedelta(seconds=read_time_end - read_time_start)
