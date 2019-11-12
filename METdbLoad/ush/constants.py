@@ -27,10 +27,10 @@ LC_TRUE = "true"
 LC_FALSE = "false"
 
 # Not Available - NA
-NOTAV = "NA"
+NOTAV = 'NA'
 
 # METviewer value for Not Available
-MV_NOTAV = "-9999"
+MV_NOTAV = '-9999'
 
 # separator for csv files
 SEP = '$'
@@ -41,10 +41,20 @@ EQS = '='
 # Forward Slash
 FWD_SLASH = '/'
 
+# Generic count of variable fields
+N_VAR = 'n_var'
+
 # No key is a number that would not be a valid key that is put in as a placeholder
 NO_KEY = -1
 
-# line types - comments from the v8.1.1 MET user's guide
+# names for columns that contain not available and zero values
+COL_NA = 'colna'
+COL_ZERO = 'zeroes'
+
+# repeat COL_NA for building VSDB dataframe
+COL_NAS = [COL_NA] * 95
+
+# STAT line types - comments from the v8.1.1 MET user's guide
 FHO = "FHO"        # Forecast, Hit, Observation Rates
 CTC = "CTC"        # Contingency Table Counts
 CTS = "CTS"        # Contingency Table Statistics
@@ -65,7 +75,7 @@ NBRCTC = "NBRCTC"  # Neighborhood Contingency Table Counts
 NBRCTS = "NBRCTS"  # Neighborhood Contingency Table Statistics
 NBRCNT = "NBRCNT"  # Neighborhood Continuous Statistics
 ISC = "ISC"        # Intensity-Scale
-RHIST = "RHIST"    # Rank Histogram
+RHIST = "RHIST"    # Ranked Histogram
 PHIST = "PHIST"    # Probability Integral Transform Histogram
 ORANK = "ORANK"    # Observation Rank
 SSVAR = "SSVAR"    # Spread Skill Variance
@@ -76,10 +86,16 @@ ECNT = "ECNT"      # Ensemble Continuous Statistics - only for HiRA
 ENSCNT = "ENSCNT"  #
 PERC = "PERC"      #
 
-FSS = "FSS"
-RELI = "RELI"
-HIST = "HIST"
-ECON = "ECON"
+# VSDB line types
+BSS = "BSS"        # same as PSTD
+RELI = "RELI"      # same as PCT
+HIST = "HIST"      # same as RHIST
+ECON = "ECON"      # same as ECLV
+RMSE = "RMSE"      # same as CNT
+RPS = "RPS"        # same as ENSCNT
+FSS = "FSS"        # same as NBRCNT
+# VSDB version of FHO goes to CTC
+# VSDB versions of RELP, SL1L2, SAL1L2, VL1L2, VAL1L2, and GRAD do not change
 
 UC_LINE_TYPES = [FHO, CTC, CTS, MCTC, MCTS, CNT, SL1L2, SAL1L2, VL1L2, VAL1L2,
                  PCT, PSTD, PJC, PRC, ECLV, MPR, NBRCTC, NBRCTS, NBRCNT, ISC,
@@ -95,9 +111,11 @@ COV_THRESH_LINE_TYPES = [NBRCTC, NBRCTS, PCT, PSTD, PJC, PRC]
 
 VAR_LINE_TYPES = [PCT, PSTD, PJC, PRC, MCTC, RHIST, PHIST, RELP, ORANK, ECLV]
 
-VSDB_LINE_TYPES = ['BSS', 'ECON', 'HIST', 'RELI', 'RMSE', 'RPS', 'FHO', 'FSS']
+OLD_VSDB_LINE_TYPES = [BSS, ECON, HIST, RELI, RMSE, RPS, FHO, FSS]
 
 VSDB_TO_STAT_TYPES = [PSTD, ECLV, RHIST, PCT, CNT, ENSCNT, CTC, NBRCNT]
+
+ALL_VSDB_LINE_TYPES = OLD_VSDB_LINE_TYPES + [RELP, SL1L2, SAL1L2, VL1L2, VAL1L2, GRAD]
 
 # column names
 # MET column names are UC, SQL are LC

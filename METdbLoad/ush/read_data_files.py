@@ -163,6 +163,9 @@ class ReadDataFiles:
                         hdr_names = CN.VSDB_HEADER + CN.COL_NUMS
                         vsdb_file.columns = hdr_names[:len(vsdb_file.columns)]
 
+                        # add line numbers, starting at 1
+                        vsdb_file[CN.LINE_NUM] = vsdb_file.index + 1
+
                     else:
                         logging.warning("!!! This file type is not handled yet")
 
@@ -183,11 +186,13 @@ class ReadDataFiles:
                         logging.debug("Lines in %s: %s", filename[CN.FULL_FILE],
                                       str(len(vsdb_file.index)))
                         vsdb_file = vsdb_file.iloc[0:0]
-                    elif one_file.empty and vsdb_file.empty:
+                    else:
                         logging.warning("!!! Empty file %s", filename[CN.FULL_FILE])
                         continue
                 else:
                     logging.warning("!!! No file %s", filename[CN.FULL_FILE])
+
+            # end for row_num, filename
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data upper ***", sys.exc_info()[0])
@@ -199,7 +204,7 @@ class ReadDataFiles:
             if list_frames:
                 all_stat = pd.concat(list_frames, ignore_index=True, sort=False)
 
-                # THese warnings and transforms only apply to stat files
+                # These warnings and transforms only apply to stat files
                 # give a warning message with data if value of alpha for an alpha line type is NA
                 alpha_lines = all_stat[(all_stat.line_type.isin(CN.ALPHA_LINE_TYPES)) &
                                        (all_stat.alpha == CN.NOTAV)].line_type
@@ -214,14 +219,14 @@ class ReadDataFiles:
                     logging.warning("!!! non-ALPHA line_type has ALPHA float value:\r\n %s",
                                     str(non_alpha_lines))
 
-                # Change ALL items in column ALPHA to -9999 if they are 'NA'
-                all_stat.loc[all_stat.alpha == CN.NOTAV, CN.ALPHA] = -9999
+                # Change ALL items in column ALPHA to '-9999' if they are 'NA'
+                all_stat.loc[all_stat.alpha == CN.NOTAV, CN.ALPHA] = CN.NOTAV
 
                 # Make ALPHA column into a decimal with no trailing zeroes after the decimal
                 all_stat.alpha = all_stat.alpha.astype(float).map('{0:g}'.format)
 
                 # Change ALL items in column COV_THRESH to '-9999' if they are 'NA'
-                all_stat.loc[all_stat.cov_thresh == CN.NOTAV, CN.COV_THRESH] = '-9999'
+                all_stat.loc[all_stat.cov_thresh == CN.NOTAV, CN.COV_THRESH] = CN.NOTAV
 
                 # Change 'NA' values in column INTERP_PNTS to 0 if present
                 if not all_stat.interp_pnts.dtypes == 'int':
@@ -250,14 +255,13 @@ class ReadDataFiles:
 
                 # handle model names that contain a forward slash followed by a number
                 if all_vsdb.model.str.contains(CN.FWD_SLASH).any():
-                    all_vsdb.loc[:, 'n_var'] = 0
+                    all_vsdb.loc[:, CN.N_VAR] = 0
                     # save the value after the slash in model
                     all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH),
-                                 'n_var'] = \
+                                 CN.N_VAR] = \
                         all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH),
                                      CN.MODEL].str.split(CN.FWD_SLASH).str[1].astype(int)
-                    # change the extracted value to numeric
-                    # all_vsdb.n_var = pd.to_numeric(all_vsdb.n_var)
+
                     # remove the slash and value from model
                     all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH),
                                  CN.MODEL] = \
@@ -269,10 +273,10 @@ class ReadDataFiles:
                     if CN.RELI in all_vsdb.line_type.values:
                         all_vsdb.loc[all_vsdb.line_type == \
                                      CN.RELI,
-                                     'n_var'] = \
+                                     CN.N_VAR] = \
                             all_vsdb.loc[all_vsdb.line_type == \
                                          CN.RELI,
-                                         'n_var'] + 1
+                                         CN.N_VAR] + 1
                         # RELI/PCT also uses this number in the threshold
                         all_vsdb.loc[all_vsdb.line_type == \
                                      CN.RELI,
@@ -280,29 +284,29 @@ class ReadDataFiles:
                             '==1/' + \
                             all_vsdb.loc[all_vsdb.line_type == \
                                          CN.RELI,
-                                         'n_var'].astype(str)
+                                         CN.N_VAR].astype(str)
 
                     # HIST/RHIST also adds one
                     if CN.HIST in all_vsdb.line_type.values:
                         all_vsdb.loc[all_vsdb.line_type == \
                                      CN.HIST,
-                                     'n_var'] = \
+                                     CN.N_VAR] = \
                             all_vsdb.loc[all_vsdb.line_type == \
                                          CN.HIST,
-                                         'n_var'] + 1
+                                         CN.N_VAR] + 1
 
                     # ECON/ECLV use a default of 18
                     if CN.ECON in all_vsdb.line_type.values:
                         all_vsdb.loc[all_vsdb.line_type == \
                                      CN.ECON,
-                                     'n_var'] = 18
+                                     CN.N_VAR] = 18
 
-                # change line types from VSDB to STAT
+                # change from VSDB line types to STAT line types
                 all_vsdb.line_type = \
-                    all_vsdb.line_type.replace(to_replace=CN.VSDB_LINE_TYPES,
+                    all_vsdb.line_type.replace(to_replace=CN.OLD_VSDB_LINE_TYPES,
                                                value=CN.VSDB_TO_STAT_TYPES)
 
-                # add columns make these VSDB files look like Met stat files
+                # add columns to make these VSDB files look more like Met stat files
 
                 # add description
                 all_vsdb.insert(2, CN.DESCR, CN.NOTAV)
@@ -327,12 +331,82 @@ class ReadDataFiles:
                 all_vsdb.insert(14, CN.INTERP_MTHD, CN.NOTAV)
                 all_vsdb.insert(15, CN.INTERP_PNTS, "0")
                 # add alpha and cov_thresh
-                all_vsdb.insert(16, CN.ALPHA, -9999)
-                all_vsdb.insert(17, CN.COV_THRESH, -9999)
+                all_vsdb.insert(16, CN.ALPHA, CN.NOTAV)
+                all_vsdb.insert(17, CN.COV_THRESH, CN.NOTAV)
                 # add total column with default of zero
                 all_vsdb.insert(18, CN.TOTAL_LC, "0")
 
+                all_vsdb[CN.COL_NA] = CN.MV_NOTAV
+                all_vsdb[CN.COL_ZERO] = "0"
+
+                # find all of the line types in the data
+                vsdb_types = all_vsdb.line_type.unique()
+
+                for vsdb_type in vsdb_types:
+                    # get the line data of just this VSDB type and re-index
+                    vsdb_data = all_vsdb[all_vsdb[CN.LINE_TYPE] == vsdb_type].copy()
+                    vsdb_data.reset_index(drop=True, inplace=True)
+
+                    if vsdb_type in (CN.SL1L2, CN.SAL1L2):
+                        one_file = vsdb_data[CN.LONG_HEADER + CN.COL_NUMS[:7] +
+                                             CN.COL_NAS[:89] + [CN.LINE_NUM, CN.FILE_ROW]]
+
+                    elif vsdb_type in (CN.VL1L2, CN.GRAD):
+                        one_file = vsdb_data[CN.LONG_HEADER + CN.COL_NUMS[:10] +
+                                             CN.COL_NAS[:86] + [CN.LINE_NUM, CN.FILE_ROW]]
+
+                    elif vsdb_type == CN.VAL1L2:
+                        one_file = vsdb_data[CN.LONG_HEADER + CN.COL_NUMS[:8] +
+                                             CN.COL_NAS[:88] + [CN.LINE_NUM, CN.FILE_ROW]]
+
+                    elif vsdb_type in (CN.RHIST, CN.RELP, CN.PCT):
+                        one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC, CN.N_VAR] +
+                                             CN.COL_NAS[:94] + [CN.LINE_NUM, CN.FILE_ROW]]
+
+                    elif vsdb_type == CN.ECLV:
+                        one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +
+                                             CN.COL_NAS[:2] + [CN.N_VAR] +
+                                             CN.COL_NAS[:92] + [CN.LINE_NUM, CN.FILE_ROW]]
+
+                    elif vsdb_type == CN.PSTD:
+                        one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +
+                                             [CN.COL_ZERO] + CN.COL_NAS[:3] +
+                                             ['3', '4', '5'] + CN.COL_NAS[:1] +
+                                             ['0'] + CN.COL_NAS[:2] +
+                                             ['1'] + CN.COL_NAS[:2] +
+                                             ['2'] + CN.COL_NAS[:1] +
+                                             CN.COL_NAS[:79] + [CN.LINE_NUM, CN.FILE_ROW]]
+
+                    elif vsdb_type == CN.CNT:
+                        one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] + \
+                                             CN.COL_NAS[:28] + \
+                                             [CN.COL_ZERO, CN.COL_ZERO, CN.COL_ZERO] + \
+                                             ['2'] + CN.COL_NAS[:4] +
+                                             ['0'] + CN.COL_NAS[:7] +
+                                             ['3'] + CN.COL_NAS[:8] +
+                                             ['1'] + CN.COL_NAS[:23] +
+                                             ['4'] + CN.COL_NAS[:17] + [CN.LINE_NUM, CN.FILE_ROW]]
+
+                    elif vsdb_type == CN.ENSCNT:
+                        one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +
+                                             CN.COL_NAS[:4] +
+                                             ['1'] + CN.COL_NAS[:4] +
+                                             ['2'] + CN.COL_NAS[:4] +
+                                             ['3'] + CN.COL_NAS[:4] +
+                                             ['4'] + CN.COL_NAS[:4] +
+                                             ['5'] + CN.COL_NAS[:70] + [CN.LINE_NUM, CN.FILE_ROW]]
+                    # rename columns
+                    if not one_file.empty:
+                        one_file.columns = CN.LONG_HEADER + \
+                                           CN.COL_NUMS[:96] + [CN.LINE_NUM, CN.FILE_ROW]
+                        list_vsdb.append(one_file)
+                        one_file = one_file.iloc[0:0]
+
+                # end for vsdb_type
+
                 # combine stat and vsdb
+                # This may change. need to do more transforms on VSDB data
+                all_vsdb = pd.concat(list_vsdb, ignore_index=True, sort=False)
                 all_stat = pd.concat([all_stat, all_vsdb], ignore_index=True, sort=False)
 
             logging.debug("Shape of all_stat before transforms: %s", str(all_stat.shape))
