@@ -48,7 +48,6 @@ class WriteStatSql:
         # Default to False since it requires extra permission
         self.local_infile = False
 
-
     def write_sql_data(self, load_flags, data_files, stat_data, group, description,
                        load_note, xml_str):
         """ write stat files (MET and VSDB) to a SQL database.
@@ -82,7 +81,7 @@ class WriteStatSql:
                 if self.cur.rowcount > 0:
                     if not load_flags['force_dup_file']:
                         # delete line data rows that match index of duplicated file
-                        stat_data = stat_data.drop(stat_data[stat_data.file_row == \
+                        stat_data = stat_data.drop(stat_data[stat_data.file_row ==
                                                              file_line.file_row].index)
                         data_files = data_files.drop(row_num)
                         logging.warning("!!! Duplicate file %s without FORCE_DUP_FILE tag",
@@ -103,7 +102,7 @@ class WriteStatSql:
 
             # For new files add the next id to the row number/index to make a new key
             data_files.loc[data_files.data_file_id == CN.NO_KEY, CN.DATA_FILE_ID] = \
-                        data_files.index + next_file_id
+                data_files.index + next_file_id
 
             # Replace the temporary id value with the actual index in the stat line data
             for row_num, row in data_files.iterrows():
@@ -146,7 +145,7 @@ class WriteStatSql:
 
             # For new headers add the next id to the row number/index to make a new key
             stat_headers.loc[stat_headers.stat_header_id == CN.NO_KEY, CN.STAT_HEADER_ID] = \
-                        stat_headers.index + next_header_id
+                stat_headers.index + next_header_id
 
             # get just the new headers with their keys
             new_headers = stat_headers[stat_headers[CN.STAT_HEADER_ID] > (next_header_id - 1)]

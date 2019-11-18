@@ -39,7 +39,6 @@ class ReadDataFiles:
         self.stat_data = pd.DataFrame()
         self.data_files = pd.DataFrame()
 
-
     def read_data(self, load_flags, load_files, line_types):
         """ Read in data files as given in load_spec file.
             Returns:
@@ -236,6 +235,7 @@ class ReadDataFiles:
             # collect vsdb files separately so additional transforms can be done
             if list_vsdb:
                 all_vsdb = pd.concat(list_vsdb, ignore_index=True, sort=False)
+                list_vsdb = []
 
                 # Make VSDB files look like stat files
                 # get thresh starting with > in line_type
@@ -271,33 +271,33 @@ class ReadDataFiles:
                     # for RELI/PCT, get number after slash in model, add one,
                     # prefix with string and put in thresh
                     if CN.RELI in all_vsdb.line_type.values:
-                        all_vsdb.loc[all_vsdb.line_type == \
+                        all_vsdb.loc[all_vsdb.line_type ==
                                      CN.RELI,
                                      CN.N_VAR] = \
-                            all_vsdb.loc[all_vsdb.line_type == \
+                            all_vsdb.loc[all_vsdb.line_type ==
                                          CN.RELI,
                                          CN.N_VAR] + 1
                         # RELI/PCT also uses this number in the threshold
-                        all_vsdb.loc[all_vsdb.line_type == \
+                        all_vsdb.loc[all_vsdb.line_type ==
                                      CN.RELI,
                                      CN.FCST_THRESH] = \
                             '==1/' + \
-                            all_vsdb.loc[all_vsdb.line_type == \
+                            all_vsdb.loc[all_vsdb.line_type ==
                                          CN.RELI,
                                          CN.N_VAR].astype(str)
 
                     # HIST/RHIST also adds one
                     if CN.HIST in all_vsdb.line_type.values:
-                        all_vsdb.loc[all_vsdb.line_type == \
+                        all_vsdb.loc[all_vsdb.line_type ==
                                      CN.HIST,
                                      CN.N_VAR] = \
-                            all_vsdb.loc[all_vsdb.line_type == \
+                            all_vsdb.loc[all_vsdb.line_type ==
                                          CN.HIST,
                                          CN.N_VAR] + 1
 
                     # ECON/ECLV use a default of 18
                     if CN.ECON in all_vsdb.line_type.values:
-                        all_vsdb.loc[all_vsdb.line_type == \
+                        all_vsdb.loc[all_vsdb.line_type ==
                                      CN.ECON,
                                      CN.N_VAR] = 18
 
@@ -378,9 +378,9 @@ class ReadDataFiles:
                                              CN.COL_NAS[:79] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.CNT:
-                        one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] + \
-                                             CN.COL_NAS[:28] + \
-                                             [CN.COL_ZERO, CN.COL_ZERO, CN.COL_ZERO] + \
+                        one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +
+                                             CN.COL_NAS[:28] +
+                                             [CN.COL_ZERO, CN.COL_ZERO, CN.COL_ZERO] +
                                              ['2'] + CN.COL_NAS[:4] +
                                              ['0'] + CN.COL_NAS[:7] +
                                              ['3'] + CN.COL_NAS[:8] +
@@ -395,6 +395,39 @@ class ReadDataFiles:
                                              ['3'] + CN.COL_NAS[:4] +
                                              ['4'] + CN.COL_NAS[:4] +
                                              ['5'] + CN.COL_NAS[:70] + [CN.LINE_NUM, CN.FILE_ROW]]
+
+                    elif vsdb_type == CN.CTC:
+                        # column 0 is Total, 1 is F, 2 is H
+                        # column 3 is O (Oh) - if None, set to 0 (Zero)
+                        vsdb_data.loc[vsdb_data['3'].isnull(), '3'] = 0
+                        # fy = Total * F
+                        vsdb_data['4'] = vsdb_data['0'].astype(float) * vsdb_data['1'].astype(float)
+                        # oy = Total * O
+                        vsdb_data['5'] = vsdb_data['0'].astype(float) * vsdb_data['3'].astype(float)
+                        # fy_oy = Total * H
+                        vsdb_data['6'] = vsdb_data['0'].astype(float) * vsdb_data['2'].astype(float)
+                        # fy_on = fy - fy_oy
+                        vsdb_data['7'] = vsdb_data['4'].astype(float) - vsdb_data['6'].astype(float)
+                        # fn_oy = oy - fy_oy
+                        vsdb_data['8'] = vsdb_data['5'].astype(float) - vsdb_data['6'].astype(float)
+                        # fn_on = Total - fy - oy + fy_oy
+                        vsdb_data['9'] = (vsdb_data['0'].astype(float) -
+                                          vsdb_data['4'].astype(float) -
+                                          vsdb_data['5'].astype(float) +
+                                          vsdb_data['6'].astype(float))
+                        one_file = vsdb_data[CN.LONG_HEADER +
+                                             ['0'] + ['6', '7', '8', '9'] +
+                                             CN.COL_NAS[:91] + [CN.LINE_NUM, CN.FILE_ROW]]
+
+                    elif vsdb_type == CN.NBRCNT:
+                        # fss is calculated from the other columns
+                        vsdb_data['4'] = (1 - vsdb_data['1'].astype(float) /
+                                          vsdb_data['2'].astype(float) +
+                                          vsdb_data['3'].astype(float))
+                        one_file = vsdb_data[CN.LONG_HEADER +
+                                             ['0', '1'] + CN.COL_NAS[:2] + ['4'] +
+                                             CN.COL_NAS[:91] + [CN.LINE_NUM, CN.FILE_ROW]]
+
                     # rename columns
                     if not one_file.empty:
                         one_file.columns = CN.LONG_HEADER + \
@@ -404,8 +437,9 @@ class ReadDataFiles:
 
                 # end for vsdb_type
 
+                # Clear out all_vsdb, which we copied from above, line_type by line_type
+                all_vsdb = pd.DataFrame()
                 # combine stat and vsdb
-                # This may change. need to do more transforms on VSDB data
                 all_vsdb = pd.concat(list_vsdb, ignore_index=True, sort=False)
                 all_stat = pd.concat([all_stat, all_vsdb], ignore_index=True, sort=False)
 
@@ -457,7 +491,7 @@ class ReadDataFiles:
             # Calculate fcst_init_beg = fcst_valid_beg - fcst_lead hours
             all_stat.insert(6, CN.FCST_INIT_BEG, CN.NOTAV)
             all_stat[CN.FCST_INIT_BEG] = all_stat[CN.FCST_VALID_BEG] - \
-                                         pd.to_timedelta(all_stat[CN.FCST_LEAD_HR], unit='h')
+                pd.to_timedelta(all_stat[CN.FCST_LEAD_HR], unit='h')
 
             logging.debug("Shape of all_stat after transforms: %s", str(all_stat.shape))
 
@@ -525,7 +559,7 @@ class ReadDataFiles:
         # if date is repeated and already converted, return that value
         if date_str in self.cache:
             return self.cache[date_str]
-        if (date_str.startswith('F') or date_str.startswith('O')):
+        if date_str.startswith('F') or date_str.startswith('O'):
             return pd.to_datetime('20000101_000000', format='%Y%m%d_%H%M%S')
         date_time = pd.to_datetime(date_str, format='%Y%m%d_%H%M%S')
         self.cache[date_str] = date_time
