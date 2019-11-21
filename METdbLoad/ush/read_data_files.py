@@ -219,13 +219,13 @@ class ReadDataFiles:
                                     str(non_alpha_lines))
 
                 # Change ALL items in column ALPHA to '-9999' if they are 'NA'
-                all_stat.loc[all_stat.alpha == CN.NOTAV, CN.ALPHA] = CN.NOTAV
+                all_stat.loc[all_stat.alpha == CN.NOTAV, CN.ALPHA] = CN.MV_NOTAV
 
                 # Make ALPHA column into a decimal with no trailing zeroes after the decimal
                 all_stat.alpha = all_stat.alpha.astype(float).map('{0:g}'.format)
 
                 # Change ALL items in column COV_THRESH to '-9999' if they are 'NA'
-                all_stat.loc[all_stat.cov_thresh == CN.NOTAV, CN.COV_THRESH] = CN.NOTAV
+                all_stat.loc[all_stat.cov_thresh == CN.NOTAV, CN.COV_THRESH] = CN.MV_NOTAV
 
                 # Change 'NA' values in column INTERP_PNTS to 0 if present
                 if not all_stat.interp_pnts.dtypes == 'int':
