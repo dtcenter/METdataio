@@ -348,6 +348,9 @@ class ReadDataFiles:
                     vsdb_data.reset_index(drop=True, inplace=True)
 
                     if vsdb_type in (CN.SL1L2, CN.SAL1L2):
+                        # some SL1L2 files do not have MAE
+                        if not '6' in vsdb_data:
+                            vsdb_data.insert(25, '6', CN.NOTAV)
                         one_file = vsdb_data[CN.LONG_HEADER + CN.COL_NUMS[:7] +
                                              CN.COL_NAS[:89] + [CN.LINE_NUM, CN.FILE_ROW]]
 
