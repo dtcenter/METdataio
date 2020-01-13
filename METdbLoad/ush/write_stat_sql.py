@@ -192,6 +192,10 @@ class WriteStatSql:
                         self.get_next_id(line_table, CN.LINE_DATA_ID)
                     logging.debug("next_line_id is %s", next_line_id)
 
+                    # try to keep order the same as MVLoad
+                    line_data = line_data.sort_values(by=[CN.DATA_FILE_ID, CN.LINE_NUM])
+                    line_data.reset_index(drop=True, inplace=True)
+
                     line_data[CN.LINE_DATA_ID] = line_data.index + next_line_id
 
                     # index of the first column of the repeating variables
@@ -207,7 +211,7 @@ class WriteStatSql:
                         # how many sets of repeating variables
                         var_count = int(file_line[CN.LINE_VAR_COUNTER[line_type]])
                         # these three variable line types are one group short
-                        if line_type in [CN.PCT, CN.PJC, CN.PRC]:
+                        if line_type in [CN.PJC, CN.PRC]:
                             var_count = var_count - 1
                         # older versions of RHIST have varying ECNT data in them
                         if line_type == CN.RHIST and file_line[CN.VERSION] in CN.RHIST_OLD:

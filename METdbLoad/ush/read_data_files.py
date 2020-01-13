@@ -329,10 +329,10 @@ class ReadDataFiles:
                 all_vsdb.insert(13, CN.OBS_UNITS, CN.NOTAV)
                 # add interp method and interp points with default values
                 all_vsdb.insert(14, CN.INTERP_MTHD, CN.NOTAV)
-                all_vsdb.insert(15, CN.INTERP_PNTS, "0")
+                all_vsdb.insert(15, CN.INTERP_PNTS, 0)
                 # add alpha and cov_thresh
-                all_vsdb.insert(16, CN.ALPHA, CN.NOTAV)
-                all_vsdb.insert(17, CN.COV_THRESH, CN.NOTAV)
+                all_vsdb.insert(16, CN.ALPHA, CN.MV_NOTAV)
+                all_vsdb.insert(17, CN.COV_THRESH, CN.MV_NOTAV)
                 # add total column with default of zero
                 all_vsdb.insert(18, CN.TOTAL_LC, "0")
 
@@ -362,9 +362,59 @@ class ReadDataFiles:
                         one_file = vsdb_data[CN.LONG_HEADER + CN.COL_NUMS[:8] +
                                              CN.COL_NAS[:88] + [CN.LINE_NUM, CN.FILE_ROW]]
 
-                    elif vsdb_type in (CN.RHIST, CN.RELP, CN.PCT):
+                    elif vsdb_type == CN.RHIST:
+                        # rhist ranks need to be multiplied by 100. First convert to float.
+                        vsdb_data[CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1]]] = \
+                            vsdb_data[CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1]]].astype(float)
+                        vsdb_data[CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1]]] *= 100
                         one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC, CN.N_VAR] +
-                                             CN.COL_NAS[:94] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1]] +
+                                             CN.COL_NAS[:(94 - vsdb_data[CN.N_VAR][1])] +
+                                             [CN.LINE_NUM, CN.FILE_ROW]]
+
+                    elif vsdb_type == CN.PCT:
+                        # the total needs to be float
+                        vsdb_data[CN.TOTAL_LC] = vsdb_data[CN.TOTAL_LC].astype(float)
+                        # the first set of n_var columns are oy_i, the second set are subtotals
+                        # add n_var new columns after the first two sets, for calculated thresh_i
+                        n_var = vsdb_data[CN.N_VAR][1]
+                        last_col = vsdb_data.columns.get_loc(str(n_var * 2 - 1)) + 1
+                        vsdb_data = \
+                            vsdb_data.reindex(columns=[*vsdb_data.columns.tolist()[0:last_col],
+                                                       *CN.COL_NUMS[n_var * 2:n_var * 3],
+                                                       *vsdb_data.columns.tolist()[last_col:]],
+                                              fill_value=0)
+                        # all 3 sets of columns need to be float
+                        vsdb_data[CN.COL_NUMS[0:n_var * 3]] = \
+                            vsdb_data[CN.COL_NUMS[0:n_var * 3]].astype(float)
+                        # the total in line_data_pct is the total of all of the subtotals
+                        col_start = zero_col + vsdb_data[CN.N_VAR][1]
+                        col_end = col_start + n_var
+                        vsdb_data[CN.TOTAL_LC] = vsdb_data.iloc[:, col_start:col_end].sum(axis=1)
+                        # calculate thresh and re-order values to be
+                        # in sets of thresh_i, oy_i, and on_i (which is subtotal - oy_i)
+                        zero_col = vsdb_data.columns.get_loc('0')
+                        for index, row in vsdb_data.iterrows():
+                            var_values = []
+                            n_var = row[CN.N_VAR]
+                            for i in range(n_var):
+                                var_values = var_values + [i/(n_var - 1)]
+                                var_values = var_values + [row[str(i)]]
+                                var_values = var_values + [row[str(i+n_var)] - row[str(i)]]
+                            df_values = pd.DataFrame([var_values])
+                            # put calculated and re-ordered values back into vsdb_data
+                            vsdb_data.iloc[index, zero_col:zero_col + (n_var * 3)] = \
+                                df_values.iloc[0, 0:n_var * 3].values
+                        one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC, CN.N_VAR] +
+                                             CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1] * 3] +
+                                             CN.COL_NAS[:(94 - vsdb_data[CN.N_VAR][1] * 3)] +
+                                             [CN.LINE_NUM, CN.FILE_ROW]]
+
+                    elif vsdb_type == CN.RELP:
+                        one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC, CN.N_VAR] +
+                                             CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1]] +
+                                             CN.COL_NAS[:(94 - vsdb_data[CN.N_VAR][1])] +
+                                             [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.ECLV:
                         one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +
@@ -382,13 +432,13 @@ class ReadDataFiles:
 
                     elif vsdb_type == CN.CNT:
                         one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +
-                                             CN.COL_NAS[:28] +
+                                             CN.COL_NAS[:27] +
                                              [CN.COL_ZERO, CN.COL_ZERO, CN.COL_ZERO] +
                                              ['2'] + CN.COL_NAS[:4] +
                                              ['0'] + CN.COL_NAS[:7] +
                                              ['3'] + CN.COL_NAS[:8] +
                                              ['1'] + CN.COL_NAS[:23] +
-                                             ['4'] + CN.COL_NAS[:17] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             ['4'] + CN.COL_NAS[:18] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.ENSCNT:
                         one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +
