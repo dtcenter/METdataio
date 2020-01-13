@@ -210,7 +210,7 @@ class WriteStatSql:
                     for row_num, file_line in line_data.iterrows():
                         # how many sets of repeating variables
                         var_count = int(file_line[CN.LINE_VAR_COUNTER[line_type]])
-                        # these three variable line types are one group short
+                        # these two variable line types are one group short
                         if line_type in [CN.PJC, CN.PRC]:
                             var_count = var_count - 1
                         # older versions of RHIST have varying ECNT data in them
