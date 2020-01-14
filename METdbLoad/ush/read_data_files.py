@@ -134,6 +134,11 @@ class ReadDataFiles:
                         # add line numbers and count the header line, for stat files
                         one_file[CN.LINE_NUM] = one_file.index + 2
 
+                        # add columns for fcst_perc and obs_perc
+                        # these can be in parens in fcst_thresh and obs_thresh in stat files
+                        one_file[CN.FCST_PERC] = CN.MV_NOTAV
+                        one_file[CN.OBS_PERC] = CN.MV_NOTAV
+
                     #
                     # Process vsdb files
                     #
@@ -202,6 +207,39 @@ class ReadDataFiles:
             # added sort=False on 10/21/19 because that will be new default behavior
             if list_frames:
                 all_stat = pd.concat(list_frames, ignore_index=True, sort=False)
+
+                # if a fcst percentage thresh is used, it is in parens in fcst_thresh
+                if all_stat.fcst_thresh.str.contains(CN.L_PAREN).any():
+                    # save the value in parens
+                    all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN) &
+                                 all_stat.fcst_thresh.str.contains(CN.R_PAREN),
+                                 CN.FCST_PERC] = \
+                        all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN) &
+                                     all_stat.fcst_thresh.str.contains(CN.R_PAREN),
+                                     CN.FCST_THRESH].str.split(CN.L_PAREN).str[1].str.split(CN.R_PAREN).str[0].astype(float)
+                    # remove the percentage from fcst_thresh
+                    all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN) &
+                                 all_stat.fcst_thresh.str.contains(CN.R_PAREN),
+                                 CN.FCST_THRESH] = \
+                        all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN) &
+                                     all_stat.fcst_thresh.str.contains(CN.R_PAREN),
+                                     CN.FCST_THRESH].str.split(CN.L_PAREN).str[0]
+
+                # if an obs percentage thresh is used, it is in parens in obs_thresh
+                if all_stat.obs_thresh.str.contains(CN.L_PAREN).any():
+                    # save the value in parens
+                    all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN) &
+                                 all_stat.obs_thresh.str.contains(CN.R_PAREN),
+                                 CN.OBS_PERC] = \
+                        all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN) &
+                                     all_stat.obs_thresh.str.contains(CN.R_PAREN),
+                                     CN.OBS_THRESH].str.split(CN.L_PAREN).str[1].str.split(CN.R_PAREN).str[0].astype(float)
+                    all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN) &
+                                 all_stat.obs_thresh.str.contains(CN.R_PAREN),
+                                 CN.OBS_THRESH] = \
+                        all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN) &
+                                     all_stat.obs_thresh.str.contains(CN.R_PAREN),
+                                     CN.OBS_THRESH].str.split(CN.L_PAREN).str[0]
 
                 # These warnings and transforms only apply to stat files
                 # give a warning message with data if value of alpha for an alpha line type is NA
@@ -388,12 +426,12 @@ class ReadDataFiles:
                         vsdb_data[CN.COL_NUMS[0:n_var * 3]] = \
                             vsdb_data[CN.COL_NUMS[0:n_var * 3]].astype(float)
                         # the total in line_data_pct is the total of all of the subtotals
+                        zero_col = vsdb_data.columns.get_loc('0')
                         col_start = zero_col + vsdb_data[CN.N_VAR][1]
                         col_end = col_start + n_var
                         vsdb_data[CN.TOTAL_LC] = vsdb_data.iloc[:, col_start:col_end].sum(axis=1)
                         # calculate thresh and re-order values to be
                         # in sets of thresh_i, oy_i, and on_i (which is subtotal - oy_i)
-                        zero_col = vsdb_data.columns.get_loc('0')
                         for index, row in vsdb_data.iterrows():
                             var_values = []
                             n_var = row[CN.N_VAR]

@@ -41,6 +41,12 @@ EQS = '='
 # Forward Slash
 FWD_SLASH = '/'
 
+# Left paren for searching
+L_PAREN = '\('
+
+# Right paren for searching
+R_PAREN = '\)'
+
 # Generic count of variable fields
 N_VAR = 'n_var'
 
@@ -183,6 +189,8 @@ STAT_HEADER_ID = 'stat_header_id'
 LINE_DATA_ID = 'line_data_id'
 LINE_NUM = 'line_num'
 TOTAL_LC = 'total'
+FCST_PERC = 'fcst_perc'
+OBS_PERC = 'obs_perc'
 
 DATA_FILE = 'data_file'
 FULL_FILE = 'full_file'
