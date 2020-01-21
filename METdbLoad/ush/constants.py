@@ -119,6 +119,8 @@ VAR_LINE_TYPES = [PCT, PSTD, PJC, PRC, MCTC, RHIST, PHIST, RELP, ORANK, ECLV]
 
 OLD_VSDB_LINE_TYPES = [BSS, ECON, HIST, RELI, RMSE, RPS, FHO, FSS]
 
+ENS_VSDB_LINE_TYPES = [BSS, ECON, HIST, RELI, RELP, RMSE, RPS]
+
 VSDB_TO_STAT_TYPES = [PSTD, ECLV, RHIST, PCT, CNT, ENSCNT, CTC, NBRCNT]
 
 ALL_VSDB_LINE_TYPES = OLD_VSDB_LINE_TYPES + [RELP, SL1L2, SAL1L2, VL1L2, VAL1L2, GRAD]
@@ -521,6 +523,8 @@ for line_type in UC_LINE_TYPES:
                  ",".join(LINE_DATA_VAR_FIELDS[line_type]) + \
                  ") VALUES (" + VALUE_SLOTS + ")"
         LINE_DATA_VAR_Q[line_type] = i_line
+
+LINE_DATA_COLS[PERC] = LINE_DATA_COLS[PERC][0:-2] + [FCST_PERC, OBS_PERC]
 
 # column name of n_* after Total. phist, orank, and eclv have extra fields after Total
 LINE_VAR_COUNTER[PCT] = '1'

@@ -73,8 +73,10 @@ class ReadDataFiles:
             self.data_files[CN.DATA_FILE_LU_ID] = \
                 np.vectorize(self.get_lookup)(self.data_files[CN.FULL_FILE])
             # Break the full file name into path and filename
-            self.data_files[CN.FILEPATH] = self.data_files[CN.FULL_FILE].str.rpartition('/')[0]
-            self.data_files[CN.FILENAME] = self.data_files[CN.FULL_FILE].str.rpartition('/')[2]
+            self.data_files[CN.FILEPATH] = \
+                self.data_files[CN.FULL_FILE].str.rpartition(CN.FWD_SLASH)[0]
+            self.data_files[CN.FILENAME] = \
+                self.data_files[CN.FULL_FILE].str.rpartition(CN.FWD_SLASH)[2]
             # current date and time for load date
             self.data_files[CN.LOAD_DATE] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.data_files[CN.MOD_DATE] = None
@@ -144,13 +146,13 @@ class ReadDataFiles:
                     #
                     elif filename[CN.DATA_FILE_LU_ID] == CN.VSDB_POINT_STAT:
 
-                        # read each line in as 1 column so some fixes can be made
-                        vsdb_file = pd.read_csv(filename[CN.FULL_FILE], sep=CN.SEP, header=None)
-
-                        # VSDB file is empty
-                        if vsdb_file.empty:
+                        # check whether vsdb file is empty
+                        if stat_info.st_size == 0:
                             logging.warning("!!! Vsdb file %s is empty", filename[CN.FULL_FILE])
                             continue
+
+                        # read each line in as 1 column so some fixes can be made
+                        vsdb_file = pd.read_csv(filename[CN.FULL_FILE], sep=CN.SEP, header=None)
 
                         # remove equal sign if present. also solves no space before =
                         vsdb_file.iloc[:, 0] = vsdb_file.iloc[:, 0].str.replace(CN.EQS, ' ')
@@ -168,7 +170,25 @@ class ReadDataFiles:
                         vsdb_file.columns = hdr_names[:len(vsdb_file.columns)]
 
                         # add line numbers, starting at 1
-                        vsdb_file[CN.LINE_NUM] = vsdb_file.index + 1
+                        vsdb_file.insert(9, CN.LINE_NUM, vsdb_file.index + 1)
+
+                        # some line types need a piece of the path added to the model name
+                        # if last part of path contains an underscore, save string after it.
+                        # then add it to model name
+                        last_slash = filename[CN.FILEPATH].rfind(CN.FWD_SLASH)
+                        last_und = filename[CN.FILEPATH].rfind('_')
+                        ens_value = ''
+                        if last_und > last_slash:
+                            ens_value = filename[CN.FILEPATH][last_und:]
+                        if not vsdb_file.loc[vsdb_file.line_type.isin(CN.ENS_VSDB_LINE_TYPES),
+                                             CN.MODEL].empty:
+                            vsdb_file.loc[vsdb_file.line_type.isin(CN.ENS_VSDB_LINE_TYPES),
+                                          CN.MODEL] = \
+                                vsdb_file.loc[vsdb_file.line_type.isin(CN.ENS_VSDB_LINE_TYPES),
+                                              CN.MODEL].str.split(CN.FWD_SLASH).str[0] + \
+                                ens_value + CN.FWD_SLASH + \
+                                vsdb_file.loc[vsdb_file.line_type.isin(CN.ENS_VSDB_LINE_TYPES),
+                                              CN.MODEL].str.split(CN.FWD_SLASH).str[1]
 
                     else:
                         logging.warning("!!! This file type is not handled yet")
@@ -185,7 +205,7 @@ class ReadDataFiles:
                         if not file_hdr.empty:
                             file_hdr = file_hdr.iloc[0:0]
                     elif not vsdb_file.empty:
-                        vsdb_file[CN.FILE_ROW] = row_num
+                        vsdb_file.insert(10, CN.FILE_ROW, row_num)
                         list_vsdb.append(vsdb_file)
                         logging.debug("Lines in %s: %s", filename[CN.FULL_FILE],
                                       str(len(vsdb_file.index)))
@@ -216,7 +236,8 @@ class ReadDataFiles:
                                  CN.FCST_PERC] = \
                         all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN) &
                                      all_stat.fcst_thresh.str.contains(CN.R_PAREN),
-                                     CN.FCST_THRESH].str.split(CN.L_PAREN).str[1].str.split(CN.R_PAREN).str[0].astype(float)
+                                     CN.FCST_THRESH].str.split(CN.L_PAREN).str[1]. \
+                            str.split(CN.R_PAREN).str[0].astype(float)
                     # remove the percentage from fcst_thresh
                     all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN) &
                                  all_stat.fcst_thresh.str.contains(CN.R_PAREN),
@@ -233,7 +254,8 @@ class ReadDataFiles:
                                  CN.OBS_PERC] = \
                         all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN) &
                                      all_stat.obs_thresh.str.contains(CN.R_PAREN),
-                                     CN.OBS_THRESH].str.split(CN.L_PAREN).str[1].str.split(CN.R_PAREN).str[0].astype(float)
+                                     CN.OBS_THRESH].str.split(CN.L_PAREN).str[1]. \
+                            str.split(CN.R_PAREN).str[0].astype(float)
                     all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN) &
                                  all_stat.obs_thresh.str.contains(CN.R_PAREN),
                                  CN.OBS_THRESH] = \
@@ -301,7 +323,8 @@ class ReadDataFiles:
                                      CN.MODEL].str.split(CN.FWD_SLASH).str[1].astype(int)
 
                     # remove the slash and value from model
-                    all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH),
+                    all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH) &
+                                 all_vsdb.line_type.isin(CN.ENS_VSDB_LINE_TYPES),
                                  CN.MODEL] = \
                         all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH),
                                      CN.MODEL].str.split(CN.FWD_SLASH).str[0]
@@ -415,26 +438,27 @@ class ReadDataFiles:
                         vsdb_data[CN.TOTAL_LC] = vsdb_data[CN.TOTAL_LC].astype(float)
                         # the first set of n_var columns are oy_i, the second set are subtotals
                         # add n_var new columns after the first two sets, for calculated thresh_i
-                        n_var = vsdb_data[CN.N_VAR][1]
-                        last_col = vsdb_data.columns.get_loc(str(n_var * 2 - 1)) + 1
+                        zero_col = vsdb_data.columns.get_loc('0')
+                        mid_col = vsdb_data.columns.get_loc(CN.N_VAR)
                         vsdb_data = \
-                            vsdb_data.reindex(columns=[*vsdb_data.columns.tolist()[0:last_col],
-                                                       *CN.COL_NUMS[n_var * 2:n_var * 3],
-                                                       *vsdb_data.columns.tolist()[last_col:]],
+                            vsdb_data.reindex(columns=[*vsdb_data.columns.tolist()[0:mid_col],
+                                                       *CN.COL_NUMS[mid_col - zero_col:-2],
+                                                       *vsdb_data.columns.tolist()[mid_col:]],
                                               fill_value=0)
                         # all 3 sets of columns need to be float
-                        vsdb_data[CN.COL_NUMS[0:n_var * 3]] = \
-                            vsdb_data[CN.COL_NUMS[0:n_var * 3]].astype(float)
+                        vsdb_data[CN.COL_NUMS[0:-2]] = \
+                            vsdb_data[CN.COL_NUMS[0:-2]].astype(float)
                         # the total in line_data_pct is the total of all of the subtotals
-                        zero_col = vsdb_data.columns.get_loc('0')
-                        col_start = zero_col + vsdb_data[CN.N_VAR][1]
-                        col_end = col_start + n_var
-                        vsdb_data[CN.TOTAL_LC] = vsdb_data.iloc[:, col_start:col_end].sum(axis=1)
+                        # calculated per row as there may be rows with different values of n_var
+                        col_total = vsdb_data.columns.get_loc(CN.TOTAL_LC)
                         # calculate thresh and re-order values to be
                         # in sets of thresh_i, oy_i, and on_i (which is subtotal - oy_i)
                         for index, row in vsdb_data.iterrows():
                             var_values = []
                             n_var = row[CN.N_VAR]
+                            col_start = zero_col + n_var
+                            col_end = col_start + n_var
+                            vsdb_data.iloc[index, col_total] = row[col_start:col_end].sum()
                             for i in range(n_var):
                                 var_values = var_values + [i/(n_var - 1)]
                                 var_values = var_values + [row[str(i)]]
@@ -444,8 +468,7 @@ class ReadDataFiles:
                             vsdb_data.iloc[index, zero_col:zero_col + (n_var * 3)] = \
                                 df_values.iloc[0, 0:n_var * 3].values
                         one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC, CN.N_VAR] +
-                                             CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1] * 3] +
-                                             CN.COL_NAS[:(94 - vsdb_data[CN.N_VAR][1] * 3)] +
+                                             CN.COL_NUMS[0:-2] +
                                              [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.RELP:
@@ -633,6 +656,7 @@ class ReadDataFiles:
             Returns:
                all the stat lines in a dataframe, with dates converted to datetime
         """
+        print("before read of stat file " + filename)
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.FCST_VALID_BEG,

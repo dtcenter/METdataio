@@ -69,7 +69,7 @@ class WriteStatSql:
             # --------------------
             # Write Data Files
             # --------------------
-
+            print("*** Write data files")
             # write out records for data files, but first:
             # check for duplicates if flag on - delete if found
             for row_num, file_line in data_files.iterrows():
@@ -119,7 +119,7 @@ class WriteStatSql:
             # --------------------
             # Write Stat Headers
             # --------------------
-
+            print("*** Write stat headers")
             # find the unique headers for this current load job
             # for now, including VERSION to make pandas code easier - unlike MVLoad
             stat_headers = stat_data[CN.STAT_HEADER_KEYS].drop_duplicates()
@@ -161,13 +161,13 @@ class WriteStatSql:
             # --------------------
             # Write Line Data
             # --------------------
-
+            print("*** Write line data")
             # find all of the line types in the data
             line_types = stat_data.line_type.unique()
 
             # process one kind of line data at a time
             for line_type in line_types:
-
+                print("*** Line type is " + line_type)
                 all_var = pd.DataFrame()
 
                 # use the UC line type to index into the list of table names
@@ -185,7 +185,6 @@ class WriteStatSql:
                 line_data = np.round(line_data, decimals=7)
 
                 # Only variable length lines have a line_data_id
-                # more needs to be done on this
                 if line_type in CN.VAR_LINE_TYPES:
                     # Get next valid line data id. Set it to zero (first valid id) if no records yet
                     next_line_id = \
@@ -310,10 +309,20 @@ class WriteStatSql:
 
             # end for line_type
 
+            # write out line_data_perc records
+            if stat_data[CN.FCST_PERC].ne(CN.MV_NOTAV).any():
+                line_data2 = stat_data[stat_data[CN.FCST_PERC].ne(CN.MV_NOTAV) &
+                                       stat_data[CN.FCST_PERC].notnull()].copy()
+
+                # Write out the PERC lines
+                self.write_to_sql(line_data2, CN.LINE_DATA_COLS[CN.PERC],
+                                  CN.LINE_TABLES[CN.UC_LINE_TYPES.index(CN.PERC)],
+                                  CN.LINE_DATA_Q[CN.PERC])
+
             # --------------------
             # Write Metadata - group and description
             # --------------------
-
+            print("*** Write metadata")
             # insert or update the group and description fields in the metadata table
             if group != CN.DEFAULT_DATABASE_GROUP:
                 self.cur.execute(CN.Q_METADATA)
