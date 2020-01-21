@@ -656,7 +656,6 @@ class ReadDataFiles:
             Returns:
                all the stat lines in a dataframe, with dates converted to datetime
         """
-        print("before read of stat file " + filename)
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.FCST_VALID_BEG,

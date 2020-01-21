@@ -69,7 +69,7 @@ class WriteStatSql:
             # --------------------
             # Write Data Files
             # --------------------
-            print("*** Write data files")
+
             # write out records for data files, but first:
             # check for duplicates if flag on - delete if found
             for row_num, file_line in data_files.iterrows():
@@ -119,7 +119,7 @@ class WriteStatSql:
             # --------------------
             # Write Stat Headers
             # --------------------
-            print("*** Write stat headers")
+
             # find the unique headers for this current load job
             # for now, including VERSION to make pandas code easier - unlike MVLoad
             stat_headers = stat_data[CN.STAT_HEADER_KEYS].drop_duplicates()
@@ -161,13 +161,13 @@ class WriteStatSql:
             # --------------------
             # Write Line Data
             # --------------------
-            print("*** Write line data")
+
             # find all of the line types in the data
             line_types = stat_data.line_type.unique()
 
             # process one kind of line data at a time
             for line_type in line_types:
-                print("*** Line type is " + line_type)
+
                 all_var = pd.DataFrame()
 
                 # use the UC line type to index into the list of table names
@@ -322,7 +322,7 @@ class WriteStatSql:
             # --------------------
             # Write Metadata - group and description
             # --------------------
-            print("*** Write metadata")
+
             # insert or update the group and description fields in the metadata table
             if group != CN.DEFAULT_DATABASE_GROUP:
                 self.cur.execute(CN.Q_METADATA)
