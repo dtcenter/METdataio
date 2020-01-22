@@ -292,6 +292,11 @@ class ReadDataFiles:
                     all_stat.loc[all_stat.interp_pnts == CN.NOTAV, CN.INTERP_PNTS] = 0
                     all_stat.interp_pnts = all_stat.interp_pnts.astype(int)
 
+                # PCT lines in stat files are short one row, subtract 1 from n_thresh
+                if all_stat[CN.LINE_TYPE].eq(CN.PCT).any():
+                    all_stat.loc[all_stat.line_type == CN.PCT, '1'] = \
+                        all_stat.loc[all_stat.line_type == CN.PCT, '1'] - 1
+
             # collect vsdb files separately so additional transforms can be done
             if list_vsdb:
                 all_vsdb = pd.concat(list_vsdb, ignore_index=True, sort=False)
@@ -656,6 +661,7 @@ class ReadDataFiles:
             Returns:
                all the stat lines in a dataframe, with dates converted to datetime
         """
+        # added the low_memory=False option when getting a DtypeWarning
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.FCST_VALID_BEG,
@@ -663,7 +669,7 @@ class ReadDataFiles:
                                         CN.OBS_VALID_BEG,
                                         CN.OBS_VALID_END],
                            date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='')
+                           keep_default_na=False, na_values='', low_memory=False)
 
     def cached_date_parser(self, date_str):
         """ if date is repeated and already converted, return that value.
