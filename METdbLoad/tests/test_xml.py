@@ -6,7 +6,7 @@
 
 from read_load_xml import XmlLoadFile
 
-XML_FILE = '/Users/venita.hagerty/metviewer/testloadv10few3.xml'
+XML_FILE = '/Users/venita.hagerty/metviewer/testloadv10fewp3.xml'
 XML_LOADFILE = XmlLoadFile(XML_FILE)
 XML_LOADFILE.read_xml()
 
@@ -14,7 +14,7 @@ def test_loadflags():
     """Read various flags from XML file."""
     assert XML_LOADFILE.flags['load_stat']
     assert not XML_LOADFILE.flags['load_mode']
-    assert XML_LOADFILE.flags['load_mtd']
+    assert not XML_LOADFILE.flags['load_mtd']
     assert XML_LOADFILE.flags['load_mpr']
     assert XML_LOADFILE.flags['load_orank']
     assert XML_LOADFILE.flags['verbose']
