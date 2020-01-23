@@ -212,6 +212,8 @@ class WriteStatSql:
                         # these two variable line types are one group short
                         if line_type in [CN.PJC, CN.PRC]:
                             var_count = var_count - 1
+                        # reset to original value
+                        var_index = orig_index
                         # older versions of RHIST have varying ECNT data in them
                         if line_type == CN.RHIST and file_line[CN.VERSION] in CN.RHIST_OLD:
                             var_count = int(file_line['3'])
