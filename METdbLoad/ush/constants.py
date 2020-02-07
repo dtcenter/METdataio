@@ -42,10 +42,10 @@ EQS = '='
 FWD_SLASH = '/'
 
 # Left paren for searching
-L_PAREN = '\('
+L_PAREN = '('
 
 # Right paren for searching
-R_PAREN = '\)'
+R_PAREN = ')'
 
 # Generic count of variable fields
 N_VAR = 'n_var'
@@ -119,9 +119,9 @@ VAR_LINE_TYPES = [PCT, PSTD, PJC, PRC, MCTC, RHIST, PHIST, RELP, ORANK, ECLV]
 
 OLD_VSDB_LINE_TYPES = [BSS, ECON, HIST, RELI, RMSE, RPS, FHO, FSS]
 
-ENS_VSDB_LINE_TYPES = [BSS, ECON, HIST, RELI, RELP, RMSE, RPS]
-
 VSDB_TO_STAT_TYPES = [PSTD, ECLV, RHIST, PCT, CNT, ENSCNT, CTC, NBRCNT]
+
+ENS_VSDB_LINE_TYPES = [BSS, ECON, HIST, RELI, RELP, RMSE, RPS]
 
 ALL_VSDB_LINE_TYPES = OLD_VSDB_LINE_TYPES + [RELP, SL1L2, SAL1L2, VL1L2, VAL1L2, GRAD]
 
@@ -402,7 +402,7 @@ LINE_DATA_FIELDS[PJC] = COV_LINE_DATA_FIELDS + \
 LINE_DATA_FIELDS[PRC] = COV_LINE_DATA_FIELDS + \
                         ['n_thresh']
 
-# the last 5 fields are currently (August 2019) blank, filled in in write_stat_sql
+# the last 5 fields are currently (August 2019) blank in stat files, filled in in write_stat_sql
 LINE_DATA_FIELDS[PSTD] = COVA_LINE_DATA_FIELDS + \
                          ['n_thresh', 'baser', 'baser_ncl', 'baser_ncu',
                           'reliability', 'resolution', 'uncertainty', 'roc_auc',

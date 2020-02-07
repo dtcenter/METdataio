@@ -229,38 +229,38 @@ class ReadDataFiles:
                 all_stat = pd.concat(list_frames, ignore_index=True, sort=False)
 
                 # if a fcst percentage thresh is used, it is in parens in fcst_thresh
-                if all_stat.fcst_thresh.str.contains(CN.L_PAREN).any():
+                if all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False).any():
                     # save the value in parens
-                    all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN) &
-                                 all_stat.fcst_thresh.str.contains(CN.R_PAREN),
+                    all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False) &
+                                 all_stat.fcst_thresh.str.contains(CN.R_PAREN, regex=False),
                                  CN.FCST_PERC] = \
-                        all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN) &
-                                     all_stat.fcst_thresh.str.contains(CN.R_PAREN),
-                                     CN.FCST_THRESH].str.split(CN.L_PAREN).str[1]. \
+                        all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False) &
+                                     all_stat.fcst_thresh.str.contains(CN.R_PAREN, regex=False),
+                                     CN.FCST_THRESH].str.split(CN.L_PAREN, regex=False).str[1]. \
                             str.split(CN.R_PAREN).str[0].astype(float)
                     # remove the percentage from fcst_thresh
-                    all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN) &
-                                 all_stat.fcst_thresh.str.contains(CN.R_PAREN),
+                    all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False) &
+                                 all_stat.fcst_thresh.str.contains(CN.R_PAREN, regex=False),
                                  CN.FCST_THRESH] = \
-                        all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN) &
-                                     all_stat.fcst_thresh.str.contains(CN.R_PAREN),
+                        all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False) &
+                                     all_stat.fcst_thresh.str.contains(CN.R_PAREN, regex=False),
                                      CN.FCST_THRESH].str.split(CN.L_PAREN).str[0]
 
                 # if an obs percentage thresh is used, it is in parens in obs_thresh
-                if all_stat.obs_thresh.str.contains(CN.L_PAREN).any():
+                if all_stat.obs_thresh.str.contains(CN.L_PAREN, regex=False).any():
                     # save the value in parens
-                    all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN) &
-                                 all_stat.obs_thresh.str.contains(CN.R_PAREN),
+                    all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN, regex=False) &
+                                 all_stat.obs_thresh.str.contains(CN.R_PAREN, regex=False),
                                  CN.OBS_PERC] = \
-                        all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN) &
-                                     all_stat.obs_thresh.str.contains(CN.R_PAREN),
+                        all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN, regex=False) &
+                                     all_stat.obs_thresh.str.contains(CN.R_PAREN, regex=False),
                                      CN.OBS_THRESH].str.split(CN.L_PAREN).str[1]. \
                             str.split(CN.R_PAREN).str[0].astype(float)
-                    all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN) &
-                                 all_stat.obs_thresh.str.contains(CN.R_PAREN),
+                    all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN, regex=False) &
+                                 all_stat.obs_thresh.str.contains(CN.R_PAREN, regex=False),
                                  CN.OBS_THRESH] = \
-                        all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN) &
-                                     all_stat.obs_thresh.str.contains(CN.R_PAREN),
+                        all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN, regex=False) &
+                                     all_stat.obs_thresh.str.contains(CN.R_PAREN, regex=False),
                                      CN.OBS_THRESH].str.split(CN.L_PAREN).str[0]
 
                 # These warnings and transforms only apply to stat files
@@ -416,7 +416,7 @@ class ReadDataFiles:
                     if vsdb_type in (CN.SL1L2, CN.SAL1L2):
                         # some SL1L2 files do not have MAE
                         if not '6' in vsdb_data:
-                            vsdb_data.insert(25, '6', CN.NOTAV)
+                            vsdb_data.insert(25, '6', CN.MV_NOTAV)
                         one_file = vsdb_data[CN.LONG_HEADER + CN.COL_NUMS[:7] +
                                              CN.COL_NAS[:89] + [CN.LINE_NUM, CN.FILE_ROW]]
 
@@ -507,7 +507,7 @@ class ReadDataFiles:
                                              ['4'] + CN.COL_NAS[:18] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.ENSCNT:
-                        one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +
+                        one_file = vsdb_data[CN.LONG_HEADER + ['0'] +
                                              CN.COL_NAS[:4] +
                                              ['1'] + CN.COL_NAS[:4] +
                                              ['2'] + CN.COL_NAS[:4] +

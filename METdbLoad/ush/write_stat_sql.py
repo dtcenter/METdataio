@@ -182,7 +182,9 @@ class WriteStatSql:
                 line_data = line_data.replace('NA', CN.MV_NOTAV)
 
                 # change float numbers to have limited digits after the decimal point
-                line_data = np.round(line_data, decimals=7)
+                # line_data = np.round(line_data, decimals=7)
+                line_data[CN.COL_NUMS[3:]] = line_data[CN.COL_NUMS[3:]].astype(float)
+                line_data = line_data.round(decimals=5)
 
                 # Only variable length lines have a line_data_id
                 if line_type in CN.VAR_LINE_TYPES:
@@ -212,10 +214,11 @@ class WriteStatSql:
                         # these two variable line types are one group short
                         if line_type in [CN.PJC, CN.PRC]:
                             var_count = var_count - 1
-                        # reset to original value
-                        var_index = orig_index
+
                         # older versions of RHIST have varying ECNT data in them
                         if line_type == CN.RHIST and file_line[CN.VERSION] in CN.RHIST_OLD:
+                            # reset to original value
+                            var_index = orig_index
                             var_count = int(file_line['3'])
                             var_index = orig_index + 2
                             if file_line[CN.VERSION] in CN.RHIST_5:
@@ -242,6 +245,11 @@ class WriteStatSql:
                             line_data.iloc[row_num, var_index:var_index + repeat_width] = \
                                 CN.MV_NOTAV
 
+                        # for stat file versions of PSTD, blank out variable fields in line data
+                        if line_type == CN.PSTD and file_line[CN.VERSION] != 'V01':
+                            line_data.iloc[row_num, var_index:var_index + repeat_width] = \
+                                CN.MV_NOTAV
+
                         # add on the first two fields - line data id, and i value
                         var_data.insert(0, CN.LINE_DATA_ID, file_line[CN.LINE_DATA_ID])
                         var_data.insert(1, 'i_value', var_data.index + 1)
@@ -263,18 +271,6 @@ class WriteStatSql:
                         all_var = all_var.append(var_data, ignore_index=True)
 
                     # end for row_num, file_line
-
-                    # fill in the missing NA values that will otherwise write as zeroes
-                    if line_type == CN.PSTD:
-                        line_data.insert(25, 'briercl', CN.MV_NOTAV)
-                        line_data.insert(26, 'briercl_ncl', CN.MV_NOTAV)
-                        line_data.insert(27, 'briercl_ncu', CN.MV_NOTAV)
-                        line_data.insert(28, 'bss', CN.MV_NOTAV)
-                        line_data.insert(29, 'bss_smpl', CN.MV_NOTAV)
-                        # add the missing 5 column names to the list of columns to write
-                        CN.LINE_DATA_COLS[line_type] = CN.LINE_DATA_COLS[line_type][0:-5] + \
-                                                       ['briercl', 'briercl_ncl', 'briercl_ncu',
-                                                        'bss', 'bss_smpl']
 
                     if line_type == CN.RHIST:
                         # copy the RHIST columns and create ECNT lines from them
