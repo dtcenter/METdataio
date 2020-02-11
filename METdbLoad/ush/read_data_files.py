@@ -483,9 +483,21 @@ class ReadDataFiles:
                                              [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.ECLV:
+                        n_var = 18
+                        zero_col = vsdb_data.columns.get_loc('0')
+                        last_col = zero_col + (n_var * 2) - 1
+                        mid_col = zero_col + n_var - 1
+                        last_point = n_var - 1
+                        for i in range(n_var):
+                            vsdb_data.iloc[:, last_col] = vsdb_data.iloc[:, mid_col]
+                            vsdb_data.iloc[:, last_col - 1] = CN.X_POINTS_ECON[last_point]
+                            last_col = last_col - 2
+                            mid_col = mid_col - 1
+                            last_point = last_point - 1
                         one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +
                                              CN.COL_NAS[:2] + [CN.N_VAR] +
-                                             CN.COL_NAS[:92] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             CN.COL_NUMS[0:35] +
+                                             CN.COL_NAS[:57] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.PSTD:
                         one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +

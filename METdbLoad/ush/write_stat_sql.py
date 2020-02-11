@@ -201,13 +201,15 @@ class WriteStatSql:
 
                     # index of the first column of the repeating variables
                     var_index = line_data.columns.get_loc(CN.LINE_VAR_COUNTER[line_type]) + 1
-                    # need this later for old RHIST
-                    orig_index = var_index
 
                     # There are 10 extra variables after n_thresh in PSTD records
                     if line_type == CN.PSTD:
                         var_index = var_index + 10
 
+                    # need this later for old RHIST
+                    orig_index = var_index
+
+                    # process each variable line one at a time for different versions
                     for row_num, file_line in line_data.iterrows():
                         # how many sets of repeating variables
                         var_count = int(file_line[CN.LINE_VAR_COUNTER[line_type]])
@@ -215,10 +217,11 @@ class WriteStatSql:
                         if line_type in [CN.PJC, CN.PRC]:
                             var_count = var_count - 1
 
+                        # reset to original value
+                        var_index = orig_index
+
                         # older versions of RHIST have varying ECNT data in them
                         if line_type == CN.RHIST and file_line[CN.VERSION] in CN.RHIST_OLD:
-                            # reset to original value
-                            var_index = orig_index
                             var_count = int(file_line['3'])
                             var_index = orig_index + 2
                             if file_line[CN.VERSION] in CN.RHIST_5:
