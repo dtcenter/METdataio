@@ -48,7 +48,6 @@ class WriteStatSql:
         # Default to False since it requires extra permission
         self.local_infile = False
 
-
     def write_sql_data(self, load_flags, data_files, stat_data, group, description,
                        load_note, xml_str):
         """ write stat files (MET and VSDB) to a SQL database.
@@ -82,7 +81,7 @@ class WriteStatSql:
                 if self.cur.rowcount > 0:
                     if not load_flags['force_dup_file']:
                         # delete line data rows that match index of duplicated file
-                        stat_data = stat_data.drop(stat_data[stat_data.file_row == \
+                        stat_data = stat_data.drop(stat_data[stat_data.file_row ==
                                                              file_line.file_row].index)
                         data_files = data_files.drop(row_num)
                         logging.warning("!!! Duplicate file %s without FORCE_DUP_FILE tag",
@@ -91,7 +90,7 @@ class WriteStatSql:
                         # With duplicate files allowed, save the existing id for the file
                         data_files.loc[data_files.index[row_num], CN.DATA_FILE_ID] = result[0]
 
-            # end for for row_num, file_line
+            # end for row_num, file_line
 
             # reset the stat_data index in case any records were dropped
             stat_data.reset_index(drop=True, inplace=True)
@@ -103,7 +102,7 @@ class WriteStatSql:
 
             # For new files add the next id to the row number/index to make a new key
             data_files.loc[data_files.data_file_id == CN.NO_KEY, CN.DATA_FILE_ID] = \
-                        data_files.index + next_file_id
+                data_files.index + next_file_id
 
             # Replace the temporary id value with the actual index in the stat line data
             for row_num, row in data_files.iterrows():
@@ -146,7 +145,7 @@ class WriteStatSql:
 
             # For new headers add the next id to the row number/index to make a new key
             stat_headers.loc[stat_headers.stat_header_id == CN.NO_KEY, CN.STAT_HEADER_ID] = \
-                        stat_headers.index + next_header_id
+                stat_headers.index + next_header_id
 
             # get just the new headers with their keys
             new_headers = stat_headers[stat_headers[CN.STAT_HEADER_ID] > (next_header_id - 1)]
@@ -183,33 +182,44 @@ class WriteStatSql:
                 line_data = line_data.replace('NA', CN.MV_NOTAV)
 
                 # change float numbers to have limited digits after the decimal point
-                line_data = np.round(line_data, decimals=7)
+                # line_data = np.round(line_data, decimals=7)
+                line_data[CN.COL_NUMS[3:]] = line_data[CN.COL_NUMS[3:]].astype(float)
+                line_data = line_data.round(decimals=5)
 
                 # Only variable length lines have a line_data_id
-                # more needs to be done on this
                 if line_type in CN.VAR_LINE_TYPES:
                     # Get next valid line data id. Set it to zero (first valid id) if no records yet
                     next_line_id = \
                         self.get_next_id(line_table, CN.LINE_DATA_ID)
                     logging.debug("next_line_id is %s", next_line_id)
 
+                    # try to keep order the same as MVLoad
+                    line_data = line_data.sort_values(by=[CN.DATA_FILE_ID, CN.LINE_NUM])
+                    line_data.reset_index(drop=True, inplace=True)
+
                     line_data[CN.LINE_DATA_ID] = line_data.index + next_line_id
 
                     # index of the first column of the repeating variables
                     var_index = line_data.columns.get_loc(CN.LINE_VAR_COUNTER[line_type]) + 1
-                    # need this later for old RHIST
-                    orig_index = var_index
 
                     # There are 10 extra variables after n_thresh in PSTD records
                     if line_type == CN.PSTD:
                         var_index = var_index + 10
 
+                    # need this later for old RHIST
+                    orig_index = var_index
+
+                    # process each variable line one at a time for different versions
                     for row_num, file_line in line_data.iterrows():
                         # how many sets of repeating variables
                         var_count = int(file_line[CN.LINE_VAR_COUNTER[line_type]])
-                        # these three variable line types are one group short
-                        if line_type in [CN.PCT, CN.PJC, CN.PRC]:
+                        # these two variable line types are one group short
+                        if line_type in [CN.PJC, CN.PRC]:
                             var_count = var_count - 1
+
+                        # reset to original value
+                        var_index = orig_index
+
                         # older versions of RHIST have varying ECNT data in them
                         if line_type == CN.RHIST and file_line[CN.VERSION] in CN.RHIST_OLD:
                             var_count = int(file_line['3'])
@@ -238,6 +248,11 @@ class WriteStatSql:
                             line_data.iloc[row_num, var_index:var_index + repeat_width] = \
                                 CN.MV_NOTAV
 
+                        # for stat file versions of PSTD, blank out variable fields in line data
+                        if line_type == CN.PSTD and file_line[CN.VERSION] != 'V01':
+                            line_data.iloc[row_num, var_index:var_index + repeat_width] = \
+                                CN.MV_NOTAV
+
                         # add on the first two fields - line data id, and i value
                         var_data.insert(0, CN.LINE_DATA_ID, file_line[CN.LINE_DATA_ID])
                         var_data.insert(1, 'i_value', var_data.index + 1)
@@ -259,18 +274,6 @@ class WriteStatSql:
                         all_var = all_var.append(var_data, ignore_index=True)
 
                     # end for row_num, file_line
-
-                    # fill in the missing NA values that will otherwise write as zeroes
-                    if line_type == CN.PSTD:
-                        line_data.insert(25, 'briercl', CN.MV_NOTAV)
-                        line_data.insert(26, 'briercl_ncl', CN.MV_NOTAV)
-                        line_data.insert(27, 'briercl_ncu', CN.MV_NOTAV)
-                        line_data.insert(28, 'bss', CN.MV_NOTAV)
-                        line_data.insert(29, 'bss_smpl', CN.MV_NOTAV)
-                        # add the missing 5 column names to the list of columns to write
-                        CN.LINE_DATA_COLS[line_type] = CN.LINE_DATA_COLS[line_type][0:-5] + \
-                                                       ['briercl', 'briercl_ncl', 'briercl_ncu',
-                                                        'bss', 'bss_smpl']
 
                     if line_type == CN.RHIST:
                         # copy the RHIST columns and create ECNT lines from them
@@ -306,6 +309,16 @@ class WriteStatSql:
                                       CN.LINE_DATA_VAR_Q[line_type])
 
             # end for line_type
+
+            # write out line_data_perc records
+            if stat_data[CN.FCST_PERC].ne(CN.MV_NOTAV).any():
+                line_data2 = stat_data[stat_data[CN.FCST_PERC].ne(CN.MV_NOTAV) &
+                                       stat_data[CN.FCST_PERC].notnull()].copy()
+
+                # Write out the PERC lines
+                self.write_to_sql(line_data2, CN.LINE_DATA_COLS[CN.PERC],
+                                  CN.LINE_TABLES[CN.UC_LINE_TYPES.index(CN.PERC)],
+                                  CN.LINE_DATA_Q[CN.PERC])
 
             # --------------------
             # Write Metadata - group and description

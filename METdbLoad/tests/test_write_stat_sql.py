@@ -13,7 +13,7 @@ from read_data_files import ReadDataFiles
 from write_stat_sql import WriteStatSql
 
 # Read in the XML load file
-XML_FILE = '/Users/venita.hagerty/metviewer/testloadv10few3.xml'
+XML_FILE = '/Users/venita.hagerty/metviewer/testloadv10fewp3.xml'
 
 XML_LOADFILE = XmlLoadFile(XML_FILE)
 XML_LOADFILE.read_xml()
@@ -41,16 +41,44 @@ cur.execute("delete from data_file;")
 cur.execute("delete from line_data_cnt;")
 cur.execute("delete from line_data_ctc;")
 cur.execute("delete from line_data_cts;")
+cur.execute("delete from line_data_cts;")
+cur.execute("delete from line_data_eclv;")
+cur.execute("delete from line_data_eclv_pnt;")
 cur.execute("delete from line_data_ecnt;")
+cur.execute("delete from line_data_enscnt;")
 cur.execute("delete from line_data_fho;")
 cur.execute("delete from line_data_grad;")
+cur.execute("delete from line_data_isc;")
+cur.execute("delete from line_data_mctc;")
+cur.execute("delete from line_data_mctc_cnt;")
 cur.execute("delete from line_data_mcts;")
+cur.execute("delete from line_data_mpr;")
+cur.execute("delete from line_data_nbrcnt;")
 cur.execute("delete from line_data_nbrctc;")
 cur.execute("delete from line_data_nbrcts;")
+cur.execute("delete from line_data_orank;")
+cur.execute("delete from line_data_orank_ens;")
+cur.execute("delete from line_data_pct;")
+cur.execute("delete from line_data_pct_thresh;")
+cur.execute("delete from line_data_perc;")
+cur.execute("delete from line_data_phist;")
+cur.execute("delete from line_data_phist_bin;")
+cur.execute("delete from line_data_pjc;")
+cur.execute("delete from line_data_pjc_thresh;")
+cur.execute("delete from line_data_prc;")
+cur.execute("delete from line_data_prc_thresh;")
+cur.execute("delete from line_data_pstd;")
+cur.execute("delete from line_data_pstd_thresh;")
+cur.execute("delete from line_data_relp;")
+cur.execute("delete from line_data_relp_ens;")
+cur.execute("delete from line_data_rhist;")
+cur.execute("delete from line_data_rhist_rank;")
 cur.execute("delete from line_data_sl1l2;")
 cur.execute("delete from line_data_sal1l2;")
+cur.execute("delete from line_data_ssvar;")
 cur.execute("delete from line_data_vl1l2;")
 cur.execute("delete from line_data_val1l2;")
+cur.execute("delete from line_data_vcnt;")
 cur.execute("delete from stat_header;")
 cur.execute("delete from instance_info;")
 cur.execute("delete from metadata;")
@@ -81,12 +109,12 @@ def test_counts():
     # Count the number of data_file records created
     cur.execute("SELECT COUNT(*) from data_file;")
     result = cur.fetchone()
-    assert result[0] == 5
+    assert result[0] == 7
 
     # Count the number of stat_header records created
     cur.execute("SELECT COUNT(*) from stat_header;")
     result = cur.fetchone()
-    assert result[0] == 317
+    assert result[0] == 368
 
     # Count the number of line_data_fho records created
     cur.execute("SELECT COUNT(*) from line_data_fho;")
@@ -116,7 +144,7 @@ def test_counts():
     # Count the number of line_data_ecnt records created
     cur.execute("SELECT COUNT(*) from line_data_ecnt;")
     result = cur.fetchone()
-    assert result[0] == 18
+    assert result[0] == 27
 
     # Count the number of line_data_grad records created
     cur.execute("SELECT COUNT(*) from line_data_grad;")

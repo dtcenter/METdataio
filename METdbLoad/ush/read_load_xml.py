@@ -77,7 +77,8 @@ class XmlLoadFile:
 
         try:
             # parse the XML file
-            tree = etree.parse(self.xmlfilename)
+            parser = etree.XMLParser(remove_comments=True)
+            tree = etree.parse(self.xmlfilename, parser=parser)
             root = tree.getroot()
 
         except (RuntimeError, TypeError, NameError, KeyError):

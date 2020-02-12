@@ -27,18 +27,40 @@ LC_TRUE = "true"
 LC_FALSE = "false"
 
 # Not Available - NA
-NOTAV = "NA"
+NOTAV = 'NA'
 
 # METviewer value for Not Available
-MV_NOTAV = "-9999"
+MV_NOTAV = '-9999'
 
 # separator for csv files
 SEP = '$'
 
+# Equal Sign
+EQS = '='
+
+# Forward Slash
+FWD_SLASH = '/'
+
+# Left paren for searching
+L_PAREN = '('
+
+# Right paren for searching
+R_PAREN = ')'
+
+# Generic count of variable fields
+N_VAR = 'n_var'
+
 # No key is a number that would not be a valid key that is put in as a placeholder
 NO_KEY = -1
 
-# line types - comments from the v8.1.1 MET user's guide
+# names for columns that contain not available and zero values
+COL_NA = 'colna'
+COL_ZERO = 'zeroes'
+
+# repeat COL_NA for building VSDB dataframe
+COL_NAS = [COL_NA] * 95
+
+# STAT line types - comments from the v8.1.1 MET user's guide
 FHO = "FHO"        # Forecast, Hit, Observation Rates
 CTC = "CTC"        # Contingency Table Counts
 CTS = "CTS"        # Contingency Table Statistics
@@ -59,7 +81,7 @@ NBRCTC = "NBRCTC"  # Neighborhood Contingency Table Counts
 NBRCTS = "NBRCTS"  # Neighborhood Contingency Table Statistics
 NBRCNT = "NBRCNT"  # Neighborhood Continuous Statistics
 ISC = "ISC"        # Intensity-Scale
-RHIST = "RHIST"    # Rank Histogram
+RHIST = "RHIST"    # Ranked Histogram
 PHIST = "PHIST"    # Probability Integral Transform Histogram
 ORANK = "ORANK"    # Observation Rank
 SSVAR = "SSVAR"    # Spread Skill Variance
@@ -69,6 +91,17 @@ RELP = "RELP"      # Relative Position
 ECNT = "ECNT"      # Ensemble Continuous Statistics - only for HiRA
 ENSCNT = "ENSCNT"  #
 PERC = "PERC"      #
+
+# VSDB line types
+BSS = "BSS"        # same as PSTD
+RELI = "RELI"      # same as PCT
+HIST = "HIST"      # same as RHIST
+ECON = "ECON"      # same as ECLV
+RMSE = "RMSE"      # same as CNT
+RPS = "RPS"        # same as ENSCNT
+FSS = "FSS"        # same as NBRCNT
+# VSDB version of FHO goes to CTC
+# VSDB versions of RELP, SL1L2, SAL1L2, VL1L2, VAL1L2, and GRAD do not change
 
 UC_LINE_TYPES = [FHO, CTC, CTS, MCTC, MCTS, CNT, SL1L2, SAL1L2, VL1L2, VAL1L2,
                  PCT, PSTD, PJC, PRC, ECLV, MPR, NBRCTC, NBRCTS, NBRCNT, ISC,
@@ -83,6 +116,14 @@ ALPHA_LINE_TYPES = [CTS, CNT, PSTD, NBRCTS, NBRCNT, MCTS, SSVAR, VCNT]
 COV_THRESH_LINE_TYPES = [NBRCTC, NBRCTS, PCT, PSTD, PJC, PRC]
 
 VAR_LINE_TYPES = [PCT, PSTD, PJC, PRC, MCTC, RHIST, PHIST, RELP, ORANK, ECLV]
+
+OLD_VSDB_LINE_TYPES = [BSS, ECON, HIST, RELI, RMSE, RPS, FHO, FSS]
+
+VSDB_TO_STAT_TYPES = [PSTD, ECLV, RHIST, PCT, CNT, ENSCNT, CTC, NBRCNT]
+
+ENS_VSDB_LINE_TYPES = [BSS, ECON, HIST, RELI, RELP, RMSE, RPS]
+
+ALL_VSDB_LINE_TYPES = OLD_VSDB_LINE_TYPES + [RELP, SL1L2, SAL1L2, VL1L2, VAL1L2, GRAD]
 
 # column names
 # MET column names are UC, SQL are LC
@@ -134,8 +175,11 @@ STAT_HEADER_KEYS = [VERSION, MODEL, DESCR, FCST_VAR, FCST_UNITS, FCST_LEV,
                     OBS_VAR, OBS_UNITS, OBS_LEV, OBTYPE, VX_MASK,
                     INTERP_MTHD, INTERP_PNTS, FCST_THRESH, OBS_THRESH]
 
+VSDB_HEADER = [VERSION, MODEL, FCST_LEAD, FCST_VALID_BEG, OBTYPE,
+               VX_MASK, LINE_TYPE, FCST_VAR, FCST_LEV]
+
 Q_FILE = "SELECT data_file_id FROM data_file WHERE " + \
-           "path=%s AND filename=%s"
+         "path=%s AND filename=%s"
 
 Q_HEADER = "SELECT stat_header_id FROM stat_header WHERE " + \
            "=%s AND ".join(STAT_HEADER_KEYS) + "=%s"
@@ -147,6 +191,8 @@ STAT_HEADER_ID = 'stat_header_id'
 LINE_DATA_ID = 'line_data_id'
 LINE_NUM = 'line_num'
 TOTAL_LC = 'total'
+FCST_PERC = 'fcst_perc'
+OBS_PERC = 'obs_perc'
 
 DATA_FILE = 'data_file'
 FULL_FILE = 'full_file'
@@ -174,15 +220,15 @@ VALUE_SLOTS = '%s, ' * len(STAT_HEADER_FIELDS)
 VALUE_SLOTS = VALUE_SLOTS[:-2]
 
 INS_HEADER = "INSERT INTO stat_header (" + ",".join(STAT_HEADER_FIELDS) + \
-           ") VALUES (" + VALUE_SLOTS + ")"
+             ") VALUES (" + VALUE_SLOTS + ")"
 
 INS_DATA_FILES = "INSERT INTO data_file (" + ",".join(DATA_FILE_FIELDS) + \
-               ") VALUES (%s, %s, %s, %s, %s, %s)"
+                 ") VALUES (%s, %s, %s, %s, %s, %s)"
 
 INS_METADATA = "INSERT INTO metadata (category, description) VALUES (%s, %s)"
 
 INS_INSTANCE = "INSERT INTO instance_info (instance_info_id, updater, update_date, " + \
-             "update_detail, load_xml) VALUES (%s, %s, %s, %s, %s)"
+               "update_detail, load_xml) VALUES (%s, %s, %s, %s, %s)"
 
 UPD_METADATA = "UPDATE metadata SET category=%s, description=%s"
 
@@ -356,7 +402,7 @@ LINE_DATA_FIELDS[PJC] = COV_LINE_DATA_FIELDS + \
 LINE_DATA_FIELDS[PRC] = COV_LINE_DATA_FIELDS + \
                         ['n_thresh']
 
-# the last 5 fields are currently (August 2019) blank, filled in in write_stat_sql
+# the last 5 fields are currently (August 2019) blank in stat files, filled in in write_stat_sql
 LINE_DATA_FIELDS[PSTD] = COVA_LINE_DATA_FIELDS + \
                          ['n_thresh', 'baser', 'baser_ncl', 'baser_ncu',
                           'reliability', 'resolution', 'uncertainty', 'roc_auc',
@@ -478,6 +524,8 @@ for line_type in UC_LINE_TYPES:
                  ") VALUES (" + VALUE_SLOTS + ")"
         LINE_DATA_VAR_Q[line_type] = i_line
 
+LINE_DATA_COLS[PERC] = LINE_DATA_COLS[PERC][0:-2] + [FCST_PERC, OBS_PERC]
+
 # column name of n_* after Total. phist, orank, and eclv have extra fields after Total
 LINE_VAR_COUNTER[PCT] = '1'
 LINE_VAR_COUNTER[PSTD] = '1'
@@ -507,6 +555,11 @@ RHIST_OLD = ['V7.0', 'V6.1', 'V6.0', 'V5.2', 'V5.1', 'V5.0',
 
 RHIST_5 = ['V5.2', 'V5.1']
 RHIST_6 = ['V6.1', 'V6.0', 'V7.0']
+
+X_POINTS_ECON = [0.952380952, 0.909090909, 0.800000000, 0.666666667, 0.500000000,
+                 0.333333333, 0.200000000, 0.125000000, 0.100000000, 0.055555556,
+                 0.037037037, 0.025000000, 0.016666667, 0.011111111, 0.007142857,
+                 0.004761905, 0.002857143, 0.002000000]
 
 # From the data_file_lu table - to lookup file type
 POINT_STAT = 0

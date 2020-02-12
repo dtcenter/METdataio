@@ -106,6 +106,8 @@ def main():
     #
     try:
 
+        # RELATIONAL is a list in constants.py
+        # pylint: disable=maybe-no-member
         if not file_data.stat_data.empty and \
                 xml_loadfile.connection['db_management_system'] in CN.RELATIONAL:
             stat_lines = WriteStatSql(xml_loadfile.connection)
