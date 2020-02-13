@@ -17,6 +17,7 @@ Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 
 import sys
 import os
+from pathlib import Path
 import logging
 from lxml import etree
 
@@ -76,6 +77,11 @@ class XmlLoadFile:
         logging.debug("[--- Start read_xml ---]")
 
         try:
+
+            # check for existence of XML file
+            if not Path(self.xmlfilename).is_file():
+                sys.exit("*** XML file " + self.xmlfilename + " can not be found!")
+
             # parse the XML file
             parser = etree.XMLParser(remove_comments=True)
             tree = etree.parse(self.xmlfilename, parser=parser)
@@ -83,6 +89,7 @@ class XmlLoadFile:
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_xml ***", sys.exc_info()[0])
+            sys.exit("*** Parsing error(s) in XML file!")
 
         folder_template = None
         template_fills = {}
@@ -189,6 +196,7 @@ class XmlLoadFile:
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_xml ***", sys.exc_info()[0])
+            sys.exit("*** Error(s) found while reading XML file!")
 
         logging.debug("group is: %s", self.group)
         logging.debug("db_name is: %s", self.connection['db_name'])
@@ -200,8 +208,6 @@ class XmlLoadFile:
         # this removes duplicate file names. do we want that?
         if self.load_files is not None:
             self.load_files = list(dict.fromkeys(self.load_files))
-
-        logging.debug("Load_files are: %s %s", str(len(self.load_files)), self.load_files)
 
         logging.debug("[--- End read_xml ---]")
 
@@ -245,7 +251,9 @@ class XmlLoadFile:
         except ValueError as value_error:
             logging.error("*** %s in filenames_from_template ***", sys.exc_info()[0])
             logging.error(value_error)
+            sys.exit("*** Value Error found while expanding XML folder templates!")
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in filenames_from_template ***", sys.exc_info()[0])
+            sys.exit("*** Error found while expanding XML folder templates!")
 
         return file_list

@@ -21,7 +21,6 @@ import time
 from datetime import datetime
 from datetime import timedelta
 import sys
-import os
 
 import constants as CN
 
@@ -36,10 +35,8 @@ def main():
     """
     # use the current date/time (without a space) as part of the log filename
     begin_time = str(datetime.now())
-    begin_time_fname = begin_time.replace(" ", "_")
 
-    logging.basicConfig(filename=os.getenv('HOME') + '/METdbLoad' + begin_time_fname + '.log',
-                        level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
 
     logging.info("--- *** --- Start METdbLoad --- *** ---")
     logging.info("Begin time: %s", begin_time)
@@ -68,6 +65,7 @@ def main():
 
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main reading XML ***", sys.exc_info()[0])
+        sys.exit("*** Error reading XML")
 
 
     # if -index is used, only process the index
@@ -80,6 +78,7 @@ def main():
 
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main purging files not selected ***", sys.exc_info()[0])
+        sys.exit("*** Error when removing files from load list per XML")
 
     #
     #  Read the data files
@@ -100,6 +99,7 @@ def main():
 
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main reading data ***", sys.exc_info()[0])
+        sys.exit("*** Error when reading data files")
 
     #
     #  Write the data to a database
@@ -122,6 +122,7 @@ def main():
 
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main writing data ***", sys.exc_info()[0])
+        sys.exit("*** Error when writing data to database")
 
     load_time_end = time.perf_counter()
     load_time = timedelta(seconds=load_time_end - load_time_start)
@@ -161,6 +162,8 @@ def purge_files(load_files, xml_flags):
 
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in purge_files ***", sys.exc_info()[0])
+        logging.error("*** %s occurred in Main purging files not selected ***", sys.exc_info()[0])
+        sys.exit("*** Error in purge files")
 
     return updated_list
 

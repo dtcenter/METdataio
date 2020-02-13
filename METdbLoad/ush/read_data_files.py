@@ -191,7 +191,7 @@ class ReadDataFiles:
                                               CN.MODEL].str.split(CN.FWD_SLASH).str[1]
 
                     else:
-                        logging.warning("!!! This file type is not handled yet")
+                        logging.warning("!!! File type of %s not valid", filename[CN.FILENAME])
 
                     # re-initialize pandas dataframes before reading next file
                     if not one_file.empty:
