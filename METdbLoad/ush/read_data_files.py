@@ -37,6 +37,8 @@ class ReadDataFiles:
     def __init__(self):
         self.cache = {}
         self.stat_data = pd.DataFrame()
+        self.mode_cts_data = pd.DataFrame()
+        self.mode_obj_data = pd.DataFrame()
         self.data_files = pd.DataFrame()
 
     def read_data(self, load_flags, load_files, line_types):
@@ -55,11 +57,17 @@ class ReadDataFiles:
 
         one_file = pd.DataFrame()
         vsdb_file = pd.DataFrame()
+        mode_file = pd.DataFrame()
         file_hdr = pd.DataFrame()
         all_stat = pd.DataFrame()
         all_vsdb = pd.DataFrame()
+        all_cts = pd.DataFrame()
+        all_single = pd.DataFrame()
+        all_pair = pd.DataFrame()
         list_frames = []
         list_vsdb = []
+        list_cts = []
+        list_obj = []
 
         try:
 
@@ -190,6 +198,54 @@ class ReadDataFiles:
                                 vsdb_file.loc[vsdb_file.line_type.isin(CN.ENS_VSDB_LINE_TYPES),
                                               CN.MODEL].str.split(CN.FWD_SLASH).str[1]
 
+                    #
+                    # Process mode files
+                    #
+                    elif filename[CN.DATA_FILE_LU_ID] in (CN.MODE_CTS, CN.MODE_OBJ):
+
+                        # Get the first line of the mode cts or obj file that has the headers
+                        file_hdr = pd.read_csv(filename[CN.FULL_FILE], delim_whitespace=True,
+                                               nrows=1)
+
+                        # MODE file has no headers or no text - it's empty
+                        if file_hdr.empty or stat_info.st_size == 0:
+                            logging.warning("!!! Mode file %s is empty", filename[CN.FULL_FILE])
+                            continue
+
+                        # use lower case of headers in file as column names
+                        hdr_names = file_hdr.columns.tolist()
+                        hdr_names = [hdr.lower() for hdr in hdr_names]
+
+                        # read the file
+                        mode_file = self.read_mode(filename[CN.FULL_FILE], hdr_names)
+
+                        # add line numbers and count the header line, for mode files
+                        mode_file[CN.LINE_NUM] = mode_file.index + 2
+
+                        # add other fields if not present in file
+                        if CN.N_VALID not in hdr_names:
+                            mode_file.insert(2, CN.N_VALID, CN.MV_NULL)
+                        if CN.GRID_RES not in hdr_names:
+                            mode_file.insert(3, CN.GRID_RES, CN.MV_NULL)
+                        if CN.DESCR not in hdr_names:
+                            mode_file.insert(4, CN.DESCR, CN.NOTAV)
+
+                        # add units if input file does not have them
+                        if CN.FCST_UNITS not in hdr_names:
+                            mode_file.insert(16, CN.FCST_UNITS, CN.NOTAV)
+                            mode_file.insert(19, CN.OBS_UNITS, CN.NOTAV)
+
+                        # initially, match line data to the index of the file names
+                        mode_file[CN.FILE_ROW] = row_num
+
+                        # determine which of the 3 types of records are in the file
+                        if filename[CN.DATA_FILE_LU_ID] == CN.MODE_CTS:
+                            # mode_cts
+                            list_cts.append(mode_file)
+                        # both single and pair data can be in the same files
+                        elif CN.OBJECT_ID in hdr_names:
+                            list_obj.append(mode_file)
+
                     else:
                         logging.warning("!!! File type of %s not valid", filename[CN.FILENAME])
 
@@ -210,6 +266,12 @@ class ReadDataFiles:
                         logging.debug("Lines in %s: %s", filename[CN.FULL_FILE],
                                       str(len(vsdb_file.index)))
                         vsdb_file = vsdb_file.iloc[0:0]
+                    elif not mode_file.empty:
+                        logging.debug("Lines in %s: %s", filename[CN.FULL_FILE],
+                                      str(len(mode_file.index)))
+                        mode_file = mode_file.iloc[0:0]
+                        if not file_hdr.empty:
+                            file_hdr = file_hdr.iloc[0:0]
                     else:
                         logging.warning("!!! Empty file %s", filename[CN.FULL_FILE])
                         continue
@@ -574,59 +636,99 @@ class ReadDataFiles:
                 all_vsdb = pd.concat(list_vsdb, ignore_index=True, sort=False)
                 all_stat = pd.concat([all_stat, all_vsdb], ignore_index=True, sort=False)
 
-            logging.debug("Shape of all_stat before transforms: %s", str(all_stat.shape))
+            if list_cts:
+                all_cts = pd.concat(list_cts, ignore_index=True, sort=False)
+
+                # Copy forecast lead times, without trailing 0000 if they have them
+                all_cts[CN.FCST_LEAD_HR] = \
+                    np.where(all_cts[CN.FCST_LEAD] > 9999,
+                             all_cts[CN.FCST_LEAD] // 10000,
+                             all_cts[CN.FCST_LEAD])
+
+                # Calculate fcst_init = fcst_valid - fcst_lead hours
+                all_cts.insert(8, CN.FCST_INIT, CN.NOTAV)
+                all_cts[CN.FCST_INIT] = all_cts[CN.FCST_VALID] - \
+                    pd.to_timedelta(all_cts[CN.FCST_LEAD_HR], unit='h')
+
+                self.mode_cts_data = all_cts
+
+            if list_obj:
+                # gather all mode lines
+                all_single = pd.concat(list_obj, ignore_index=True, sort=False)
+
+                # Copy forecast lead times, without trailing 0000 if they have them
+                all_single[CN.FCST_LEAD_HR] = \
+                    np.where(all_single[CN.FCST_LEAD] > 9999,
+                             all_single[CN.FCST_LEAD] // 10000,
+                             all_single[CN.FCST_LEAD])
+
+                # Calculate fcst_init = fcst_valid - fcst_lead hours
+                all_single.insert(8, CN.FCST_INIT, CN.NOTAV)
+                all_single[CN.FCST_INIT] = all_single[CN.FCST_VALID] - \
+                    pd.to_timedelta(all_single[CN.FCST_LEAD_HR], unit='h')
+
+                self.mode_obj_data = all_single
+
+                # maybe this should be done in a write routine
+                all_pair = all_single[all_single[CN.OBJECT_ID].str.contains('_')]
+                all_single = \
+                    all_single.drop(all_single[all_single[CN.OBJECT_ID].str.contains('_')].index)
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data middle ***", sys.exc_info()[0])
 
         try:
-            # delete any lines that have invalid line_types
-            invalid_line_indexes = all_stat[~all_stat.line_type.isin(CN.UC_LINE_TYPES)].index
+            if not all_stat.empty:
 
-            if not invalid_line_indexes.empty:
+                logging.debug("Shape of all_stat before transforms: %s", str(all_stat.shape))
 
-                logging.warning("!!! Warning, invalid line_types:")
-                logging.warning("line types: %s",
-                                str(all_stat.iloc[invalid_line_indexes].line_type))
+                # delete any lines that have invalid line_types
+                invalid_line_indexes = all_stat[~all_stat.line_type.isin(CN.UC_LINE_TYPES)].index
 
-                all_stat = all_stat.drop(invalid_line_indexes, axis=0)
+                if not invalid_line_indexes.empty:
 
-            # if user specified line types to load, delete the rest
-            if load_flags["line_type_load"]:
-                all_stat = all_stat.drop(all_stat[~all_stat.line_type.isin(line_types)].index)
+                    logging.warning("!!! Warning, invalid line_types:")
+                    logging.warning("line types: %s",
+                                    str(all_stat.iloc[invalid_line_indexes].line_type))
 
-            # if load_spec has flag to not load MPR records, delete them
-            if not load_flags["load_mpr"]:
-                all_stat = all_stat.drop(all_stat[all_stat.line_type == CN.MPR].index)
+                    all_stat = all_stat.drop(invalid_line_indexes, axis=0)
 
-            # if load_spec has flag to not load ORANK records, delete them
-            if not load_flags["load_orank"]:
-                all_stat = all_stat.drop(all_stat[all_stat.line_type == CN.ORANK].index)
+                # if user specified line types to load, delete the rest
+                if load_flags["line_type_load"]:
+                    all_stat = all_stat.drop(all_stat[~all_stat.line_type.isin(line_types)].index)
 
-            # reset the index, in case any lines have been deleted
-            all_stat.reset_index(drop=True, inplace=True)
+                # if load_spec has flag to not load MPR records, delete them
+                if not load_flags["load_mpr"]:
+                    all_stat = all_stat.drop(all_stat[all_stat.line_type == CN.MPR].index)
 
-            # all lines from a file may have been deleted. if so, remove filename
-            files_to_drop = ~self.data_files.index.isin(all_stat[CN.FILE_ROW])
-            self.data_files = \
-                self.data_files.drop(self.data_files[files_to_drop].index)
+                # if load_spec has flag to not load ORANK records, delete them
+                if not load_flags["load_orank"]:
+                    all_stat = all_stat.drop(all_stat[all_stat.line_type == CN.ORANK].index)
 
-            self.data_files.reset_index(drop=True, inplace=True)
+                # reset the index, in case any lines have been deleted
+                all_stat.reset_index(drop=True, inplace=True)
 
-            # Copy forecast lead times, without trailing 0000 if they have them
-            all_stat[CN.FCST_LEAD_HR] = \
-                np.where(all_stat[CN.FCST_LEAD] > 9999,
-                         all_stat[CN.FCST_LEAD] // 10000,
-                         all_stat[CN.FCST_LEAD])
+                # all lines from a file may have been deleted. if so, remove filename
+                files_to_drop = ~self.data_files.index.isin(all_stat[CN.FILE_ROW])
+                self.data_files = \
+                    self.data_files.drop(self.data_files[files_to_drop].index)
 
-            # Calculate fcst_init_beg = fcst_valid_beg - fcst_lead hours
-            all_stat.insert(6, CN.FCST_INIT_BEG, CN.NOTAV)
-            all_stat[CN.FCST_INIT_BEG] = all_stat[CN.FCST_VALID_BEG] - \
-                pd.to_timedelta(all_stat[CN.FCST_LEAD_HR], unit='h')
+                self.data_files.reset_index(drop=True, inplace=True)
 
-            logging.debug("Shape of all_stat after transforms: %s", str(all_stat.shape))
+                # Copy forecast lead times, without trailing 0000 if they have them
+                all_stat[CN.FCST_LEAD_HR] = \
+                    np.where(all_stat[CN.FCST_LEAD] > 9999,
+                             all_stat[CN.FCST_LEAD] // 10000,
+                             all_stat[CN.FCST_LEAD])
 
-            self.stat_data = all_stat
+                # Calculate fcst_init_beg = fcst_valid_beg - fcst_lead hours
+                all_stat.insert(6, CN.FCST_INIT_BEG, CN.NOTAV)
+                all_stat[CN.FCST_INIT_BEG] = all_stat[CN.FCST_VALID_BEG] - \
+                    pd.to_timedelta(all_stat[CN.FCST_LEAD_HR], unit='h')
+
+                logging.debug("Shape of all_stat after transforms: %s", str(all_stat.shape))
+
+                self.stat_data = all_stat
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data near end ***", sys.exc_info()[0])
@@ -696,3 +798,16 @@ class ReadDataFiles:
         date_time = pd.to_datetime(date_str, format='%Y%m%d_%H%M%S')
         self.cache[date_str] = date_time
         return date_time
+
+    def read_mode(self, filename, hdr_names):
+        """ Read in all of the lines except the header of a mode file.
+            Returns:
+               all the mode lines in a dataframe, with dates converted to datetime
+        """
+        # added the low_memory=False option when getting a DtypeWarning
+        return pd.read_csv(filename, delim_whitespace=True,
+                           names=hdr_names, skiprows=1,
+                           parse_dates=[CN.FCST_VALID,
+                                        CN.OBS_VALID],
+                           date_parser=self.cached_date_parser,
+                           keep_default_na=False, na_values='', low_memory=False)

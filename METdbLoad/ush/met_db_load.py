@@ -27,6 +27,7 @@ import constants as CN
 from read_load_xml import XmlLoadFile
 from read_data_files import ReadDataFiles
 from write_stat_sql import WriteStatSql
+from write_mode_sql import WriteModeSql
 
 def main():
     """ Main program to load files into the METdb/METviewer database
@@ -115,6 +116,19 @@ def main():
             stat_lines.write_sql_data(xml_loadfile.flags,
                                       file_data.data_files,
                                       file_data.stat_data,
+                                      xml_loadfile.group,
+                                      xml_loadfile.description,
+                                      xml_loadfile.load_note,
+                                      xml_loadfile.xml_str)
+
+        if (not file_data.mode_cts_data.empty or not file_data.mode_obj_data.empty) and \
+                xml_loadfile.connection['db_management_system'] in CN.RELATIONAL:
+            cts_lines = WriteModeSql(xml_loadfile.connection)
+
+            cts_lines.write_mode_data(xml_loadfile.flags,
+                                      file_data.data_files,
+                                      file_data.mode_cts_data,
+                                      file_data.mode_obj_data,
                                       xml_loadfile.group,
                                       xml_loadfile.description,
                                       xml_loadfile.load_note,

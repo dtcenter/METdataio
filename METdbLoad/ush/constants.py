@@ -32,6 +32,9 @@ NOTAV = 'NA'
 # METviewer value for Not Available
 MV_NOTAV = '-9999'
 
+# Used for fields in mode_eader
+MV_NULL = 'NULL'
+
 # separator for csv files
 SEP = '$'
 
@@ -575,3 +578,11 @@ MTD_3D_PC = 9
 MTD_3D_PS = 10
 MTD_3D_SC = 11
 MTD_3D_SS = 12
+
+# mode file fields
+FCST_VALID = 'fcst_valid'
+FCST_INIT = 'fcst_init'
+OBS_VALID = 'obs_valid'
+OBJECT_ID = 'object_id'
+N_VALID = 'n_valid'
+GRID_RES = 'grid_res'

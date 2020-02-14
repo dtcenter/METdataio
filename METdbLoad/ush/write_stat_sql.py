@@ -55,7 +55,7 @@ class WriteStatSql:
                N/A
         """
 
-        logging.debug("[--- Start write_sql_data ---]")
+        logging.debug("[--- Start write_stat_sql ---]")
 
         write_time_start = time.perf_counter()
 
@@ -361,7 +361,7 @@ class WriteStatSql:
 
         logging.info("    >>> Write time: %s", str(write_time))
 
-        logging.debug("[--- End write_sql_data ---]")
+        logging.debug("[--- End write_stat_sql ---]")
 
     def get_next_id(self, table, field):
         """ given a field for a table, find the max field value and return it plus one.
