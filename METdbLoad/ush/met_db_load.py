@@ -13,7 +13,10 @@ Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 """
 
 # pylint:disable=import-error
+# pylint:disable=no-member
 # imported modules exist
+# constants exist in constants.py
+
 
 import argparse
 import logging
@@ -26,6 +29,8 @@ import constants as CN
 
 from read_load_xml import XmlLoadFile
 from read_data_files import ReadDataFiles
+from run_sql import RunSql
+from write_file_sql import WriteFileSql
 from write_stat_sql import WriteStatSql
 from write_mode_sql import WriteModeSql
 
@@ -107,36 +112,54 @@ def main():
     #
     try:
 
-        # RELATIONAL is a list in constants.py
-        # pylint: disable=maybe-no-member
-        if not file_data.stat_data.empty and \
-                xml_loadfile.connection['db_management_system'] in CN.RELATIONAL:
-            stat_lines = WriteStatSql(xml_loadfile.connection)
+        if xml_loadfile.connection['db_management_system'] in CN.RELATIONAL:
+            sql_run = RunSql()
+            sql_run.sql_on(xml_loadfile.connection)
 
-            stat_lines.write_sql_data(xml_loadfile.flags,
-                                      file_data.data_files,
-                                      file_data.stat_data,
-                                      xml_loadfile.group,
-                                      xml_loadfile.description,
-                                      xml_loadfile.load_note,
-                                      xml_loadfile.xml_str)
+            if not file_data.data_files.empty:
+                write_file = WriteFileSql()
+                write_file.write_file_sql(xml_loadfile.flags,
+                                          file_data.data_files,
+                                          file_data.stat_data,
+                                          sql_run.cur,
+                                          sql_run.local_infile)
 
-        if (not file_data.mode_cts_data.empty or not file_data.mode_obj_data.empty) and \
-                xml_loadfile.connection['db_management_system'] in CN.RELATIONAL:
-            cts_lines = WriteModeSql(xml_loadfile.connection)
+            if not file_data.stat_data.empty:
+                stat_lines = WriteStatSql()
 
-            cts_lines.write_mode_data(xml_loadfile.flags,
-                                      file_data.data_files,
-                                      file_data.mode_cts_data,
-                                      file_data.mode_obj_data,
-                                      xml_loadfile.group,
-                                      xml_loadfile.description,
-                                      xml_loadfile.load_note,
-                                      xml_loadfile.xml_str)
+                stat_lines.write_sql_data(xml_loadfile.flags,
+                                          file_data.stat_data,
+                                          sql_run.cur,
+                                          sql_run.local_infile)
+
+            if (not file_data.mode_cts_data.empty or not file_data.mode_obj_data.empty):
+                cts_lines = WriteModeSql()
+
+                cts_lines.write_mode_data(xml_loadfile.flags,
+                                          file_data.mode_cts_data,
+                                          file_data.mode_obj_data,
+                                          sql_run.cur,
+                                          sql_run.local_infile)
+
+            if not file_data.data_files.empty:
+                write_file.write_metadata_sql(xml_loadfile.flags,
+                                              file_data.data_files,
+                                              xml_loadfile.group,
+                                              xml_loadfile.description,
+                                              xml_loadfile.load_note,
+                                              xml_loadfile.xml_str,
+                                              sql_run.cur)
+
+            if sql_run.conn.open:
+                sql_run.sql_off(sql_run.conn, sql_run.cur)
 
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main writing data ***", sys.exc_info()[0])
         sys.exit("*** Error when writing data to database")
+
+    finally:
+        if sql_run.conn.open:
+            sql_run.sql_off(sql_run.conn, sql_run.cur)
 
     load_time_end = time.perf_counter()
     load_time = timedelta(seconds=load_time_end - load_time_start)
