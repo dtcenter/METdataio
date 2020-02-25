@@ -580,9 +580,23 @@ MTD_3D_SC = 11
 MTD_3D_SS = 12
 
 # mode file fields
+MODE_HEADER = 'mode_header'
+MODE_HEADER_ID = 'mode_header_id'
 FCST_VALID = 'fcst_valid'
+FCST_ACCUM = 'fcst_accum'
+FCST_RAD = 'fcst_rad'
+FCST_THR = 'fcst_thr'
 FCST_INIT = 'fcst_init'
 OBS_VALID = 'obs_valid'
+OBS_ACCUM = 'obs_accum'
+OBS_RAD = 'obs_rad'
+OBS_THR = 'obs_thr'
 OBJECT_ID = 'object_id'
 N_VALID = 'n_valid'
 GRID_RES = 'grid_res'
+
+MODE_HEADER_KEYS = [VERSION, MODEL, FCST_LEAD, FCST_VALID, FCST_ACCUM,
+                    OBS_LEAD, OBS_VALID, OBS_ACCUM, FCST_RAD, FCST_THR,
+                    OBS_RAD, OBS_THR, FCST_VAR, FCST_LEV, OBS_VAR, OBS_LEV]
+
+

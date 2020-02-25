@@ -46,6 +46,18 @@ class WriteModeSql:
 
             sql_met = RunSql()
 
+            # get the unique ode headers from cts_data and obj_data
+            mode_headers = cts_data[CN.MODE_HEADER_KEYS].drop_duplicates()
+            mode_headers = mode_headers.append(obj_data[CN.MODE_HEADER_KEYS].drop_duplicates(), ignore_index=True)
+            mode_headers.drop_duplicates()
+            mode_headers.reset_index(drop=True, inplace=True)
+
+            # At first, we do not know if the headers already exist, so we have no keys
+            mode_headers[CN.MODE_HEADER_ID] = CN.NO_KEY
+
+            # get the next valid mode id. Set it to zero (first valid id) if no records yet
+            next_header_id = sql_met.get_next_id(CN.MODE_HEADER, CN.MODE_HEADER_ID, sql_cur)
+
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_mode_sql ***", sys.exc_info()[0])
 
