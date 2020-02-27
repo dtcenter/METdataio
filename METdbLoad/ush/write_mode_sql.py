@@ -48,7 +48,8 @@ class WriteModeSql:
 
             # get the unique ode headers from cts_data and obj_data
             mode_headers = cts_data[CN.MODE_HEADER_KEYS].drop_duplicates()
-            mode_headers = mode_headers.append(obj_data[CN.MODE_HEADER_KEYS].drop_duplicates(), ignore_index=True)
+            mode_headers = mode_headers.append(obj_data[CN.MODE_HEADER_KEYS].drop_duplicates(),
+                                               ignore_index=True)
             mode_headers.drop_duplicates()
             mode_headers.reset_index(drop=True, inplace=True)
 
