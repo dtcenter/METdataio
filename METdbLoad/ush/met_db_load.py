@@ -73,7 +73,6 @@ def main():
         logging.error("*** %s occurred in Main reading XML ***", sys.exc_info()[0])
         sys.exit("*** Error reading XML")
 
-
     # if -index is used, only process the index
     if args.index:
         logging.debug("-index is true - only process index")
@@ -102,6 +101,7 @@ def main():
         else:
             # Warn user if no files were given or if no files left after purge
             logging.warning("!!! No files to load")
+            sys.exit("*** No files to load")
 
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main reading data ***", sys.exc_info()[0])
