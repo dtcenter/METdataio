@@ -77,9 +77,16 @@ def main():
     if args.index:
         logging.debug("-index is true - only process index")
 
+    #
+    #  Purge files if flags set to not load certain types of files
+    #
     try:
         # If user set flags to not read files, remove those files from load_files list
         xml_loadfile.load_files = purge_files(xml_loadfile.load_files, xml_loadfile.flags)
+
+        if not xml_loadfile.load_files:
+            logging.warning("!!! No files to load")
+            sys.exit("*** No files to load")
 
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main purging files not selected ***", sys.exc_info()[0])
@@ -90,16 +97,15 @@ def main():
     #
     try:
 
-        if xml_loadfile.load_files:
-            # instantiate a read data files object
-            file_data = ReadDataFiles()
+        # instantiate a read data files object
+        file_data = ReadDataFiles()
 
-            # read in the data files, with options specified by XML flags
-            file_data.read_data(xml_loadfile.flags,
-                                xml_loadfile.load_files,
-                                xml_loadfile.line_types)
-        else:
-            # Warn user if no files were given or if no files left after purge
+        # read in the data files, with options specified by XML flags
+        file_data.read_data(xml_loadfile.flags,
+                            xml_loadfile.load_files,
+                            xml_loadfile.line_types)
+
+        if file_data.data_files.empty:
             logging.warning("!!! No files to load")
             sys.exit("*** No files to load")
 
@@ -116,13 +122,21 @@ def main():
             sql_run = RunSql()
             sql_run.sql_on(xml_loadfile.connection)
 
-            if not file_data.data_files.empty:
-                write_file = WriteFileSql()
-                write_file.write_file_sql(xml_loadfile.flags,
-                                          file_data.data_files,
-                                          file_data.stat_data,
-                                          sql_run.cur,
-                                          sql_run.local_infile)
+            write_file = WriteFileSql()
+            updated_data = write_file.write_file_sql(xml_loadfile.flags,
+                                                     file_data.data_files,
+                                                     file_data.stat_data,
+                                                     file_data.mode_cts_data,
+                                                     file_data.mode_obj_data,
+                                                     sql_run.cur,
+                                                     sql_run.local_infile)
+
+            file_data.data_files = updated_data[0]
+            file_data.stat_data = updated_data[1]
+
+            if file_data.data_files.empty:
+                logging.warning("!!! No data to load")
+                sys.exit("*** No data to load")
 
             if not file_data.stat_data.empty:
                 stat_lines = WriteStatSql()
@@ -132,7 +146,7 @@ def main():
                                           sql_run.cur,
                                           sql_run.local_infile)
 
-            if (not file_data.mode_cts_data.empty or not file_data.mode_obj_data.empty):
+            if not file_data.mode_cts_data.empty or not file_data.mode_obj_data.empty:
                 cts_lines = WriteModeSql()
 
                 cts_lines.write_mode_data(xml_loadfile.flags,
@@ -141,14 +155,13 @@ def main():
                                           sql_run.cur,
                                           sql_run.local_infile)
 
-            if not file_data.data_files.empty:
-                write_file.write_metadata_sql(xml_loadfile.flags,
-                                              file_data.data_files,
-                                              xml_loadfile.group,
-                                              xml_loadfile.description,
-                                              xml_loadfile.load_note,
-                                              xml_loadfile.xml_str,
-                                              sql_run.cur)
+            write_file.write_metadata_sql(xml_loadfile.flags,
+                                          file_data.data_files,
+                                          xml_loadfile.group,
+                                          xml_loadfile.description,
+                                          xml_loadfile.load_note,
+                                          xml_loadfile.xml_str,
+                                          sql_run.cur)
 
             if sql_run.conn.open:
                 sql_run.sql_off(sql_run.conn, sql_run.cur)

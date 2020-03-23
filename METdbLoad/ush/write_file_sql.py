@@ -35,8 +35,8 @@ class WriteFileSql:
     def __init__(self):
         self.sql_met = RunSql()
 
-    def write_file_sql(self, load_flags, data_files, stat_data,
-                       sql_cur, local_infile):
+    def write_file_sql(self, load_flags, data_files, stat_data, mode_cts_data,
+                       mode_obj_data, sql_cur, local_infile):
         """ write data_file records to a SQL database.
             Returns:
                N/A
@@ -63,8 +63,17 @@ class WriteFileSql:
                 if sql_cur.rowcount > 0:
                     if not load_flags['force_dup_file']:
                         # delete line data rows that match index of duplicated file
-                        stat_data = stat_data.drop(stat_data[stat_data.file_row ==
-                                                             file_line.file_row].index)
+                        if not stat_data.empty:
+                            stat_data = stat_data.drop(stat_data[stat_data.file_row ==
+                                                                 file_line.file_row].index)
+                        if not mode_cts_data.empty:
+                            mode_cts_data = \
+                                mode_cts_data.drop(mode_cts_data[mode_cts_data.file_row ==
+                                                                 file_line.file_row].index)
+                        if not mode_obj_data.empty:
+                            mode_obj_data = \
+                                mode_obj_data.drop(mode_obj_data[mode_obj_data.file_row ==
+                                                                 file_line.file_row].index)
                         data_files = data_files.drop(row_num)
                         logging.warning("!!! Duplicate file %s without FORCE_DUP_FILE tag",
                                         file_line[CN.FULL_FILE])
@@ -74,30 +83,41 @@ class WriteFileSql:
 
             # end for row_num, file_line
 
-            # reset the stat_data index in case any records were dropped
-            stat_data.reset_index(drop=True, inplace=True)
+            if not data_files.empty:
 
-            # get next valid data file id. data files start counting from 1
-            next_file_id = self.sql_met.get_next_id(CN.DATA_FILE, CN.DATA_FILE_ID, sql_cur)
-            if next_file_id == 0:
-                next_file_id = 1
+                # reset indexes in case any records were dropped
+                stat_data.reset_index(drop=True, inplace=True)
+                mode_cts_data.reset_index(drop=True, inplace=True)
+                mode_obj_data.reset_index(drop=True, inplace=True)
 
-            # For new files add the next id to the row number/index to make a new key
-            data_files.loc[data_files.data_file_id == CN.NO_KEY, CN.DATA_FILE_ID] = \
-                data_files.index + next_file_id
+                # get next valid data file id. data files start counting from 1
+                next_file_id = self.sql_met.get_next_id(CN.DATA_FILE, CN.DATA_FILE_ID, sql_cur)
+                if next_file_id == 0:
+                    next_file_id = 1
 
-            # Replace the temporary id value with the actual index in the stat line data
-            for row_num, row in data_files.iterrows():
-                stat_data.loc[stat_data[CN.FILE_ROW] == row[CN.FILE_ROW], CN.DATA_FILE_ID] = \
-                    row[CN.DATA_FILE_ID]
+                # For new files add the next id to the row number/index to make a new key
+                data_files.loc[data_files.data_file_id == CN.NO_KEY, CN.DATA_FILE_ID] = \
+                    data_files.index + next_file_id
 
-            # get just the new data files
-            new_files = data_files[data_files[CN.DATA_FILE_ID] >= next_file_id]
+                # Replace the temporary id value with the actual index in the line data
+                for row_num, row in data_files.iterrows():
+                    if not stat_data.empty:
+                        stat_data.loc[stat_data[CN.FILE_ROW] == row[CN.FILE_ROW],
+                                      CN.DATA_FILE_ID] = row[CN.DATA_FILE_ID]
+                    if not mode_cts_data.empty:
+                        mode_cts_data.loc[mode_cts_data[CN.FILE_ROW] == row[CN.FILE_ROW],
+                                          CN.DATA_FILE_ID] = row[CN.DATA_FILE_ID]
+                    if not mode_obj_data.empty:
+                        mode_obj_data.loc[mode_obj_data[CN.FILE_ROW] == row[CN.FILE_ROW],
+                                          CN.DATA_FILE_ID] = row[CN.DATA_FILE_ID]
 
-            # write the new data files out to the sql database
-            if not new_files.empty:
-                self.sql_met.write_to_sql(new_files, CN.DATA_FILE_FIELDS, CN.DATA_FILE,
-                                          CN.INS_DATA_FILES, sql_cur, local_infile)
+                # get just the new data files
+                new_files = data_files[data_files[CN.DATA_FILE_ID] >= next_file_id]
+
+                # write the new data files out to the sql database
+                if not new_files.empty:
+                    self.sql_met.write_to_sql(new_files, CN.DATA_FILE_FIELDS, CN.DATA_FILE,
+                                              CN.INS_DATA_FILES, sql_cur, local_infile)
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_file_sql ***", sys.exc_info()[0])
@@ -108,6 +128,8 @@ class WriteFileSql:
         logging.info("    >>> Write time: %s", str(write_time))
 
         logging.debug("[--- End write_file_sql ---]")
+
+        return data_files, stat_data
 
     def write_metadata_sql(self, load_flags, data_files, group, description,
                            load_note, xml_str, sql_cur):
