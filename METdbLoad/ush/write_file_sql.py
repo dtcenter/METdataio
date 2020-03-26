@@ -129,7 +129,7 @@ class WriteFileSql:
 
         logging.debug("[--- End write_file_sql ---]")
 
-        return data_files, stat_data
+        return data_files, stat_data, mode_cts_data, mode_obj_data
 
     def write_metadata_sql(self, load_flags, data_files, group, description,
                            load_note, xml_str, sql_cur):

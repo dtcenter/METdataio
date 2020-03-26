@@ -32,8 +32,8 @@ NOTAV = 'NA'
 # METviewer value for Not Available
 MV_NOTAV = '-9999'
 
-# Used for fields in mode_eader
-MV_NULL = 'NULL'
+# Used for null fields in mode_header - needed by LOAD DATA INFILE
+MV_NULL = '\\N'
 
 # separator for csv files
 SEP = '$'
@@ -206,6 +206,10 @@ FILENAME = 'filename'
 FILEPATH = 'path'
 LOAD_DATE = 'load_date'
 MOD_DATE = 'mod_date'
+FY_OY = 'fy_oy'
+FY_ON = 'fy_on'
+FN_OY = 'fn_oy'
+FN_ON = 'fn_on'
 
 INSTANCE_INFO = 'instance_info'
 INSTANCE_INFO_ID = 'instance_info_id'
@@ -292,7 +296,7 @@ LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
                          'rmsfa', 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa', 'rmsoa_bcl', 'rmsoa_bcu']
 
 LINE_DATA_FIELDS[CTC] = TOT_LINE_DATA_FIELDS + \
-                        ['fy_oy', 'fy_on', 'fn_oy', 'fn_on']
+                        [FY_OY, FY_ON, FN_OY, FN_ON]
 
 LINE_DATA_FIELDS[CTS] = ALPH_LINE_DATA_FIELDS + \
                         ['baser', 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
@@ -361,7 +365,7 @@ LINE_DATA_FIELDS[NBRCNT] = ALPH_LINE_DATA_FIELDS + \
                             'o_rate', 'o_rate_bcl', 'o_rate_bcu']
 
 LINE_DATA_FIELDS[NBRCTC] = COV_LINE_DATA_FIELDS + \
-                           ['fy_oy', 'fy_on', 'fn_oy', 'fn_on']
+                           [FY_OY, FY_ON, FN_OY, FN_ON]
 
 LINE_DATA_FIELDS[NBRCTS] = COVA_LINE_DATA_FIELDS + \
                            ['baser', 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
@@ -582,6 +586,9 @@ MTD_3D_SS = 12
 # mode file fields
 MODE_HEADER = 'mode_header'
 MODE_HEADER_ID = 'mode_header_id'
+MODE_CTS_T = 'mode_cts'
+LINE_TYPE_LU_ID = 'line_type_lu_id'
+LINENUMBER = 'linenumber'
 FCST_VALID = 'fcst_valid'
 FCST_ACCUM = 'fcst_accum'
 FCST_RAD = 'fcst_rad'
@@ -595,6 +602,31 @@ OBJECT_ID = 'object_id'
 N_VALID = 'n_valid'
 GRID_RES = 'grid_res'
 
-MODE_HEADER_KEYS = [VERSION, MODEL, FCST_LEAD, FCST_VALID, FCST_ACCUM,
+MODE_HEADER_KEYS = [VERSION, MODEL, N_VALID, GRID_RES, DESCR,
+                    FCST_LEAD, FCST_VALID, FCST_ACCUM, FCST_INIT,
                     OBS_LEAD, OBS_VALID, OBS_ACCUM, FCST_RAD, FCST_THR,
-                    OBS_RAD, OBS_THR, FCST_VAR, FCST_LEV, OBS_VAR, OBS_LEV]
+                    OBS_RAD, OBS_THR, FCST_VAR, FCST_UNITS, FCST_LEV,
+                    OBS_VAR, OBS_UNITS, OBS_LEV]
+
+MODE_HEADER_FIELDS = [MODE_HEADER_ID, LINE_TYPE_LU_ID, DATA_FILE_ID, LINENUMBER,
+                      VERSION, MODEL, N_VALID, GRID_RES, DESCR,
+                      FCST_LEAD, FCST_VALID, FCST_ACCUM, FCST_INIT,
+                      OBS_LEAD, OBS_VALID, OBS_ACCUM, FCST_RAD, FCST_THR,
+                      OBS_RAD, OBS_THR, FCST_VAR, FCST_UNITS, FCST_LEV,
+                      OBS_VAR, OBS_UNITS, OBS_LEV]
+
+MODE_CTS_FIELDS = [MODE_HEADER_ID, 'field', TOTAL_LC, FY_OY, FY_ON, FN_OY, FN_ON,
+                   'baser', 'fmean', 'acc', 'fbias', 'pody', 'podn', 'pofd',
+                   'far', 'csi', 'gss', 'hk', 'hss', 'odds']
+
+Q_MHEADER = "SELECT mode_header_id FROM mode_header WHERE " + \
+           "=%s AND ".join(MODE_HEADER_KEYS) + "=%s"
+
+INS_MHEADER = "INSERT INTO mode_header (" + ",".join(MODE_HEADER_FIELDS) + \
+             ") VALUES (" + VALUE_SLOTS + ")"
+
+C_VALUE_SLOTS = '%s, ' * len(MODE_CTS_FIELDS)
+C_VALUE_SLOTS = C_VALUE_SLOTS[:-2]
+
+INS_CHEADER = "INSERT INTO mode_cts (" + ",".join(MODE_CTS_FIELDS) + \
+              ") VALUES (" + C_VALUE_SLOTS + ")"

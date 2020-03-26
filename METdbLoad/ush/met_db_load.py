@@ -122,6 +122,7 @@ def main():
             sql_run = RunSql()
             sql_run.sql_on(xml_loadfile.connection)
 
+            # write the data file records out. put data file ids into other dataframes
             write_file = WriteFileSql()
             updated_data = write_file.write_file_sql(xml_loadfile.flags,
                                                      file_data.data_files,
@@ -133,6 +134,8 @@ def main():
 
             file_data.data_files = updated_data[0]
             file_data.stat_data = updated_data[1]
+            file_data.mode_cts_data = updated_data[2]
+            file_data.mode_obj_data = updated_data[3]
 
             if file_data.data_files.empty:
                 logging.warning("!!! No data to load")

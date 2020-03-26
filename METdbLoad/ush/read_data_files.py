@@ -63,7 +63,7 @@ class ReadDataFiles:
         all_vsdb = pd.DataFrame()
         all_cts = pd.DataFrame()
         all_single = pd.DataFrame()
-        all_pair = pd.DataFrame()
+        # all_pair = pd.DataFrame()
         list_frames = []
         list_vsdb = []
         list_cts = []
@@ -73,13 +73,16 @@ class ReadDataFiles:
 
             # Put the list of files into a dataframe to collect info to write to database
             self.data_files[CN.FULL_FILE] = load_files
+            # Add the code that describes what kind of file this is - stat, vsdb, etc
+            self.data_files[CN.DATA_FILE_LU_ID] = \
+                np.vectorize(self.get_lookup)(self.data_files[CN.FULL_FILE])
+            # Drop files that are not of a valid type
+            self.data_files.drop(self.data_files[self.data_files[CN.DATA_FILE_LU_ID] == CN.NO_KEY].index,
+                                 inplace=True)
             # Won't know database key until we interact with the database, so no keys yet
             self.data_files[CN.DATA_FILE_ID] = CN.NO_KEY
             # Store the index in a column to make later merging with stat data easier
             self.data_files[CN.FILE_ROW] = self.data_files.index
-            # Add the code that describes what kind of file this is - stat, vsdb, etc
-            self.data_files[CN.DATA_FILE_LU_ID] = \
-                np.vectorize(self.get_lookup)(self.data_files[CN.FULL_FILE])
             # Break the full file name into path and filename
             self.data_files[CN.FILEPATH] = \
                 self.data_files[CN.FULL_FILE].str.rpartition(CN.FWD_SLASH)[0]
@@ -90,9 +93,15 @@ class ReadDataFiles:
             self.data_files[CN.MOD_DATE] = None
 
             # Check to make sure files exist
-            for row_num, filename in self.data_files.iterrows():
+            for row in self.data_files.itertuples(name=None):
+
+                row_num = row[0]
+                filename = row[1]
+                lu_id = row[2]
+                filepath = row[5]
+
                 # Read in each file. Add columns if needed. Append to all_stat dataframe.
-                file_and_path = Path(filename[CN.FULL_FILE])
+                file_and_path = Path(filename)
 
                 if file_and_path.is_file():
                     # check for blank files or, for MET, no data after header line files
@@ -107,21 +116,21 @@ class ReadDataFiles:
                     #
                     # Process stat files
                     #
-                    if filename[CN.DATA_FILE_LU_ID] == CN.STAT:
+                    if lu_id == CN.STAT:
                         # Get the first line of the .stat file that has the headers
-                        file_hdr = pd.read_csv(filename[CN.FULL_FILE], delim_whitespace=True,
+                        file_hdr = pd.read_csv(filename, delim_whitespace=True,
                                                names=range(CN.MAX_COL), nrows=1)
 
                         # MET file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
-                            logging.warning("!!! Stat file %s is empty", filename[CN.FULL_FILE])
+                            logging.warning("!!! Stat file %s is empty", filename)
                             continue
 
                         # Add a DESC column if the data file does not have one
                         if not file_hdr.iloc[0].str.contains(CN.UC_DESC).any():
                             logging.debug("Old MET file - no DESC")
                             hdr_names = CN.SHORT_HEADER + CN.COL_NUMS
-                            one_file = self.read_stat(filename[CN.FULL_FILE], hdr_names)
+                            one_file = self.read_stat(filename, hdr_names)
 
                             # If the file has no DESC column, add UNITS as well
                             one_file.insert(2, CN.DESCR, CN.NOTAV)
@@ -132,14 +141,14 @@ class ReadDataFiles:
                         elif not file_hdr.iloc[0].str.contains(CN.UC_FCST_UNITS).any():
                             logging.debug("Older MET file - no FCST_UNITS")
                             hdr_names = CN.MID_HEADER + CN.COL_NUMS
-                            one_file = self.read_stat(filename[CN.FULL_FILE], hdr_names)
+                            one_file = self.read_stat(filename, hdr_names)
 
                             one_file.insert(10, CN.FCST_UNITS, CN.NOTAV)
                             one_file.insert(13, CN.OBS_UNITS, CN.NOTAV)
 
                         else:
                             hdr_names = CN.LONG_HEADER + CN.COL_NUMS
-                            one_file = self.read_stat(filename[CN.FULL_FILE], hdr_names)
+                            one_file = self.read_stat(filename, hdr_names)
 
                         # add line numbers and count the header line, for stat files
                         one_file[CN.LINE_NUM] = one_file.index + 2
@@ -152,15 +161,15 @@ class ReadDataFiles:
                     #
                     # Process vsdb files
                     #
-                    elif filename[CN.DATA_FILE_LU_ID] == CN.VSDB_POINT_STAT:
+                    elif lu_id == CN.VSDB_POINT_STAT:
 
                         # check whether vsdb file is empty
                         if stat_info.st_size == 0:
-                            logging.warning("!!! Vsdb file %s is empty", filename[CN.FULL_FILE])
+                            logging.warning("!!! Vsdb file %s is empty", filename)
                             continue
 
                         # read each line in as 1 column so some fixes can be made
-                        vsdb_file = pd.read_csv(filename[CN.FULL_FILE], sep=CN.SEP, header=None)
+                        vsdb_file = pd.read_csv(filename, sep=CN.SEP, header=None)
 
                         # remove equal sign if present. also solves no space before =
                         vsdb_file.iloc[:, 0] = vsdb_file.iloc[:, 0].str.replace(CN.EQS, ' ')
@@ -183,11 +192,11 @@ class ReadDataFiles:
                         # some line types need a piece of the path added to the model name
                         # if last part of path contains an underscore, save string after it.
                         # then add it to model name
-                        last_slash = filename[CN.FILEPATH].rfind(CN.FWD_SLASH)
-                        last_und = filename[CN.FILEPATH].rfind('_')
+                        last_slash = filepath.rfind(CN.FWD_SLASH)
+                        last_und = filepath.rfind('_')
                         ens_value = ''
                         if last_und > last_slash:
-                            ens_value = filename[CN.FILEPATH][last_und:]
+                            ens_value = filepath[last_und:]
                         if not vsdb_file.loc[vsdb_file.line_type.isin(CN.ENS_VSDB_LINE_TYPES),
                                              CN.MODEL].empty:
                             vsdb_file.loc[vsdb_file.line_type.isin(CN.ENS_VSDB_LINE_TYPES),
@@ -201,15 +210,15 @@ class ReadDataFiles:
                     #
                     # Process mode files
                     #
-                    elif filename[CN.DATA_FILE_LU_ID] in (CN.MODE_CTS, CN.MODE_OBJ):
+                    elif lu_id in (CN.MODE_CTS, CN.MODE_OBJ):
 
                         # Get the first line of the mode cts or obj file that has the headers
-                        file_hdr = pd.read_csv(filename[CN.FULL_FILE], delim_whitespace=True,
+                        file_hdr = pd.read_csv(filename, delim_whitespace=True,
                                                nrows=1)
 
                         # MODE file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
-                            logging.warning("!!! Mode file %s is empty", filename[CN.FULL_FILE])
+                            logging.warning("!!! Mode file %s is empty", filename)
                             continue
 
                         # use lower case of headers in file as column names
@@ -217,10 +226,10 @@ class ReadDataFiles:
                         hdr_names = [hdr.lower() for hdr in hdr_names]
 
                         # read the file
-                        mode_file = self.read_mode(filename[CN.FULL_FILE], hdr_names)
+                        mode_file = self.read_mode(filename, hdr_names)
 
                         # add line numbers and count the header line, for mode files
-                        mode_file[CN.LINE_NUM] = mode_file.index + 2
+                        mode_file[CN.LINENUMBER] = mode_file.index + 2
 
                         # add other fields if not present in file
                         if CN.N_VALID not in hdr_names:
@@ -238,16 +247,16 @@ class ReadDataFiles:
                         # initially, match line data to the index of the file names
                         mode_file[CN.FILE_ROW] = row_num
 
-                        # determine which of the 3 types of records are in the file
-                        if filename[CN.DATA_FILE_LU_ID] == CN.MODE_CTS:
+                        # determine which types of records are in the file
+                        if lu_id == CN.MODE_CTS:
                             # mode_cts
                             list_cts.append(mode_file)
                         # both single and pair data can be in the same files
-                        elif CN.OBJECT_ID in hdr_names:
+                        else:
                             list_obj.append(mode_file)
 
                     else:
-                        logging.warning("!!! File type of %s not valid", filename[CN.FILENAME])
+                        logging.warning("!!! File type of %s not valid", filename)
 
                     # re-initialize pandas dataframes before reading next file
                     if not one_file.empty:
@@ -255,7 +264,7 @@ class ReadDataFiles:
                         one_file[CN.FILE_ROW] = row_num
                         # keep the dataframes from each file in a list
                         list_frames.append(one_file)
-                        logging.debug("Lines in %s: %s", filename[CN.FULL_FILE],
+                        logging.debug("Lines in %s: %s", filename,
                                       str(len(one_file.index)))
                         one_file = one_file.iloc[0:0]
                         if not file_hdr.empty:
@@ -263,22 +272,22 @@ class ReadDataFiles:
                     elif not vsdb_file.empty:
                         vsdb_file.insert(10, CN.FILE_ROW, row_num)
                         list_vsdb.append(vsdb_file)
-                        logging.debug("Lines in %s: %s", filename[CN.FULL_FILE],
+                        logging.debug("Lines in %s: %s", filename,
                                       str(len(vsdb_file.index)))
                         vsdb_file = vsdb_file.iloc[0:0]
                     elif not mode_file.empty:
-                        logging.debug("Lines in %s: %s", filename[CN.FULL_FILE],
+                        logging.debug("Lines in %s: %s", filename,
                                       str(len(mode_file.index)))
                         mode_file = mode_file.iloc[0:0]
                         if not file_hdr.empty:
                             file_hdr = file_hdr.iloc[0:0]
                     else:
-                        logging.warning("!!! Empty file %s", filename[CN.FULL_FILE])
+                        logging.warning("!!! Empty file %s", filename)
                         continue
                 else:
-                    logging.warning("!!! No file %s", filename[CN.FULL_FILE])
+                    logging.warning("!!! No file %s", filename)
 
-            # end for row_num, filename
+            # end for row
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data upper ***", sys.exc_info()[0])
@@ -650,6 +659,9 @@ class ReadDataFiles:
                 all_cts[CN.FCST_INIT] = all_cts[CN.FCST_VALID] - \
                     pd.to_timedelta(all_cts[CN.FCST_LEAD_HR], unit='h')
 
+                # line type of mode contingency table
+                all_cts[CN.LINE_TYPE_LU_ID] = 19
+
                 self.mode_cts_data = all_cts
 
             if list_obj:
@@ -667,12 +679,19 @@ class ReadDataFiles:
                 all_single[CN.FCST_INIT] = all_single[CN.FCST_VALID] - \
                     pd.to_timedelta(all_single[CN.FCST_LEAD_HR], unit='h')
 
+                # default to mode single
+                all_single[CN.LINE_TYPE_LU_ID] = 17
+
+                # mark if it's a mode pair
+                all_single.loc[all_single.object_id.str.contains('_'),
+                               CN.LINE_TYPE_LU_ID] = 18
+
                 self.mode_obj_data = all_single
 
                 # maybe this should be done in a write routine
-                all_pair = all_single[all_single[CN.OBJECT_ID].str.contains('_')]
-                all_single = \
-                    all_single.drop(all_single[all_single[CN.OBJECT_ID].str.contains('_')].index)
+                # all_pair = all_single[all_single[CN.OBJECT_ID].str.contains('_')]
+                # all_single = \
+                #    all_single.drop(all_single[all_single[CN.OBJECT_ID].str.contains('_')].index)
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data middle ***", sys.exc_info()[0])
@@ -747,7 +766,8 @@ class ReadDataFiles:
                lookup type, integer, based on data_file_lu table
         """
         lc_filename = filename.lower()
-        lu_type = -1
+        # set the default to invalid file for later purging
+        lu_type = CN.NO_KEY
 
         # Set lookup type from file extensions and the values in the data_file_lu table
         if lc_filename.endswith(".stat"):
