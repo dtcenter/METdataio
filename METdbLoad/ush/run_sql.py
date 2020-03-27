@@ -120,4 +120,4 @@ class RunSql:
                 sql_cur.executemany(sql_query, dfile)
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in write_stat_sql write_to_sql ***", sys.exc_info()[0])
+            logging.error("*** %s in run_sql write_to_sql ***", sys.exc_info()[0])

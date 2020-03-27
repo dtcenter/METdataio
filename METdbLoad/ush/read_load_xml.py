@@ -209,6 +209,9 @@ class XmlLoadFile:
         if self.load_files is not None:
             self.load_files = list(dict.fromkeys(self.load_files))
 
+        # remove directory names
+        self.load_files = [lf for lf in self.load_files if '.' in lf.split('/')[-1]]
+
         logging.debug("[--- End read_xml ---]")
 
 
