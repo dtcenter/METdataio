@@ -43,6 +43,8 @@ class WriteModeSql:
 
         try:
 
+            all_pair = pd.DataFrame()
+
             sql_met = RunSql()
 
             # --------------------
@@ -92,9 +94,6 @@ class WriteModeSql:
                 sql_met.write_to_sql(new_headers, CN.MODE_HEADER_FIELDS, CN.MODE_HEADER,
                                      CN.INS_MHEADER, sql_cur, local_infile)
 
-            # put the header ids back into the dataframes
-            obj_data = pd.merge(left=obj_data, right=mode_headers)
-
             # --------------------
             # Write Line Data
             # --------------------
@@ -108,6 +107,16 @@ class WriteModeSql:
                 cts_data = cts_data.round(decimals=5)
                 sql_met.write_to_sql(cts_data, CN.MODE_CTS_FIELDS, CN.MODE_CTS_T,
                                      CN.INS_CHEADER, sql_cur, local_infile)
+
+            if not obj_data.empty:
+                # put the header ids back into the dataframes
+                obj_data = pd.merge(left=mode_headers, right=obj_data, on=CN.MODE_HEADER_KEYS)
+                # round off floats
+                obj_data = obj_data.round(decimals=5)
+
+                all_pair = obj_data[obj_data[CN.OBJECT_ID].str.contains('_')]
+                obj_data = \
+                    obj_data.drop(obj_data[obj_data[CN.OBJECT_ID].str.contains('_')].index)
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_mode_sql ***", sys.exc_info()[0])

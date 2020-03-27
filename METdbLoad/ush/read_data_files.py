@@ -77,8 +77,8 @@ class ReadDataFiles:
             self.data_files[CN.DATA_FILE_LU_ID] = \
                 np.vectorize(self.get_lookup)(self.data_files[CN.FULL_FILE])
             # Drop files that are not of a valid type
-            self.data_files.drop(self.data_files[self.data_files[CN.DATA_FILE_LU_ID] == CN.NO_KEY].index,
-                                 inplace=True)
+            self.data_files.drop(self.data_files[self.data_files[CN.DATA_FILE_LU_ID] ==
+                                                 CN.NO_KEY].index, inplace=True)
             # Won't know database key until we interact with the database, so no keys yet
             self.data_files[CN.DATA_FILE_ID] = CN.NO_KEY
             # Store the index in a column to make later merging with stat data easier
@@ -286,6 +286,7 @@ class ReadDataFiles:
                         continue
                 else:
                     logging.warning("!!! No file %s", filename)
+                    sys.exit("*** No file " + filename)
 
             # end for row
 
@@ -492,6 +493,11 @@ class ReadDataFiles:
                                              CN.COL_NAS[:89] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type in (CN.VL1L2, CN.GRAD):
+                        # some VL1L2 files do not have f_speed_bar and o_speed_bar
+                        if not '8' in vsdb_data:
+                            vsdb_data.insert(25, '8', CN.MV_NOTAV)
+                        if not '9' in vsdb_data:
+                            vsdb_data.insert(25, '9', CN.MV_NOTAV)
                         one_file = vsdb_data[CN.LONG_HEADER + CN.COL_NUMS[:10] +
                                              CN.COL_NAS[:86] + [CN.LINE_NUM, CN.FILE_ROW]]
 

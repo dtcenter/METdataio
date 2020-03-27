@@ -243,14 +243,15 @@ class WriteStatSql:
             # end for line_type
 
             # write out line_data_perc records
-            if stat_data[CN.FCST_PERC].ne(CN.MV_NOTAV).any():
-                line_data2 = stat_data[stat_data[CN.FCST_PERC].ne(CN.MV_NOTAV) &
-                                       stat_data[CN.FCST_PERC].notnull()].copy()
+            if CN.FCST_PERC in stat_data:
+                if stat_data[CN.FCST_PERC].ne(CN.MV_NOTAV).any():
+                    line_data2 = stat_data[stat_data[CN.FCST_PERC].ne(CN.MV_NOTAV) &
+                                           stat_data[CN.FCST_PERC].notnull()].copy()
 
-                # Write out the PERC lines
-                sql_met.write_to_sql(line_data2, CN.LINE_DATA_COLS[CN.PERC],
-                                     CN.LINE_TABLES[CN.UC_LINE_TYPES.index(CN.PERC)],
-                                     CN.LINE_DATA_Q[CN.PERC], sql_cur, local_infile)
+                    # Write out the PERC lines
+                    sql_met.write_to_sql(line_data2, CN.LINE_DATA_COLS[CN.PERC],
+                                         CN.LINE_TABLES[CN.UC_LINE_TYPES.index(CN.PERC)],
+                                         CN.LINE_DATA_Q[CN.PERC], sql_cur, local_infile)
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_sql_data ***", sys.exc_info()[0])
