@@ -171,20 +171,25 @@ class ReadDataFiles:
                         # read each line in as 1 column so some fixes can be made
                         vsdb_file = pd.read_csv(filename, sep=CN.SEP, header=None)
 
-                        # split vsdb data into 2 columns - before the =, and after
-                        # this protects from changing weird variable names, and removes =
-                        split_file = vsdb_file.iloc[:, 0].str.split('=', expand=True)
+                        if vsdb_file.iloc[:, 0].str.contains('=').any():
 
-                        # put a space in front of hyphen between numbers in case space is missing
-                        # but FHO can have negative thresh - so fix with regex, only between numbers
-                        split_file.iloc[:, 1] = \
-                            split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2')
+                            # split vsdb data into 2 columns - before the =, and after
+                            # this protects from changing weird variable names, and removes =
+                            split_file = vsdb_file.iloc[:, 0].str.split('=', expand=True)
 
-                        # merge the two halves together again
-                        vsdb_file.iloc[:, 0] = split_file.iloc[:, 0] + ' ' + split_file.iloc[:, 1]
+                            # put a space in front of hyphen between numbers in case space is missing
+                            # but FHO can have negative thresh - so fix with regex, only between numbers
+                            split_file.iloc[:, 1] = \
+                                split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2')
+
+                            # merge the two halves together again
+                            vsdb_file = split_file.iloc[:, 0] + ' ' + split_file.iloc[:, 1]
+
+                        else:
+                            vsdb_file = vsdb_file.iloc[:, 0]
 
                         # break fields out, separated by 1 or more spaces
-                        vsdb_file = vsdb_file.iloc[:, 0].str.split(' +', expand=True)
+                        vsdb_file = vsdb_file.str.split(' +', expand=True)
 
                         # add column names
                         hdr_names = CN.VSDB_HEADER + CN.COL_NUMS
