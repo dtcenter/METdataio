@@ -400,11 +400,12 @@ class ReadDataFiles:
                                      CN.MODEL].str.split(CN.FWD_SLASH).str[1].astype(int)
 
                     # remove the slash and value from model
-                    all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH) &
-                                 all_vsdb.line_type.isin(CN.ENS_VSDB_LINE_TYPES),
-                                 CN.MODEL] = \
-                        all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH),
-                                     CN.MODEL].str.split(CN.FWD_SLASH).str[0]
+                    if all_vsdb.line_type.isin(CN.ENS_VSDB_LINE_TYPES).any():
+                        all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH) &
+                                     all_vsdb.line_type.isin(CN.ENS_VSDB_LINE_TYPES),
+                                     CN.MODEL] = \
+                            all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH),
+                                         CN.MODEL].str.split(CN.FWD_SLASH).str[0]
 
                     # for RELI/PCT, get number after slash in model, add one,
                     # prefix with string and put in thresh

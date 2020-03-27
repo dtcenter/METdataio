@@ -40,15 +40,28 @@ class RunSql:
             Returns:
                N/A
         """
-        # Connect to the database using connection info from XML file
-        self.conn = pymysql.connect(host=connection['db_host'],
-                                    port=connection['db_port'],
-                                    user=connection['db_user'],
-                                    passwd=connection['db_password'],
-                                    db=connection['db_name'],
-                                    local_infile=True)
 
-        self.cur = self.conn.cursor()
+        try:
+
+        # Connect to the database using connection info from XML file
+            self.conn = pymysql.connect(host=connection['db_host'],
+                                        port=connection['db_port'],
+                                        user=connection['db_user'],
+                                        passwd=connection['db_password'],
+                                        db=connection['db_name'],
+                                        local_infile=True)
+
+        except pymysql.OperationalError as e:
+            logging.error("*** %s in run_sql ***", str(e))
+            sys.exit("*** Error when connecting to database")
+
+        try:
+
+            self.cur = self.conn.cursor()
+
+        except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
+            logging.error("*** %s in run_sql ***", sys.exc_info()[0])
+            sys.exit("*** Error when creating cursor")
 
         # look at database to see whether we can use the local infile method
         self.cur.execute("SHOW GLOBAL VARIABLES LIKE 'local_infile';")
