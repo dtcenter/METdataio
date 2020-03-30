@@ -46,7 +46,7 @@ class XmlLoadFile:
         self.insert_size = 1
         self.load_note = None
         self.group = CN.DEFAULT_DATABASE_GROUP
-        self.description = None
+        self.description = "None"
         self.xml_str = None
 
         self.flags = {}
