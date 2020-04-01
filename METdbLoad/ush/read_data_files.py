@@ -128,7 +128,6 @@ class ReadDataFiles:
 
                         # Add a DESC column if the data file does not have one
                         if not file_hdr.iloc[0].str.contains(CN.UC_DESC).any():
-                            logging.debug("Old MET file - no DESC")
                             hdr_names = CN.SHORT_HEADER + CN.COL_NUMS
                             one_file = self.read_stat(filename, hdr_names)
 
@@ -139,7 +138,6 @@ class ReadDataFiles:
 
                         # If the file has a DESC column, but no UNITS columns
                         elif not file_hdr.iloc[0].str.contains(CN.UC_FCST_UNITS).any():
-                            logging.debug("Older MET file - no FCST_UNITS")
                             hdr_names = CN.MID_HEADER + CN.COL_NUMS
                             one_file = self.read_stat(filename, hdr_names)
 
