@@ -57,6 +57,8 @@ class WriteFileSql:
             if next_file_id == 0:
                 next_file_id = 1
 
+            id_ctr = 0
+
             # write out records for data files, but first:
             # check for duplicates if flag on - delete if found
             for row_num, file_line in data_files.iterrows():
@@ -79,7 +81,7 @@ class WriteFileSql:
                             mode_obj_data = \
                                 mode_obj_data.drop(mode_obj_data[mode_obj_data.file_row ==
                                                                  file_line.file_row].index)
-                        data_files = data_files.drop(row_num)
+
                         logging.warning("!!! Duplicate file %s without FORCE_DUP_FILE tag",
                                         file_line[CN.FULL_FILE])
                     else:
@@ -88,9 +90,14 @@ class WriteFileSql:
                 # Not a duplicate - give it a new id
                 else:
                     data_files.loc[data_files.index[row_num], CN.DATA_FILE_ID] = \
-                        row_num + next_file_id
+                        id_ctr + next_file_id
+                    id_ctr = id_ctr + 1
 
             # end for row_num, file_line
+
+            # delete duplicate file entries
+            index_names = data_files[data_files.data_file_id == CN.NO_KEY].index
+            data_files.drop(index_names, inplace=True)
 
             if not data_files.empty:
 
