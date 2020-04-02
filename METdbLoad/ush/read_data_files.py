@@ -175,8 +175,8 @@ class ReadDataFiles:
                             # this protects from changing weird variable names, and removes =
                             split_file = vsdb_file.iloc[:, 0].str.split('=', expand=True)
 
-                            # put a space in front of hyphen between numbers in case space is missing
-                            # but FHO can have negative thresh - so fix with regex, only between numbers
+                            # put space in front of hyphen between numbers in case space is missing
+                            # FHO can have negative thresh - fix with regex, only between numbers
                             split_file.iloc[:, 1] = \
                                 split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2')
 
