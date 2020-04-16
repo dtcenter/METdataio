@@ -60,7 +60,7 @@ class WriteModeSql:
             # restore to original order now that cts and obj are recombined
             mode_headers = mode_headers.sort_values(by=[CN.DATA_FILE_ID, CN.LINENUMBER])
             # get unique values, keeping the first of the duplicate records
-            mode_headers = mode_headers.drop_duplicates(CN.MODE_HEADER_KEYS, keep='first')
+            mode_headers.drop_duplicates(CN.MODE_HEADER_KEYS, keep='first', inplace=True)
             mode_headers.reset_index(drop=True, inplace=True)
 
             # At first, we do not know if the headers already exist, so we have no keys
@@ -74,7 +74,11 @@ class WriteModeSql:
 
                 # For each header, query with unique fields to try to find a match in the database
                 for row_num, data_line in mode_headers.iterrows():
-                    sql_cur.execute(CN.Q_MHEADER, data_line.values[:-1].tolist())
+                    data_line[CN.FCST_VALID] = \
+                        data_line[CN.FCST_VALID].strftime("%Y-%m-%d %H:%M:%S")
+                    data_line[CN.FCST_INIT] = data_line[CN.FCST_INIT].strftime("%Y-%m-%d %H:%M:%S")
+                    data_line[CN.OBS_VALID] = data_line[CN.OBS_VALID].strftime("%Y-%m-%d %H:%M:%S")
+                    sql_cur.execute(CN.Q_MHEADER, data_line.values[3:-1].tolist())
                     result = sql_cur.fetchone()
 
                     # If you find a match, put the key into the mode_headers dataframe
@@ -112,18 +116,63 @@ class WriteModeSql:
                                      CN.INS_CHEADER, sql_cur, local_infile)
 
             if not obj_data.empty:
+                # MET has a different column name than METviewer
+                obj_data = obj_data.rename(columns={'axis_ang': 'axis_avg'})
                 # put the header ids back into the dataframes
                 obj_data = pd.merge(left=mode_headers, right=obj_data, on=CN.MODE_HEADER_KEYS)
                 # round off floats
                 obj_data = obj_data.round(decimals=5)
 
-                all_pair = obj_data[obj_data[CN.OBJECT_ID].str.contains('_')]
-                obj_data = \
-                    obj_data.drop(obj_data[obj_data[CN.OBJECT_ID].str.contains('_')].index)
+                # intensity values can be NA, which causes MySQL warning
+                # replace is done to achieve desired MySQL output of NULL
+                obj_data.replace({'intensity_10': CN.NOTAV, 'intensity_25': CN.NOTAV,
+                                  'intensity_50': CN.NOTAV, 'intensity_75': CN.NOTAV,
+                                  'intensity_90': CN.NOTAV, 'intensity_nn': CN.NOTAV},
+                                 CN.MV_NULL, inplace=True)
+
+                # pairs have an underscore in the object id - singles do not
+                all_pair = obj_data[obj_data[CN.OBJECT_ID].str.contains(CN.U_SCORE)].copy()
+                obj_data.drop(obj_data[obj_data[CN.OBJECT_ID].str.contains(CN.U_SCORE)].index,
+                              inplace=True)
+
+                # get next valid mode object id. Set it to zero (first valid id) if no records yet
+                next_line_id = sql_met.get_next_id(CN.MODE_SINGLE_T, CN.MODE_OBJ_ID, sql_cur)
+
+                obj_data[CN.MODE_OBJ_ID] = obj_data.index + next_line_id
+
+                obj_data[CN.SIMPLE_FLAG] = 1
+                obj_data[CN.FCST_FLAG] = 0
+                obj_data[CN.MATCHED_FLAG] = 0
+
+                # Set simple flag to zero if object id starts with C
+                if obj_data.object_id.str.startswith('C').any():
+                    obj_data.loc[obj_data.object_id.str.startswith('C'),
+                                 CN.SIMPLE_FLAG] = 0
+
+                # Set fcst flag to 1 if object id contains an F
+                if obj_data.object_id.str.contains('F').any():
+                    obj_data.loc[obj_data.object_id.str.contains('F'),
+                                 CN.FCST_FLAG] = 1
+
+                # Set matched flag to 1 if object cat has neither underscore nor 000
+                if (~obj_data.object_cat.str.contains(CN.U_SCORE)).sum() > 0:
+                    if (~obj_data.object_cat.str.contains('000')).sum() > 0:
+                        obj_data.loc[~obj_data.object_cat.str.contains(CN.U_SCORE) &
+                                     ~obj_data.object_cat.str.contains('000'),
+                                     CN.MATCHED_FLAG] = 1
+
+                sql_met.write_to_sql(obj_data, CN.MODE_SINGLE_FIELDS, CN.MODE_SINGLE_T,
+                                     CN.INS_SHEADER, sql_cur, local_infile)
+            if not all_pair.empty:
+
+                all_pair[[CN.F_OBJECT_ID, CN.O_OBJECT_ID]] = \
+                    all_pair[CN.OBJECT_ID].str.split(CN.U_SCORE, expand=True)
+
+                all_pair[CN.SIMPLE_FLAG] = 1
+                all_pair[CN.MATCHED_FLAG] = 0
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_mode_sql ***", sys.exc_info()[0])
-
 
         write_time_end = time.perf_counter()
         write_time = timedelta(seconds=write_time_end - write_time_start)

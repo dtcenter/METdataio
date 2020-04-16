@@ -48,6 +48,9 @@ EQS = '='
 # Forward Slash
 FWD_SLASH = '/'
 
+# Underscore
+U_SCORE = '_'
+
 # Left paren for searching
 L_PAREN = '('
 
@@ -590,7 +593,12 @@ MTD_3D_SS = 12
 # mode file fields
 MODE_HEADER = 'mode_header'
 MODE_HEADER_ID = 'mode_header_id'
+MODE_OBJ_ID = 'mode_obj_id'
+MODE_OBJ_OBS_ID = 'mode_obj_obs_id'
+MODE_OBJ_FCST_ID = 'mode_obj_fcst_id'
 MODE_CTS_T = 'mode_cts'
+MODE_SINGLE_T = 'mode_obj_single'
+MODE_PAIR_T = 'mode_obj_pair'
 LINE_TYPE_LU_ID = 'line_type_lu_id'
 LINENUMBER = 'linenumber'
 FCST_VALID = 'fcst_valid'
@@ -602,9 +610,15 @@ OBS_VALID = 'obs_valid'
 OBS_ACCUM = 'obs_accum'
 OBS_RAD = 'obs_rad'
 OBS_THR = 'obs_thr'
-OBJECT_ID = 'object_id'
 N_VALID = 'n_valid'
 GRID_RES = 'grid_res'
+OBJECT_ID = 'object_id'
+OBJECT_CAT = 'object_cat'
+FCST_FLAG = 'fcst_flag'
+SIMPLE_FLAG = 'simple_flag'
+MATCHED_FLAG = 'matched_flag'
+F_OBJECT_ID = 'f_object_id'
+O_OBJECT_ID = 'o_object_id'
 
 MODE_HEADER_KEYS = [VERSION, MODEL, N_VALID, GRID_RES, DESCR,
                     FCST_LEAD, FCST_VALID, FCST_ACCUM, FCST_INIT,
@@ -623,6 +637,21 @@ MODE_CTS_FIELDS = [MODE_HEADER_ID, 'field', TOTAL_LC, FY_OY, FY_ON, FN_OY, FN_ON
                    'baser', 'fmean', 'acc', 'fbias', 'pody', 'podn', 'pofd',
                    'far', 'csi', 'gss', 'hk', 'hss', 'odds']
 
+MODE_SINGLE_FIELDS = [MODE_OBJ_ID, MODE_HEADER_ID, OBJECT_ID, OBJECT_CAT,
+                      'centroid_x', 'centroid_y', 'centroid_lat', 'centroid_lon',
+                      'axis_avg', 'length', 'width', 'area', 'area_thresh',
+                      'curvature', 'curvature_x', 'curvature_y', 'complexity',
+                      'intensity_10', 'intensity_25', 'intensity_50', 'intensity_75',
+                      'intensity_90', 'intensity_nn', 'intensity_sum',
+                      'fcst_flag', SIMPLE_FLAG, MATCHED_FLAG]
+
+MODE_PAIR_FIELDS = [MODE_OBJ_OBS_ID, MODE_OBJ_FCST_ID, MODE_HEADER_ID, OBJECT_ID,
+                    OBJECT_CAT, 'centroid_dist', 'boundary_dist', 'convex_hull_dist',
+                    'angle_diff', 'aspect_diff', 'area_ratio',
+                    'intersection_area', 'union_area', 'symmetric_diff',
+                    'intersection_over_area', 'curvature_ratio', 'complexity_ratio',
+                    'percentile_intensity_ratio', 'interest', SIMPLE_FLAG, MATCHED_FLAG]
+
 Q_MHEADER = "SELECT mode_header_id FROM mode_header WHERE " + \
            "=%s AND ".join(MODE_HEADER_KEYS) + "=%s"
 
@@ -634,3 +663,15 @@ C_VALUE_SLOTS = C_VALUE_SLOTS[:-2]
 
 INS_CHEADER = "INSERT INTO mode_cts (" + ",".join(MODE_CTS_FIELDS) + \
               ") VALUES (" + C_VALUE_SLOTS + ")"
+
+S_VALUE_SLOTS = '%s, ' * len(MODE_SINGLE_FIELDS)
+S_VALUE_SLOTS = S_VALUE_SLOTS[:-2]
+
+INS_SHEADER = "INSERT INTO mode_obj_single (" + ",".join(MODE_SINGLE_FIELDS) + \
+              ") VALUES (" + S_VALUE_SLOTS + ")"
+
+P_VALUE_SLOTS = '%s, ' * len(MODE_PAIR_FIELDS)
+P_VALUE_SLOTS = P_VALUE_SLOTS[:-2]
+
+INS_PHEADER = "INSERT INTO mode_obj_pair (" + ",".join(MODE_PAIR_FIELDS) + \
+              ") VALUES (" + P_VALUE_SLOTS + ")"
