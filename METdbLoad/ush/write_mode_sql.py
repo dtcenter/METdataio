@@ -156,9 +156,9 @@ class WriteModeSql:
 
                 # Set matched flag to 1 if object cat has neither underscore nor 000
                 if (~obj_data.object_cat.str.contains(CN.U_SCORE)).sum() > 0:
-                    if (~obj_data.object_cat.str.contains('000')).sum() > 0:
+                    if (~obj_data.object_cat.str.contains(CN.T_ZERO)).sum() > 0:
                         obj_data.loc[~obj_data.object_cat.str.contains(CN.U_SCORE) &
-                                     ~obj_data.object_cat.str.contains('000'),
+                                     ~obj_data.object_cat.str.contains(CN.T_ZERO),
                                      CN.MATCHED_FLAG] = 1
 
                 sql_met.write_to_sql(obj_data, CN.MODE_SINGLE_FIELDS, CN.MODE_SINGLE_T,
@@ -168,8 +168,23 @@ class WriteModeSql:
                 all_pair[[CN.F_OBJECT_ID, CN.O_OBJECT_ID]] = \
                     all_pair[CN.OBJECT_ID].str.split(CN.U_SCORE, expand=True)
 
+                all_pair[[CN.F_OBJECT_CAT, CN.O_OBJECT_CAT]] = \
+                    all_pair[CN.OBJECT_CAT].str.split(CN.U_SCORE, expand=True)
+
                 all_pair[CN.SIMPLE_FLAG] = 1
+                # Set simple flag to zero if object id starts with C
+                if all_pair.f_object_id.str.startswith('C').any() and \
+                        all_pair.o_object_id.str.startswith('C').any():
+                    all_pair.loc[all_pair.f_object_id.str.startswith('C') &
+                                 all_pair.o_object_id.str.startswith('C'),
+                                 CN.SIMPLE_FLAG] = 0
+
                 all_pair[CN.MATCHED_FLAG] = 0
+                if (~all_pair.f_object_cat.str.contains(CN.T_ZERO)).sum() > 0:
+                    if (all_pair.f_object_cat.str[2:] == all_pair.o_object_cat.str[2:]).any():
+                        all_pair.loc[~all_pair.f_object_cat.str.contains(CN.T_ZERO) &
+                                     (all_pair.f_object_cat.str[2:] == all_pair.o_object_cat.str[2:]),
+                                     CN.MATCHED_FLAG] = 1
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_mode_sql ***", sys.exc_info()[0])

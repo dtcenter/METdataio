@@ -57,6 +57,9 @@ L_PAREN = '('
 # Right paren for searching
 R_PAREN = ')'
 
+# Triple zero for tests for MODE files
+T_ZERO = '000'
+
 # Generic count of variable fields
 N_VAR = 'n_var'
 
@@ -619,6 +622,8 @@ SIMPLE_FLAG = 'simple_flag'
 MATCHED_FLAG = 'matched_flag'
 F_OBJECT_ID = 'f_object_id'
 O_OBJECT_ID = 'o_object_id'
+F_OBJECT_CAT = 'f_object_cat'
+O_OBJECT_CAT = 'o_object_cat'
 
 MODE_HEADER_KEYS = [VERSION, MODEL, N_VALID, GRID_RES, DESCR,
                     FCST_LEAD, FCST_VALID, FCST_ACCUM, FCST_INIT,
