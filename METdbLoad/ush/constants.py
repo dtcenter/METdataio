@@ -624,6 +624,8 @@ F_OBJECT_ID = 'f_object_id'
 O_OBJECT_ID = 'o_object_id'
 F_OBJECT_CAT = 'f_object_cat'
 O_OBJECT_CAT = 'o_object_cat'
+ASPECT_DIFF = 'aspect_diff'
+CURV_RATIO = 'curvature_ratio'
 
 MODE_HEADER_KEYS = [VERSION, MODEL, N_VALID, GRID_RES, DESCR,
                     FCST_LEAD, FCST_VALID, FCST_ACCUM, FCST_INIT,
@@ -652,9 +654,9 @@ MODE_SINGLE_FIELDS = [MODE_OBJ_ID, MODE_HEADER_ID, OBJECT_ID, OBJECT_CAT,
 
 MODE_PAIR_FIELDS = [MODE_OBJ_OBS_ID, MODE_OBJ_FCST_ID, MODE_HEADER_ID, OBJECT_ID,
                     OBJECT_CAT, 'centroid_dist', 'boundary_dist', 'convex_hull_dist',
-                    'angle_diff', 'aspect_diff', 'area_ratio',
+                    'angle_diff', ASPECT_DIFF, 'area_ratio',
                     'intersection_area', 'union_area', 'symmetric_diff',
-                    'intersection_over_area', 'curvature_ratio', 'complexity_ratio',
+                    'intersection_over_area', CURV_RATIO, 'complexity_ratio',
                     'percentile_intensity_ratio', 'interest', SIMPLE_FLAG, MATCHED_FLAG]
 
 Q_MHEADER = "SELECT mode_header_id FROM mode_header WHERE " + \

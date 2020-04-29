@@ -120,6 +120,7 @@ class WriteModeSql:
                 obj_data = obj_data.rename(columns={'axis_ang': 'axis_avg'})
                 # put the header ids back into the dataframes
                 obj_data = pd.merge(left=mode_headers, right=obj_data, on=CN.MODE_HEADER_KEYS)
+
                 # round off floats
                 obj_data = obj_data.round(decimals=5)
 
@@ -135,11 +136,16 @@ class WriteModeSql:
                 obj_data.drop(obj_data[obj_data[CN.OBJECT_ID].str.contains(CN.U_SCORE)].index,
                               inplace=True)
 
+                # reset the index so mode_obj_ids are set correctly
+                obj_data.reset_index(drop=True, inplace=True)
+
                 # get next valid mode object id. Set it to zero (first valid id) if no records yet
                 next_line_id = sql_met.get_next_id(CN.MODE_SINGLE_T, CN.MODE_OBJ_ID, sql_cur)
 
+                # create the mode_obj_ids using the dataframe index and next valid id
                 obj_data[CN.MODE_OBJ_ID] = obj_data.index + next_line_id
 
+                # create defaults for flags
                 obj_data[CN.SIMPLE_FLAG] = 1
                 obj_data[CN.FCST_FLAG] = 0
                 obj_data[CN.MATCHED_FLAG] = 0
@@ -161,15 +167,38 @@ class WriteModeSql:
                                      ~obj_data.object_cat.str.contains(CN.T_ZERO),
                                      CN.MATCHED_FLAG] = 1
 
+                # write out the mode single objects
                 sql_met.write_to_sql(obj_data, CN.MODE_SINGLE_FIELDS, CN.MODE_SINGLE_T,
                                      CN.INS_SHEADER, sql_cur, local_infile)
             if not all_pair.empty:
 
+                all_pair.reset_index(drop=True, inplace=True)
+
+                # split out the paired object ids for processing
                 all_pair[[CN.F_OBJECT_ID, CN.O_OBJECT_ID]] = \
                     all_pair[CN.OBJECT_ID].str.split(CN.U_SCORE, expand=True)
 
+                # split out the paired cats for processing
                 all_pair[[CN.F_OBJECT_CAT, CN.O_OBJECT_CAT]] = \
                     all_pair[CN.OBJECT_CAT].str.split(CN.U_SCORE, expand=True)
+
+                # get only the single object columns needed to find mode object ids
+                obj_data = obj_data[[CN.MODE_HEADER_ID, CN.OBJECT_ID, CN.MODE_OBJ_ID]]
+                # rename the object id column to match forecasts
+                obj_data.columns = [CN.MODE_HEADER_ID, CN.F_OBJECT_ID, CN.MODE_OBJ_ID]
+
+                # get mode objects ids for forecasts
+                all_pair = pd.merge(left=all_pair, right=obj_data,
+                                    on=[CN.MODE_HEADER_ID, CN.F_OBJECT_ID])
+                all_pair.rename(columns={CN.MODE_OBJ_ID: CN.MODE_OBJ_FCST_ID}, inplace=True)
+
+                # rename the object id column to match observations
+                obj_data.rename(columns={CN.F_OBJECT_ID: CN.O_OBJECT_ID}, inplace=True)
+
+                # get mode objects ids for observations
+                all_pair = pd.merge(left=all_pair, right=obj_data,
+                                    on=[CN.MODE_HEADER_ID, CN.O_OBJECT_ID])
+                all_pair.rename(columns={CN.MODE_OBJ_ID: CN.MODE_OBJ_OBS_ID}, inplace=True)
 
                 all_pair[CN.SIMPLE_FLAG] = 1
                 # Set simple flag to zero if object id starts with C
@@ -183,8 +212,13 @@ class WriteModeSql:
                 if (~all_pair.f_object_cat.str.contains(CN.T_ZERO)).sum() > 0:
                     if (all_pair.f_object_cat.str[2:] == all_pair.o_object_cat.str[2:]).any():
                         all_pair.loc[~all_pair.f_object_cat.str.contains(CN.T_ZERO) &
-                                     (all_pair.f_object_cat.str[2:] == all_pair.o_object_cat.str[2:]),
+                                     (all_pair.f_object_cat.str[2:] ==
+                                      all_pair.o_object_cat.str[2:]),
                                      CN.MATCHED_FLAG] = 1
+
+                # write out the mode pair objects
+                sql_met.write_to_sql(all_pair, CN.MODE_PAIR_FIELDS, CN.MODE_PAIR_T,
+                                     CN.INS_PHEADER, sql_cur, local_infile)
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_mode_sql ***", sys.exc_info()[0])

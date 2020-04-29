@@ -250,6 +250,11 @@ class ReadDataFiles:
                         if CN.DESCR not in hdr_names:
                             mode_file.insert(4, CN.DESCR, CN.NOTAV)
 
+                        if CN.ASPECT_DIFF not in hdr_names:
+                            mode_file[CN.ASPECT_DIFF] = CN.MV_NOTAV
+                        if CN.CURV_RATIO not in hdr_names:
+                            mode_file[CN.CURV_RATIO] = CN.MV_NOTAV
+
                         # add units if input file does not have them
                         if CN.FCST_UNITS not in hdr_names:
                             mode_file.insert(16, CN.FCST_UNITS, CN.NOTAV)
