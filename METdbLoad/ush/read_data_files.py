@@ -252,6 +252,7 @@ class ReadDataFiles:
 
                         if CN.ASPECT_DIFF not in hdr_names:
                             mode_file[CN.ASPECT_DIFF] = CN.MV_NOTAV
+
                         if CN.CURV_RATIO not in hdr_names:
                             mode_file[CN.CURV_RATIO] = CN.MV_NOTAV
 
@@ -746,9 +747,12 @@ class ReadDataFiles:
                 # reset the index, in case any lines have been deleted
                 all_stat.reset_index(drop=True, inplace=True)
 
-                # all lines from a file may have been deleted. if so, remove filename
+                # if all lines from a stat or vsdb file were deleted, remove filename
                 files_to_drop = ~self.data_files.index.isin(all_stat[CN.FILE_ROW])
-                self.data_files.drop(self.data_files[files_to_drop].index, inplace=True)
+                files_stat = self.data_files[CN.DATA_FILE_LU_ID].isin([CN.VSDB_POINT_STAT,
+                                                                       CN.STAT])
+                self.data_files.drop(self.data_files[files_to_drop & files_stat].index,
+                                     inplace=True)
 
                 self.data_files.reset_index(drop=True, inplace=True)
 

@@ -78,12 +78,19 @@ class WriteModeSql:
                         data_line[CN.FCST_VALID].strftime("%Y-%m-%d %H:%M:%S")
                     data_line[CN.FCST_INIT] = data_line[CN.FCST_INIT].strftime("%Y-%m-%d %H:%M:%S")
                     data_line[CN.OBS_VALID] = data_line[CN.OBS_VALID].strftime("%Y-%m-%d %H:%M:%S")
-                    sql_cur.execute(CN.Q_MHEADER, data_line.values[3:-1].tolist())
+                    # when n_valid and grid_res are null, query needs 'is null'
+                    if data_line[CN.N_VALID] == CN.MV_NULL and data_line[CN.GRID_RES] == CN.MV_NULL:
+                        sql_cur.execute(CN.QN_MHEADER,
+                                        [data_line[CN.VERSION],
+                                         data_line[CN.MODEL]] + data_line.values[7:-1].tolist())
+                    else:
+                        sql_cur.execute(CN.Q_MHEADER, data_line.values[3:-1].tolist())
                     result = sql_cur.fetchone()
 
                     # If you find a match, put the key into the mode_headers dataframe
                     if sql_cur.rowcount > 0:
                         mode_headers.loc[mode_headers.index[row_num], CN.MODE_HEADER_ID] = result[0]
+                    # otherwise create the next id and put it in
                     else:
                         mode_headers.loc[mode_headers.index[row_num], CN.MODE_HEADER_ID] = \
                             row_num + next_header_id
