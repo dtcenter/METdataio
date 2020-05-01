@@ -48,11 +48,17 @@ EQS = '='
 # Forward Slash
 FWD_SLASH = '/'
 
+# Underscore
+U_SCORE = '_'
+
 # Left paren for searching
 L_PAREN = '('
 
 # Right paren for searching
 R_PAREN = ')'
+
+# Triple zero for tests for MODE files
+T_ZERO = '000'
 
 # Generic count of variable fields
 N_VAR = 'n_var'
@@ -214,6 +220,8 @@ FY_OY = 'fy_oy'
 FY_ON = 'fy_on'
 FN_OY = 'fn_oy'
 FN_ON = 'fn_on'
+BASER = 'baser'
+FMEAN = 'fmean'
 
 INSTANCE_INFO = 'instance_info'
 INSTANCE_INFO_ID = 'instance_info_id'
@@ -303,8 +311,8 @@ LINE_DATA_FIELDS[CTC] = TOT_LINE_DATA_FIELDS + \
                         [FY_OY, FY_ON, FN_OY, FN_ON]
 
 LINE_DATA_FIELDS[CTS] = ALPH_LINE_DATA_FIELDS + \
-                        ['baser', 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
-                         'fmean', 'fmean_ncl', 'fmean_ncu', 'fmean_bcl', 'fmean_bcu',
+                        [BASER, 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
+                         FMEAN, 'fmean_ncl', 'fmean_ncu', 'fmean_bcl', 'fmean_bcu',
                          'acc', 'acc_ncl', 'acc_ncu', 'acc_bcl', 'acc_bcu',
                          'fbias', 'fbias_bcl', 'fbias_bcu',
                          'pody', 'pody_ncl', 'pody_ncu', 'pody_bcl', 'pody_bcu',
@@ -325,7 +333,7 @@ LINE_DATA_FIELDS[CTS] = ALPH_LINE_DATA_FIELDS + \
                          'bagss', 'bagss_bcl', 'bagss_bcu']
 
 LINE_DATA_FIELDS[ECLV] = TOT_LINE_DATA_FIELDS + \
-                         ['baser', 'value_baser', 'n_pnt']
+                         [BASER, 'value_baser', 'n_pnt']
 
 LINE_DATA_FIELDS[ECNT] = TOT_LINE_DATA_FIELDS + \
                          ['n_ens', 'crps', 'crpss', 'ign', 'me', 'rmse', 'spread',
@@ -372,8 +380,8 @@ LINE_DATA_FIELDS[NBRCTC] = COV_LINE_DATA_FIELDS + \
                            [FY_OY, FY_ON, FN_OY, FN_ON]
 
 LINE_DATA_FIELDS[NBRCTS] = COVA_LINE_DATA_FIELDS + \
-                           ['baser', 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
-                            'fmean', 'fmean_ncl', 'fmean_ncu', 'fmean_bcl', 'fmean_bcu',
+                           [BASER, 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
+                            FMEAN, 'fmean_ncl', 'fmean_ncu', 'fmean_bcl', 'fmean_bcu',
                             'acc', 'acc_ncl', 'acc_ncu', 'acc_bcl', 'acc_bcu',
                             'fbias', 'fbias_bcl', 'fbias_bcu',
                             'pody', 'pody_ncl', 'pody_ncu', 'pody_bcl', 'pody_bcu',
@@ -415,7 +423,7 @@ LINE_DATA_FIELDS[PRC] = COV_LINE_DATA_FIELDS + \
 
 # the last 5 fields are currently (August 2019) blank in stat files, filled in in write_stat_sql
 LINE_DATA_FIELDS[PSTD] = COVA_LINE_DATA_FIELDS + \
-                         ['n_thresh', 'baser', 'baser_ncl', 'baser_ncu',
+                         ['n_thresh', BASER, 'baser_ncl', 'baser_ncu',
                           'reliability', 'resolution', 'uncertainty', 'roc_auc',
                           'brier', 'brier_ncl', 'brier_ncu', 'briercl', 'briercl_ncl',
                           'briercl_ncu', 'bss', 'bss_smpl']
@@ -590,7 +598,12 @@ MTD_3D_SS = 12
 # mode file fields
 MODE_HEADER = 'mode_header'
 MODE_HEADER_ID = 'mode_header_id'
+MODE_OBJ_ID = 'mode_obj_id'
+MODE_OBJ_OBS_ID = 'mode_obj_obs_id'
+MODE_OBJ_FCST_ID = 'mode_obj_fcst_id'
 MODE_CTS_T = 'mode_cts'
+MODE_SINGLE_T = 'mode_obj_single'
+MODE_PAIR_T = 'mode_obj_pair'
 LINE_TYPE_LU_ID = 'line_type_lu_id'
 LINENUMBER = 'linenumber'
 FCST_VALID = 'fcst_valid'
@@ -602,9 +615,19 @@ OBS_VALID = 'obs_valid'
 OBS_ACCUM = 'obs_accum'
 OBS_RAD = 'obs_rad'
 OBS_THR = 'obs_thr'
-OBJECT_ID = 'object_id'
 N_VALID = 'n_valid'
 GRID_RES = 'grid_res'
+OBJECT_ID = 'object_id'
+OBJECT_CAT = 'object_cat'
+FCST_FLAG = 'fcst_flag'
+SIMPLE_FLAG = 'simple_flag'
+MATCHED_FLAG = 'matched_flag'
+F_OBJECT_ID = 'f_object_id'
+O_OBJECT_ID = 'o_object_id'
+F_OBJECT_CAT = 'f_object_cat'
+O_OBJECT_CAT = 'o_object_cat'
+ASPECT_DIFF = 'aspect_diff'
+CURV_RATIO = 'curvature_ratio'
 
 MODE_HEADER_KEYS = [VERSION, MODEL, N_VALID, GRID_RES, DESCR,
                     FCST_LEAD, FCST_VALID, FCST_ACCUM, FCST_INIT,
@@ -612,25 +635,56 @@ MODE_HEADER_KEYS = [VERSION, MODEL, N_VALID, GRID_RES, DESCR,
                     OBS_RAD, OBS_THR, FCST_VAR, FCST_UNITS, FCST_LEV,
                     OBS_VAR, OBS_UNITS, OBS_LEV]
 
-MODE_HEADER_FIELDS = [MODE_HEADER_ID, LINE_TYPE_LU_ID, DATA_FILE_ID, LINENUMBER,
-                      VERSION, MODEL, N_VALID, GRID_RES, DESCR,
-                      FCST_LEAD, FCST_VALID, FCST_ACCUM, FCST_INIT,
-                      OBS_LEAD, OBS_VALID, OBS_ACCUM, FCST_RAD, FCST_THR,
-                      OBS_RAD, OBS_THR, FCST_VAR, FCST_UNITS, FCST_LEV,
-                      OBS_VAR, OBS_UNITS, OBS_LEV]
+MODE_HEADER_FIELDS = [MODE_HEADER_ID, LINE_TYPE_LU_ID, DATA_FILE_ID,
+                      LINENUMBER] + MODE_HEADER_KEYS
 
 MODE_CTS_FIELDS = [MODE_HEADER_ID, 'field', TOTAL_LC, FY_OY, FY_ON, FN_OY, FN_ON,
-                   'baser', 'fmean', 'acc', 'fbias', 'pody', 'podn', 'pofd',
+                   BASER, FMEAN, 'acc', 'fbias', 'pody', 'podn', 'pofd',
                    'far', 'csi', 'gss', 'hk', 'hss', 'odds']
 
+MODE_SINGLE_FIELDS = [MODE_OBJ_ID, MODE_HEADER_ID, OBJECT_ID, OBJECT_CAT,
+                      'centroid_x', 'centroid_y', 'centroid_lat', 'centroid_lon',
+                      'axis_avg', 'length', 'width', 'area', 'area_thresh',
+                      'curvature', 'curvature_x', 'curvature_y', 'complexity',
+                      'intensity_10', 'intensity_25', 'intensity_50', 'intensity_75',
+                      'intensity_90', 'intensity_nn', 'intensity_sum',
+                      FCST_FLAG, SIMPLE_FLAG, MATCHED_FLAG]
+
+MODE_PAIR_FIELDS = [MODE_OBJ_OBS_ID, MODE_OBJ_FCST_ID, MODE_HEADER_ID, OBJECT_ID,
+                    OBJECT_CAT, 'centroid_dist', 'boundary_dist', 'convex_hull_dist',
+                    'angle_diff', ASPECT_DIFF, 'area_ratio',
+                    'intersection_area', 'union_area', 'symmetric_diff',
+                    'intersection_over_area', CURV_RATIO, 'complexity_ratio',
+                    'percentile_intensity_ratio', 'interest', SIMPLE_FLAG, MATCHED_FLAG]
+
 Q_MHEADER = "SELECT mode_header_id FROM mode_header WHERE " + \
-           "=%s AND ".join(MODE_HEADER_KEYS) + "=%s"
+            "=%s AND ".join(MODE_HEADER_KEYS) + "=%s"
+
+QN_MHEADER = "SELECT mode_header_id FROM mode_header WHERE " + \
+             "version=%s AND model=%s AND n_valid is NULL AND grid_res is NULL " + \
+             "AND descr=%s AND fcst_lead=%s AND fcst_valid=%s AND fcst_accum=%s " + \
+             "AND fcst_init=%s AND obs_lead=%s AND obs_valid=%s AND obs_accum=%s " + \
+             "AND fcst_rad=%s AND fcst_thr=%s AND obs_rad=%s AND obs_thr=%s " + \
+             "AND fcst_var=%s AND fcst_units=%s AND fcst_lev=%s AND obs_var=%s " + \
+             "AND obs_units=%s AND obs_lev=%s"
 
 INS_MHEADER = "INSERT INTO mode_header (" + ",".join(MODE_HEADER_FIELDS) + \
-             ") VALUES (" + VALUE_SLOTS + ")"
+              ") VALUES (" + VALUE_SLOTS + ")"
 
 C_VALUE_SLOTS = '%s, ' * len(MODE_CTS_FIELDS)
 C_VALUE_SLOTS = C_VALUE_SLOTS[:-2]
 
 INS_CHEADER = "INSERT INTO mode_cts (" + ",".join(MODE_CTS_FIELDS) + \
               ") VALUES (" + C_VALUE_SLOTS + ")"
+
+S_VALUE_SLOTS = '%s, ' * len(MODE_SINGLE_FIELDS)
+S_VALUE_SLOTS = S_VALUE_SLOTS[:-2]
+
+INS_SHEADER = "INSERT INTO mode_obj_single (" + ",".join(MODE_SINGLE_FIELDS) + \
+              ") VALUES (" + S_VALUE_SLOTS + ")"
+
+P_VALUE_SLOTS = '%s, ' * len(MODE_PAIR_FIELDS)
+P_VALUE_SLOTS = P_VALUE_SLOTS[:-2]
+
+INS_PHEADER = "INSERT INTO mode_obj_pair (" + ",".join(MODE_PAIR_FIELDS) + \
+              ") VALUES (" + P_VALUE_SLOTS + ")"

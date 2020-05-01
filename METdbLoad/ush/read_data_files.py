@@ -232,6 +232,10 @@ class ReadDataFiles:
                         hdr_names = file_hdr.columns.tolist()
                         hdr_names = [hdr.lower() for hdr in hdr_names]
 
+                        # change field name after intensity_90 to be intensity_nn
+                        if 'intensity_90' in hdr_names:
+                            hdr_names[hdr_names.index('intensity_90') + 1] = 'intensity_nn'
+
                         # read the file
                         mode_file = self.read_mode(filename, hdr_names)
 
@@ -245,6 +249,12 @@ class ReadDataFiles:
                             mode_file.insert(3, CN.GRID_RES, CN.MV_NULL)
                         if CN.DESCR not in hdr_names:
                             mode_file.insert(4, CN.DESCR, CN.NOTAV)
+
+                        if CN.ASPECT_DIFF not in hdr_names:
+                            mode_file[CN.ASPECT_DIFF] = CN.MV_NOTAV
+
+                        if CN.CURV_RATIO not in hdr_names:
+                            mode_file[CN.CURV_RATIO] = CN.MV_NOTAV
 
                         # add units if input file does not have them
                         if CN.FCST_UNITS not in hdr_names:
@@ -702,11 +712,6 @@ class ReadDataFiles:
 
                 self.mode_obj_data = all_single
 
-                # maybe this should be done in a write routine
-                # all_pair = all_single[all_single[CN.OBJECT_ID].str.contains('_')]
-                # all_single = \
-                #    all_single.drop(all_single[all_single[CN.OBJECT_ID].str.contains('_')].index)
-
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data middle ***", sys.exc_info()[0])
 
@@ -724,27 +729,30 @@ class ReadDataFiles:
                     logging.warning("line types: %s",
                                     str(all_stat.iloc[invalid_line_indexes].line_type))
 
-                    all_stat = all_stat.drop(invalid_line_indexes, axis=0)
+                    all_stat.drop(invalid_line_indexes, axis=0, inplace=True)
 
                 # if user specified line types to load, delete the rest
                 if load_flags["line_type_load"]:
-                    all_stat = all_stat.drop(all_stat[~all_stat.line_type.isin(line_types)].index)
+                    all_stat.drop(all_stat[~all_stat.line_type.isin(line_types)].index,
+                                  inplace=True)
 
                 # if load_spec has flag to not load MPR records, delete them
                 if not load_flags["load_mpr"]:
-                    all_stat = all_stat.drop(all_stat[all_stat.line_type == CN.MPR].index)
+                    all_stat.drop(all_stat[all_stat.line_type == CN.MPR].index, inplace=True)
 
                 # if load_spec has flag to not load ORANK records, delete them
                 if not load_flags["load_orank"]:
-                    all_stat = all_stat.drop(all_stat[all_stat.line_type == CN.ORANK].index)
+                    all_stat.drop(all_stat[all_stat.line_type == CN.ORANK].index, inplace=True)
 
                 # reset the index, in case any lines have been deleted
                 all_stat.reset_index(drop=True, inplace=True)
 
-                # all lines from a file may have been deleted. if so, remove filename
+                # if all lines from a stat or vsdb file were deleted, remove filename
                 files_to_drop = ~self.data_files.index.isin(all_stat[CN.FILE_ROW])
-                self.data_files = \
-                    self.data_files.drop(self.data_files[files_to_drop].index)
+                files_stat = self.data_files[CN.DATA_FILE_LU_ID].isin([CN.VSDB_POINT_STAT,
+                                                                       CN.STAT])
+                self.data_files.drop(self.data_files[files_to_drop & files_stat].index,
+                                     inplace=True)
 
                 self.data_files.reset_index(drop=True, inplace=True)
 

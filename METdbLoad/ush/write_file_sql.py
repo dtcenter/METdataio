@@ -69,7 +69,7 @@ class WriteFileSql:
 
                 # If you find a match, check the force_dup_file tag/flag
                 if sql_cur.rowcount > 0:
-                    list_dupes = list_dupes + [row_num]
+                    list_dupes = list_dupes + [file_line[CN.FILE_ROW]]
                     if not load_flags['force_dup_file']:
                         logging.warning("!!! Duplicate file %s without FORCE_DUP_FILE tag",
                                         file_line[CN.FULL_FILE])
