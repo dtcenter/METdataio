@@ -316,6 +316,7 @@ class ReadDataFiles:
             # added sort=False on 10/21/19 because that will be new default behavior
             if list_frames:
                 all_stat = pd.concat(list_frames, ignore_index=True, sort=False)
+                list_frames = []
 
                 # if a fcst percentage thresh is used, it is in parens in fcst_thresh
                 if all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False).any():
@@ -664,13 +665,15 @@ class ReadDataFiles:
                 # end for vsdb_type
 
                 # Clear out all_vsdb, which we copied from above, line_type by line_type
-                all_vsdb = pd.DataFrame()
+                all_vsdb = all_vsdb.iloc[0:0]
                 # combine stat and vsdb
                 all_vsdb = pd.concat(list_vsdb, ignore_index=True, sort=False)
                 all_stat = pd.concat([all_stat, all_vsdb], ignore_index=True, sort=False)
+                all_vsdb = all_vsdb.iloc[0:0]
 
             if list_cts:
                 all_cts = pd.concat(list_cts, ignore_index=True, sort=False)
+                list_cts = []
 
                 # Copy forecast lead times, without trailing 0000 if they have them
                 all_cts[CN.FCST_LEAD_HR] = \
@@ -687,10 +690,12 @@ class ReadDataFiles:
                 all_cts[CN.LINE_TYPE_LU_ID] = 19
 
                 self.mode_cts_data = all_cts
+                all_cts = all_cts.iloc[0:0]
 
             if list_obj:
                 # gather all mode lines
                 all_single = pd.concat(list_obj, ignore_index=True, sort=False)
+                list_obj = []
 
                 # Copy forecast lead times, without trailing 0000 if they have them
                 all_single[CN.FCST_LEAD_HR] = \
@@ -711,6 +716,7 @@ class ReadDataFiles:
                                CN.LINE_TYPE_LU_ID] = 18
 
                 self.mode_obj_data = all_single
+                all_single = all_single.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data middle ***", sys.exc_info()[0])
@@ -770,6 +776,7 @@ class ReadDataFiles:
                 logging.debug("Shape of all_stat after transforms: %s", str(all_stat.shape))
 
                 self.stat_data = all_stat
+                all_stat = all_stat.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data near end ***", sys.exc_info()[0])
