@@ -127,6 +127,7 @@ class WriteModeSql:
                 obj_data = obj_data.rename(columns={'axis_ang': 'axis_avg'})
                 # put the header ids back into the dataframes
                 obj_data = pd.merge(left=mode_headers, right=obj_data, on=CN.MODE_HEADER_KEYS)
+                mode_headers = mode_headers.iloc[0:0]
 
                 # round off floats
                 obj_data = obj_data.round(decimals=5)

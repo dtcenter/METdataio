@@ -92,6 +92,7 @@ class WriteStatSql:
 
             # put the header ids back into the dataframe of all the line data
             stat_data = pd.merge(left=stat_data, right=stat_headers)
+            stat_headers = stat_headers.iloc[0:0]
 
             # --------------------
             # Write Line Data
