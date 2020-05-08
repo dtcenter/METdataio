@@ -63,7 +63,6 @@ class ReadDataFiles:
         all_vsdb = pd.DataFrame()
         all_cts = pd.DataFrame()
         all_single = pd.DataFrame()
-        # all_pair = pd.DataFrame()
         list_frames = []
         list_vsdb = []
         list_cts = []
@@ -354,8 +353,9 @@ class ReadDataFiles:
                                      CN.OBS_THRESH].str.split(CN.L_PAREN).str[0]
 
                 # These warnings and transforms only apply to stat files
-                # give a warning message with data if value of alpha for an alpha line type is NA
-                alpha_lines = all_stat[(all_stat.line_type.isin(CN.ALPHA_LINE_TYPES)) &
+                # Give a warning message with data if value of alpha for an alpha line type is NA
+                # Do not check CNT and PSTD, even though they are alpha line types
+                alpha_lines = all_stat[(all_stat.line_type.isin(CN.ALPHA_LINE_TYPES[:-2])) &
                                        (all_stat.alpha == CN.NOTAV)].line_type
                 if not alpha_lines.empty:
                     logging.warning("!!! ALPHA line_type has ALPHA value of NA:\r\n %s",
@@ -386,6 +386,17 @@ class ReadDataFiles:
                 if all_stat[CN.LINE_TYPE].eq(CN.PCT).any():
                     all_stat.loc[all_stat.line_type == CN.PCT, '1'] = \
                         all_stat.loc[all_stat.line_type == CN.PCT, '1'] - 1
+
+                # RPS lines in stat files may be missing rps_comp
+                # if rps_comp IS null and rps is NOT null,
+                # set rps_comp to 1 minus rps
+                if all_stat[CN.LINE_TYPE].eq(CN.RPS).any():
+                    all_stat.loc[(all_stat.line_type == CN.RPS) & \
+                                 (all_stat['8'].isnull()) & \
+                                 (~all_stat['5'].isnull()), '8'] = \
+                        1 - all_stat.loc[(all_stat.line_type == CN.RPS) & \
+                                         (all_stat['8'].isnull()) & \
+                                         (~all_stat['5'].isnull()), '5']
 
             # collect vsdb files separately so additional transforms can be done
             if list_vsdb:

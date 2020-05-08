@@ -104,6 +104,8 @@ RELP = "RELP"      # Relative Position
 ECNT = "ECNT"      # Ensemble Continuous Statistics - only for HiRA
 ENSCNT = "ENSCNT"  #
 PERC = "PERC"      #
+DMAP = "DMAP"      # Distance Map
+RPS = "RPS"        # Ranked Probability Score
 
 # VSDB line types
 BSS = "BSS"        # same as PSTD
@@ -118,13 +120,14 @@ FSS = "FSS"        # same as NBRCNT
 
 UC_LINE_TYPES = [FHO, CTC, CTS, MCTC, MCTS, CNT, SL1L2, SAL1L2, VL1L2, VAL1L2,
                  PCT, PSTD, PJC, PRC, ECLV, MPR, NBRCTC, NBRCTS, NBRCNT, ISC,
-                 RHIST, PHIST, ORANK, SSVAR, GRAD, VCNT, RELP, ECNT, ENSCNT, PERC]
+                 RHIST, PHIST, ORANK, SSVAR, GRAD, VCNT, RELP, ECNT, ENSCNT, PERC,
+                 DMAP, RPS]
 
 LC_LINE_TYPES = [ltype.lower() for ltype in UC_LINE_TYPES]
 
 LINE_TABLES = ['line_data_' + hname for hname in LC_LINE_TYPES]
 
-ALPHA_LINE_TYPES = [CTS, CNT, PSTD, NBRCTS, NBRCNT, MCTS, SSVAR, VCNT]
+ALPHA_LINE_TYPES = [CTS, NBRCTS, NBRCNT, MCTS, SSVAR, VCNT, DMAP, RPS, CNT, PSTD]
 
 COV_THRESH_LINE_TYPES = [NBRCTC, NBRCTS, PCT, PSTD, PJC, PRC]
 
@@ -332,6 +335,12 @@ LINE_DATA_FIELDS[CTS] = ALPH_LINE_DATA_FIELDS + \
                          'sedi', 'sedi_ncl', 'sedi_ncu', 'sedi_bcl', 'sedi_bcu',
                          'bagss', 'bagss_bcl', 'bagss_bcu']
 
+LINE_DATA_FIELDS[DMAP] = ALPH_LINE_DATA_FIELDS + \
+                         ['fy', 'oy', 'fbias', 'baddeley', 'hausdorff',
+                          'med_fo', 'med_of', 'med_min', 'med_max', 'med_mean',
+                          'fom_fo', 'fom_of', 'fom_min', 'fom_max', 'fom_mean',
+                          'zhu_fo', 'zhu_of', 'zhu_min', 'zhu_max', 'zhu_mean']
+
 LINE_DATA_FIELDS[ECLV] = TOT_LINE_DATA_FIELDS + \
                          [BASER, 'value_baser', 'n_pnt']
 
@@ -433,6 +442,10 @@ LINE_DATA_FIELDS[RELP] = TOT_LINE_DATA_FIELDS + \
 
 LINE_DATA_FIELDS[RHIST] = TOT_LINE_DATA_FIELDS + \
                           ['n_rank']
+
+LINE_DATA_FIELDS[RPS] = ALPH_LINE_DATA_FIELDS + \
+                         ['n_prob', 'rps_rel', 'rps_res', 'rps_unc', 'rps',
+                          'rpss', 'rpss_smpl', 'rps_comp']
 
 LINE_DATA_FIELDS[SL1L2] = TOT_LINE_DATA_FIELDS + \
                           ['fbar', 'obar', 'fobar', 'ffbar', 'oobar', 'mae']
