@@ -117,8 +117,7 @@ class WriteModeSql:
             if not cts_data.empty:
                 # put the header ids back into the dataframes
                 cts_data = pd.merge(left=mode_headers, right=cts_data, on=CN.MODE_HEADER_KEYS)
-                # round off floats
-                cts_data = cts_data.round(decimals=5)
+
                 sql_met.write_to_sql(cts_data, CN.MODE_CTS_FIELDS, CN.MODE_CTS_T,
                                      CN.INS_CHEADER, sql_cur, local_infile)
 
@@ -128,9 +127,6 @@ class WriteModeSql:
                 # put the header ids back into the dataframes
                 obj_data = pd.merge(left=mode_headers, right=obj_data, on=CN.MODE_HEADER_KEYS)
                 mode_headers = mode_headers.iloc[0:0]
-
-                # round off floats
-                obj_data = obj_data.round(decimals=5)
 
                 # intensity values can be NA, which causes MySQL warning
                 # replace is done to achieve desired MySQL output of NULL

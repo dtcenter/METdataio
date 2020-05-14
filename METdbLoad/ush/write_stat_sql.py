@@ -117,11 +117,6 @@ class WriteStatSql:
                 # change all Not Available values to METviewer not available (-9999)
                 line_data = line_data.replace('NA', CN.MV_NOTAV)
 
-                # change float numbers to have limited digits after the decimal point
-                # line_data = np.round(line_data, decimals=7)
-                line_data[CN.COL_NUMS[3:]] = line_data[CN.COL_NUMS[3:]].astype(float)
-                line_data = line_data.round(decimals=5)
-
                 # Only variable length lines have a line_data_id
                 if line_type in CN.VAR_LINE_TYPES:
                     # Get next valid line data id. Set it to zero (first valid id) if no records yet
