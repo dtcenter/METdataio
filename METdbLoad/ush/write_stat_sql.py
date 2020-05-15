@@ -52,8 +52,9 @@ class WriteStatSql:
             # --------------------
 
             # find the unique headers for this current load job
-            # for now, including VERSION to make pandas code easier - unlike MVLoad
-            stat_headers = stat_data[CN.STAT_HEADER_KEYS].drop_duplicates()
+            # Do not include Version, as MVLoad does not
+            stat_headers = stat_data[CN.STAT_HEADER_KEYS].copy()
+            stat_headers.drop_duplicates(CN.STAT_HEADER_KEYS[1:], keep='first', inplace=True)
             stat_headers.reset_index(drop=True, inplace=True)
 
             # At first, we do not know if the headers already exist, so we have no keys
@@ -67,7 +68,7 @@ class WriteStatSql:
 
                 # For each header, query with unique fields to try to find a match in the database
                 for row_num, data_line in stat_headers.iterrows():
-                    sql_cur.execute(CN.Q_HEADER, data_line.values[:-1].tolist())
+                    sql_cur.execute(CN.Q_HEADER, data_line.values[1:-1].tolist())
                     result = sql_cur.fetchone()
 
                     # If you find a match, put the key into the stat_headers dataframe

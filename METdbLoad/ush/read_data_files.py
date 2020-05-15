@@ -325,7 +325,7 @@ class ReadDataFiles:
                                  CN.FCST_PERC] = \
                         all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False) &
                                      all_stat.fcst_thresh.str.contains(CN.R_PAREN, regex=False),
-                                     CN.FCST_THRESH].str.split(CN.L_PAREN, regex=False).str[1]. \
+                                     CN.FCST_THRESH].str.split(CN.L_PAREN).str[1]. \
                             str.split(CN.R_PAREN).str[0].astype(float)
                     # remove the percentage from fcst_thresh
                     all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False) &
@@ -397,6 +397,11 @@ class ReadDataFiles:
                         1 - all_stat.loc[(all_stat.line_type == CN.RPS) & \
                                          (all_stat['8'].isnull()) & \
                                          (~all_stat['5'].isnull()), '5']
+
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in read_data if list_frames ***", sys.exc_info()[0])
+
+        try:
 
             # collect vsdb files separately so additional transforms can be done
             if list_vsdb:
@@ -682,6 +687,10 @@ class ReadDataFiles:
                 all_stat = pd.concat([all_stat, all_vsdb], ignore_index=True, sort=False)
                 all_vsdb = all_vsdb.iloc[0:0]
 
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in read_data if list_vsdb ***", sys.exc_info()[0])
+
+        try:
             if list_cts:
                 all_cts = pd.concat(list_cts, ignore_index=True, sort=False)
                 list_cts = []
@@ -730,7 +739,8 @@ class ReadDataFiles:
                 all_single = all_single.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data middle ***", sys.exc_info()[0])
+            logging.error("*** %s in read_data if list_cts or list_obj ***",
+                          sys.exc_info()[0])
 
         try:
             if not all_stat.empty:

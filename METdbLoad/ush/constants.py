@@ -198,7 +198,7 @@ Q_FILE = "SELECT data_file_id FROM data_file WHERE " + \
          "path=%s AND filename=%s"
 
 Q_HEADER = "SELECT stat_header_id FROM stat_header WHERE " + \
-           "=%s AND ".join(STAT_HEADER_KEYS) + "=%s"
+           "=%s AND ".join(STAT_HEADER_KEYS[1:]) + "=%s"
 
 Q_METADATA = "SELECT category, description FROM metadata"
 
@@ -232,11 +232,7 @@ INSTANCE_INFO_ID = 'instance_info_id'
 DATA_FILE_FIELDS = [DATA_FILE_ID, DATA_FILE_LU_ID, FILENAME, FILEPATH,
                     LOAD_DATE, MOD_DATE]
 
-STAT_HEADER_FIELDS = [STAT_HEADER_ID, VERSION, MODEL, DESCR,
-                      FCST_VAR, FCST_UNITS, FCST_LEV,
-                      OBS_VAR, OBS_UNITS, OBS_LEV,
-                      OBTYPE, VX_MASK, INTERP_MTHD, INTERP_PNTS,
-                      FCST_THRESH, OBS_THRESH]
+STAT_HEADER_FIELDS = [STAT_HEADER_ID] + STAT_HEADER_KEYS
 
 VALUE_SLOTS = '%s, ' * len(STAT_HEADER_FIELDS)
 VALUE_SLOTS = VALUE_SLOTS[:-2]

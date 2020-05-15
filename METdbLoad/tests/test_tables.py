@@ -54,8 +54,9 @@ def run_query(query_txt, sql_cur):
 QUERY_COUNT = 20
 
 # *** stat_header records
-q_header = 'SELECT * from stat_header order by stat_header_id limit ' + \
-           str(QUERY_COUNT) + ';'
+q_header = 'SELECT * from stat_header ' + \
+           'order by model, fcst_var, fcst_lev, vx_mask, fcst_thresh ' + \
+           'limit ' + str(QUERY_COUNT) + ';'
 
 # show row counts
 print("\n*** Row count for stat_header tables")
