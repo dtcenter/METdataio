@@ -149,6 +149,10 @@ class WriteStatSql:
                         if line_type in [CN.PJC, CN.PRC]:
                             var_count = var_count - 1
 
+                        # VSDB and STAT values for sets of repeating vars may be different
+                        if line_type == 'CN.ECLV':
+                            var_count = var_index - 1
+
                         # reset to original value
                         var_index = orig_index
 

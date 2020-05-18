@@ -608,8 +608,8 @@ class ReadDataFiles:
                             last_point = last_point - 1
                         one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +
                                              CN.COL_NAS[:2] + [CN.N_VAR] +
-                                             CN.COL_NUMS[0:35] +
-                                             CN.COL_NAS[:57] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             CN.COL_NUMS[0:36] +
+                                             CN.COL_NAS[:56] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.PSTD:
                         one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +
