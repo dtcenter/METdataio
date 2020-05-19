@@ -92,8 +92,13 @@ class WriteStatSql:
                                      CN.INS_HEADER, sql_cur, local_infile)
 
             # put the header ids back into the dataframe of all the line data
-            stat_data = pd.merge(left=stat_data, right=stat_headers)
+            stat_data = pd.merge(left=stat_data, right=stat_headers, on=CN.STAT_HEADER_KEYS[1:])
+            # Merging with limited keys renames the version column, change it back
+            if 'version_x' in stat_data.columns:
+                stat_data = stat_data.rename(columns={'version_x': CN.VERSION})
+            # Clean out the headers working dataframes
             stat_headers = stat_headers.iloc[0:0]
+            new_headers = new_headers.iloc[0:0]
 
             # --------------------
             # Write Line Data
