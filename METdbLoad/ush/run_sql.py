@@ -18,6 +18,8 @@ Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 import sys
 import os
 import logging
+import time
+from datetime import timedelta
 import pymysql
 
 import constants as CN
@@ -97,7 +99,7 @@ class RunSql:
                 next_id = result[0] + 1
             return next_id
 
-        except (RuntimeError, TypeError, NameError, KeyError):
+        except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
             logging.error("*** %s in write_sql_data get_next_id ***", sys.exc_info()[0])
 
     @staticmethod
@@ -132,5 +134,40 @@ class RunSql:
                 dfile = raw_data[col_list].values.tolist()
                 sql_cur.executemany(sql_query, dfile)
 
-        except (RuntimeError, TypeError, NameError, KeyError):
+        except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
             logging.error("*** %s in run_sql write_to_sql ***", sys.exc_info()[0])
+
+    @staticmethod
+    def apply_indexes(drop, sql_cur):
+        """
+        If user sets tag apply_indexes to true, try to create all indexes
+        If user sets tag drop_indexes to true, try to drop all indexes
+        """
+        logging.debug("[--- Start apply_indexes ---]")
+
+        apply_time_start = time.perf_counter()
+
+        try:
+            if drop:
+                sql_array = CN.DROP_INDEXES_QUERIES
+                logging.info("--- *** --- Dropping Indexes --- *** ---")
+            else:
+                sql_array = CN.CREATE_INDEXES_QUERIES
+                logging.info("--- *** --- Loading Indexes --- *** ---")
+
+            for sql_cmd in sql_array:
+                sql_cur.execute(sql_cmd)
+
+        except pymysql.InternalError:
+            if drop:
+                logging.error("*** Index to drop does not exist in run_sql apply_indexes ***")
+            else:
+                logging.error("*** Index to add already exists in run_sql apply_indexes ***")
+
+        apply_time_end = time.perf_counter()
+        apply_time = timedelta(seconds=apply_time_end - apply_time_start)
+
+        logging.info("    >>> Apply time: %s", str(apply_time))
+
+        logging.debug("[--- End apply_indexes ---]")
+            

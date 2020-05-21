@@ -102,7 +102,7 @@ class WriteFileSql:
                                            inplace=True)
 
                 if not mode_obj_data.empty and list_dupes:
-                    if mode_cts_data.file_row.isin(list_dupes).any():
+                    if mode_obj_data.file_row.isin(list_dupes).any():
                         mode_obj_data.drop(mode_obj_data[mode_obj_data.file_row
                                                          .isin(list_dupes)].index,
                                            inplace=True)

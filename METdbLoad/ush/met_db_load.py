@@ -73,9 +73,24 @@ def main():
         logging.error("*** %s occurred in Main reading XML ***", sys.exc_info()[0])
         sys.exit("*** Error reading XML")
 
-    # if -index is used, only process the index
-    if args.index:
-        logging.debug("-index is true - only process index")
+    #
+    # If argument -index is used, only process the index
+    #
+    if args.index and xml_loadfile.flags["apply_indexes"]:
+        try:
+            if xml_loadfile.connection['db_management_system'] in CN.RELATIONAL:
+                sql_run = RunSql()
+                sql_run.sql_on(xml_loadfile.connection)
+                sql_run.apply_indexes(False, sql_run.cur)
+                logging.debug("-index is true - only process index")
+                if sql_run.conn.open:
+                    sql_run.sql_off(sql_run.conn, sql_run.cur)
+            sys.exit("*** Only processing index with -index as argument")
+        except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
+            if sql_run.conn.open:
+                sql_run.sql_off(sql_run.conn, sql_run.cur)
+            logging.error("*** %s occurred in Main processing index ***", sys.exc_info()[0])
+            sys.exit("*** Error processing index")
 
     #
     #  Purge files if flags set to not load certain types of files
@@ -150,6 +165,10 @@ def main():
                     sql_run = RunSql()
                     sql_run.sql_on(xml_loadfile.connection)
 
+                #  if drop_indexes is set to true, drop the indexes
+                if xml_loadfile.flags["drop_indexes"]:
+                    sql_run.apply_indexes(True, sql_run.cur)
+
                 # write the data file records out. put data file ids into other dataframes
                 write_file = WriteFileSql()
                 updated_data = write_file.write_file_sql(xml_loadfile.flags,
@@ -169,7 +188,6 @@ def main():
                     logging.warning("!!! No data to load in current set %s", str(set_count))
                     # move indices to the next set of files
                     first_file, mid_file, last_file = next_set(first_file, mid_file, last_file)
-                    continue
 
                 if not file_data.stat_data.empty:
                     stat_lines = WriteStatSql()
@@ -179,7 +197,7 @@ def main():
                                               sql_run.cur,
                                               sql_run.local_infile)
 
-                if not file_data.mode_cts_data.empty or not file_data.mode_obj_data.empty:
+                if (not file_data.mode_cts_data.empty) or (not file_data.mode_obj_data.empty):
                     cts_lines = WriteModeSql()
 
                     cts_lines.write_mode_data(xml_loadfile.flags,
@@ -188,14 +206,21 @@ def main():
                                               sql_run.cur,
                                               sql_run.local_infile)
 
+                # Processing for the last set of data
                 if mid_file >= last_file:
-                    write_file.write_metadata_sql(xml_loadfile.flags,
-                                                  file_data.data_files,
-                                                  xml_loadfile.group,
-                                                  xml_loadfile.description,
-                                                  xml_loadfile.load_note,
-                                                  xml_loadfile.xml_str,
-                                                  sql_run.cur)
+                    # If any data was written, write to the metadata and instance_info tables
+                    if not file_data.data_files.empty:
+                        write_file.write_metadata_sql(xml_loadfile.flags,
+                                                      file_data.data_files,
+                                                      xml_loadfile.group,
+                                                      xml_loadfile.description,
+                                                      xml_loadfile.load_note,
+                                                      xml_loadfile.xml_str,
+                                                      sql_run.cur)
+
+                    #  if apply_indexes is set to true, load the indexes
+                    if xml_loadfile.flags["apply_indexes"]:
+                        sql_run.apply_indexes(False, sql_run.cur)
 
                     if sql_run.conn.open:
                         sql_run.sql_off(sql_run.conn, sql_run.cur)
