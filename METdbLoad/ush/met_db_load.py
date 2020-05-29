@@ -144,6 +144,8 @@ def main():
                                 current_files,
                                 xml_loadfile.line_types)
 
+            current_files = []
+
             if file_data.data_files.empty:
                 logging.warning("!!! No files to load in current set %s", str(set_count))
                 # move indices to the next set of files
@@ -165,9 +167,9 @@ def main():
                     sql_run = RunSql()
                     sql_run.sql_on(xml_loadfile.connection)
 
-                #  if drop_indexes is set to true, drop the indexes
-                if xml_loadfile.flags["drop_indexes"]:
-                    sql_run.apply_indexes(True, sql_run.cur)
+                    #  if drop_indexes is set to true, drop the indexes
+                    if xml_loadfile.flags["drop_indexes"]:
+                        sql_run.apply_indexes(True, sql_run.cur)
 
                 # write the data file records out. put data file ids into other dataframes
                 write_file = WriteFileSql()

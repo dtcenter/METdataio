@@ -4,6 +4,8 @@
 # pylint:disable=no-member
 # constants exist in constants.py
 
+from collections import OrderedDict
+
 # name to use for a group when no group tag is included in load_spec
 DEFAULT_DATABASE_GROUP = "NO GROUP"
 
@@ -12,7 +14,7 @@ MAX_COL = 120
 
 # Maximum number of files to load at a time
 # Goal is to not max out memory
-MAX_FILES = 1000
+MAX_FILES = 100
 
 COL_NUMS = [str(x) for x in range(MAX_COL - 24)]
 
@@ -59,6 +61,22 @@ R_PAREN = ')'
 
 # Triple zero for tests for MODE files
 T_ZERO = '000'
+
+# Characters expected in dates
+DATE_CHARS = set('yYmMdDhHIsSfzj')
+
+# Substitutions, Java date format to Python
+DATE_SUBS = OrderedDict([('yyyy', '%Y'),
+                         ('yy', '%y'),
+                         ('MM', '%m'),
+                         ('dd', '%d'),
+                         ('hh', '%I'),
+                         ('HH', '%H'),
+                         ('mm', '%M'),
+                         ('SSS', '%f'),
+                         ('ss', '%S'),
+                         ('z', '%z'),
+                         ('D', '%j')])
 
 # Generic count of variable fields
 N_VAR = 'n_var'
