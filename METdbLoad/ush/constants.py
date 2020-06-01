@@ -63,7 +63,7 @@ R_PAREN = ')'
 T_ZERO = '000'
 
 # Characters expected in dates
-DATE_CHARS = set('yYmMdDhHIsSfzj')
+DATE_CHARS = set('yYmMdDhHsSz')
 
 # Substitutions, Java date format to Python
 DATE_SUBS = OrderedDict([('yyyy', '%Y'),

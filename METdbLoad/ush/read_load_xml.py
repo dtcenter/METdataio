@@ -20,10 +20,6 @@ import os
 from pathlib import Path
 import logging
 import pandas as pd
-import time
-from datetime import datetime
-from datetime import timedelta
-from collections import OrderedDict
 from lxml import etree
 
 import constants as CN
@@ -220,30 +216,9 @@ class XmlLoadFile:
 
         logging.debug("db_name is: %s", self.connection['db_name'])
 
-        try:
-
-            # if the date_list tag is included, generate a list of dates
-            if "start" in date_list.keys() and "end" in date_list.keys():
-                date_format = date_list["format"]
-                # check to make sure that the date format string only has known characters
-                if set(date_format) <= CN.DATE_CHARS:
-                    # Change the java formatting string to a Python formatting string
-                    for java_date, python_date in CN.DATE_SUBS.items():
-                        date_format = date_format.replace(java_date, python_date)
-                    date_start = pd.to_datetime(date_list["start"], format=date_format)
-                    date_end = pd.to_datetime(date_list["end"], format=date_format)
-                    date_inc = int(date_list["inc"])
-                    all_dates = []
-                    while date_start < date_end:
-                        all_dates.append(date_start.strftime(date_format))
-                        date_start = date_start + pd.Timedelta(seconds=date_inc)
-                    all_dates.append(date_end.strftime(date_format))
-                else:
-                    logging.error("*** date_list tag has unknown characters ***")
-
-        except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_xml ***", sys.exc_info()[0])
-            sys.exit("*** Error(s) found while processing date_list tag!")
+        # if the date_list tag is included, generate a list of dates
+        if "start" in date_list.keys() and "end" in date_list.keys():
+            all_dates = self.filenames_from_date(date_list)
 
         # if the folder template tag is used
         if folder_template is not None:
@@ -266,6 +241,42 @@ class XmlLoadFile:
 
         logging.debug("[--- End read_xml ---]")
 
+    @staticmethod
+    def filenames_from_date(date_list):
+        """! given date format, start and end dates, and increment, generates list of dates
+            Returns:
+               list of dates
+        """
+        logging.debug("date format is: %s", date_list["format"])
+
+        try:
+            date_format = date_list["format"]
+            # check to make sure that the date format string only has known characters
+            if set(date_format) <= CN.DATE_CHARS:
+                # Change the java formatting string to a Python formatting string
+                for java_date, python_date in CN.DATE_SUBS.items():
+                    date_format = date_format.replace(java_date, python_date)
+                # format the start and end dates
+                date_start = pd.to_datetime(date_list["start"], format=date_format)
+                date_end = pd.to_datetime(date_list["end"], format=date_format)
+                date_inc = int(date_list["inc"])
+                all_dates = []
+                while date_start < date_end:
+                    all_dates.append(date_start.strftime(date_format))
+                    date_start = date_start + pd.Timedelta(seconds=date_inc)
+                all_dates.append(date_end.strftime(date_format))
+            else:
+                logging.error("*** date_list tag has unknown characters ***")
+
+        except ValueError as value_error:
+            logging.error("*** %s in filenames_from_date ***", sys.exc_info()[0])
+            logging.error(value_error)
+            sys.exit("*** Value Error found while expanding XML date format!")
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in filenames_from_date ***", sys.exc_info()[0])
+            sys.exit("*** Error found while expanding XML date format!")
+
+        return all_dates
 
     @staticmethod
     def filenames_from_template(folder_template, template_fills):
