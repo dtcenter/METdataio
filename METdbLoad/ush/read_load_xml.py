@@ -219,6 +219,8 @@ class XmlLoadFile:
         # if the date_list tag is included, generate a list of dates
         if "start" in date_list.keys() and "end" in date_list.keys():
             all_dates = self.filenames_from_date(date_list)
+        else:
+            all_dates = []
 
         # if the folder template tag is used
         if folder_template is not None:
