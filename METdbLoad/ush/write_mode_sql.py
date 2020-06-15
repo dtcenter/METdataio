@@ -9,7 +9,7 @@ Usage: Write mode files (cts and object) to a SQL database.
 Parameters: N/A
 Input Files: transformed dataframe of mode cts and object lines
 Output Files: N/A
-Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
+Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
 """
 
 # pylint:disable=no-member
@@ -236,6 +236,6 @@ class WriteModeSql:
         write_time_end = time.perf_counter()
         write_time = timedelta(seconds=write_time_end - write_time_start)
 
-        logging.info("    >>> Write time: %s", str(write_time))
+        logging.info("    >>> Write time Mode: %s", str(write_time))
 
         logging.debug("[--- End write_mode_sql ---]")

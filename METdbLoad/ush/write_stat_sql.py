@@ -9,7 +9,7 @@ Usage: Write stat files (MET and VSDB) to a SQL database.
 Parameters: N/A
 Input Files: transformed dataframe of MET and VSDB lines
 Output Files: N/A
-Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
+Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
 """
 
 # pylint:disable=no-member
@@ -76,7 +76,7 @@ class WriteStatSql:
                         stat_headers.loc[stat_headers.index[row_num], CN.STAT_HEADER_ID] = result[0]
                     else:
                         stat_headers.loc[stat_headers.index[row_num], CN.STAT_HEADER_ID] = \
-                        row_num + next_header_id
+                            row_num + next_header_id
             else:
                 # When all new headers, add the next id to the row number/index to make a new key
                 stat_headers.loc[stat_headers.stat_header_id == CN.NO_KEY, CN.STAT_HEADER_ID] = \
@@ -272,6 +272,6 @@ class WriteStatSql:
         write_time_end = time.perf_counter()
         write_time = timedelta(seconds=write_time_end - write_time_start)
 
-        logging.info("    >>> Write time: %s", str(write_time))
+        logging.info("    >>> Write time Stat: %s", str(write_time))
 
         logging.debug("[--- End write_sql_data ---]")

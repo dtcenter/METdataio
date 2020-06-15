@@ -50,7 +50,7 @@ class RunSql:
                                         port=connection['db_port'],
                                         user=connection['db_user'],
                                         passwd=connection['db_password'],
-                                        db=connection['db_name'],
+                                        db=connection['db_database'],
                                         local_infile=True)
 
         except pymysql.OperationalError as pop_err:
@@ -117,6 +117,8 @@ class RunSql:
                 raw_data[col_list].to_csv(tmpfile, na_rep=CN.MV_NOTAV,
                                           index=False, header=False, sep=CN.SEP)
                 sql_cur.execute(CN.LD_TABLE.format(tmpfile, sql_table, CN.SEP))
+                # delete the temporary CSV file
+                os.remove(tmpfile)
             else:
                 # fewer permissions required, but slower
                 # Make sure there are no NaN values

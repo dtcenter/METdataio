@@ -9,7 +9,7 @@ Usage: Read load_spec XML file
 Parameters: N/A
 Input Files: load_spec XML file
 Output Files: N/A
-Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
+Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
 """
 
 # pylint:disable=no-member
@@ -38,7 +38,7 @@ class XmlLoadFile:
         self.connection = {}
         self.connection['db_host'] = None
         self.connection['db_port'] = CN.SQL_PORT
-        self.connection['db_name'] = None
+        self.connection['db_database'] = None
         self.connection['db_user'] = None
         self.connection['db_password'] = None
         self.connection['db_management_system'] = "mysql"
@@ -103,23 +103,18 @@ class XmlLoadFile:
                     for subchild in list(child):
                         if subchild.tag.lower() == "host":
                             host_and_port = subchild.text.split(":")
-                        elif subchild.tag.lower() == "user":
-                            self.connection['db_user'] = subchild.text
-                        elif subchild.tag.lower() == "password":
-                            self.connection['db_password'] = subchild.text
-                        elif subchild.tag.lower() == "database":
-                            self.connection['db_name'] = subchild.text
-                        elif subchild.tag.lower() == "management_system":
-                            self.connection['db_management_system'] = subchild.text
+                        elif subchild.tag.lower() in ("user", "password", "database",
+                                                      "management_system"):
+                            self.connection["db_" + subchild.tag.lower()] = subchild.text
                     # separate out the port if there is one
                     self.connection['db_host'] = host_and_port[0]
                     if len(host_and_port) > 1:
                         self.connection['db_port'] = int(host_and_port[1])
-                    if (not self.connection['db_host']) or (not self.connection['db_name']):
+                    if (not self.connection['db_host']) or (not self.connection['db_database']):
                         logging.warning("!!! XML must include host and database tags")
                     if (not self.connection['db_user']) or (not self.connection['db_password']):
                         logging.warning("!!! XML must include user and passsword tags")
-                    if not self.connection['db_name'].startswith("mv_"):
+                    if not self.connection['db_database'].startswith("mv_"):
                         logging.warning("!!! Database not visible unless name starts with mv_")
                 elif child.tag.lower() == "load_files":
                     for subchild in list(child):
@@ -137,53 +132,22 @@ class XmlLoadFile:
                             elif template_value.tag.lower() == "date_list":
                                 template_values.append(template_value.get("name"))
                         template_fills[template_key] = template_values
+                # Handle the date_list tag and its child tags
                 elif child.tag.lower() == "date_list":
                     date_list["name"] = child.get("name")
                     for subchild in list(child):
-                        if subchild.tag.lower() == "start":
-                            date_list["start"] = subchild.text
-                        elif subchild.tag.lower() == "end":
-                            date_list["end"] = subchild.text
-                        elif subchild.tag.lower() == "inc":
-                            date_list["inc"] = subchild.text
-                        elif subchild.tag.lower() == "format":
-                            date_list["format"] = subchild.text
-                elif child.tag.lower() == "verbose":
+                        date_list[subchild.tag.lower()] = subchild.text
+                # Handle flags with a default of False
+                elif child.tag.lower() in ("verbose", "drop_indexes", "apply_indexes",
+                                           "load_mpr", "load_orank", "force_dup_file"):
                     if child.text.lower() == CN.LC_TRUE:
-                        self.flags['verbose'] = True
-                elif child.tag.lower() == "drop_indexes":
-                    if child.text.lower() == CN.LC_TRUE:
-                        self.flags['drop_indexes'] = True
-                elif child.tag.lower() == "apply_indexes":
-                    if child.text.lower() == CN.LC_TRUE:
-                        self.flags['apply_indexes'] = True
-                elif child.tag.lower() == "stat_header_db_check":
+                        self.flags[child.tag.lower()] = True
+                # Handle flags with a default of True
+                elif child.tag.lower() in ("stat_header_db_check", "mode_header_db_check",
+                                           "mtd_header_db_check", "load_stat",
+                                           "load_mode", "load_mtd", "load_xml"):
                     if child.text.lower() == CN.LC_FALSE:
-                        self.flags['stat_header_db_check'] = False
-                elif child.tag.lower() == "mode_header_db_check":
-                    if child.text.lower() == CN.LC_FALSE:
-                        self.flags['mode_header_db_check'] = False
-                elif child.tag.lower() == "mtd_header_db_check":
-                    if child.text.lower() == CN.LC_FALSE:
-                        self.flags['mtd_header_db_check'] = False
-                elif child.tag.lower() == "load_stat":
-                    if child.text.lower() == CN.LC_FALSE:
-                        self.flags['load_stat'] = False
-                elif child.tag.lower() == "load_mode":
-                    if child.text.lower() == CN.LC_FALSE:
-                        self.flags['load_mode'] = False
-                elif child.tag.lower() == "load_mtd":
-                    if child.text.lower() == CN.LC_FALSE:
-                        self.flags['load_mtd'] = False
-                elif child.tag.lower() == "load_mpr":
-                    if child.text.lower() == CN.LC_TRUE:
-                        self.flags['load_mpr'] = True
-                elif child.tag.lower() == "load_orank":
-                    if child.text.lower() == CN.LC_TRUE:
-                        self.flags['load_orank'] = True
-                elif child.tag.lower() == "force_dup_file":
-                    if child.text.lower() == CN.LC_TRUE:
-                        self.flags['force_dup_file'] = True
+                        self.flags[child.tag.lower()] = False
                 elif child.tag.lower() == "insert_size":
                     if child.text.isdigit():
                         self.insert_size = int(child.text)
@@ -195,9 +159,6 @@ class XmlLoadFile:
                 # load_note and load_xml are used to put a note in the database
                 elif child.tag.lower() == "load_note":
                     self.load_note = child.text
-                elif child.tag.lower() == "load_xml":
-                    if child.text.lower() == CN.LC_FALSE:
-                        self.flags['load_xml'] = False
                 # MET line types to load. If omitted, all line types are loaded
                 elif child.tag.lower() == "line_type":
                     self.flags['line_type_load'] = True
@@ -214,7 +175,7 @@ class XmlLoadFile:
             logging.error("*** %s in read_xml ***", sys.exc_info()[0])
             sys.exit("*** Error(s) found while reading XML file!")
 
-        logging.debug("db_name is: %s", self.connection['db_name'])
+        logging.info("database name is: %s", self.connection['db_database'])
 
         # if the date_list tag is included, generate a list of dates
         if "start" in date_list.keys() and "end" in date_list.keys():
@@ -239,7 +200,7 @@ class XmlLoadFile:
         # remove directory names
         self.load_files = [lf for lf in self.load_files if '.' in lf.split('/')[-1]]
 
-        logging.debug("Initial number of files: %s", str(len(self.load_files)))
+        logging.info("Initial number of files: %s", str(len(self.load_files)))
 
         logging.debug("[--- End read_xml ---]")
 

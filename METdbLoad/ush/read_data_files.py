@@ -9,7 +9,7 @@ Usage: Read data files given in load_spec file.
 Parameters: N/A
 Input Files: data files of type MET, VSDB, MODE, MTD
 Output Files: N/A
-Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
+Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
 """
 
 # pylint:disable=no-member
