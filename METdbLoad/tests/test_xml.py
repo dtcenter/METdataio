@@ -33,9 +33,9 @@ def test_loadgroup():
 
 def test_connection():
     """Read connection tags from XML file."""
-    assert XML_LOADFILE.connection['db_host'] == "137.75.129.120"
-    assert XML_LOADFILE.connection['db_port'] == 3312
-    assert XML_LOADFILE.connection['db_name'] == "mv_test_3"
+    assert XML_LOADFILE.connection['db_host'] == "192.168.0.42"
+    assert XML_LOADFILE.connection['db_port'] == 3306
+    assert XML_LOADFILE.connection['db_database'] == "mv_test_3"
     assert XML_LOADFILE.connection['db_user'] == "met_admin"
     assert XML_LOADFILE.connection['db_management_system'] == "mysql"
 

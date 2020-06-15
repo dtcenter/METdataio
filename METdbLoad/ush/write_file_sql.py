@@ -9,7 +9,7 @@ Usage: Write data_file records to a SQL database.
 Parameters: N/A
 Input Files: transformed dataframe of MET and VSDB lines
 Output Files: N/A
-Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
+Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
 """
 
 # pylint:disable=no-member
@@ -144,7 +144,7 @@ class WriteFileSql:
         write_time_end = time.perf_counter()
         write_time = timedelta(seconds=write_time_end - write_time_start)
 
-        logging.info("    >>> Write time: %s", str(write_time))
+        logging.info("    >>> Write time File: %s", str(write_time))
 
         logging.debug("[--- End write_file_sql ---]")
 
@@ -202,6 +202,6 @@ class WriteFileSql:
         write_time_end = time.perf_counter()
         write_time = timedelta(seconds=write_time_end - write_time_start)
 
-        logging.info("    >>> Write time: %s", str(write_time))
+        logging.info("    >>> Write time Metadata: %s", str(write_time))
 
         logging.debug("[--- End write_metadata_sql ---]")

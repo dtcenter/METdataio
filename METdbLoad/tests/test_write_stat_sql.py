@@ -4,12 +4,10 @@
 # pylint:disable=import-error
 # imported modules exist
 
-import pymysql
-
-# import constants as CN
-
 from read_load_xml import XmlLoadFile
 from read_data_files import ReadDataFiles
+from run_sql import RunSql
+from write_file_sql import WriteFileSql
 from write_stat_sql import WriteStatSql
 
 # Read in the XML load file
@@ -27,129 +25,141 @@ FILE_DATA.read_data(XML_LOADFILE.flags,
                     XML_LOADFILE.line_types)
 
 # Connect to the database
-CONN = pymysql.connect(host=XML_LOADFILE.connection['db_host'],
-                       port=XML_LOADFILE.connection['db_port'],
-                       user=XML_LOADFILE.connection['db_user'],
-                       passwd=XML_LOADFILE.connection['db_password'],
-                       db=XML_LOADFILE.connection['db_name'],
-                       local_infile=True)
-
-cur = CONN.cursor()
+sql_run = RunSql()
+sql_run.sql_on(XML_LOADFILE.connection)
 
 # clear the data if it exists
-cur.execute("delete from data_file;")
-cur.execute("delete from line_data_cnt;")
-cur.execute("delete from line_data_ctc;")
-cur.execute("delete from line_data_cts;")
-cur.execute("delete from line_data_cts;")
-cur.execute("delete from line_data_eclv;")
-cur.execute("delete from line_data_eclv_pnt;")
-cur.execute("delete from line_data_ecnt;")
-cur.execute("delete from line_data_enscnt;")
-cur.execute("delete from line_data_fho;")
-cur.execute("delete from line_data_grad;")
-cur.execute("delete from line_data_isc;")
-cur.execute("delete from line_data_mctc;")
-cur.execute("delete from line_data_mctc_cnt;")
-cur.execute("delete from line_data_mcts;")
-cur.execute("delete from line_data_mpr;")
-cur.execute("delete from line_data_nbrcnt;")
-cur.execute("delete from line_data_nbrctc;")
-cur.execute("delete from line_data_nbrcts;")
-cur.execute("delete from line_data_orank;")
-cur.execute("delete from line_data_orank_ens;")
-cur.execute("delete from line_data_pct;")
-cur.execute("delete from line_data_pct_thresh;")
-cur.execute("delete from line_data_perc;")
-cur.execute("delete from line_data_phist;")
-cur.execute("delete from line_data_phist_bin;")
-cur.execute("delete from line_data_pjc;")
-cur.execute("delete from line_data_pjc_thresh;")
-cur.execute("delete from line_data_prc;")
-cur.execute("delete from line_data_prc_thresh;")
-cur.execute("delete from line_data_pstd;")
-cur.execute("delete from line_data_pstd_thresh;")
-cur.execute("delete from line_data_relp;")
-cur.execute("delete from line_data_relp_ens;")
-cur.execute("delete from line_data_rhist;")
-cur.execute("delete from line_data_rhist_rank;")
-cur.execute("delete from line_data_sl1l2;")
-cur.execute("delete from line_data_sal1l2;")
-cur.execute("delete from line_data_ssvar;")
-cur.execute("delete from line_data_vl1l2;")
-cur.execute("delete from line_data_val1l2;")
-cur.execute("delete from line_data_vcnt;")
-cur.execute("delete from stat_header;")
-cur.execute("delete from instance_info;")
-cur.execute("delete from metadata;")
+sql_run.cur.execute("delete from data_file;")
+sql_run.cur.execute("delete from line_data_cnt;")
+sql_run.cur.execute("delete from line_data_ctc;")
+sql_run.cur.execute("delete from line_data_cts;")
+sql_run.cur.execute("delete from line_data_cts;")
+sql_run.cur.execute("delete from line_data_eclv;")
+sql_run.cur.execute("delete from line_data_eclv_pnt;")
+sql_run.cur.execute("delete from line_data_ecnt;")
+sql_run.cur.execute("delete from line_data_enscnt;")
+sql_run.cur.execute("delete from line_data_fho;")
+sql_run.cur.execute("delete from line_data_grad;")
+sql_run.cur.execute("delete from line_data_isc;")
+sql_run.cur.execute("delete from line_data_mctc;")
+sql_run.cur.execute("delete from line_data_mctc_cnt;")
+sql_run.cur.execute("delete from line_data_mcts;")
+sql_run.cur.execute("delete from line_data_mpr;")
+sql_run.cur.execute("delete from line_data_nbrcnt;")
+sql_run.cur.execute("delete from line_data_nbrctc;")
+sql_run.cur.execute("delete from line_data_nbrcts;")
+sql_run.cur.execute("delete from line_data_orank;")
+sql_run.cur.execute("delete from line_data_orank_ens;")
+sql_run.cur.execute("delete from line_data_pct;")
+sql_run.cur.execute("delete from line_data_pct_thresh;")
+sql_run.cur.execute("delete from line_data_perc;")
+sql_run.cur.execute("delete from line_data_phist;")
+sql_run.cur.execute("delete from line_data_phist;")
+sql_run.cur.execute("delete from line_data_phist_bin;")
+sql_run.cur.execute("delete from line_data_pjc;")
+sql_run.cur.execute("delete from line_data_pjc_thresh;")
+sql_run.cur.execute("delete from line_data_prc;")
+sql_run.cur.execute("delete from line_data_prc_thresh;")
+sql_run.cur.execute("delete from line_data_pstd;")
+sql_run.cur.execute("delete from line_data_pstd_thresh;")
+sql_run.cur.execute("delete from line_data_relp;")
+sql_run.cur.execute("delete from line_data_relp_ens;")
+sql_run.cur.execute("delete from line_data_rhist;")
+sql_run.cur.execute("delete from line_data_rhist_rank;")
+sql_run.cur.execute("delete from line_data_sl1l2;")
+sql_run.cur.execute("delete from line_data_sal1l2;")
+sql_run.cur.execute("delete from line_data_ssvar;")
+sql_run.cur.execute("delete from line_data_vl1l2;")
+sql_run.cur.execute("delete from line_data_val1l2;")
+sql_run.cur.execute("delete from line_data_vcnt;")
+sql_run.cur.execute("delete from stat_header;")
+sql_run.cur.execute("delete from instance_info;")
+sql_run.cur.execute("delete from metadata;")
 
-STAT_LINES = WriteStatSql(XML_LOADFILE.connection)
+write_file = WriteFileSql()
+updated_data = write_file.write_file_sql(XML_LOADFILE.flags,
+                                         FILE_DATA.data_files,
+                                         FILE_DATA.stat_data,
+                                         FILE_DATA.mode_cts_data,
+                                         FILE_DATA.mode_obj_data,
+                                         sql_run.cur,
+                                         sql_run.local_infile)
+
+FILE_DATA.data_files = updated_data[0]
+FILE_DATA.stat_data = updated_data[1]
+
+STAT_LINES = WriteStatSql()
 
 STAT_LINES.write_sql_data(XML_LOADFILE.flags,
-                          FILE_DATA.data_files,
                           FILE_DATA.stat_data,
-                          XML_LOADFILE.group,
-                          XML_LOADFILE.description,
-                          XML_LOADFILE.load_note,
-                          XML_LOADFILE.xml_str)
+                          sql_run.cur,
+                          sql_run.local_infile)
+
+write_file.write_metadata_sql(XML_LOADFILE.flags,
+                              FILE_DATA.data_files,
+                              XML_LOADFILE.group,
+                              XML_LOADFILE.description,
+                              XML_LOADFILE.load_note,
+                              XML_LOADFILE.xml_str,
+                              sql_run.cur)
 
 def test_counts():
     """Count lines in database tables."""
 
     # Count the number of instance_info records created
-    cur.execute("SELECT COUNT(*) from instance_info;")
-    result = cur.fetchone()
+    sql_run.cur.execute("SELECT COUNT(*) from instance_info;")
+    result = sql_run.cur.fetchone()
     assert result[0] == 1
 
     # Count the number of metadata records created
-    cur.execute("SELECT COUNT(*) from metadata;")
-    result = cur.fetchone()
+    sql_run.cur.execute("SELECT COUNT(*) from metadata;")
+    result = sql_run.cur.fetchone()
     assert result[0] == 1
 
     # Count the number of data_file records created
-    cur.execute("SELECT COUNT(*) from data_file;")
-    result = cur.fetchone()
+    sql_run.cur.execute("SELECT COUNT(*) from data_file;")
+    result = sql_run.cur.fetchone()
     assert result[0] == 7
 
     # Count the number of stat_header records created
-    cur.execute("SELECT COUNT(*) from stat_header;")
-    result = cur.fetchone()
+    sql_run.cur.execute("SELECT COUNT(*) from stat_header;")
+    result = sql_run.cur.fetchone()
     assert result[0] == 368
 
     # Count the number of line_data_fho records created
-    cur.execute("SELECT COUNT(*) from line_data_fho;")
-    result = cur.fetchone()
+    sql_run.cur.execute("SELECT COUNT(*) from line_data_fho;")
+    result = sql_run.cur.fetchone()
     assert result[0] == 163
 
     # Count the number of line_data_ctc records created
-    cur.execute("SELECT COUNT(*) from line_data_ctc;")
-    result = cur.fetchone()
+    sql_run.cur.execute("SELECT COUNT(*) from line_data_ctc;")
+    result = sql_run.cur.fetchone()
     assert result[0] == 163
 
     # Count the number of line_data_cnt records created
-    cur.execute("SELECT COUNT(*) from line_data_cnt;")
-    result = cur.fetchone()
+    sql_run.cur.execute("SELECT COUNT(*) from line_data_cnt;")
+    result = sql_run.cur.fetchone()
     assert result[0] == 162
 
     # Count the number of line_data_sl1l2 records created
-    cur.execute("SELECT COUNT(*) from line_data_sl1l2;")
-    result = cur.fetchone()
+    sql_run.cur.execute("SELECT COUNT(*) from line_data_sl1l2;")
+    result = sql_run.cur.fetchone()
     assert result[0] == 10945
 
     # Count the number of line_data_cts records created
-    cur.execute("SELECT COUNT(*) from line_data_cts;")
-    result = cur.fetchone()
+    sql_run.cur.execute("SELECT COUNT(*) from line_data_cts;")
+    result = sql_run.cur.fetchone()
     assert result[0] == 326
 
     # Count the number of line_data_ecnt records created
-    cur.execute("SELECT COUNT(*) from line_data_ecnt;")
-    result = cur.fetchone()
+    sql_run.cur.execute("SELECT COUNT(*) from line_data_ecnt;")
+    result = sql_run.cur.fetchone()
     assert result[0] == 27
 
     # Count the number of line_data_grad records created
-    cur.execute("SELECT COUNT(*) from line_data_grad;")
-    result = cur.fetchone()
+    sql_run.cur.execute("SELECT COUNT(*) from line_data_grad;")
+    result = sql_run.cur.fetchone()
     assert result[0] == 3
 
-    cur.close()
-    CONN.close()
+    sql_run.cur.close()
+    sql_run.conn.close()

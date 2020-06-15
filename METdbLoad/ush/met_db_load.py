@@ -9,7 +9,7 @@ Usage: Load files into METdb
 Parameters: -index
 Input Files: load_spec XML file
 Output Files: N/A
-Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
+Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
 """
 
 # pylint:disable=import-error
@@ -39,10 +39,11 @@ def main():
         Returns:
            N/A
     """
-    # use the current date/time (without a space) as part of the log filename
+    # use the current date/time for logging
     begin_time = str(datetime.now())
 
-    logging.basicConfig(level=logging.DEBUG)
+    # Default logging level is INFO. Can be changed with XML tag verbose
+    logging.basicConfig(level=logging.INFO)
 
     logging.info("--- *** --- Start METdbLoad --- *** ---")
     logging.info("Begin time: %s", begin_time)
@@ -72,6 +73,12 @@ def main():
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main reading XML ***", sys.exc_info()[0])
         sys.exit("*** Error reading XML")
+
+    # If XML tag verbose is set to True, change logging to debug level
+    if xml_loadfile.flags["verbose"]:
+        for handler in logging.root.handlers[:]:
+            logging.root.removeHandler(handler)
+        logging.basicConfig(level=logging.DEBUG)
 
     #
     # If argument -index is used, only process the index
@@ -144,6 +151,8 @@ def main():
                                 current_files,
                                 xml_loadfile.line_types)
 
+            current_files = []
+
             if file_data.data_files.empty:
                 logging.warning("!!! No files to load in current set %s", str(set_count))
                 # move indices to the next set of files
@@ -165,9 +174,9 @@ def main():
                     sql_run = RunSql()
                     sql_run.sql_on(xml_loadfile.connection)
 
-                #  if drop_indexes is set to true, drop the indexes
-                if xml_loadfile.flags["drop_indexes"]:
-                    sql_run.apply_indexes(True, sql_run.cur)
+                    #  if drop_indexes is set to true, drop the indexes
+                    if xml_loadfile.flags["drop_indexes"]:
+                        sql_run.apply_indexes(True, sql_run.cur)
 
                 # write the data file records out. put data file ids into other dataframes
                 write_file = WriteFileSql()
