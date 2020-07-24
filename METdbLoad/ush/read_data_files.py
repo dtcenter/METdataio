@@ -525,7 +525,7 @@ class ReadDataFiles:
                         if not '6' in vsdb_data:
                             vsdb_data.insert(25, '6', CN.MV_NOTAV)
                         one_file = vsdb_data[CN.LONG_HEADER + CN.COL_NUMS[:7] +
-                                             CN.COL_NAS[:89] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             CN.COL_NAS[:94] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type in (CN.VL1L2, CN.GRAD):
                         # some VL1L2 files do not have f_speed_bar and o_speed_bar
@@ -534,11 +534,11 @@ class ReadDataFiles:
                         if not '9' in vsdb_data:
                             vsdb_data.insert(25, '9', CN.MV_NOTAV)
                         one_file = vsdb_data[CN.LONG_HEADER + CN.COL_NUMS[:10] +
-                                             CN.COL_NAS[:86] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             CN.COL_NAS[:91] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.VAL1L2:
                         one_file = vsdb_data[CN.LONG_HEADER + CN.COL_NUMS[:8] +
-                                             CN.COL_NAS[:88] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             CN.COL_NAS[:93] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.RHIST:
                         # rhist ranks need to be multiplied by 100. First convert to float.
@@ -547,7 +547,7 @@ class ReadDataFiles:
                         vsdb_data[CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1]]] *= 100
                         one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC, CN.N_VAR] +
                                              CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1]] +
-                                             CN.COL_NAS[:(94 - vsdb_data[CN.N_VAR][1])] +
+                                             CN.COL_NAS[:(99 - vsdb_data[CN.N_VAR][1])] +
                                              [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.PCT:
@@ -591,7 +591,7 @@ class ReadDataFiles:
                     elif vsdb_type == CN.RELP:
                         one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC, CN.N_VAR] +
                                              CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1]] +
-                                             CN.COL_NAS[:(94 - vsdb_data[CN.N_VAR][1])] +
+                                             CN.COL_NAS[:(99 - vsdb_data[CN.N_VAR][1])] +
                                              [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.ECLV:
@@ -622,7 +622,7 @@ class ReadDataFiles:
                         one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +
                                              CN.COL_NAS[:2] + [CN.N_VAR] +
                                              CN.COL_NUMS[0:36] +
-                                             CN.COL_NAS[:56] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             CN.COL_NAS[:61] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.PSTD:
                         one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +
@@ -631,7 +631,7 @@ class ReadDataFiles:
                                              ['0'] + CN.COL_NAS[:2] +
                                              ['1'] + CN.COL_NAS[:2] +
                                              ['2'] + CN.COL_NAS[:1] +
-                                             CN.COL_NAS[:79] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             CN.COL_NAS[:84] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.CNT:
                         one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC] +
@@ -641,7 +641,7 @@ class ReadDataFiles:
                                              ['0'] + CN.COL_NAS[:7] +
                                              ['3'] + CN.COL_NAS[:8] +
                                              ['1'] + CN.COL_NAS[:23] +
-                                             ['4'] + CN.COL_NAS[:18] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             ['4'] + CN.COL_NAS[:23] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.ENSCNT:
                         one_file = vsdb_data[CN.LONG_HEADER + ['0'] +
@@ -650,7 +650,7 @@ class ReadDataFiles:
                                              ['2'] + CN.COL_NAS[:4] +
                                              ['3'] + CN.COL_NAS[:4] +
                                              ['4'] + CN.COL_NAS[:4] +
-                                             ['5'] + CN.COL_NAS[:70] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             ['5'] + CN.COL_NAS[:75] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.CTC:
                         # column 0 is Total, 1 is F, 2 is H
@@ -673,7 +673,7 @@ class ReadDataFiles:
                                           vsdb_data['6'].astype(float))
                         one_file = vsdb_data[CN.LONG_HEADER +
                                              ['0'] + ['6', '7', '8', '9'] +
-                                             CN.COL_NAS[:91] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             CN.COL_NAS[:96] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.NBRCNT:
                         # fss is calculated from the other columns
@@ -682,12 +682,12 @@ class ReadDataFiles:
                                           vsdb_data['3'].astype(float))
                         one_file = vsdb_data[CN.LONG_HEADER +
                                              ['0', '1'] + CN.COL_NAS[:2] + ['4'] +
-                                             CN.COL_NAS[:91] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             CN.COL_NAS[:96] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     # rename columns
                     if not one_file.empty:
                         one_file.columns = CN.LONG_HEADER + \
-                                           CN.COL_NUMS[:96] + [CN.LINE_NUM, CN.FILE_ROW]
+                                           CN.COL_NUMS[:101] + [CN.LINE_NUM, CN.FILE_ROW]
                         list_vsdb.append(one_file)
                         one_file = one_file.iloc[0:0]
                         vsdb_data = vsdb_data.iloc[0:0]

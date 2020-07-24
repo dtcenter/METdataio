@@ -241,8 +241,9 @@ def main():
             logging.error("*** %s occurred in Main writing data ***", sys.exc_info()[0])
             sys.exit("*** Error when writing data to database")
 
-    if sql_run.conn.open:
-        sql_run.sql_off(sql_run.conn, sql_run.cur)
+    if not file_data.data_files.empty:
+        if sql_run.conn.open:
+            sql_run.sql_off(sql_run.conn, sql_run.cur)
 
     load_time_end = time.perf_counter()
     load_time = timedelta(seconds=load_time_end - load_time_start)
