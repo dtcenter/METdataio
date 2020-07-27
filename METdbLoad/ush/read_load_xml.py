@@ -9,7 +9,7 @@ Usage: Read load_spec XML file
 Parameters: N/A
 Input Files: load_spec XML file
 Output Files: N/A
-Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
+Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
 """
 
 # pylint:disable=no-member
@@ -17,7 +17,9 @@ Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 
 import sys
 import os
+from pathlib import Path
 import logging
+import pandas as pd
 from lxml import etree
 
 import constants as CN
@@ -36,7 +38,7 @@ class XmlLoadFile:
         self.connection = {}
         self.connection['db_host'] = None
         self.connection['db_port'] = CN.SQL_PORT
-        self.connection['db_name'] = None
+        self.connection['db_database'] = None
         self.connection['db_user'] = None
         self.connection['db_password'] = None
         self.connection['db_management_system'] = "mysql"
@@ -45,7 +47,7 @@ class XmlLoadFile:
         self.insert_size = 1
         self.load_note = None
         self.group = CN.DEFAULT_DATABASE_GROUP
-        self.description = None
+        self.description = "None"
         self.xml_str = None
 
         self.flags = {}
@@ -76,15 +78,23 @@ class XmlLoadFile:
         logging.debug("[--- Start read_xml ---]")
 
         try:
+
+            # check for existence of XML file
+            if not Path(self.xmlfilename).is_file():
+                sys.exit("*** XML file " + self.xmlfilename + " can not be found!")
+
             # parse the XML file
-            tree = etree.parse(self.xmlfilename)
+            parser = etree.XMLParser(remove_comments=True)
+            tree = etree.parse(self.xmlfilename, parser=parser)
             root = tree.getroot()
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_xml ***", sys.exc_info()[0])
+            sys.exit("*** Parsing error(s) in XML file!")
 
         folder_template = None
         template_fills = {}
+        date_list = {}
 
         try:
             # extract values from load_spec XML tags, store in attributes of class XmlLoadFile
@@ -93,23 +103,18 @@ class XmlLoadFile:
                     for subchild in list(child):
                         if subchild.tag.lower() == "host":
                             host_and_port = subchild.text.split(":")
-                        elif subchild.tag.lower() == "user":
-                            self.connection['db_user'] = subchild.text
-                        elif subchild.tag.lower() == "password":
-                            self.connection['db_password'] = subchild.text
-                        elif subchild.tag.lower() == "database":
-                            self.connection['db_name'] = subchild.text
-                        elif subchild.tag.lower() == "management_system":
-                            self.connection['db_management_system'] = subchild.text
+                        elif subchild.tag.lower() in ("user", "password", "database",
+                                                      "management_system"):
+                            self.connection["db_" + subchild.tag.lower()] = subchild.text
                     # separate out the port if there is one
                     self.connection['db_host'] = host_and_port[0]
                     if len(host_and_port) > 1:
                         self.connection['db_port'] = int(host_and_port[1])
-                    if (not self.connection['db_host']) or (not self.connection['db_name']):
+                    if (not self.connection['db_host']) or (not self.connection['db_database']):
                         logging.warning("!!! XML must include host and database tags")
                     if (not self.connection['db_user']) or (not self.connection['db_password']):
                         logging.warning("!!! XML must include user and passsword tags")
-                    if not self.connection['db_name'].startswith("mv_"):
+                    if not self.connection['db_database'].startswith("mv_"):
                         logging.warning("!!! Database not visible unless name starts with mv_")
                 elif child.tag.lower() == "load_files":
                     for subchild in list(child):
@@ -122,44 +127,27 @@ class XmlLoadFile:
                         template_key = subchild.get("name")
                         template_values = []
                         for template_value in list(subchild):
-                            template_values.append(template_value.text)
+                            if template_value.tag.lower() == "val":
+                                template_values.append(template_value.text)
+                            elif template_value.tag.lower() == "date_list":
+                                template_values.append(template_value.get("name"))
                         template_fills[template_key] = template_values
-                elif child.tag.lower() == "verbose":
+                # Handle the date_list tag and its child tags
+                elif child.tag.lower() == "date_list":
+                    date_list["name"] = child.get("name")
+                    for subchild in list(child):
+                        date_list[subchild.tag.lower()] = subchild.text
+                # Handle flags with a default of False
+                elif child.tag.lower() in ("verbose", "drop_indexes", "apply_indexes",
+                                           "load_mpr", "load_orank", "force_dup_file"):
                     if child.text.lower() == CN.LC_TRUE:
-                        self.flags['verbose'] = True
-                elif child.tag.lower() == "drop_indexes":
-                    if child.text.lower() == CN.LC_TRUE:
-                        self.flags['drop_indexes'] = True
-                elif child.tag.lower() == "apply_indexes":
+                        self.flags[child.tag.lower()] = True
+                # Handle flags with a default of True
+                elif child.tag.lower() in ("stat_header_db_check", "mode_header_db_check",
+                                           "mtd_header_db_check", "load_stat",
+                                           "load_mode", "load_mtd", "load_xml"):
                     if child.text.lower() == CN.LC_FALSE:
-                        self.flags['apply_indexes'] = False
-                elif child.tag.lower() == "stat_header_db_check":
-                    if child.text.lower() == CN.LC_FALSE:
-                        self.flags['stat_header_db_check'] = False
-                elif child.tag.lower() == "mode_header_db_check":
-                    if child.text.lower() == CN.LC_FALSE:
-                        self.flags['mode_header_db_check'] = False
-                elif child.tag.lower() == "mtd_header_db_check":
-                    if child.text.lower() == CN.LC_FALSE:
-                        self.flags['mtd_header_db_check'] = False
-                elif child.tag.lower() == "load_stat":
-                    if child.text.lower() == CN.LC_FALSE:
-                        self.flags['load_stat'] = False
-                elif child.tag.lower() == "load_mode":
-                    if child.text.lower() == CN.LC_FALSE:
-                        self.flags['load_mode'] = False
-                elif child.tag.lower() == "load_mtd":
-                    if child.text.lower() == CN.LC_FALSE:
-                        self.flags['load_mtd'] = False
-                elif child.tag.lower() == "load_mpr":
-                    if child.text.lower() == CN.LC_TRUE:
-                        self.flags['load_mpr'] = True
-                elif child.tag.lower() == "load_orank":
-                    if child.text.lower() == CN.LC_TRUE:
-                        self.flags['load_orank'] = True
-                elif child.tag.lower() == "force_dup_file":
-                    if child.text.lower() == CN.LC_TRUE:
-                        self.flags['force_dup_file'] = True
+                        self.flags[child.tag.lower()] = False
                 elif child.tag.lower() == "insert_size":
                     if child.text.isdigit():
                         self.insert_size = int(child.text)
@@ -171,9 +159,6 @@ class XmlLoadFile:
                 # load_note and load_xml are used to put a note in the database
                 elif child.tag.lower() == "load_note":
                     self.load_note = child.text
-                elif child.tag.lower() == "load_xml":
-                    if child.text.lower() == CN.LC_FALSE:
-                        self.flags['load_xml'] = False
                 # MET line types to load. If omitted, all line types are loaded
                 elif child.tag.lower() == "line_type":
                     self.flags['line_type_load'] = True
@@ -188,22 +173,73 @@ class XmlLoadFile:
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_xml ***", sys.exc_info()[0])
+            sys.exit("*** Error(s) found while reading XML file!")
 
-        logging.debug("group is: %s", self.group)
-        logging.debug("db_name is: %s", self.connection['db_name'])
+        logging.info("database name is: %s", self.connection['db_database'])
 
-        # generate all possible path/filenames from folder template
+        # if the date_list tag is included, generate a list of dates
+        if "start" in date_list.keys() and "end" in date_list.keys():
+            all_dates = self.filenames_from_date(date_list)
+        else:
+            all_dates = []
+
+        # if the folder template tag is used
         if folder_template is not None:
+            # if the date_list tag was used correctly, put the dates in
+            if all_dates:
+                for t_fill in template_fills:
+                    if template_fills[t_fill][0] == date_list["name"]:
+                        template_fills[t_fill] = all_dates
+            # Generate all possible path/filenames from folder template
             self.load_files = self.filenames_from_template(folder_template, template_fills)
 
         # this removes duplicate file names. do we want that?
         if self.load_files is not None:
             self.load_files = list(dict.fromkeys(self.load_files))
 
-        logging.debug("Load_files are: %s %s", str(len(self.load_files)), self.load_files)
+        # remove directory names
+        self.load_files = [lf for lf in self.load_files if '.' in lf.split('/')[-1]]
+
+        logging.info("Initial number of files: %s", str(len(self.load_files)))
 
         logging.debug("[--- End read_xml ---]")
 
+    @staticmethod
+    def filenames_from_date(date_list):
+        """! given date format, start and end dates, and increment, generates list of dates
+            Returns:
+               list of dates
+        """
+        logging.debug("date format is: %s", date_list["format"])
+
+        try:
+            date_format = date_list["format"]
+            # check to make sure that the date format string only has known characters
+            if set(date_format) <= CN.DATE_CHARS:
+                # Change the java formatting string to a Python formatting string
+                for java_date, python_date in CN.DATE_SUBS.items():
+                    date_format = date_format.replace(java_date, python_date)
+                # format the start and end dates
+                date_start = pd.to_datetime(date_list["start"], format=date_format)
+                date_end = pd.to_datetime(date_list["end"], format=date_format)
+                date_inc = int(date_list["inc"])
+                all_dates = []
+                while date_start < date_end:
+                    all_dates.append(date_start.strftime(date_format))
+                    date_start = date_start + pd.Timedelta(seconds=date_inc)
+                all_dates.append(date_end.strftime(date_format))
+            else:
+                logging.error("*** date_list tag has unknown characters ***")
+
+        except ValueError as value_error:
+            logging.error("*** %s in filenames_from_date ***", sys.exc_info()[0])
+            logging.error(value_error)
+            sys.exit("*** Value Error found while expanding XML date format!")
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in filenames_from_date ***", sys.exc_info()[0])
+            sys.exit("*** Error found while expanding XML date format!")
+
+        return all_dates
 
     @staticmethod
     def filenames_from_template(folder_template, template_fills):
@@ -244,7 +280,9 @@ class XmlLoadFile:
         except ValueError as value_error:
             logging.error("*** %s in filenames_from_template ***", sys.exc_info()[0])
             logging.error(value_error)
+            sys.exit("*** Value Error found while expanding XML folder templates!")
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in filenames_from_template ***", sys.exc_info()[0])
+            sys.exit("*** Error found while expanding XML folder templates!")
 
         return file_list
