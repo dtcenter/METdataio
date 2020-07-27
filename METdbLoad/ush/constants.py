@@ -10,7 +10,7 @@ from collections import OrderedDict
 DEFAULT_DATABASE_GROUP = "NO GROUP"
 
 # Maximum number of columns
-MAX_COL = 120
+MAX_COL = 125
 
 # Maximum number of files to load at a time
 # Goal is to not max out memory
@@ -89,7 +89,7 @@ COL_NA = 'colna'
 COL_ZERO = 'zeroes'
 
 # repeat COL_NA for building VSDB dataframe
-COL_NAS = [COL_NA] * 95
+COL_NAS = [COL_NA] * 100
 
 # STAT line types - comments from the v8.1.1 MET user's guide
 FHO = "FHO"        # Forecast, Hit, Observation Rates
@@ -322,7 +322,8 @@ LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
                          'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu',
                          'anom_corr_bcl', 'anom_corr_bcu',
                          'me2', 'me2_bcl', 'me2_bcu', 'msess', 'msess_bcl', 'msess_bcu',
-                         'rmsfa', 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa', 'rmsoa_bcl', 'rmsoa_bcu']
+                         'rmsfa', 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa', 'rmsoa_bcl', 'rmsoa_bcu',
+                         'anom_corr_uncntr', 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu']
 
 LINE_DATA_FIELDS[CTC] = TOT_LINE_DATA_FIELDS + \
                         [FY_OY, FY_ON, FN_OY, FN_ON]
