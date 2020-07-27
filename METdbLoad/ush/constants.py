@@ -621,6 +621,7 @@ MTD_3D_PC = 9
 MTD_3D_PS = 10
 MTD_3D_SC = 11
 MTD_3D_SS = 12
+TCST = 13
 
 # mode file fields
 MODE_HEADER = 'mode_header'

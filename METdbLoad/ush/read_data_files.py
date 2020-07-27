@@ -58,6 +58,7 @@ class ReadDataFiles:
         one_file = pd.DataFrame()
         vsdb_file = pd.DataFrame()
         mode_file = pd.DataFrame()
+        tcst_file = pd.DataFrame()
         file_hdr = pd.DataFrame()
         all_stat = pd.DataFrame()
         all_vsdb = pd.DataFrame()
@@ -270,6 +271,11 @@ class ReadDataFiles:
                         # both single and pair data can be in the same files
                         else:
                             list_obj.append(mode_file)
+                    #
+                    # Process TCST files
+                    #
+                    elif lu_id == CN.TCST:
+                        pass
 
                     else:
                         logging.warning("!!! File type of %s not valid", filename)
@@ -852,6 +858,8 @@ class ReadDataFiles:
             lu_type = CN.MTD_3D_SC
         elif lc_filename.endswith("3d_single_simple.txt"):
             lu_type = CN.MTD_3D_SS
+        elif lc_filename.endswith(".tcst"):
+            lu_type = CN.TCST
         return lu_type
 
     def read_stat(self, filename, hdr_names):
