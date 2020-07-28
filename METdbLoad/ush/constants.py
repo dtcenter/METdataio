@@ -92,64 +92,75 @@ COL_ZERO = 'zeroes'
 COL_NAS = [COL_NA] * 100
 
 # STAT line types - comments from the v8.1.1 MET user's guide
-FHO = "FHO"        # Forecast, Hit, Observation Rates
-CTC = "CTC"        # Contingency Table Counts
-CTS = "CTS"        # Contingency Table Statistics
-MCTC = "MCTC"      # Multi-category Contingency Table Counts
-MCTS = "MCTS"      # Multi-category Contingency Table Statistics
-CNT = "CNT"        # Continuous Statistics
-SL1L2 = "SL1L2"    # Scalar L1L2 Partial Sums
+FHO = "FHO"  # Forecast, Hit, Observation Rates
+CTC = "CTC"  # Contingency Table Counts
+CTS = "CTS"  # Contingency Table Statistics
+MCTC = "MCTC"  # Multi-category Contingency Table Counts
+MCTS = "MCTS"  # Multi-category Contingency Table Statistics
+CNT = "CNT"  # Continuous Statistics
+SL1L2 = "SL1L2"  # Scalar L1L2 Partial Sums
 SAL1L2 = "SAL1L2"  # Scalar Anomaly L1L2 Partial Sums when climatological data is supplied
-VL1L2 = "VL1L2"    # Vector L1L2 Partial Sums
+VL1L2 = "VL1L2"  # Vector L1L2 Partial Sums
 VAL1L2 = "VAL1L2"  # Vector Anomaly L1L2 Partial Sums when climatological data is supplied
-PCT = "PCT"        # Contingency Table Counts for Probabilistic Forecasts
-PSTD = "PSTD"      # Contingency Table Stats for Probabilistic Forecasts with Dichotomous outcomes
-PJC = "PJC"        # Joint and Conditional Factorization for Probabilistic Forecasts
-PRC = "PRC"        # Receiver Operating Characteristic for Probabilistic Forecasts
-ECLV = "ECLV"      # Economic Cost/Loss Value derived from CTC and PCT lines
-MPR = "MPR"        # Matched Pair Data
+PCT = "PCT"  # Contingency Table Counts for Probabilistic Forecasts
+PSTD = "PSTD"  # Contingency Table Stats for Probabilistic Forecasts with Dichotomous outcomes
+PJC = "PJC"  # Joint and Conditional Factorization for Probabilistic Forecasts
+PRC = "PRC"  # Receiver Operating Characteristic for Probabilistic Forecasts
+ECLV = "ECLV"  # Economic Cost/Loss Value derived from CTC and PCT lines
+MPR = "MPR"  # Matched Pair Data
 NBRCTC = "NBRCTC"  # Neighborhood Contingency Table Counts
 NBRCTS = "NBRCTS"  # Neighborhood Contingency Table Statistics
 NBRCNT = "NBRCNT"  # Neighborhood Continuous Statistics
-ISC = "ISC"        # Intensity-Scale
-RHIST = "RHIST"    # Ranked Histogram
-PHIST = "PHIST"    # Probability Integral Transform Histogram
-ORANK = "ORANK"    # Observation Rank
-SSVAR = "SSVAR"    # Spread Skill Variance
-GRAD = "GRAD"      # Gradient statistics (S1 score)
-VCNT = "VCNT"      # Vector Continuous Statistics
-RELP = "RELP"      # Relative Position
-ECNT = "ECNT"      # Ensemble Continuous Statistics - only for HiRA
+ISC = "ISC"  # Intensity-Scale
+RHIST = "RHIST"  # Ranked Histogram
+PHIST = "PHIST"  # Probability Integral Transform Histogram
+ORANK = "ORANK"  # Observation Rank
+SSVAR = "SSVAR"  # Spread Skill Variance
+GRAD = "GRAD"  # Gradient statistics (S1 score)
+VCNT = "VCNT"  # Vector Continuous Statistics
+RELP = "RELP"  # Relative Position
+ECNT = "ECNT"  # Ensemble Continuous Statistics - only for HiRA
 ENSCNT = "ENSCNT"  #
-PERC = "PERC"      #
-DMAP = "DMAP"      # Distance Map
-RPS = "RPS"        # Ranked Probability Score
+PERC = "PERC"  #
+DMAP = "DMAP"  # Distance Map
+RPS = "RPS"  # Ranked Probability Score
 
 # VSDB line types
-BSS = "BSS"        # same as PSTD
-RELI = "RELI"      # same as PCT
-HIST = "HIST"      # same as RHIST
-ECON = "ECON"      # same as ECLV
-RMSE = "RMSE"      # same as CNT
-FSS = "FSS"        # same as NBRCNT
+BSS = "BSS"  # same as PSTD
+RELI = "RELI"  # same as PCT
+HIST = "HIST"  # same as RHIST
+ECON = "ECON"  # same as ECLV
+RMSE = "RMSE"  # same as CNT
+FSS = "FSS"  # same as NBRCNT
 # VSDB version of FHO goes to CTC
 # VSDB version of RPS goes to ENSCNT
 # VSDB versions of RELP, SL1L2, SAL1L2, VL1L2, VAL1L2, and GRAD do not change
+
+# TCST line types
+TCMPR = "TCMPR"  # Tropical Cyclone Matched Pair line type
+PROBRIRW = "PROBRIRW"  # Probability o fRapid Intensification line type
 
 UC_LINE_TYPES = [FHO, CTC, CTS, MCTC, MCTS, CNT, SL1L2, SAL1L2, VL1L2, VAL1L2,
                  PCT, PSTD, PJC, PRC, ECLV, MPR, NBRCTC, NBRCTS, NBRCNT, ISC,
                  RHIST, PHIST, ORANK, SSVAR, GRAD, VCNT, RELP, ECNT, ENSCNT, PERC,
                  DMAP, RPS]
 
+UC_LINE_TYPES_TCST = [TCMPR, PROBRIRW]
+
 LC_LINE_TYPES = [ltype.lower() for ltype in UC_LINE_TYPES]
+LC_LINE_TYPES_TCST = [ltype.lower() for ltype in UC_LINE_TYPES_TCST]
 
 LINE_TABLES = ['line_data_' + hname for hname in LC_LINE_TYPES]
+
+LINE_TABLES_TCST = ['line_data_' + hname for hname in LC_LINE_TYPES_TCST]
 
 ALPHA_LINE_TYPES = [CTS, NBRCTS, NBRCNT, MCTS, SSVAR, VCNT, DMAP, RPS, CNT, PSTD]
 
 COV_THRESH_LINE_TYPES = [NBRCTC, NBRCTS, PCT, PSTD, PJC, PRC]
 
 VAR_LINE_TYPES = [PCT, PSTD, PJC, PRC, MCTC, RHIST, PHIST, RELP, ORANK, ECLV]
+
+VAR_LINE_TYPES_TCST = [PROBRIRW]
 
 OLD_VSDB_LINE_TYPES = [BSS, ECON, HIST, RELI, RMSE, RPS, FHO, FSS]
 
@@ -193,21 +204,42 @@ FCST_INIT_BEG = "fcst_init_beg"
 
 FCST_LEAD_HR = "fcst_lead_hr"
 
+AMODEL = "amodel"
+BMODEL = "bmodel"
+STORM_ID = 'storm_id'
+BASIN = "basin"
+CYCLONE = "cyclone"
+STORM_NAME = "storm_name"
+INIT = "init"
+LEAD = "lead"
+VALID = "valid"
+INIT_MASK = "init_mask"
+VALID_MASK = "valid_mask"
+
+LEAD_HR = "lead_hr"
+
 # After units added in MET 8.1
 LONG_HEADER = [VERSION, MODEL, DESCR, FCST_LEAD, FCST_VALID_BEG, FCST_VALID_END,
                OBS_LEAD, OBS_VALID_BEG, OBS_VALID_END, FCST_VAR, FCST_UNITS, FCST_LEV,
                OBS_VAR, OBS_UNITS, OBS_LEV, OBTYPE, VX_MASK, INTERP_MTHD, INTERP_PNTS,
                FCST_THRESH, OBS_THRESH, COV_THRESH, ALPHA, LINE_TYPE]
 
+LONG_HEADER_TCST = [VERSION, AMODEL, BMODEL, DESCR, STORM_ID, BASIN, CYCLONE,
+                    STORM_NAME, INIT, LEAD, VALID, INIT_MASK, VALID_MASK, LINE_TYPE]
+
 # Contains DESC but not UNITS
 MID_HEADER = LONG_HEADER[0:10] + LONG_HEADER[11:13] + LONG_HEADER[14:]
 
 # No DESC and no UNITS
 SHORT_HEADER = MID_HEADER[0:2] + MID_HEADER[3:]
+SHORT_HEADER_TCST = LONG_HEADER_TCST[0:3] + LONG_HEADER_TCST[4:]
 
 STAT_HEADER_KEYS = [VERSION, MODEL, DESCR, FCST_VAR, FCST_UNITS, FCST_LEV,
                     OBS_VAR, OBS_UNITS, OBS_LEV, OBTYPE, VX_MASK,
                     INTERP_MTHD, INTERP_PNTS, FCST_THRESH, OBS_THRESH]
+
+TCST_HEADER_KEYS = [VERSION, AMODEL, BMODEL, DESCR, STORM_ID, BASIN, CYCLONE,
+                    STORM_NAME, INIT_MASK, VALID_MASK]
 
 VSDB_HEADER = [VERSION, MODEL, FCST_LEAD, FCST_VALID_BEG, OBTYPE,
                VX_MASK, LINE_TYPE, FCST_VAR, FCST_LEV]
@@ -218,10 +250,15 @@ Q_FILE = "SELECT data_file_id FROM data_file WHERE " + \
 Q_HEADER = "SELECT stat_header_id FROM stat_header WHERE " + \
            "=%s AND ".join(STAT_HEADER_KEYS[1:]) + "=%s"
 
+Q_HEADER_TCST = "SELECT tcst_header_id FROM tcst_header WHERE " + \
+                "=%s AND ".join(TCST_HEADER_KEYS[1:]) + "=%s"
+
 Q_METADATA = "SELECT category, description FROM metadata"
 
 STAT_HEADER = 'stat_header'
+TCST_HEADER = 'tcst_header'
 STAT_HEADER_ID = 'stat_header_id'
+TCST_HEADER_ID = 'tcst_header_id'
 LINE_DATA_ID = 'line_data_id'
 LINE_NUM = 'line_num'
 TOTAL_LC = 'total'
@@ -243,6 +280,8 @@ FN_OY = 'fn_oy'
 FN_ON = 'fn_on'
 BASER = 'baser'
 FMEAN = 'fmean'
+FCST_VALID = 'fcst_valid'
+FCST_INIT = 'fcst_init'
 
 INSTANCE_INFO = 'instance_info'
 INSTANCE_INFO_ID = 'instance_info_id'
@@ -251,12 +290,19 @@ DATA_FILE_FIELDS = [DATA_FILE_ID, DATA_FILE_LU_ID, FILENAME, FILEPATH,
                     LOAD_DATE, MOD_DATE]
 
 STAT_HEADER_FIELDS = [STAT_HEADER_ID] + STAT_HEADER_KEYS
+TCST_HEADER_FIELDS = [TCST_HEADER_ID] + TCST_HEADER_KEYS
 
 VALUE_SLOTS = '%s, ' * len(STAT_HEADER_FIELDS)
 VALUE_SLOTS = VALUE_SLOTS[:-2]
 
+VALUE_SLOTS_TCST = '%s, ' * len(TCST_HEADER_FIELDS)
+VALUE_SLOTS_TCST = VALUE_SLOTS_TCST[:-2]
+
 INS_HEADER = "INSERT INTO stat_header (" + ",".join(STAT_HEADER_FIELDS) + \
              ") VALUES (" + VALUE_SLOTS + ")"
+
+INS_HEADER_TCST = "INSERT INTO tcst_header (" + ",".join(TCST_HEADER_FIELDS) + \
+                  ") VALUES (" + VALUE_SLOTS_TCST + ")"
 
 INS_DATA_FILES = "INSERT INTO data_file (" + ",".join(DATA_FILE_FIELDS) + \
                  ") VALUES (%s, %s, %s, %s, %s, %s)"
@@ -274,6 +320,9 @@ ALL_LINE_DATA_FIELDS = [STAT_HEADER_ID, DATA_FILE_ID, LINE_NUM,
                         FCST_LEAD, FCST_VALID_BEG, FCST_VALID_END, FCST_INIT_BEG,
                         OBS_LEAD, OBS_VALID_BEG, OBS_VALID_END]
 
+ALL_LINE_DATA_FIELDS_TCST = [TCST_HEADER_ID, DATA_FILE_ID, LINE_NUM,
+                             FCST_LEAD, FCST_VALID, FCST_INIT]
+
 TOT_LINE_DATA_FIELDS = ALL_LINE_DATA_FIELDS + [TOTAL_LC]
 
 ALPH_LINE_DATA_FIELDS = ALL_LINE_DATA_FIELDS + [ALPHA, TOTAL_LC]
@@ -284,14 +333,20 @@ COVA_LINE_DATA_FIELDS = ALL_LINE_DATA_FIELDS + [COV_THRESH, ALPHA, TOTAL_LC]
 
 ALL_COUNT = len(ALL_LINE_DATA_FIELDS)
 
+ALL_COUNT_TCST = len(ALL_LINE_DATA_FIELDS_TCST)
+
 LINE_DATA_FIELDS = dict()
 LINE_DATA_VAR_FIELDS = dict()
 LINE_DATA_COLS = dict()
+LINE_DATA_COLS_TCST = dict()
 LINE_DATA_Q = dict()
 LINE_DATA_VAR_Q = dict()
 LINE_VAR_COUNTER = dict()
 LINE_VAR_REPEATS = dict()
 LINE_DATA_VAR_TABLES = dict()
+COLUMNS = dict()
+
+LINE_DATA_FIELDS_TO_REPLACE = dict()
 
 LINE_DATA_VAR_TABLES[PCT] = 'line_data_pct_thresh'
 LINE_DATA_VAR_TABLES[PSTD] = 'line_data_pstd_thresh'
@@ -303,6 +358,7 @@ LINE_DATA_VAR_TABLES[RELP] = 'line_data_relp_ens'
 LINE_DATA_VAR_TABLES[PHIST] = 'line_data_phist_bin'
 LINE_DATA_VAR_TABLES[ORANK] = 'line_data_orank_ens'
 LINE_DATA_VAR_TABLES[ECLV] = 'line_data_eclv_pnt'
+LINE_DATA_VAR_TABLES[PROBRIRW] = 'line_data_probrirw_thresh'
 
 LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
                         ['fbar', 'fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
@@ -390,9 +446,9 @@ LINE_DATA_FIELDS[MCTS] = ALPH_LINE_DATA_FIELDS + \
                           'ger', 'ger_bcl', 'ger_bcu']
 
 LINE_DATA_FIELDS[MPR] = TOT_LINE_DATA_FIELDS + \
-                         ['mp_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl', 'obs_elv',
-                          'mpr_fcst', 'mpr_obs', 'mpr_climo', 'obs_qc',
-                          'climo_mean', 'climo_stdev', 'climo_cdf']
+                        ['mp_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl', 'obs_elv',
+                         'mpr_fcst', 'mpr_obs', 'mpr_climo', 'obs_qc',
+                         'climo_mean', 'climo_stdev', 'climo_cdf']
 
 LINE_DATA_FIELDS[NBRCNT] = ALPH_LINE_DATA_FIELDS + \
                            ['fbs', 'fbs_bcl', 'fbs_bcu', 'fss', 'fss_bcl', 'fss_bcu',
@@ -459,8 +515,8 @@ LINE_DATA_FIELDS[RHIST] = TOT_LINE_DATA_FIELDS + \
                           ['n_rank']
 
 LINE_DATA_FIELDS[RPS] = ALPH_LINE_DATA_FIELDS + \
-                         ['n_prob', 'rps_rel', 'rps_res', 'rps_unc', 'rps',
-                          'rpss', 'rpss_smpl', 'rps_comp']
+                        ['n_prob', 'rps_rel', 'rps_res', 'rps_unc', 'rps',
+                         'rpss', 'rpss_smpl', 'rps_comp']
 
 LINE_DATA_FIELDS[SL1L2] = TOT_LINE_DATA_FIELDS + \
                           ['fbar', 'obar', 'fobar', 'ffbar', 'oobar', 'mae']
@@ -501,6 +557,53 @@ LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
                           'dir_err', 'dir_err_bcl', 'dir_err_bcu',
                           'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu']
 
+COLUMNS[TCMPR] = ['total', 'index_pair', 'level', 'watch_warn', 'initials', 'alat',
+                                                       'alon',
+                                                       'blat', 'blon', 'tk_err', 'x_err', 'y_err', 'altk_err',
+                                                       'crtk_err',
+                                                       'adland', 'bdland', 'amslp', 'bmslp', 'amax_wind', 'bmax_wind',
+                                                       'aal_wind_34',
+                                                       'bal_wind_34', 'ane_wind_34', 'bne_wind_34', 'ase_wind_34',
+                                                       'bse_wind_34', 'asw_wind_34',
+                                                       'bsw_wind_34', 'anw_wind_34', 'bnw_wind_34', 'aal_wind_50',
+                                                       'bal_wind_50', 'ane_wind_50',
+                                                       'bne_wind_50', 'ase_wind_50', 'bse_wind_50', 'asw_wind_50',
+                                                       'bsw_wind_50', 'anw_wind_50',
+                                                       'bnw_wind_50', 'aal_wind_64', 'bal_wind_64', 'ane_wind_64',
+                                                       'bne_wind_64', 'ase_wind_64',
+                                                       'bse_wind_64', 'asw_wind_64', 'bsw_wind_64', 'anw_wind_64',
+                                                       'bnw_wind_64', 'aradp',
+                                                       'bradp', 'arrp', 'brrp', 'amrd', 'bmrd', 'agusts', 'bgusts',
+                                                       'aeye', 'beye', 'adir', 'bdir',
+                                                       'aspeed', 'bspeed', 'adepth', 'bdepth']
+LINE_DATA_FIELDS[TCMPR] = ALL_LINE_DATA_FIELDS_TCST + COLUMNS[TCMPR]
+
+COLUMNS[PROBRIRW] = ['alat', 'alon', 'blat', 'blon', 'initials', 'tk_err', 'x_err',
+                                                          'y_err', 'adland',
+                                                          'bdland', 'rirw_beg', 'rirw_end', 'rirw_window', 'awind_end',
+                                                          'bwind_beg', 'bwind_end',
+                                                          'bdelta', 'bdelta_max', 'blevel_beg', 'blevel_end',
+                                                          'n_thresh']
+
+LINE_DATA_FIELDS[PROBRIRW] = ALL_LINE_DATA_FIELDS_TCST + COLUMNS[PROBRIRW]
+
+LINE_DATA_FIELDS_TO_REPLACE[TCMPR] = ['lead', 'total', 'index_pair', 'alat', 'alon',
+                                      'blat', 'blon', 'tk_err', 'x_err', 'y_err', 'altk_err', 'crtk_err',
+                                      'adland', 'bdland', 'amslp', 'bmslp', 'amax_wind', 'bmax_wind', 'aal_wind_34',
+                                      'bal_wind_34', 'ane_wind_34', 'bne_wind_34', 'ase_wind_34', 'bse_wind_34',
+                                      'asw_wind_34',
+                                      'bsw_wind_34', 'anw_wind_34', 'bnw_wind_34', 'aal_wind_50', 'bal_wind_50',
+                                      'ane_wind_50',
+                                      'bne_wind_50', 'ase_wind_50', 'bse_wind_50', 'asw_wind_50', 'bsw_wind_50',
+                                      'anw_wind_50',
+                                      'bnw_wind_50', 'aal_wind_64', 'bal_wind_64', 'ane_wind_64', 'bne_wind_64',
+                                      'ase_wind_64',
+                                      'bse_wind_64', 'asw_wind_64', 'bsw_wind_64', 'anw_wind_64', 'bnw_wind_64',
+                                      'aradp',
+                                      'bradp', 'arrp', 'brrp', 'amrd', 'bmrd', 'agusts', 'bgusts', 'aeye', 'beye',
+                                      'adir', 'bdir',
+                                      'aspeed', 'bspeed', 'adepth', 'bdepth']
+
 VAR_DATA_FIELDS = [LINE_DATA_ID, 'i_value']
 
 LINE_DATA_VAR_FIELDS[PCT] = VAR_DATA_FIELDS + ['thresh_i', 'oy_i', 'on_i']
@@ -508,8 +611,8 @@ LINE_DATA_VAR_FIELDS[PCT] = VAR_DATA_FIELDS + ['thresh_i', 'oy_i', 'on_i']
 LINE_DATA_VAR_FIELDS[PSTD] = VAR_DATA_FIELDS + ['thresh_i']
 
 LINE_DATA_VAR_FIELDS[PJC] = VAR_DATA_FIELDS + \
-                               ['thresh_i', 'oy_tp_i', 'on_tp_i', 'calibration_i',
-                                'refinement_i', 'likelihood_i', 'baser_i']
+                            ['thresh_i', 'oy_tp_i', 'on_tp_i', 'calibration_i',
+                             'refinement_i', 'likelihood_i', 'baser_i']
 
 LINE_DATA_VAR_FIELDS[PRC] = VAR_DATA_FIELDS + ['thresh_i', 'pody_i', 'pofd_i']
 
@@ -524,6 +627,37 @@ LINE_DATA_VAR_FIELDS[PHIST] = VAR_DATA_FIELDS + ['bin_i']
 LINE_DATA_VAR_FIELDS[ORANK] = VAR_DATA_FIELDS + ['ens_i']
 
 LINE_DATA_VAR_FIELDS[ECLV] = VAR_DATA_FIELDS + ['x_pnt_i', 'y_pnt_i']
+
+LINE_DATA_VAR_FIELDS[PROBRIRW] = VAR_DATA_FIELDS + ['thresh_i', 'prob_i']
+
+for line_type in UC_LINE_TYPES_TCST:
+    LINE_DATA_COLS_TCST[line_type] = \
+        ALL_LINE_DATA_FIELDS_TCST + \
+        COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - ALL_COUNT_TCST)]
+
+    if line_type in VAR_LINE_TYPES_TCST:
+        LINE_DATA_COLS_TCST[line_type] = [LINE_DATA_ID] + LINE_DATA_COLS_TCST[line_type]
+
+    # For each line type, create insert queries
+    VALUE_SLOTS = '%s, ' * len(LINE_DATA_FIELDS[line_type])
+    VALUE_SLOTS = VALUE_SLOTS[:-2]
+
+    line_table = LINE_TABLES_TCST[UC_LINE_TYPES_TCST.index(line_type)]
+
+    i_line = "INSERT INTO " + line_table + " (" + ",".join(LINE_DATA_FIELDS[line_type]) + \
+             ") VALUES (" + VALUE_SLOTS + ")"
+
+    LINE_DATA_Q[line_type] = i_line
+
+    if line_type in VAR_LINE_TYPES_TCST:
+        VALUE_SLOTS = '%s, ' * len(LINE_DATA_VAR_FIELDS[line_type])
+        VALUE_SLOTS = VALUE_SLOTS[:-2]
+
+        var_line_table = LINE_DATA_VAR_TABLES[line_type]
+        i_line = "INSERT INTO " + var_line_table + " (" + \
+                 ",".join(LINE_DATA_VAR_FIELDS[line_type]) + \
+                 ") VALUES (" + VALUE_SLOTS + ")"
+        LINE_DATA_VAR_Q[line_type] = i_line
 
 for line_type in UC_LINE_TYPES:
     # for each line type, create a list of the columns in the dataframe
@@ -544,7 +678,7 @@ for line_type in UC_LINE_TYPES:
     else:
         LINE_DATA_COLS[line_type] = \
             ALL_LINE_DATA_FIELDS + \
-             COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - ALL_COUNT)]
+            COL_NUMS[0:(len(LINE_DATA_FIELDS[line_type]) - ALL_COUNT)]
 
     if line_type in VAR_LINE_TYPES:
         LINE_DATA_COLS[line_type] = [LINE_DATA_ID] + LINE_DATA_COLS[line_type]
@@ -556,11 +690,10 @@ for line_type in UC_LINE_TYPES:
     line_table = LINE_TABLES[UC_LINE_TYPES.index(line_type)]
 
     i_line = "INSERT INTO " + line_table + " (" + ",".join(LINE_DATA_FIELDS[line_type]) + \
-               ") VALUES (" + VALUE_SLOTS + ")"
+             ") VALUES (" + VALUE_SLOTS + ")"
     LINE_DATA_Q[line_type] = i_line
 
     if line_type in VAR_LINE_TYPES:
-
         VALUE_SLOTS = '%s, ' * len(LINE_DATA_VAR_FIELDS[line_type])
         VALUE_SLOTS = VALUE_SLOTS[:-2]
 

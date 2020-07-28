@@ -36,7 +36,7 @@ class WriteFileSql:
         self.sql_met = RunSql()
 
     def write_file_sql(self, load_flags, data_files, stat_data, mode_cts_data,
-                       mode_obj_data, sql_cur, local_infile):
+                       mode_obj_data, tcst_data, sql_cur, local_infile):
         """ write data_file records to a SQL database.
             Returns:
                N/A
@@ -117,6 +117,7 @@ class WriteFileSql:
                 stat_data.reset_index(drop=True, inplace=True)
                 mode_cts_data.reset_index(drop=True, inplace=True)
                 mode_obj_data.reset_index(drop=True, inplace=True)
+                tcst_data.reset_index(drop=True, inplace=True)
 
                 # Replace the temporary id value with the actual index in the line data
                 for row_num, row in data_files.iterrows():
@@ -128,6 +129,9 @@ class WriteFileSql:
                                           CN.DATA_FILE_ID] = row[CN.DATA_FILE_ID]
                     if not mode_obj_data.empty:
                         mode_obj_data.loc[mode_obj_data[CN.FILE_ROW] == row[CN.FILE_ROW],
+                                          CN.DATA_FILE_ID] = row[CN.DATA_FILE_ID]
+                    if not tcst_data.empty:
+                        tcst_data.loc[tcst_data[CN.FILE_ROW] == row[CN.FILE_ROW],
                                           CN.DATA_FILE_ID] = row[CN.DATA_FILE_ID]
 
                 # get just the new data files
@@ -148,7 +152,7 @@ class WriteFileSql:
 
         logging.debug("[--- End write_file_sql ---]")
 
-        return data_files, stat_data, mode_cts_data, mode_obj_data
+        return data_files, stat_data, mode_cts_data, mode_obj_data, tcst_data
 
     def write_metadata_sql(self, load_flags, data_files, group, description,
                            load_note, xml_str, sql_cur):

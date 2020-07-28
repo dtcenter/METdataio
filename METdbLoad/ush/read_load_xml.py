@@ -60,6 +60,7 @@ class XmlLoadFile:
         self.flags['force_dup_file'] = False
         self.flags['verbose'] = False
         self.flags['stat_header_db_check'] = True
+        self.flags['tcst_header_db_check'] = True
         self.flags['mode_header_db_check'] = True
         self.flags['mtd_header_db_check'] = True
         self.flags['drop_indexes'] = False

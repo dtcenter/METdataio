@@ -39,6 +39,7 @@ class ReadDataFiles:
         self.stat_data = pd.DataFrame()
         self.mode_cts_data = pd.DataFrame()
         self.mode_obj_data = pd.DataFrame()
+        self.tcst_data = pd.DataFrame()
         self.data_files = pd.DataFrame()
 
     def read_data(self, load_flags, load_files, line_types):
@@ -68,7 +69,7 @@ class ReadDataFiles:
         list_vsdb = []
         list_cts = []
         list_obj = []
-
+        list_tcst = []
         try:
 
             # Put the list of files into a dataframe to collect info to write to database
@@ -275,7 +276,26 @@ class ReadDataFiles:
                     # Process TCST files
                     #
                     elif lu_id == CN.TCST:
-                        pass
+                        # Get the first line of the .tcst file that has the headers
+                        file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                                               names=range(CN.MAX_COL), nrows=1)
+                        # TCST file has no headers or no text - it's empty
+                        if file_hdr.empty or stat_info.st_size == 0:
+                            logging.warning("!!! TCST file %s is empty", filename)
+                            continue
+                        # Add a DESC column if the data file does not have one
+                        if not file_hdr.iloc[0].str.contains(CN.UC_DESC).any():
+                            hdr_names = CN.SHORT_HEADER_TCST + CN.COL_NUMS
+                            tcst_file = self.read_tcst(filename, hdr_names)
+                            tcst_file.insert(3, CN.DESCR, CN.NOTAV)
+                        else:
+                            hdr_names = CN.LONG_HEADER + CN.COL_NUMS
+                            tcst_file = self.read_tcst(filename, hdr_names)
+
+                        # add line numbers and count the header line, for tcst files
+                        tcst_file[CN.LINE_NUM] = tcst_file.index + 2
+
+                        tcst_file = tcst_file.rename(columns={"init": "fcst_init", "lead": "fcst_lead", "valid": "fcst_valid"})
 
                     else:
                         logging.warning("!!! File type of %s not valid", filename)
@@ -301,6 +321,16 @@ class ReadDataFiles:
                         logging.debug("Lines in %s: %s", filename,
                                       str(len(mode_file.index)))
                         mode_file = mode_file.iloc[0:0]
+                        if not file_hdr.empty:
+                            file_hdr = file_hdr.iloc[0:0]
+                    elif not tcst_file.empty:
+                        # initially, match line data to the index of the file names
+                        tcst_file[CN.FILE_ROW] = row_num
+                        # keep the dataframes from each file in a list
+                        list_tcst.append(tcst_file)
+                        logging.debug("Lines in %s: %s", filename,
+                                      str(len(one_file.index)))
+                        tcst_file = tcst_file.iloc[0:0]
                         if not file_hdr.empty:
                             file_hdr = file_hdr.iloc[0:0]
                     else:
@@ -406,6 +436,18 @@ class ReadDataFiles:
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data if list_frames ***", sys.exc_info()[0])
+
+        try:
+
+            # concatenate all the dataframes - much faster than doing an append each time
+            # added sort=False on 10/21/19 because that will be new default behavior
+            if list_tcst:
+                all_tcst = pd.concat(list_tcst, ignore_index=True, sort=False)
+                list_tcst = []
+
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in read_data if list_frames ***", sys.exc_info()[0])
+
 
         try:
 
@@ -822,6 +864,40 @@ class ReadDataFiles:
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data near end ***", sys.exc_info()[0])
 
+        try:
+            if not all_tcst.empty:
+
+                logging.debug("Shape of all_tcst before transforms: %s", str(all_tcst.shape))
+
+                # delete any lines that have invalid line_types
+                invalid_line_indexes = all_tcst[~all_tcst.line_type.isin(CN.UC_LINE_TYPES_TCST)].index
+
+                if not invalid_line_indexes.empty:
+
+                    logging.warning("!!! Warning, invalid line_types:")
+                    logging.warning("line types: %s",
+                                    str(all_tcst.iloc[invalid_line_indexes].line_type))
+
+                    all_tcst.drop(invalid_line_indexes, axis=0, inplace=True)
+
+
+                # reset the index, in case any lines have been deleted
+                all_tcst.reset_index(drop=True, inplace=True)
+
+                # if all lines from a tcst file were deleted, remove filename
+                files_to_drop = ~self.data_files.index.isin(all_tcst[CN.FILE_ROW])
+                files_tcsp = self.data_files[CN.DATA_FILE_LU_ID] == CN.TCST
+                self.data_files.drop(self.data_files[files_to_drop & files_tcsp].index,
+                                     inplace=True)
+
+                self.data_files.reset_index(drop=True, inplace=True)
+
+                self.tcst_data = all_tcst
+                all_tcst = all_tcst.iloc[0:0]
+
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in read_data near end ***", sys.exc_info()[0])
+
         read_time_end = time.perf_counter()
         read_time = timedelta(seconds=read_time_end - read_time_start)
 
@@ -874,6 +950,19 @@ class ReadDataFiles:
                                         CN.FCST_VALID_END,
                                         CN.OBS_VALID_BEG,
                                         CN.OBS_VALID_END],
+                           date_parser=self.cached_date_parser,
+                           keep_default_na=False, na_values='', low_memory=False)
+
+    def read_tcst(self, filename, hdr_names):
+        """ Read in all of the lines except the header of a tcst file.
+            Returns:
+               all the tcst lines in a dataframe, with dates converted to datetime
+        """
+        # added the low_memory=False option when getting a DtypeWarning
+        return pd.read_csv(filename, delim_whitespace=True,
+                           names=hdr_names, skiprows=1,
+                           parse_dates=[CN.INIT,
+                                        CN.VALID],
                            date_parser=self.cached_date_parser,
                            keep_default_na=False, na_values='', low_memory=False)
 

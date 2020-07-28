@@ -33,6 +33,7 @@ from run_sql import RunSql
 from write_file_sql import WriteFileSql
 from write_stat_sql import WriteStatSql
 from write_mode_sql import WriteModeSql
+from write_tcst_sql import WriteTcstSql
 
 def main():
     """ Main program to load files into the METdb/METviewer database
@@ -185,6 +186,7 @@ def main():
                                                          file_data.stat_data,
                                                          file_data.mode_cts_data,
                                                          file_data.mode_obj_data,
+                                                         file_data.tcst_data,
                                                          sql_run.cur,
                                                          sql_run.local_infile)
 
@@ -192,6 +194,7 @@ def main():
                 file_data.stat_data = updated_data[1]
                 file_data.mode_cts_data = updated_data[2]
                 file_data.mode_obj_data = updated_data[3]
+                file_data.tcst_data = updated_data[4]
 
                 if file_data.data_files.empty:
                     logging.warning("!!! No data to load in current set %s", str(set_count))
@@ -215,6 +218,13 @@ def main():
                                               sql_run.cur,
                                               sql_run.local_infile)
 
+                if not file_data.tcst_data.empty:
+                    tcst_lines = WriteTcstSql()
+
+                    tcst_lines.write_sql_data(xml_loadfile.flags,
+                                              file_data.tcst_data,
+                                              sql_run.cur,
+                                              sql_run.local_infile)
                 # Processing for the last set of data
                 if mid_file >= last_file:
                     # If any data was written, write to the metadata and instance_info tables
