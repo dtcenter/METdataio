@@ -604,6 +604,11 @@ LINE_DATA_FIELDS_TO_REPLACE[TCMPR] = ['lead', 'total', 'index_pair', 'alat', 'al
                                       'adir', 'bdir',
                                       'aspeed', 'bspeed', 'adepth', 'bdepth']
 
+LINE_DATA_FIELDS_TO_REPLACE[PROBRIRW] = ['lead', 'alat', 'alon', 'blat', 'blon', 'tk_err', 'x_err',
+                                                          'y_err', 'adland',
+                                                          'bdland', 'rirw_beg', 'rirw_end', 'rirw_window', 'awind_end',
+                                                          'bwind_beg', 'bwind_end','bdelta', 'bdelta_max']
+
 VAR_DATA_FIELDS = [LINE_DATA_ID, 'i_value']
 
 LINE_DATA_VAR_FIELDS[PCT] = VAR_DATA_FIELDS + ['thresh_i', 'oy_i', 'on_i']
@@ -717,6 +722,7 @@ LINE_VAR_COUNTER[RELP] = '1'
 LINE_VAR_COUNTER[PHIST] = '2'
 LINE_VAR_COUNTER[ORANK] = '11'
 LINE_VAR_COUNTER[ECLV] = '3'
+LINE_VAR_COUNTER[PROBRIRW] = '20'
 
 # how many variables/fields appear after i_value (length of repeat)
 LINE_VAR_REPEATS[PCT] = 3
@@ -729,6 +735,7 @@ LINE_VAR_REPEATS[RELP] = 1
 LINE_VAR_REPEATS[PHIST] = 1
 LINE_VAR_REPEATS[ORANK] = 1
 LINE_VAR_REPEATS[ECLV] = 2
+LINE_VAR_REPEATS[PROBRIRW] = 2
 
 RHIST_OLD = ['V7.0', 'V6.1', 'V6.0', 'V5.2', 'V5.1', 'V5.0',
              'V4.2', 'V4.1', 'V4.0', 'V3.1', 'V3.0']

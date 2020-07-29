@@ -52,7 +52,7 @@ class ReadDataFiles:
 
         read_time_start = time.perf_counter()
 
-        # handle MET files, VSDB files, MODE files, and MTD files
+        # handle MET files, VSDB files, MODE files, and MTD files, TCST files
 
         # speed up with dask delayed?
 
@@ -289,7 +289,7 @@ class ReadDataFiles:
                             tcst_file = self.read_tcst(filename, hdr_names)
                             tcst_file.insert(3, CN.DESCR, CN.NOTAV)
                         else:
-                            hdr_names = CN.LONG_HEADER + CN.COL_NUMS
+                            hdr_names = CN.LONG_HEADER_TCST + CN.COL_NUMS
                             tcst_file = self.read_tcst(filename, hdr_names)
 
                         # add line numbers and count the header line, for tcst files
@@ -440,7 +440,6 @@ class ReadDataFiles:
         try:
 
             # concatenate all the dataframes - much faster than doing an append each time
-            # added sort=False on 10/21/19 because that will be new default behavior
             if list_tcst:
                 all_tcst = pd.concat(list_tcst, ignore_index=True, sort=False)
                 list_tcst = []

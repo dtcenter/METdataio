@@ -144,40 +144,11 @@ class WriteTcstSql:
                     # index of the first column of the repeating variables
                     var_index = line_data.columns.get_loc(CN.LINE_VAR_COUNTER[line_type]) + 1
 
-                    # There are 10 extra variables after n_thresh in PSTD records
-                    if line_type == CN.PSTD:
-                        var_index = var_index + 10
-
-                    # need this later for old RHIST
-                    orig_index = var_index
-
                     # process each variable line one at a time for different versions
                     for row_num, file_line in line_data.iterrows():
                         # how many sets of repeating variables
                         var_count = int(file_line[CN.LINE_VAR_COUNTER[line_type]])
-                        # these two variable line types are one group short
-                        if line_type in [CN.PJC, CN.PRC]:
-                            var_count = var_count - 1
 
-                        # VSDB and STAT values for sets of repeating vars may be different
-                        if line_type == 'CN.ECLV':
-                            var_count = var_index - 1
-
-                        # reset to original value
-                        var_index = orig_index
-
-                        # older versions of RHIST have varying ECNT data in them
-                        if line_type == CN.RHIST and file_line[CN.VERSION] in CN.RHIST_OLD:
-                            var_count = int(file_line['3'])
-                            var_index = orig_index + 2
-                            if file_line[CN.VERSION] in CN.RHIST_5:
-                                var_index = var_index + 1
-                            if file_line[CN.VERSION] in CN.RHIST_6:
-                                var_index = var_index + 2
-                        # MCTC needs an i and a j counter
-                        if line_type == CN.MCTC:
-                            basic_count = var_count
-                            var_count = var_count * var_count
                         # The number of variables in the repeats
                         var_repeats = CN.LINE_VAR_REPEATS[line_type]
                         # number of sets of variables times the number of variables in the sets
@@ -189,59 +160,14 @@ class WriteTcstSql:
                         var_data = \
                             pd.DataFrame(list_var_data.values.reshape(var_count, var_repeats))
 
-                        # for older versions of RHIST, blank out repeating fields in line data
-                        if line_type == CN.RHIST and file_line[CN.VERSION] in CN.RHIST_OLD:
-                            line_data.iloc[row_num, var_index:var_index + repeat_width] = \
-                                CN.MV_NOTAV
-
-                        # for stat file versions of PSTD, blank out variable fields in line data
-                        if line_type == CN.PSTD and file_line[CN.VERSION] != 'V01':
-                            line_data.iloc[row_num, var_index:var_index + repeat_width] = \
-                                CN.MV_NOTAV
-
                         # add on the first two fields - line data id, and i value
                         var_data.insert(0, CN.LINE_DATA_ID, file_line[CN.LINE_DATA_ID])
                         var_data.insert(1, 'i_value', var_data.index + 1)
-
-                        # MCTC has i and j counters where j increments faster
-                        if line_type == CN.MCTC:
-                            var_data.loc[:, 'i_value'] = \
-                                np.repeat(np.array(range(1, basic_count + 1)), basic_count)
-                            j_indices = np.resize(range(1, basic_count + 1), var_count)
-                            var_data.insert(2, 'j_value', j_indices)
-
-                        if line_type == CN.ORANK:
-                            # move the values after the variable length data to the left
-                            var_end = var_index + repeat_width
-                            line_data.iloc[row_num, var_index:var_index + 7] = \
-                                line_data.iloc[row_num, var_end:var_end + 7].values
 
                         # collect all of the variable data for a line type
                         all_var = all_var.append(var_data, ignore_index=True)
 
                     # end for row_num, file_line
-
-                    if line_type == CN.RHIST:
-                        # copy the RHIST columns and create ECNT lines from them
-                        line_data2 = line_data[line_data[CN.VERSION].isin(CN.RHIST_OLD)].copy()
-                        if not line_data2.empty:
-                            line_data2.line_type = CN.ECNT
-
-                            # put the fields in the correct order for ECNT
-                            line_data2 = \
-                                line_data2.rename(columns={'1': '2', '2': '4',
-                                                           '3': '1', '4': '3',
-                                                           '5': '7', '7': '5'})
-
-                            # Write out the ECNT lines created from old RHIST lines
-                            sql_met.write_to_sql(line_data2, CN.LINE_DATA_COLS[CN.ECNT],
-                                                 CN.LINE_TABLES[CN.UC_LINE_TYPES.index(CN.ECNT)],
-                                                 CN.LINE_DATA_Q[CN.ECNT], sql_cur, local_infile)
-                            line_data2 = line_data2.iloc[0:0]
-
-                            # copy the value of n_rank two columns earlier for old RHIST
-                            line_data.loc[line_data[CN.VERSION].isin(CN.RHIST_OLD), '1'] = \
-                                line_data['3']
 
                 # write the lines out to a CSV file, and then load them into database
                 if not line_data.empty:
@@ -259,24 +185,12 @@ class WriteTcstSql:
 
             # end for line_type
 
-            # write out line_data_perc records
-            if CN.FCST_PERC in tcst_data:
-                if tcst_data[CN.FCST_PERC].ne(CN.MV_NOTAV).any():
-                    line_data2 = tcst_data[tcst_data[CN.FCST_PERC].ne(CN.MV_NOTAV) &
-                                           tcst_data[CN.FCST_PERC].notnull()].copy()
-
-                    # Write out the PERC lines
-                    sql_met.write_to_sql(line_data2, CN.LINE_DATA_COLS[CN.PERC],
-                                         CN.LINE_TABLES[CN.UC_LINE_TYPES.index(CN.PERC)],
-                                         CN.LINE_DATA_Q[CN.PERC], sql_cur, local_infile)
-                    line_data2 = line_data2.iloc[0:0]
-
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_sql_data ***", sys.exc_info()[0])
 
         write_time_end = time.perf_counter()
         write_time = timedelta(seconds=write_time_end - write_time_start)
 
-        logging.info("    >>> Write time Stat: %s", str(write_time))
+        logging.info("    >>> Write time Tcst: %s", str(write_time))
 
         logging.debug("[--- End write_sql_data ---]")
