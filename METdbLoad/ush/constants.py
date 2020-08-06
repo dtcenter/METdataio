@@ -602,7 +602,7 @@ LINE_DATA_FIELDS_TO_REPLACE[TCMPR] = ['lead', 'total', 'index_pair', 'alat', 'al
                                       'aradp',
                                       'bradp', 'arrp', 'brrp', 'amrd', 'bmrd', 'agusts', 'bgusts', 'aeye', 'beye',
                                       'adir', 'bdir',
-                                      'aspeed', 'bspeed', 'adepth', 'bdepth']
+                                      'aspeed', 'bspeed']
 
 LINE_DATA_FIELDS_TO_REPLACE[PROBRIRW] = ['lead', 'alat', 'alon', 'blat', 'blon', 'tk_err', 'x_err',
                                                           'y_err', 'adland',
