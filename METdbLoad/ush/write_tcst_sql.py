@@ -126,7 +126,15 @@ class WriteTcstSql:
                 all_columns = CN.LONG_HEADER_TCST + CN.COLUMNS[line_type]
                 for col in CN.LINE_DATA_FIELDS_TO_REPLACE[line_type]:
                     index = all_columns.index(col)
-                    line_data.iloc[:, index] = line_data.iloc[:, index].replace('NA', CN.MV_NOTAV)
+                    line_data.iloc[:, index] = line_data.iloc[:, index].replace('NA', CN.MV_NOTAV).fillna(CN.MV_NOTAV)
+
+                # replace adepth and bdepth NA -> X
+                if 'adepth' in all_columns:
+                    index = all_columns.index('adepth')
+                    line_data.iloc[:, index] = line_data.iloc[:, index].replace('NA', 'X').fillna('X')
+                    index = all_columns.index('bdepth')
+                    line_data.iloc[:, index] = line_data.iloc[:, index].replace('NA', 'X').fillna('X')
+
 
                 # Only variable length lines have a line_data_id
                 if line_type in CN.VAR_LINE_TYPES_TCST:
