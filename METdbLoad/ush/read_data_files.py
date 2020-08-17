@@ -65,6 +65,7 @@ class ReadDataFiles:
         all_vsdb = pd.DataFrame()
         all_cts = pd.DataFrame()
         all_single = pd.DataFrame()
+        all_tcst = pd.DataFrame()
         list_frames = []
         list_vsdb = []
         list_cts = []
@@ -412,6 +413,15 @@ class ReadDataFiles:
 
                 # Change ALL items in column COV_THRESH to '-9999' if they are 'NA'
                 all_stat.loc[all_stat.cov_thresh == CN.NOTAV, CN.COV_THRESH] = CN.MV_NOTAV
+
+                # Change ALL items in column FCST_LEAD to 0 if they are 'NA'
+                # Added for tc_gen files
+                if not all_stat.fcst_lead.dtypes == 'int':
+                    all_stat.loc[all_stat.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+
+                # Change ALL items in column OBS_LEAD to 0 if they are 'NA'
+                if not all_stat.obs_lead.dtypes == 'int':
+                    all_stat.loc[all_stat.obs_lead == CN.NOTAV, CN.OBS_LEAD] = 0
 
                 # Change 'NA' values in column INTERP_PNTS to 0 if present
                 if not all_stat.interp_pnts.dtypes == 'int':
