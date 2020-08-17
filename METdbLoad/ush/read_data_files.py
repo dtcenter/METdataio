@@ -296,7 +296,9 @@ class ReadDataFiles:
                         # add line numbers and count the header line, for tcst files
                         tcst_file[CN.LINE_NUM] = tcst_file.index + 2
 
-                        tcst_file = tcst_file.rename(columns={"init": "fcst_init", "lead": "fcst_lead", "valid": "fcst_valid"})
+                        tcst_file = tcst_file.rename(columns={"init": "fcst_init",
+                                                              "lead": "fcst_lead",
+                                                              "valid": "fcst_valid"})
 
                     else:
                         logging.warning("!!! File type of %s not valid", filename)
@@ -879,7 +881,8 @@ class ReadDataFiles:
                 logging.debug("Shape of all_tcst before transforms: %s", str(all_tcst.shape))
 
                 # delete any lines that have invalid line_types
-                invalid_line_indexes = all_tcst[~all_tcst.line_type.isin(CN.UC_LINE_TYPES_TCST)].index
+                invalid_line_indexes = \
+                    all_tcst[~all_tcst.line_type.isin(CN.UC_LINE_TYPES_TCST)].index
 
                 if not invalid_line_indexes.empty:
 
