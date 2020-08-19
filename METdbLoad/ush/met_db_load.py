@@ -5,7 +5,7 @@ Program Name: met_db_load.py
 Contact(s): Venita Hagerty
 Abstract:
 History Log:  Initial version
-Usage: Load files into METdb
+Usage: Load files into METdatadb
 Parameters: -index
 Input Files: load_spec XML file
 Output Files: N/A
@@ -35,7 +35,7 @@ from write_stat_sql import WriteStatSql
 from write_mode_sql import WriteModeSql
 
 def main():
-    """ Main program to load files into the METdb/METviewer database
+    """ Main program to load files into the METdatadb/METviewer database
         Returns:
            N/A
     """
@@ -45,7 +45,7 @@ def main():
     # Default logging level is INFO. Can be changed with XML tag verbose
     logging.basicConfig(level=logging.INFO)
 
-    logging.info("--- *** --- Start METdbLoad --- *** ---")
+    logging.info("--- *** --- Start METdatadbLoad --- *** ---")
     logging.info("Begin time: %s", begin_time)
 
     # time execution
@@ -249,7 +249,7 @@ def main():
 
     logging.info("    >>> Total load time: %s", str(load_time))
     logging.info("End time: %s", str(datetime.now()))
-    logging.info("--- *** --- End METdbLoad --- *** ---")
+    logging.info("--- *** --- End METdatadbLoad --- *** ---")
 
 def next_set(first_file, mid_file, last_file):
     """ move indices to next set of files

@@ -15,7 +15,7 @@ Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 from setuptools import setup, find_packages
 
 setup(
-    name='METdbLoad',
+    name='METdatadbLoad',
     version='0.1.0',
     description='Rewrite of Java MVLoad for METviewer and METexpress database load',
     author='Venita Hagerty',

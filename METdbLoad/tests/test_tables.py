@@ -4,7 +4,7 @@
 Program Name: read_data_files.py
 Contact(s): Venita Hagerty
 Abstract: Compare two MySQL databases - typically one loaded by MVLoad,
-and one loaded by METdbLoad using the same XML file
+and one loaded by METdatadbLoad using the same XML file
 History Log:  Created on Fri Jan 24 09:33:51 2020
 Usage: Reads two different MySQL databases
 Parameters: N/A
@@ -28,7 +28,7 @@ cur2 = conn2.cursor()
 cur2.execute('select database();')
 print(cur2.fetchall())
 
-# *** Connect to a database written by METdbLoad using same XML file
+# *** Connect to a database written by METdatadbLoad using same XML file
 conn3 = pymysql.connect(read_default_file="~/vxt_metviewer.cnf",
                         db='mv_test_met9')
 

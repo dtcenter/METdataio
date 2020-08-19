@@ -112,7 +112,7 @@ class RunSql:
         try:
             if local_infile == 'ON':
                 # later in development, may wish to delete these files to clean up when done
-                tmpfile = os.getenv('HOME') + '/METdbLoad_' + sql_table + '.csv'
+                tmpfile = os.getenv('HOME') + '/METdatadbLoad_' + sql_table + '.csv'
                 # write the data out to a csv file, use local data infile to load to database
                 raw_data[col_list].to_csv(tmpfile, na_rep=CN.MV_NOTAV,
                                           index=False, header=False, sep=CN.SEP)
