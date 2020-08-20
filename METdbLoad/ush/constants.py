@@ -558,56 +558,57 @@ LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
                           'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu']
 
 COLUMNS[TCMPR] = ['total', 'index_pair', 'level', 'watch_warn', 'initials', 'alat',
-                                                       'alon',
-                                                       'blat', 'blon', 'tk_err', 'x_err', 'y_err', 'altk_err',
-                                                       'crtk_err',
-                                                       'adland', 'bdland', 'amslp', 'bmslp', 'amax_wind', 'bmax_wind',
-                                                       'aal_wind_34',
-                                                       'bal_wind_34', 'ane_wind_34', 'bne_wind_34', 'ase_wind_34',
-                                                       'bse_wind_34', 'asw_wind_34',
-                                                       'bsw_wind_34', 'anw_wind_34', 'bnw_wind_34', 'aal_wind_50',
-                                                       'bal_wind_50', 'ane_wind_50',
-                                                       'bne_wind_50', 'ase_wind_50', 'bse_wind_50', 'asw_wind_50',
-                                                       'bsw_wind_50', 'anw_wind_50',
-                                                       'bnw_wind_50', 'aal_wind_64', 'bal_wind_64', 'ane_wind_64',
-                                                       'bne_wind_64', 'ase_wind_64',
-                                                       'bse_wind_64', 'asw_wind_64', 'bsw_wind_64', 'anw_wind_64',
-                                                       'bnw_wind_64', 'aradp',
-                                                       'bradp', 'arrp', 'brrp', 'amrd', 'bmrd', 'agusts', 'bgusts',
-                                                       'aeye', 'beye', 'adir', 'bdir',
-                                                       'aspeed', 'bspeed', 'adepth', 'bdepth']
+                  'alon',
+                  'blat', 'blon', 'tk_err', 'x_err', 'y_err', 'altk_err',
+                  'crtk_err',
+                  'adland', 'bdland', 'amslp', 'bmslp', 'amax_wind', 'bmax_wind',
+                  'aal_wind_34',
+                  'bal_wind_34', 'ane_wind_34', 'bne_wind_34', 'ase_wind_34',
+                  'bse_wind_34', 'asw_wind_34',
+                  'bsw_wind_34', 'anw_wind_34', 'bnw_wind_34', 'aal_wind_50',
+                  'bal_wind_50', 'ane_wind_50',
+                  'bne_wind_50', 'ase_wind_50', 'bse_wind_50', 'asw_wind_50',
+                  'bsw_wind_50', 'anw_wind_50',
+                  'bnw_wind_50', 'aal_wind_64', 'bal_wind_64', 'ane_wind_64',
+                  'bne_wind_64', 'ase_wind_64',
+                  'bse_wind_64', 'asw_wind_64', 'bsw_wind_64', 'anw_wind_64',
+                  'bnw_wind_64', 'aradp',
+                  'bradp', 'arrp', 'brrp', 'amrd', 'bmrd', 'agusts', 'bgusts',
+                  'aeye', 'beye', 'adir', 'bdir',
+                  'aspeed', 'bspeed', 'adepth', 'bdepth']
 LINE_DATA_FIELDS[TCMPR] = ALL_LINE_DATA_FIELDS_TCST + COLUMNS[TCMPR]
 
 COLUMNS[PROBRIRW] = ['alat', 'alon', 'blat', 'blon', 'initials', 'tk_err', 'x_err',
-                                                          'y_err', 'adland',
-                                                          'bdland', 'rirw_beg', 'rirw_end', 'rirw_window', 'awind_end',
-                                                          'bwind_beg', 'bwind_end',
-                                                          'bdelta', 'bdelta_max', 'blevel_beg', 'blevel_end',
-                                                          'n_thresh']
+                     'y_err', 'adland', 'bdland', 'rirw_beg', 'rirw_end', 'rirw_window',
+                     'awind_end', 'bwind_beg', 'bwind_end',
+                     'bdelta', 'bdelta_max', 'blevel_beg', 'blevel_end',
+                     'n_thresh']
 
 LINE_DATA_FIELDS[PROBRIRW] = ALL_LINE_DATA_FIELDS_TCST + COLUMNS[PROBRIRW]
 
 LINE_DATA_FIELDS_TO_REPLACE[TCMPR] = ['lead', 'total', 'index_pair', 'alat', 'alon',
-                                      'blat', 'blon', 'tk_err', 'x_err', 'y_err', 'altk_err', 'crtk_err',
-                                      'adland', 'bdland', 'amslp', 'bmslp', 'amax_wind', 'bmax_wind', 'aal_wind_34',
-                                      'bal_wind_34', 'ane_wind_34', 'bne_wind_34', 'ase_wind_34', 'bse_wind_34',
-                                      'asw_wind_34',
-                                      'bsw_wind_34', 'anw_wind_34', 'bnw_wind_34', 'aal_wind_50', 'bal_wind_50',
-                                      'ane_wind_50',
-                                      'bne_wind_50', 'ase_wind_50', 'bse_wind_50', 'asw_wind_50', 'bsw_wind_50',
-                                      'anw_wind_50',
-                                      'bnw_wind_50', 'aal_wind_64', 'bal_wind_64', 'ane_wind_64', 'bne_wind_64',
-                                      'ase_wind_64',
-                                      'bse_wind_64', 'asw_wind_64', 'bsw_wind_64', 'anw_wind_64', 'bnw_wind_64',
-                                      'aradp',
-                                      'bradp', 'arrp', 'brrp', 'amrd', 'bmrd', 'agusts', 'bgusts', 'aeye', 'beye',
-                                      'adir', 'bdir',
-                                      'aspeed', 'bspeed']
+                                      'blat', 'blon', 'tk_err', 'x_err', 'y_err', 'altk_err',
+                                      'crtk_err',
+                                      'adland', 'bdland', 'amslp', 'bmslp',
+                                      'amax_wind', 'bmax_wind', 'aal_wind_34',
+                                      'bal_wind_34', 'ane_wind_34', 'bne_wind_34',
+                                      'ase_wind_34', 'bse_wind_34', 'asw_wind_34',
+                                      'bsw_wind_34', 'anw_wind_34', 'bnw_wind_34',
+                                      'aal_wind_50', 'bal_wind_50', 'ane_wind_50',
+                                      'bne_wind_50', 'ase_wind_50', 'bse_wind_50',
+                                      'asw_wind_50', 'bsw_wind_50', 'anw_wind_50',
+                                      'bnw_wind_50', 'aal_wind_64', 'bal_wind_64',
+                                      'ane_wind_64', 'bne_wind_64', 'ase_wind_64',
+                                      'bse_wind_64', 'asw_wind_64', 'bsw_wind_64',
+                                      'anw_wind_64', 'bnw_wind_64',
+                                      'aradp', 'bradp', 'arrp', 'brrp', 'amrd', 'bmrd',
+                                      'agusts', 'bgusts', 'aeye', 'beye',
+                                      'adir', 'bdir', 'aspeed', 'bspeed']
 
 LINE_DATA_FIELDS_TO_REPLACE[PROBRIRW] = ['lead', 'alat', 'alon', 'blat', 'blon', 'tk_err', 'x_err',
-                                                          'y_err', 'adland',
-                                                          'bdland', 'rirw_beg', 'rirw_end', 'rirw_window', 'awind_end',
-                                                          'bwind_beg', 'bwind_end','bdelta', 'bdelta_max']
+                                         'y_err', 'adland', 'bdland', 'rirw_beg', 'rirw_end',
+                                         'rirw_window', 'awind_end',
+                                         'bwind_beg', 'bwind_end', 'bdelta', 'bdelta_max']
 
 VAR_DATA_FIELDS = [LINE_DATA_ID, 'i_value']
 
