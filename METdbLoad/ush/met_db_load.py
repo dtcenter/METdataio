@@ -5,7 +5,7 @@ Program Name: met_db_load.py
 Contact(s): Venita Hagerty
 Abstract:
 History Log:  Initial version
-Usage: Load files into METdb
+Usage: Load files into METdatadb
 Parameters: -index
 Input Files: load_spec XML file
 Output Files: N/A
@@ -36,7 +36,7 @@ from write_mode_sql import WriteModeSql
 from write_tcst_sql import WriteTcstSql
 
 def main():
-    """ Main program to load files into the METdb/METviewer database
+    """ Main program to load files into the METdatadb/METviewer database
         Returns:
            N/A
     """
