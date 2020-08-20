@@ -2,7 +2,7 @@
 Testing for METdbLoad
 =====================
 
-There is a program called test_tables.py in the METdbLoad/tests folder in the METdb repository. It will compare one MySQL subdatabase to another, comparing the row counts and field values. It will compare specified header tables and line type tables.
+There is a program called test_tables.py in the METdbLoad/tests folder in the METdatadb repository. It will compare one MySQL subdatabase to another, comparing the row counts and field values. It will compare specified header tables and line type tables.
 
 Generally, if two different programs (or two versions of the same program) are used to load data (such as MVLoad and METdbLoad), then row counts and the data in rows should be the same. Because of floating point errors, a Python 3.6 and later function (math.isclose) is used to compare floating point numbers such as 1.2 and 1.19999999.
 
