@@ -145,8 +145,8 @@ class XmlLoadFile:
                         self.flags[child.tag.lower()] = True
                 # Handle flags with a default of True
                 elif child.tag.lower() in ("stat_header_db_check", "mode_header_db_check",
-                                           "mtd_header_db_check", "load_stat",
-                                           "load_mode", "load_mtd", "load_xml"):
+                                           "mtd_header_db_check", "tcst_header_db_check",
+                                           "load_stat", "load_mode", "load_mtd", "load_xml"):
                     if child.text.lower() == CN.LC_FALSE:
                         self.flags[child.tag.lower()] = False
                 elif child.tag.lower() == "insert_size":

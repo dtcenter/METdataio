@@ -457,7 +457,7 @@ class ReadDataFiles:
                 list_tcst = []
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data if list_frames ***", sys.exc_info()[0])
+            logging.error("*** %s in read_data if list_tcst ***", sys.exc_info()[0])
 
 
         try:
