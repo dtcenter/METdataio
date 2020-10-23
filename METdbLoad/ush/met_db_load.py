@@ -34,6 +34,8 @@ from write_file_sql import WriteFileSql
 from write_stat_sql import WriteStatSql
 from write_mode_sql import WriteModeSql
 from write_tcst_sql import WriteTcstSql
+from write_mtd_sql import WriteMtdSql
+
 
 def main():
     """ Main program to load files into the METdatadb/METviewer database
@@ -262,6 +264,7 @@ def main():
     logging.info("End time: %s", str(datetime.now()))
     logging.info("--- *** --- End METdbLoad --- *** ---")
 
+
 def next_set(first_file, mid_file, last_file):
     """ move indices to next set of files
         Returns:
@@ -275,6 +278,7 @@ def next_set(first_file, mid_file, last_file):
         if mid_file > last_file:
             mid_file = last_file
     return first_file, mid_file, last_file
+
 
 def purge_files(load_files, xml_flags):
     """ remove any files from load list that user has disallowed in XML tags

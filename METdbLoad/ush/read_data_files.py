@@ -41,6 +41,9 @@ class ReadDataFiles:
         self.mode_obj_data = pd.DataFrame()
         self.tcst_data = pd.DataFrame()
         self.data_files = pd.DataFrame()
+        self.mtd_2d_data = pd.DataFrame()
+        self.mtd_3d_single_data = pd.DataFrame()
+        self.mtd_3d_pair_data = pd.DataFrame()
 
     def read_data(self, load_flags, load_files, line_types):
         """ Read in data files as given in load_spec file.
@@ -52,7 +55,7 @@ class ReadDataFiles:
 
         read_time_start = time.perf_counter()
 
-        # handle MET files, VSDB files, MODE files, and MTD files, TCST files
+        # handle MET files, VSDB files, MODE files, MTD files, TCST files
 
         # speed up with dask delayed?
 
@@ -60,17 +63,24 @@ class ReadDataFiles:
         vsdb_file = pd.DataFrame()
         mode_file = pd.DataFrame()
         tcst_file = pd.DataFrame()
+        mtd_file = pd.DataFrame()
         file_hdr = pd.DataFrame()
         all_stat = pd.DataFrame()
         all_vsdb = pd.DataFrame()
         all_cts = pd.DataFrame()
-        all_single = pd.DataFrame()
+        all_obj = pd.DataFrame()
         all_tcst = pd.DataFrame()
+        all_2d = pd.DataFrame()
+        all_single = pd.DataFrame()
+        all_pair = pd.DataFrame()
         list_frames = []
         list_vsdb = []
         list_cts = []
         list_obj = []
         list_tcst = []
+        list_2d = []
+        list_single = []
+        list_pair = []
         try:
 
             # Put the list of files into a dataframe to collect info to write to database
@@ -300,6 +310,41 @@ class ReadDataFiles:
                                                               "lead": "fcst_lead",
                                                               "valid": "fcst_valid"})
 
+                    elif lu_id in (CN.MTD_FILES):
+
+                        # Get the first line of the MTD file that has the headers
+                        file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                                               nrows=1)
+
+                        # MTD file has no headers or no text - it's empty
+                        if file_hdr.empty or stat_info.st_size == 0:
+                            logging.warning("!!! MTD file %s is empty", filename)
+                            continue
+
+                        # use lower case of headers in file as column names
+                        hdr_names = file_hdr.columns.tolist()
+                        hdr_names = [hdr.lower() for hdr in hdr_names]
+
+                        # read the MTD file the same way as a mode file
+                        mtd_file = self.read_mode(filename, hdr_names)
+
+                        # add line numbers and count the header line, for MTD files
+                        mtd_file[CN.LINENUMBER] = mtd_file.index + 2
+
+                        # add other fields if not present in file
+                        if CN.FCST_T_BEG not in hdr_names:
+                            mtd_file.insert(8, CN.FCST_T_BEG, CN.MV_NULL)
+                        if CN.FCST_T_END not in hdr_names:
+                            mtd_file.insert(9, CN.FCST_T_END, CN.MV_NULL)
+                        if CN.OBS_T_BEG not in hdr_names:
+                            mtd_file.insert(12, CN.OBS_T_BEG, CN.NOTAV)
+                        if CN.OBS_T_END not in hdr_names:
+                            mtd_file.insert(13, CN.OBS_T_END, CN.NOTAV)
+                        # add units if input file does not have them
+                        if CN.FCST_UNITS not in hdr_names:
+                            mtd_file.insert(17, CN.FCST_UNITS, CN.NOTAV)
+                            mtd_file.insert(20, CN.OBS_UNITS, CN.NOTAV)
+
                     else:
                         logging.warning("!!! File type of %s not valid", filename)
 
@@ -334,6 +379,12 @@ class ReadDataFiles:
                         logging.debug("Lines in %s: %s", filename,
                                       str(len(one_file.index)))
                         tcst_file = tcst_file.iloc[0:0]
+                        if not file_hdr.empty:
+                            file_hdr = file_hdr.iloc[0:0]
+                    elif not mtd_file.empty:
+                        logging.debug("Lines in %s: %s", filename,
+                                      str(len(mode_file.index)))
+                        mtd_file = mtd_file.iloc[0:0]
                         if not file_hdr.empty:
                             file_hdr = file_hdr.iloc[0:0]
                     else:
@@ -787,29 +838,29 @@ class ReadDataFiles:
 
             if list_obj:
                 # gather all mode lines
-                all_single = pd.concat(list_obj, ignore_index=True, sort=False)
+                all_obj = pd.concat(list_obj, ignore_index=True, sort=False)
                 list_obj = []
 
                 # Copy forecast lead times, without trailing 0000 if they have them
-                all_single[CN.FCST_LEAD_HR] = \
-                    np.where(all_single[CN.FCST_LEAD] > 9999,
-                             all_single[CN.FCST_LEAD] // 10000,
-                             all_single[CN.FCST_LEAD])
+                all_obj[CN.FCST_LEAD_HR] = \
+                    np.where(all_obj[CN.FCST_LEAD] > 9999,
+                             all_obj[CN.FCST_LEAD] // 10000,
+                             all_obj[CN.FCST_LEAD])
 
                 # Calculate fcst_init = fcst_valid - fcst_lead hours
-                all_single.insert(8, CN.FCST_INIT, CN.NOTAV)
-                all_single[CN.FCST_INIT] = all_single[CN.FCST_VALID] - \
-                    pd.to_timedelta(all_single[CN.FCST_LEAD_HR], unit='h')
+                all_obj.insert(8, CN.FCST_INIT, CN.NOTAV)
+                all_obj[CN.FCST_INIT] = all_obj[CN.FCST_VALID] - \
+                                        pd.to_timedelta(all_obj[CN.FCST_LEAD_HR], unit='h')
 
                 # default to mode single
-                all_single[CN.LINE_TYPE_LU_ID] = 17
+                all_obj[CN.LINE_TYPE_LU_ID] = 17
 
                 # mark if it's a mode pair
-                all_single.loc[all_single.object_id.str.contains('_'),
-                               CN.LINE_TYPE_LU_ID] = 18
+                all_obj.loc[all_obj.object_id.str.contains('_'),
+                            CN.LINE_TYPE_LU_ID] = 18
 
-                self.mode_obj_data = all_single
-                all_single = all_single.iloc[0:0]
+                self.mode_obj_data = all_obj
+                all_obj = all_obj.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data if list_cts or list_obj ***",

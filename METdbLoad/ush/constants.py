@@ -765,6 +765,8 @@ MTD_3D_SC = 11
 MTD_3D_SS = 12
 TCST = 13
 
+MTD_FILES = [MTD_2D, MTD_3D_PC, MTD_3D_PS, MTD_3D_SC, MTD_3D_SS]
+
 # mode file fields
 MODE_HEADER = 'mode_header'
 MODE_HEADER_ID = 'mode_header_id'
@@ -798,6 +800,16 @@ F_OBJECT_CAT = 'f_object_cat'
 O_OBJECT_CAT = 'o_object_cat'
 ASPECT_DIFF = 'aspect_diff'
 CURV_RATIO = 'curvature_ratio'
+CENTROID_X = 'centroid_x'
+CENTROID_Y = 'centroid_y'
+CENTROID_LAT = 'centroid_lat'
+CENTROID_LON = 'centroid_lon'
+INTENSITY_10 = 'intensity_10'
+INTENSITY_25 = 'intensity_25'
+INTENSITY_50 = 'intensity_50'
+INTENSITY_75 = 'intensity_75'
+INTENSITY_90 = 'intensity_90'
+INTENSITY_NN = 'intensity_nn'
 
 MODE_HEADER_KEYS = [VERSION, MODEL, N_VALID, GRID_RES, DESCR,
                     FCST_LEAD, FCST_VALID, FCST_ACCUM, FCST_INIT,
@@ -813,11 +825,11 @@ MODE_CTS_FIELDS = [MODE_HEADER_ID, 'field', TOTAL_LC, FY_OY, FY_ON, FN_OY, FN_ON
                    'far', 'csi', 'gss', 'hk', 'hss', 'odds']
 
 MODE_SINGLE_FIELDS = [MODE_OBJ_ID, MODE_HEADER_ID, OBJECT_ID, OBJECT_CAT,
-                      'centroid_x', 'centroid_y', 'centroid_lat', 'centroid_lon',
+                      CENTROID_X, CENTROID_Y, CENTROID_LAT, CENTROID_LON,
                       'axis_avg', 'length', 'width', 'area', 'area_thresh',
                       'curvature', 'curvature_x', 'curvature_y', 'complexity',
-                      'intensity_10', 'intensity_25', 'intensity_50', 'intensity_75',
-                      'intensity_90', 'intensity_nn', 'intensity_sum',
+                      INTENSITY_10, INTENSITY_25, INTENSITY_50, INTENSITY_75,
+                      INTENSITY_90, INTENSITY_NN, 'intensity_sum',
                       FCST_FLAG, SIMPLE_FLAG, MATCHED_FLAG]
 
 MODE_PAIR_FIELDS = [MODE_OBJ_OBS_ID, MODE_OBJ_FCST_ID, MODE_HEADER_ID, OBJECT_ID,
@@ -858,6 +870,47 @@ P_VALUE_SLOTS = P_VALUE_SLOTS[:-2]
 
 INS_PHEADER = "INSERT INTO mode_obj_pair (" + ",".join(MODE_PAIR_FIELDS) + \
               ") VALUES (" + P_VALUE_SLOTS + ")"
+
+# MTD file fields
+MTD_HEADER = 'mtd_header'
+MTD_HEADER_ID = 'mtd_header_id'
+REVISION_ID = 'revision_id'
+T_DELTA = 't_delta'
+FCST_T_BEG = 'fcst_t_beg'
+FCST_T_END = 'fcst_t_end'
+OBS_T_BEG = 'obs_t_beg'
+OBS_T_END = 'obs_t_end'
+TIME_INDEX = 'time+index'
+AREA = 'area'
+CENTROID_T = 'centroid_t'
+AXIS_ANG = 'axis_ang'
+
+MTD_HEADER_KEYS = [VERSION, MODEL, DESCR, FCST_LEAD, FCST_VALID, FCST_INIT,
+                   OBS_LEAD, OBS_VALID, T_DELTA, FCST_T_BEG, FCST_T_END, FCST_RAD, FCST_THR,
+                   OBS_T_BEG, OBS_T_END, OBS_RAD, OBS_THR, FCST_VAR, FCST_UNITS, FCST_LEV,
+                   OBS_VAR, OBS_UNITS, OBS_LEV]
+
+MTD_HEADER_FIELDS = [MTD_HEADER_ID, LINE_TYPE_LU_ID, DATA_FILE_ID,
+                     REVISION_ID, LINENUMBER] + MTD_HEADER_KEYS
+
+MTD_2D_OBJ_FIELDS = [MTD_HEADER_ID, OBJECT_ID, OBJECT_CAT, TIME_INDEX, AREA,
+                     CENTROID_X, CENTROID_Y, CENTROID_LAT, CENTROID_LON, AXIS_ANG,
+                     INTENSITY_10, INTENSITY_25, INTENSITY_50, INTENSITY_75,
+                     INTENSITY_90, INTENSITY_NN, FCST_FLAG, SIMPLE_FLAG, MATCHED_FLAG]
+
+MTD_3D_OBJ_SINGLE_FIELDS = [MTD_HEADER_ID, OBJECT_ID, OBJECT_CAT,
+                            CENTROID_X, CENTROID_Y, CENTROID_T, CENTROID_LAT, CENTROID_LON,
+                            'x_dot', 'y_dot', AXIS_ANG, 'volume',
+                            'start_time', 'end_time', 'cdist_travelled',
+                            INTENSITY_10, INTENSITY_25, INTENSITY_50, INTENSITY_75,
+                            INTENSITY_90, INTENSITY_NN, FCST_FLAG, SIMPLE_FLAG, MATCHED_FLAG]
+
+MTD_3D_OBJ_PAIR_FIELDS = [MTD_HEADER_ID, OBJECT_ID, OBJECT_CAT,
+                          'space_centroid_dist', 'time_centroid_delta', 'axis_diff',
+                          'speed_delta', 'direction_diff', 'volume_ratio',
+                          'start_time_delta', 'end_time_delta',
+                          'intersection_volume', 'duration_diff', 'interest',
+                          SIMPLE_FLAG, MATCHED_FLAG]
 
 DROP_INDEXES_QUERIES = ["DROP INDEX stat_header_model_idx ON stat_header",
                         "DROP INDEX stat_header_fcst_var_idx ON stat_header",
