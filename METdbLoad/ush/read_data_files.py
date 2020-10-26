@@ -310,7 +310,7 @@ class ReadDataFiles:
                                                               "lead": "fcst_lead",
                                                               "valid": "fcst_valid"})
 
-                    elif lu_id in (CN.MTD_FILES):
+                    elif lu_id in CN.MTD_FILES:
 
                         # Get the first line of the MTD file that has the headers
                         file_hdr = pd.read_csv(filename, delim_whitespace=True,
