@@ -273,6 +273,10 @@ class ReadDataFiles:
                             mode_file.insert(16, CN.FCST_UNITS, CN.NOTAV)
                             mode_file.insert(19, CN.OBS_UNITS, CN.NOTAV)
 
+                        # if FCST_LEAD is NA, set it to 0
+                        if not mode_file.fcst_lead.dtypes == 'int':
+                            mode_file.loc[mode_file.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+
                         # initially, match line data to the index of the file names
                         mode_file[CN.FILE_ROW] = row_num
 
@@ -325,8 +329,14 @@ class ReadDataFiles:
                         hdr_names = file_hdr.columns.tolist()
                         hdr_names = [hdr.lower() for hdr in hdr_names]
 
+                        # MET output uses desc, mysql uses descr
+                        hdr_names[2] = CN.DESCR
+
                         # read the MTD file the same way as a mode file
                         mtd_file = self.read_mode(filename, hdr_names)
+
+                        # add a column for the revision_id
+                        mtd_file[CN.REVISION_ID] = CN.MV_NULL
 
                         # add line numbers and count the header line, for MTD files
                         mtd_file[CN.LINENUMBER] = mtd_file.index + 2
@@ -340,10 +350,29 @@ class ReadDataFiles:
                             mtd_file.insert(12, CN.OBS_T_BEG, CN.NOTAV)
                         if CN.OBS_T_END not in hdr_names:
                             mtd_file.insert(13, CN.OBS_T_END, CN.NOTAV)
+
                         # add units if input file does not have them
                         if CN.FCST_UNITS not in hdr_names:
                             mtd_file.insert(17, CN.FCST_UNITS, CN.NOTAV)
                             mtd_file.insert(20, CN.OBS_UNITS, CN.NOTAV)
+
+                        # if FCST_LEAD is NA, set it to 0
+                        if not mtd_file.fcst_lead.dtypes == 'int':
+                            mtd_file.loc[mtd_file.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+
+                        # initially, match line data to the index of the file names
+                        mtd_file[CN.FILE_ROW] = row_num
+
+                        # determine which types of records are in the file
+                        if lu_id in (CN.MTD_3D_SS, CN.MTD_3D_SC):
+                            # MTD single
+                            list_single.append(mtd_file)
+                        elif lu_id in (CN.MTD_3D_PS, CN.MTD_3D_PC):
+                            # MTD pair
+                            list_pair.append(mtd_file)
+                        # MTD 2D
+                        else:
+                            list_2d.append(mtd_file)
 
                     else:
                         logging.warning("!!! File type of %s not valid", filename)
@@ -383,7 +412,7 @@ class ReadDataFiles:
                             file_hdr = file_hdr.iloc[0:0]
                     elif not mtd_file.empty:
                         logging.debug("Lines in %s: %s", filename,
-                                      str(len(mode_file.index)))
+                                      str(len(mtd_file.index)))
                         mtd_file = mtd_file.iloc[0:0]
                         if not file_hdr.empty:
                             file_hdr = file_hdr.iloc[0:0]
@@ -960,6 +989,84 @@ class ReadDataFiles:
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data near end ***", sys.exc_info()[0])
+
+        try:
+            if list_2d:
+                all_2d = pd.concat(list_2d, ignore_index=True, sort=False)
+                list_2d = []
+
+                # Copy forecast lead times, without trailing 0000 if they have them
+                all_2d[CN.FCST_LEAD_HR] = \
+                    np.where(all_2d[CN.FCST_LEAD] > 9999,
+                             all_2d[CN.FCST_LEAD] // 10000,
+                             all_2d[CN.FCST_LEAD])
+
+                # Calculate fcst_init = fcst_valid - fcst_lead hours
+                all_2d.insert(5, CN.FCST_INIT, CN.NOTAV)
+                all_2d[CN.FCST_INIT] = all_2d[CN.FCST_VALID] - \
+                                       pd.to_timedelta(all_2d[CN.FCST_LEAD_HR], unit='h')
+
+                # line type of mtd 2d table
+                all_2d[CN.LINE_TYPE_LU_ID] = 19
+
+                self.mtd_2d_data = all_2d
+                all_2d = all_2d.iloc[0:0]
+
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in read_data if list_2d ***",
+                          sys.exc_info()[0])
+
+        try:
+            if list_single:
+                all_single = pd.concat(list_single, ignore_index=True, sort=False)
+                list_single = []
+
+                # Copy forecast lead times, without trailing 0000 if they have them
+                all_single[CN.FCST_LEAD_HR] = \
+                    np.where(all_single[CN.FCST_LEAD] > 9999,
+                             all_single[CN.FCST_LEAD] // 10000,
+                             all_single[CN.FCST_LEAD])
+
+                # Calculate fcst_init = fcst_valid - fcst_lead hours
+                all_single.insert(8, CN.FCST_INIT, CN.NOTAV)
+                all_single[CN.FCST_INIT] = all_single[CN.FCST_VALID] - \
+                                           pd.to_timedelta(all_single[CN.FCST_LEAD_HR], unit='h')
+
+                # line type of mtd single table
+                all_single[CN.LINE_TYPE_LU_ID] = 17
+
+                self.mtd_3d_single_data = all_single
+                all_single = all_single.iloc[0:0]
+
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in read_data if list_single ***",
+                          sys.exc_info()[0])
+
+        try:
+            if list_pair:
+                all_pair = pd.concat(list_pair, ignore_index=True, sort=False)
+                list_pair = []
+
+                # Copy forecast lead times, without trailing 0000 if they have them
+                all_pair[CN.FCST_LEAD_HR] = \
+                    np.where(all_pair[CN.FCST_LEAD] > 9999,
+                             all_pair[CN.FCST_LEAD] // 10000,
+                             all_pair[CN.FCST_LEAD])
+
+                # Calculate fcst_init = fcst_valid - fcst_lead hours
+                all_pair.insert(8, CN.FCST_INIT, CN.NOTAV)
+                all_pair[CN.FCST_INIT] = all_pair[CN.FCST_VALID] - \
+                                         pd.to_timedelta(all_pair[CN.FCST_LEAD_HR], unit='h')
+
+                # line type of mtd pair table
+                all_pair[CN.LINE_TYPE_LU_ID] = 18
+
+                self.mtd_3d_pair_data = all_pair
+                all_pair = all_pair.iloc[0:0]
+
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in read_data if list_pair ***",
+                          sys.exc_info()[0])
 
         read_time_end = time.perf_counter()
         read_time = timedelta(seconds=read_time_end - read_time_start)

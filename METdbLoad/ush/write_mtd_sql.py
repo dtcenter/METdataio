@@ -25,13 +25,15 @@ import constants as CN
 
 from run_sql import RunSql
 
+
 class WriteMtdSql:
     """ Class to write MTD files to a SQL database
         Returns:
            N/A
     """
     @staticmethod
-    def write_mtd_data(load_flags, cts_data, obj_data, sql_cur, local_infile):
+    def write_mtd_data(load_flags, m_2d_data, m_3d_single_data, m_3d_pair_data,
+                       sql_cur, local_infile):
         """ write mtd files to a SQL database.
             Returns:
                N/A
@@ -52,19 +54,22 @@ class WriteMtdSql:
             # --------------------
 
             # get the unique MTD headers
-            if not cts_data.empty:
-                mtd_headers = cts_data[CN.MTD_HEADER_FIELDS[1:]]
-            if not obj_data.empty:
-                mtd_headers = mtd_headers.append(obj_data[CN.MTD_HEADER_FIELDS[1:]],
+            if not m_2d_data.empty:
+                mtd_headers = m_2d_data[CN.MTD_HEADER_FIELDS[1:]]
+            if not m_3d_single_data.empty:
+                mtd_headers = mtd_headers.append(m_3d_single_data[CN.MTD_HEADER_FIELDS[1:]],
                                                  ignore_index=True)
-            # restore to original order now that cts and obj are recombined
+            if not m_3d_pair_data.empty:
+                mtd_headers = mtd_headers.append(m_3d_pair_data[CN.MTD_HEADER_FIELDS[1:]],
+                                                 ignore_index=True)
+            # restore to original order now all MTD headers are recombined
             mtd_headers = mtd_headers.sort_values(by=[CN.DATA_FILE_ID, CN.LINENUMBER])
             # get unique values, keeping the first of the duplicate records
             mtd_headers.drop_duplicates(CN.MTD_HEADER_KEYS, keep='first', inplace=True)
             mtd_headers.reset_index(drop=True, inplace=True)
 
             # At first, we do not know if the headers already exist, so we have no keys
-            mtd_headers[CN.MTD_HEADER] = CN.NO_KEY
+            mtd_headers[CN.MTD_HEADER_ID] = CN.NO_KEY
 
             # get the next valid MTD header id. Set it to zero (first valid id) if no records yet
             next_header_id = sql_met.get_next_id(CN.MTD_HEADER, CN.MTD_HEADER_ID, sql_cur)

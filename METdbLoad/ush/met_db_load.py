@@ -189,6 +189,9 @@ def main():
                                                          file_data.mode_cts_data,
                                                          file_data.mode_obj_data,
                                                          file_data.tcst_data,
+                                                         file_data.mtd_2d_data,
+                                                         file_data.mtd_3d_single_data,
+                                                         file_data.mtd_3d_pair_data,
                                                          sql_run.cur,
                                                          sql_run.local_infile)
 
@@ -197,6 +200,9 @@ def main():
                 file_data.mode_cts_data = updated_data[2]
                 file_data.mode_obj_data = updated_data[3]
                 file_data.tcst_data = updated_data[4]
+                file_data.mtd_2d_data = updated_data[5]
+                file_data.mtd_3d_single_data = updated_data[6]
+                file_data.mtd_3d_pair_data = updated_data[7]
 
                 if file_data.data_files.empty:
                     logging.warning("!!! No data to load in current set %s", str(set_count))
@@ -227,6 +233,18 @@ def main():
                                               file_data.tcst_data,
                                               sql_run.cur,
                                               sql_run.local_infile)
+
+                if (not file_data.mtd_2d_data.empty) or (not file_data.mtd_3d_single_data.empty) \
+                        or (not file_data.mtd_3d_pair_data.empty):
+                    mtd_lines = WriteMtdSql()
+
+                    mtd_lines.write_mtd_data(xml_loadfile.flags,
+                                             file_data.mtd_2d_data,
+                                             file_data.mtd_3d_single_data,
+                                             file_data.mtd_3d_pair_data,
+                                             sql_run.cur,
+                                             sql_run.local_infile)
+
                 # Processing for the last set of data
                 if mid_file >= last_file:
                     # If any data was written, write to the metadata and instance_info tables

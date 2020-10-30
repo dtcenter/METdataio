@@ -36,7 +36,8 @@ class WriteFileSql:
         self.sql_met = RunSql()
 
     def write_file_sql(self, load_flags, data_files, stat_data, mode_cts_data,
-                       mode_obj_data, tcst_data, sql_cur, local_infile):
+                       mode_obj_data, tcst_data, mtd_2d_data, mtd_3d_single_data,
+                       mtd_3d_pair_data, sql_cur, local_infile):
         """ write data_file records to a SQL database.
             Returns:
                N/A
@@ -101,11 +102,30 @@ class WriteFileSql:
                                                          .isin(list_dupes)].index,
                                            inplace=True)
 
+
                 if not mode_obj_data.empty and list_dupes:
                     if mode_obj_data.file_row.isin(list_dupes).any():
                         mode_obj_data.drop(mode_obj_data[mode_obj_data.file_row
                                                          .isin(list_dupes)].index,
                                            inplace=True)
+
+                if not mtd_2d_data.empty and list_dupes:
+                    if mtd_2d_data.file_row.isin(list_dupes).any():
+                        mtd_2d_data.drop(mtd_2d_data[mtd_2d_data.file_row
+                                                     .isin(list_dupes)].index,
+                                         inplace=True)
+
+                if not mtd_3d_single_data.empty and list_dupes:
+                    if mtd_3d_single_data.file_row.isin(list_dupes).any():
+                        mtd_3d_single_data.drop(mtd_3d_single_data[mtd_3d_single_data.file_row
+                                                                   .isin(list_dupes)].index,
+                                                inplace=True)
+
+                if not mtd_3d_pair_data.empty and list_dupes:
+                    if mtd_3d_pair_data.file_row.isin(list_dupes).any():
+                        mtd_3d_pair_data.drop(mtd_3d_pair_data[mtd_3d_pair_data.file_row
+                                                               .isin(list_dupes)].index,
+                                              inplace=True)
 
             # delete duplicate file entries
             index_names = data_files[data_files.data_file_id == CN.NO_KEY].index
@@ -132,7 +152,16 @@ class WriteFileSql:
                                           CN.DATA_FILE_ID] = row[CN.DATA_FILE_ID]
                     if not tcst_data.empty:
                         tcst_data.loc[tcst_data[CN.FILE_ROW] == row[CN.FILE_ROW],
-                                          CN.DATA_FILE_ID] = row[CN.DATA_FILE_ID]
+                                      CN.DATA_FILE_ID] = row[CN.DATA_FILE_ID]
+                    if not mtd_2d_data.empty:
+                        mtd_2d_data.loc[mtd_2d_data[CN.FILE_ROW] == row[CN.FILE_ROW],
+                                        CN.DATA_FILE_ID] = row[CN.DATA_FILE_ID]
+                    if not mtd_3d_single_data.empty:
+                        mtd_3d_single_data.loc[mtd_3d_single_data[CN.FILE_ROW] == row[CN.FILE_ROW],
+                                               CN.DATA_FILE_ID] = row[CN.DATA_FILE_ID]
+                    if not mtd_3d_pair_data.empty:
+                        mtd_3d_pair_data.loc[mtd_3d_pair_data[CN.FILE_ROW] == row[CN.FILE_ROW],
+                                             CN.DATA_FILE_ID] = row[CN.DATA_FILE_ID]
 
                 # get just the new data files
                 new_files = data_files[data_files[CN.DATA_FILE_ID] >= next_file_id]
@@ -152,7 +181,8 @@ class WriteFileSql:
 
         logging.debug("[--- End write_file_sql ---]")
 
-        return data_files, stat_data, mode_cts_data, mode_obj_data, tcst_data
+        return data_files, stat_data, mode_cts_data, mode_obj_data, tcst_data, \
+               mtd_2d_data, mtd_3d_single_data, mtd_3d_pair_data
 
     def write_metadata_sql(self, load_flags, data_files, group, description,
                            load_note, xml_str, sql_cur):
