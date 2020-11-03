@@ -875,12 +875,15 @@ INS_PHEADER = "INSERT INTO mode_obj_pair (" + ",".join(MODE_PAIR_FIELDS) + \
 MTD_HEADER = 'mtd_header'
 MTD_HEADER_ID = 'mtd_header_id'
 REVISION_ID = 'revision_id'
+MTD_2D_T = 'mtd_2d_obj'
+MTD_SINGLE_T = 'mtd_3d_obj_single'
+MTD_PAIR_T = 'mtd_3d_obj_pair'
 T_DELTA = 't_delta'
 FCST_T_BEG = 'fcst_t_beg'
 FCST_T_END = 'fcst_t_end'
 OBS_T_BEG = 'obs_t_beg'
 OBS_T_END = 'obs_t_end'
-TIME_INDEX = 'time+index'
+TIME_INDEX = 'time_index'
 AREA = 'area'
 CENTROID_T = 'centroid_t'
 AXIS_ANG = 'axis_ang'
@@ -911,6 +914,18 @@ MTD_3D_OBJ_PAIR_FIELDS = [MTD_HEADER_ID, OBJECT_ID, OBJECT_CAT,
                           'start_time_delta', 'end_time_delta',
                           'intersection_volume', 'duration_diff', 'interest',
                           SIMPLE_FLAG, MATCHED_FLAG]
+
+Q_MTDHEADER = "SELECT mtd_header_id FROM mtd_header WHERE " + \
+              "=%s AND ".join(MTD_HEADER_KEYS) + "=%s"
+
+INS_MTDHEADER = "INSERT INTO mtd_header (" + ",".join(MTD_HEADER_FIELDS) + \
+                ") VALUES (" + VALUE_SLOTS + ")"
+
+C_VALUE_SLOTS = '%s, ' * len(MTD_2D_OBJ_FIELDS)
+C_VALUE_SLOTS = C_VALUE_SLOTS[:-2]
+
+INS_M2HEADER = "INSERT INTO mtd_2d_obj (" + ",".join(MTD_2D_OBJ_FIELDS) + \
+               ") VALUES (" + C_VALUE_SLOTS + ")"
 
 DROP_INDEXES_QUERIES = ["DROP INDEX stat_header_model_idx ON stat_header",
                         "DROP INDEX stat_header_fcst_var_idx ON stat_header",

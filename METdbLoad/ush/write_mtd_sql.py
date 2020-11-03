@@ -83,13 +83,7 @@ class WriteMtdSql:
                         data_line[CN.FCST_VALID].strftime("%Y-%m-%d %H:%M:%S")
                     data_line[CN.FCST_INIT] = data_line[CN.FCST_INIT].strftime("%Y-%m-%d %H:%M:%S")
                     data_line[CN.OBS_VALID] = data_line[CN.OBS_VALID].strftime("%Y-%m-%d %H:%M:%S")
-                    # when n_valid and grid_res are null, query needs 'is null'
-                    if data_line[CN.N_VALID] == CN.MV_NULL and data_line[CN.GRID_RES] == CN.MV_NULL:
-                        sql_cur.execute(CN.QN_MHEADER,
-                                        [data_line[CN.VERSION],
-                                         data_line[CN.MODEL]] + data_line.values[7:-1].tolist())
-                    else:
-                        sql_cur.execute(CN.Q_MHEADER, data_line.values[3:-1].tolist())
+                    sql_cur.execute(CN.Q_MTDHEADER, data_line.values[4:-1].tolist())
                     result = sql_cur.fetchone()
 
                     # If you find a match, put the key into the mtd_headers dataframe
@@ -111,8 +105,53 @@ class WriteMtdSql:
             # Write any new headers out to the sql database
             if not new_headers.empty:
                 sql_met.write_to_sql(new_headers, CN.MTD_HEADER_FIELDS, CN.MTD_HEADER,
-                                     CN.INS_MHEADER, sql_cur, local_infile)
+                                     CN.INS_MTDHEADER, sql_cur, local_infile)
                 new_headers = new_headers.iloc[0:0]
+
+            # --------------------
+            # Write Line Data
+            # --------------------
+
+            # write the lines out to a CSV file, and then load them into database
+
+            if not m_2d_data.empty:
+                # put the header ids back into the dataframes
+                m_2d_data = pd.merge(left=mtd_headers, right=m_2d_data, on=CN.MTD_HEADER_KEYS)
+                # Merging with limited keys renames columns, change them back
+                if 'line_type_lu_id_x' in m_2d_data.columns:
+                    m_2d_data = m_2d_data.rename(columns={'line_type_lu_id_x': CN.LINE_TYPE_LU_ID})
+                if 'data_file_id_x' in m_2d_data.columns:
+                    m_2d_data = m_2d_data.rename(columns={'data_file_id_x': CN.DATA_FILE_ID})
+                if 'revision_id_x' in m_2d_data.columns:
+                    m_2d_data = m_2d_data.rename(columns={'revision_id_x': CN.REVISION_ID})
+                if 'linenumber_x' in m_2d_data.columns:
+                    m_2d_data = m_2d_data.rename(columns={'linenumber_x': CN.LINENUMBER})
+
+                # create defaults for flags
+                m_2d_data[CN.SIMPLE_FLAG] = 1
+                m_2d_data[CN.FCST_FLAG] = 0
+                m_2d_data[CN.MATCHED_FLAG] = 0
+
+                # Set simple flag to zero if object id starts with C
+                if m_2d_data.object_id.str.startswith('C').any():
+                    m_2d_data.loc[m_2d_data.object_id.str.startswith('C'),
+                                  CN.SIMPLE_FLAG] = 0
+
+                # Set fcst flag to 1 if object id contains an F
+                if m_2d_data.object_id.str.contains('F').any():
+                    m_2d_data.loc[m_2d_data.object_id.str.contains('F'),
+                                  CN.FCST_FLAG] = 1
+
+                # Set matched flag to 1 if object cat has neither underscore nor 000
+                if (~m_2d_data.object_cat.str.contains(CN.U_SCORE)).sum() > 0:
+                    if (~m_2d_data.object_cat.str.contains(CN.T_ZERO)).sum() > 0:
+                        m_2d_data.loc[~m_2d_data.object_cat.str.contains(CN.U_SCORE) &
+                                      ~m_2d_data.object_cat.str.contains(CN.T_ZERO),
+                                      CN.MATCHED_FLAG] = 1
+
+                sql_met.write_to_sql(m_2d_data, CN.MTD_2D_OBJ_FIELDS, CN.MTD_2D_T,
+                                     CN.INS_M2HEADER, sql_cur, local_infile)
+                m_2d_data = m_2d_data.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_mtd_sql ***", sys.exc_info()[0])

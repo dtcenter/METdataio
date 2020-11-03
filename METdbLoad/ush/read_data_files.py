@@ -245,8 +245,8 @@ class ReadDataFiles:
                         hdr_names = [hdr.lower() for hdr in hdr_names]
 
                         # change field name after intensity_90 to be intensity_nn
-                        if 'intensity_90' in hdr_names:
-                            hdr_names[hdr_names.index('intensity_90') + 1] = 'intensity_nn'
+                        if CN.INTENSITY_90 in hdr_names:
+                            hdr_names[hdr_names.index(CN.INTENSITY_90) + 1] = CN.INTENSITY_NN
 
                         # read the file
                         mode_file = self.read_mode(filename, hdr_names)
@@ -335,6 +335,16 @@ class ReadDataFiles:
                         # read the MTD file the same way as a mode file
                         mtd_file = self.read_mode(filename, hdr_names)
 
+                        # change field name after intensity_90 to be intensity_nn
+                        if CN.INTENSITY_90 in mtd_file:
+                            inten_col = mtd_file.columns.get_loc(CN.INTENSITY_90)
+                            # if intensity_90 is the last column, add a column
+                            if inten_col == len(mtd_file.columns) - 1:
+                                mtd_file[CN.INTENSITY_NN] = CN.MV_NOTAV
+                            else:
+                                mtd_file = mtd_file.rename(columns={mtd_file.columns[inten_col + 1]:
+                                                           CN.INTENSITY_NN})
+
                         # add a column for the revision_id
                         mtd_file[CN.REVISION_ID] = CN.MV_NULL
 
@@ -347,18 +357,37 @@ class ReadDataFiles:
                         if CN.FCST_T_END not in hdr_names:
                             mtd_file.insert(9, CN.FCST_T_END, CN.MV_NULL)
                         if CN.OBS_T_BEG not in hdr_names:
-                            mtd_file.insert(12, CN.OBS_T_BEG, CN.NOTAV)
+                            mtd_file.insert(12, CN.OBS_T_BEG, CN.MV_NULL)
                         if CN.OBS_T_END not in hdr_names:
-                            mtd_file.insert(13, CN.OBS_T_END, CN.NOTAV)
+                            mtd_file.insert(13, CN.OBS_T_END, CN.MV_NULL)
 
                         # add units if input file does not have them
                         if CN.FCST_UNITS not in hdr_names:
                             mtd_file.insert(17, CN.FCST_UNITS, CN.NOTAV)
                             mtd_file.insert(20, CN.OBS_UNITS, CN.NOTAV)
 
-                        # if FCST_LEAD is NA, set it to 0
+                        # if FCST_LEAD is NA, set it to 0 to do math
                         if not mtd_file.fcst_lead.dtypes == 'int':
                             mtd_file.loc[mtd_file.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+
+                        # Copy forecast lead times, without trailing 0000 if they have them
+                        mtd_file[CN.FCST_LEAD_HR] = \
+                            np.where(mtd_file[CN.FCST_LEAD] > 9999,
+                                     mtd_file[CN.FCST_LEAD] // 10000,
+                                     mtd_file[CN.FCST_LEAD])
+
+                        # Calculate fcst_init = fcst_valid - fcst_lead hours
+                        mtd_file.insert(5, CN.FCST_INIT, CN.NOTAV)
+                        mtd_file[CN.FCST_INIT] = mtd_file[CN.FCST_VALID] - \
+                            pd.to_timedelta(mtd_file[CN.FCST_LEAD_HR], unit='h')
+
+                        # Where fcst_lead was set to zero for math, set it to -9999
+                        if mtd_file[CN.FCST_LEAD].eq(0).any():
+                            mtd_file.loc[mtd_file.fcst_lead == 0, CN.FCST_LEAD] = CN.MV_NOTAV
+
+                        # if OBS_LEAD is NA, set it to -9999
+                        if not mtd_file.obs_lead.dtypes == 'int':
+                            mtd_file.loc[mtd_file.obs_lead == CN.NOTAV, CN.OBS_LEAD] = CN.MV_NOTAV
 
                         # initially, match line data to the index of the file names
                         mtd_file[CN.FILE_ROW] = row_num
@@ -445,7 +474,7 @@ class ReadDataFiles:
                         all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False) &
                                      all_stat.fcst_thresh.str.contains(CN.R_PAREN, regex=False),
                                      CN.FCST_THRESH].str.split(CN.L_PAREN).str[1]. \
-                            str.split(CN.R_PAREN).str[0].astype(float)
+                        str.split(CN.R_PAREN).str[0].astype(float)
                     # remove the percentage from fcst_thresh
                     all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False) &
                                  all_stat.fcst_thresh.str.contains(CN.R_PAREN, regex=False),
@@ -463,7 +492,7 @@ class ReadDataFiles:
                         all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN, regex=False) &
                                      all_stat.obs_thresh.str.contains(CN.R_PAREN, regex=False),
                                      CN.OBS_THRESH].str.split(CN.L_PAREN).str[1]. \
-                            str.split(CN.R_PAREN).str[0].astype(float)
+                        str.split(CN.R_PAREN).str[0].astype(float)
                     all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN, regex=False) &
                                  all_stat.obs_thresh.str.contains(CN.R_PAREN, regex=False),
                                  CN.OBS_THRESH] = \
@@ -519,11 +548,11 @@ class ReadDataFiles:
                 # if rps_comp IS null and rps is NOT null,
                 # set rps_comp to 1 minus rps
                 if all_stat[CN.LINE_TYPE].eq(CN.RPS).any():
-                    all_stat.loc[(all_stat.line_type == CN.RPS) & \
-                                 (all_stat['8'].isnull()) & \
+                    all_stat.loc[(all_stat.line_type == CN.RPS) &
+                                 (all_stat['8'].isnull()) &
                                  (~all_stat['5'].isnull()), '8'] = \
-                        1 - all_stat.loc[(all_stat.line_type == CN.RPS) & \
-                                         (all_stat['8'].isnull()) & \
+                        1 - all_stat.loc[(all_stat.line_type == CN.RPS) &
+                                         (all_stat['8'].isnull()) &
                                          (~all_stat['5'].isnull()), '5']
 
         except (RuntimeError, TypeError, NameError, KeyError):
@@ -538,7 +567,6 @@ class ReadDataFiles:
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data if list_tcst ***", sys.exc_info()[0])
-
 
         try:
 
@@ -879,7 +907,7 @@ class ReadDataFiles:
                 # Calculate fcst_init = fcst_valid - fcst_lead hours
                 all_obj.insert(8, CN.FCST_INIT, CN.NOTAV)
                 all_obj[CN.FCST_INIT] = all_obj[CN.FCST_VALID] - \
-                                        pd.to_timedelta(all_obj[CN.FCST_LEAD_HR], unit='h')
+                    pd.to_timedelta(all_obj[CN.FCST_LEAD_HR], unit='h')
 
                 # default to mode single
                 all_obj[CN.LINE_TYPE_LU_ID] = 17
@@ -972,7 +1000,6 @@ class ReadDataFiles:
 
                     all_tcst.drop(invalid_line_indexes, axis=0, inplace=True)
 
-
                 # reset the index, in case any lines have been deleted
                 all_tcst.reset_index(drop=True, inplace=True)
 
@@ -995,17 +1022,6 @@ class ReadDataFiles:
                 all_2d = pd.concat(list_2d, ignore_index=True, sort=False)
                 list_2d = []
 
-                # Copy forecast lead times, without trailing 0000 if they have them
-                all_2d[CN.FCST_LEAD_HR] = \
-                    np.where(all_2d[CN.FCST_LEAD] > 9999,
-                             all_2d[CN.FCST_LEAD] // 10000,
-                             all_2d[CN.FCST_LEAD])
-
-                # Calculate fcst_init = fcst_valid - fcst_lead hours
-                all_2d.insert(5, CN.FCST_INIT, CN.NOTAV)
-                all_2d[CN.FCST_INIT] = all_2d[CN.FCST_VALID] - \
-                                       pd.to_timedelta(all_2d[CN.FCST_LEAD_HR], unit='h')
-
                 # line type of mtd 2d table
                 all_2d[CN.LINE_TYPE_LU_ID] = 19
 
@@ -1021,17 +1037,6 @@ class ReadDataFiles:
                 all_single = pd.concat(list_single, ignore_index=True, sort=False)
                 list_single = []
 
-                # Copy forecast lead times, without trailing 0000 if they have them
-                all_single[CN.FCST_LEAD_HR] = \
-                    np.where(all_single[CN.FCST_LEAD] > 9999,
-                             all_single[CN.FCST_LEAD] // 10000,
-                             all_single[CN.FCST_LEAD])
-
-                # Calculate fcst_init = fcst_valid - fcst_lead hours
-                all_single.insert(8, CN.FCST_INIT, CN.NOTAV)
-                all_single[CN.FCST_INIT] = all_single[CN.FCST_VALID] - \
-                                           pd.to_timedelta(all_single[CN.FCST_LEAD_HR], unit='h')
-
                 # line type of mtd single table
                 all_single[CN.LINE_TYPE_LU_ID] = 17
 
@@ -1046,17 +1051,6 @@ class ReadDataFiles:
             if list_pair:
                 all_pair = pd.concat(list_pair, ignore_index=True, sort=False)
                 list_pair = []
-
-                # Copy forecast lead times, without trailing 0000 if they have them
-                all_pair[CN.FCST_LEAD_HR] = \
-                    np.where(all_pair[CN.FCST_LEAD] > 9999,
-                             all_pair[CN.FCST_LEAD] // 10000,
-                             all_pair[CN.FCST_LEAD])
-
-                # Calculate fcst_init = fcst_valid - fcst_lead hours
-                all_pair.insert(8, CN.FCST_INIT, CN.NOTAV)
-                all_pair[CN.FCST_INIT] = all_pair[CN.FCST_VALID] - \
-                                         pd.to_timedelta(all_pair[CN.FCST_LEAD_HR], unit='h')
 
                 # line type of mtd pair table
                 all_pair[CN.LINE_TYPE_LU_ID] = 18
