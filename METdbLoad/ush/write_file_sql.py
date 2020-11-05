@@ -102,7 +102,6 @@ class WriteFileSql:
                                                          .isin(list_dupes)].index,
                                            inplace=True)
 
-
                 if not mode_obj_data.empty and list_dupes:
                     if mode_obj_data.file_row.isin(list_dupes).any():
                         mode_obj_data.drop(mode_obj_data[mode_obj_data.file_row
@@ -182,7 +181,7 @@ class WriteFileSql:
         logging.debug("[--- End write_file_sql ---]")
 
         return data_files, stat_data, mode_cts_data, mode_obj_data, tcst_data, \
-               mtd_2d_data, mtd_3d_single_data, mtd_3d_pair_data
+            mtd_2d_data, mtd_3d_single_data, mtd_3d_pair_data
 
     def write_metadata_sql(self, load_flags, data_files, group, description,
                            load_note, xml_str, sql_cur):

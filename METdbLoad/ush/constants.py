@@ -927,6 +927,18 @@ C_VALUE_SLOTS = C_VALUE_SLOTS[:-2]
 INS_M2HEADER = "INSERT INTO mtd_2d_obj (" + ",".join(MTD_2D_OBJ_FIELDS) + \
                ") VALUES (" + C_VALUE_SLOTS + ")"
 
+S_VALUE_SLOTS = '%s, ' * len(MTD_3D_OBJ_SINGLE_FIELDS)
+S_VALUE_SLOTS = S_VALUE_SLOTS[:-2]
+
+INS_M3SHEADER = "INSERT INTO mtd_3d_obj_single (" + ",".join(MTD_3D_OBJ_SINGLE_FIELDS) + \
+                ") VALUES (" + S_VALUE_SLOTS + ")"
+
+P_VALUE_SLOTS = '%s, ' * len(MTD_3D_OBJ_PAIR_FIELDS)
+P_VALUE_SLOTS = P_VALUE_SLOTS[:-2]
+
+INS_M3PHEADER = "INSERT INTO mtd_3d_obj_pair (" + ",".join(MTD_3D_OBJ_PAIR_FIELDS) + \
+                ") VALUES (" + P_VALUE_SLOTS + ")"
+
 DROP_INDEXES_QUERIES = ["DROP INDEX stat_header_model_idx ON stat_header",
                         "DROP INDEX stat_header_fcst_var_idx ON stat_header",
                         "DROP INDEX stat_header_fcst_lev_idx ON stat_header",

@@ -25,6 +25,7 @@ import constants as CN
 
 from run_sql import RunSql
 
+
 class WriteModeSql:
     """ Class to write mode files (cts and object) to a SQL database
         Returns:

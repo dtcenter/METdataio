@@ -45,9 +45,10 @@ class WriteMtdSql:
 
         try:
 
-            all_pair = pd.DataFrame()
-
             sql_met = RunSql()
+
+            mtd_headers = pd.DataFrame()
+            new_headers = pd.DataFrame()
 
             # --------------------
             # Write MTD Headers
@@ -115,17 +116,8 @@ class WriteMtdSql:
             # write the lines out to a CSV file, and then load them into database
 
             if not m_2d_data.empty:
-                # put the header ids back into the dataframes
+                # put the header ids back into the dataframe
                 m_2d_data = pd.merge(left=mtd_headers, right=m_2d_data, on=CN.MTD_HEADER_KEYS)
-                # Merging with limited keys renames columns, change them back
-                if 'line_type_lu_id_x' in m_2d_data.columns:
-                    m_2d_data = m_2d_data.rename(columns={'line_type_lu_id_x': CN.LINE_TYPE_LU_ID})
-                if 'data_file_id_x' in m_2d_data.columns:
-                    m_2d_data = m_2d_data.rename(columns={'data_file_id_x': CN.DATA_FILE_ID})
-                if 'revision_id_x' in m_2d_data.columns:
-                    m_2d_data = m_2d_data.rename(columns={'revision_id_x': CN.REVISION_ID})
-                if 'linenumber_x' in m_2d_data.columns:
-                    m_2d_data = m_2d_data.rename(columns={'linenumber_x': CN.LINENUMBER})
 
                 # create defaults for flags
                 m_2d_data[CN.SIMPLE_FLAG] = 1
@@ -143,15 +135,70 @@ class WriteMtdSql:
                                   CN.FCST_FLAG] = 1
 
                 # Set matched flag to 1 if object cat has neither underscore nor 000
-                if (~m_2d_data.object_cat.str.contains(CN.U_SCORE)).sum() > 0:
-                    if (~m_2d_data.object_cat.str.contains(CN.T_ZERO)).sum() > 0:
-                        m_2d_data.loc[~m_2d_data.object_cat.str.contains(CN.U_SCORE) &
-                                      ~m_2d_data.object_cat.str.contains(CN.T_ZERO),
-                                      CN.MATCHED_FLAG] = 1
+                if ((~m_2d_data.object_cat.str.contains(CN.U_SCORE)).sum() > 0 and
+                        (~m_2d_data.object_cat.str.contains(CN.T_ZERO)).sum() > 0):
+                    m_2d_data.loc[~m_2d_data.object_cat.str.contains(CN.U_SCORE) &
+                                  ~m_2d_data.object_cat.str.contains(CN.T_ZERO),
+                                  CN.MATCHED_FLAG] = 1
 
                 sql_met.write_to_sql(m_2d_data, CN.MTD_2D_OBJ_FIELDS, CN.MTD_2D_T,
                                      CN.INS_M2HEADER, sql_cur, local_infile)
                 m_2d_data = m_2d_data.iloc[0:0]
+
+            if not m_3d_single_data.empty:
+                # put the header ids back into the dataframe
+                m_3d_single_data = pd.merge(left=mtd_headers, right=m_3d_single_data,
+                                            on=CN.MTD_HEADER_KEYS)
+
+                # create defaults for flags
+                m_3d_single_data[CN.SIMPLE_FLAG] = 1
+                m_3d_single_data[CN.FCST_FLAG] = 0
+                m_3d_single_data[CN.MATCHED_FLAG] = 0
+
+                # Set simple flag to zero if object id starts with C
+                if m_3d_single_data.object_id.str.startswith('C').any():
+                    m_3d_single_data.loc[m_3d_single_data.object_id.str.startswith('C'),
+                                         CN.SIMPLE_FLAG] = 0
+
+                # Set fcst flag to 1 if object id contains an F
+                if m_3d_single_data.object_id.str.contains('F').any():
+                    m_3d_single_data.loc[m_3d_single_data.object_id.str.contains('F'),
+                                         CN.FCST_FLAG] = 1
+
+                # Set matched flag to 1 if object cat has neither underscore nor 000
+                if (~m_3d_single_data.object_cat.str.contains(CN.U_SCORE)).sum() > 0:
+                    if (~m_3d_single_data.object_cat.str.contains(CN.T_ZERO)).sum() > 0:
+                        m_3d_single_data.loc[~m_3d_single_data.object_cat.str.contains(CN.U_SCORE) &
+                                             ~m_3d_single_data.object_cat.str.contains(CN.T_ZERO),
+                                             CN.MATCHED_FLAG] = 1
+
+                sql_met.write_to_sql(m_3d_single_data, CN.MTD_3D_OBJ_SINGLE_FIELDS, CN.MTD_SINGLE_T,
+                                     CN.INS_M3SHEADER, sql_cur, local_infile)
+                m_3d_single_data = m_3d_single_data.iloc[0:0]
+
+            if not m_3d_pair_data.empty:
+                # put the header ids back into the dataframe
+                m_3d_pair_data = pd.merge(left=mtd_headers, right=m_3d_pair_data,
+                                          on=CN.MTD_HEADER_KEYS)
+                mtd_headers = mtd_headers.iloc[0:0]
+
+                # create defaults for flags
+                m_3d_pair_data[CN.SIMPLE_FLAG] = 1
+                m_3d_pair_data[CN.MATCHED_FLAG] = 0
+
+                # Set simple flag to zero if object id starts with C
+                if m_3d_pair_data.object_id.str.startswith('C').any():
+                    m_3d_pair_data.loc[m_3d_pair_data.object_id.str.startswith('C'),
+                                       CN.SIMPLE_FLAG] = 0
+
+                # Set matched flag to 1 if object cat has no 000
+                if (~m_3d_pair_data.object_cat.str.contains(CN.T_ZERO)).sum() > 0:
+                    m_3d_pair_data.loc[~m_3d_pair_data.object_cat.str.contains(CN.T_ZERO),
+                                       CN.MATCHED_FLAG] = 1
+
+                sql_met.write_to_sql(m_3d_pair_data, CN.MTD_3D_OBJ_PAIR_FIELDS, CN.MTD_PAIR_T,
+                                     CN.INS_M3PHEADER, sql_cur, local_infile)
+                m_3d_pair_data = m_3d_pair_data.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_mtd_sql ***", sys.exc_info()[0])
