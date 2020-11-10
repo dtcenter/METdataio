@@ -1140,7 +1140,9 @@ class ReadDataFiles:
             return self.cache[date_str]
         if date_str.startswith('F') or date_str.startswith('O'):
             return pd.to_datetime('20000101_000000', format='%Y%m%d_%H%M%S')
-        date_time = pd.to_datetime(date_str, format='%Y%m%d_%H%M%S')
+        if date_str == CN.NOTAV:
+            return CN.MV_NULL
+        date_time = pd.to_datetime(date_str, format='%Y%m%d_%H%M%S', errors='ignore')
         self.cache[date_str] = date_time
         return date_time
 

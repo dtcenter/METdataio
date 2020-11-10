@@ -69,6 +69,10 @@ class WriteMtdSql:
             mtd_headers.drop_duplicates(CN.MTD_HEADER_KEYS, keep='first', inplace=True)
             mtd_headers.reset_index(drop=True, inplace=True)
 
+            # make sure type of columns is consistent between headers and line data
+            mtd_headers.fcst_lead = mtd_headers.fcst_lead.astype('int64')
+            mtd_headers.obs_lead = mtd_headers.obs_lead.astype('int64')
+
             # At first, we do not know if the headers already exist, so we have no keys
             mtd_headers[CN.MTD_HEADER_ID] = CN.NO_KEY
 
@@ -83,8 +87,23 @@ class WriteMtdSql:
                     data_line[CN.FCST_VALID] = \
                         data_line[CN.FCST_VALID].strftime("%Y-%m-%d %H:%M:%S")
                     data_line[CN.FCST_INIT] = data_line[CN.FCST_INIT].strftime("%Y-%m-%d %H:%M:%S")
-                    data_line[CN.OBS_VALID] = data_line[CN.OBS_VALID].strftime("%Y-%m-%d %H:%M:%S")
-                    sql_cur.execute(CN.Q_MTDHEADER, data_line.values[4:-1].tolist())
+                    if data_line[CN.OBS_VALID] != CN.MV_NULL:
+                        data_line[CN.OBS_VALID] = \
+                            data_line[CN.OBS_VALID].strftime("%Y-%m-%d %H:%M:%S")
+                    if not CN.MV_NULL in data_line.values[4:-1].tolist():
+                        sql_cur.execute(CN.Q_MTDHEADER, data_line.values[4:-1].tolist())
+                    else:
+                        sql_query = "SELECT mtd_header_id FROM mtd_header WHERE " + \
+                                    "version=%s AND model=%s AND descr=%s AND fcst_lead=%s " + \
+                                    "AND fcst_valid=%s AND fcst_init=%s AND obs_lead=%s "
+                        data_values = data_line.values[4:11].tolist()
+                        for mfield in CN.MTD_HEADER_KEYS[7:]:
+                            if data_line[mfield] != CN.MV_NULL:
+                                sql_query = sql_query + 'AND ' + mfield + '=%s '
+                                data_values.append(data_line[mfield])
+                            else:
+                                sql_query = sql_query + 'AND ' + mfield + ' is NULL '
+                        sql_cur.execute(sql_query, data_values)
                     result = sql_cur.fetchone()
 
                     # If you find a match, put the key into the mtd_headers dataframe
@@ -108,6 +127,8 @@ class WriteMtdSql:
                 sql_met.write_to_sql(new_headers, CN.MTD_HEADER_FIELDS, CN.MTD_HEADER,
                                      CN.INS_MTDHEADER, sql_cur, local_infile)
                 new_headers = new_headers.iloc[0:0]
+
+            mtd_headers.obs_valid = pd.to_datetime(mtd_headers.obs_valid, errors='coerce')
 
             # --------------------
             # Write Line Data
@@ -146,6 +167,13 @@ class WriteMtdSql:
                 m_2d_data = m_2d_data.iloc[0:0]
 
             if not m_3d_single_data.empty:
+
+                # make sure type of columns is consistent between headers and line data
+                m_3d_single_data.fcst_lead = m_3d_single_data.fcst_lead.astype('int64')
+                m_3d_single_data.obs_lead = m_3d_single_data.obs_lead.astype('int64')
+                m_3d_single_data.obs_valid = pd.to_datetime(m_3d_single_data.obs_valid,
+                                                            errors='coerce')
+
                 # put the header ids back into the dataframe
                 m_3d_single_data = pd.merge(left=mtd_headers, right=m_3d_single_data,
                                             on=CN.MTD_HEADER_KEYS)
@@ -177,6 +205,12 @@ class WriteMtdSql:
                 m_3d_single_data = m_3d_single_data.iloc[0:0]
 
             if not m_3d_pair_data.empty:
+
+                # make sure type of columns is consistent between headers and line data
+                m_3d_pair_data.fcst_lead = m_3d_pair_data.fcst_lead.astype('int64')
+                m_3d_pair_data.obs_lead = m_3d_pair_data.obs_lead.astype('int64')
+                m_3d_pair_data.obs_valid = pd.to_datetime(m_3d_pair_data.obs_valid, errors='coerce')
+
                 # put the header ids back into the dataframe
                 m_3d_pair_data = pd.merge(left=mtd_headers, right=m_3d_pair_data,
                                           on=CN.MTD_HEADER_KEYS)

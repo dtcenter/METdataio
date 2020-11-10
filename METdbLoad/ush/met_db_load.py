@@ -127,6 +127,9 @@ def main():
     else:
         mid_file = last_file
 
+    line_counts = {"Stat": 0, "Mode CTS": 0, "Mode Obj": 0, "Tcst": 0,
+                   "MTD 2D": 0, "MTD 3D Single": 0, "MTD 3D Pair": 0}
+
     while mid_file <= last_file:
         try:
             # Keep track of which set of files is being processed
@@ -197,12 +200,19 @@ def main():
 
                 file_data.data_files = updated_data[0]
                 file_data.stat_data = updated_data[1]
+                line_counts["Stat"] += len(file_data.stat_data)
                 file_data.mode_cts_data = updated_data[2]
+                line_counts["Mode CTS"] += len(file_data.mode_cts_data)
                 file_data.mode_obj_data = updated_data[3]
+                line_counts["Mode Obj"] += len(file_data.mode_obj_data)
                 file_data.tcst_data = updated_data[4]
+                line_counts["Tcst"] += len(file_data.tcst_data)
                 file_data.mtd_2d_data = updated_data[5]
+                line_counts["MTD 2D"] += len(file_data.mtd_2d_data)
                 file_data.mtd_3d_single_data = updated_data[6]
+                line_counts["MTD 3D Single"] += len(file_data.mtd_3d_single_data)
                 file_data.mtd_3d_pair_data = updated_data[7]
+                line_counts["MTD 3D Pair"] += len(file_data.mtd_3d_pair_data)
 
                 if file_data.data_files.empty:
                     logging.warning("!!! No data to load in current set %s", str(set_count))
@@ -279,7 +289,9 @@ def main():
     load_time = timedelta(seconds=load_time_end - load_time_start)
 
     logging.info("    >>> Total load time: %s", str(load_time))
-    logging.info("End time: %s", str(datetime.now()))
+    logging.info("End time: %s\n", str(datetime.now()))
+    for k in line_counts:
+        logging.info("For %s Count %s", k, line_counts[k])
     logging.info("--- *** --- End METdbLoad --- *** ---")
 
 
