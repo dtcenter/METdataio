@@ -63,10 +63,9 @@ class WriteMtdSql:
             if not m_3d_pair_data.empty:
                 mtd_headers = mtd_headers.append(m_3d_pair_data[CN.MTD_HEADER_FIELDS[1:]],
                                                  ignore_index=True)
-            # restore to original order now all MTD headers are recombined
-            mtd_headers = mtd_headers.sort_values(by=[CN.DATA_FILE_ID, CN.LINENUMBER])
+
             # get unique values, keeping the first of the duplicate records
-            mtd_headers.drop_duplicates(CN.MTD_HEADER_KEYS, keep='first', inplace=True)
+            mtd_headers = mtd_headers.drop_duplicates(CN.MTD_2D_HEADER_KEYS, keep='first')
             mtd_headers.reset_index(drop=True, inplace=True)
 
             # make sure type of columns is consistent between headers and line data
@@ -138,7 +137,7 @@ class WriteMtdSql:
 
             if not m_2d_data.empty:
                 # put the header ids back into the dataframe
-                m_2d_data = pd.merge(left=mtd_headers, right=m_2d_data, on=CN.MTD_HEADER_KEYS)
+                m_2d_data = pd.merge(left=mtd_headers, right=m_2d_data, on=CN.MTD_2D_HEADER_KEYS)
 
                 # create defaults for flags
                 m_2d_data[CN.SIMPLE_FLAG] = 1

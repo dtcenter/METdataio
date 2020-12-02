@@ -81,6 +81,10 @@ class ReadDataFiles:
         list_2d = []
         list_single = []
         list_pair = []
+
+        # keep track of each set of revisions
+        rev_ctr = 0
+
         try:
 
             # Put the list of files into a dataframe to collect info to write to database
@@ -91,6 +95,7 @@ class ReadDataFiles:
             # Drop files that are not of a valid type
             self.data_files.drop(self.data_files[self.data_files[CN.DATA_FILE_LU_ID] ==
                                                  CN.NO_KEY].index, inplace=True)
+            self.data_files.reset_index(drop=True, inplace=True)
             # Won't know database key until we interact with the database, so no keys yet
             self.data_files[CN.DATA_FILE_ID] = CN.NO_KEY
             # Store the index in a column to make later merging with stat data easier
@@ -401,6 +406,56 @@ class ReadDataFiles:
                             list_pair.append(mtd_file)
                         # MTD 2D
                         else:
+                            # This is an MTD 2D Revision file if 10 columns each have a single value
+                            mtd_rev = True
+                            for mtd_col in CN.MTD_2D_REV_FIELDS:
+                                if not (mtd_file[mtd_col] == mtd_file[mtd_col][0]).all():
+                                    mtd_rev = False
+                            if mtd_rev:
+                                rev_lines = []
+                                obj_id = 'new'
+                                obj_ct = 1
+                                # Create new rows by subtracting a previous row from a row by object
+                                for row_num, mtd_row in mtd_file.iterrows():
+                                    if mtd_row[CN.OBJECT_ID] == obj_id:
+                                        obj_ct += 1
+                                        if obj_ct == 3:
+                                            rev_ctr += 1
+                                        if obj_ct > 2:
+                                            new_line = mtd_file.iloc[row_num - 1].to_dict()
+                                            new_line[CN.FCST_VAR] = 'REV_' + new_line[CN.FCST_VAR]
+                                            new_line[CN.OBS_VAR] = 'REV_' + new_line[CN.OBS_VAR]
+                                            new_line[CN.AREA] -= mtd_file[CN.AREA][row_num - 2]
+                                            new_line[CN.CENTROID_X] -= \
+                                                mtd_file[CN.CENTROID_X][row_num - 2]
+                                            new_line[CN.CENTROID_Y] -= \
+                                                mtd_file[CN.CENTROID_Y][row_num - 2]
+                                            new_line[CN.CENTROID_LAT] -= \
+                                                mtd_file[CN.CENTROID_LAT][row_num - 2]
+                                            new_line[CN.CENTROID_LON] -= \
+                                                mtd_file[CN.CENTROID_LON][row_num - 2]
+                                            new_line[CN.AXIS_ANG] = CN.MV_NOTAV
+                                            new_line[CN.INTENSITY_10] -= \
+                                                mtd_file[CN.INTENSITY_10][row_num - 2]
+                                            new_line[CN.INTENSITY_25] -= \
+                                                mtd_file[CN.INTENSITY_25][row_num - 2]
+                                            new_line[CN.INTENSITY_50] -= \
+                                                mtd_file[CN.INTENSITY_50][row_num - 2]
+                                            new_line[CN.INTENSITY_75] -= \
+                                                mtd_file[CN.INTENSITY_75][row_num - 2]
+                                            new_line[CN.INTENSITY_90] -= \
+                                                mtd_file[CN.INTENSITY_90][row_num - 2]
+                                            new_line[CN.REVISION_ID] = rev_ctr
+                                            new_line[CN.LINENUMBER] = 0
+                                            rev_lines.append(new_line)
+                                    else:
+                                        obj_id = mtd_row[CN.OBJECT_ID]
+                                        obj_ct = 1
+                                rev_df = pd.DataFrame(rev_lines)
+                                mtd_file = pd.concat([mtd_file, rev_df], ignore_index=True,
+                                                     sort=False)
+                                rev_df = rev_df.iloc[0:0]
+                            # concat new rows with mtd_file
                             list_2d.append(mtd_file)
 
                     else:
