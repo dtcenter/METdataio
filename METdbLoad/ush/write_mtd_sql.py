@@ -89,7 +89,7 @@ class WriteMtdSql:
                     if data_line[CN.OBS_VALID] != CN.MV_NULL:
                         data_line[CN.OBS_VALID] = \
                             data_line[CN.OBS_VALID].strftime("%Y-%m-%d %H:%M:%S")
-                    if not CN.MV_NULL in data_line.values[4:-1].tolist():
+                    if CN.MV_NULL not in data_line.values[4:-1].tolist():
                         sql_cur.execute(CN.Q_MTDHEADER, data_line.values[4:-1].tolist())
                     else:
                         sql_query = "SELECT mtd_header_id FROM mtd_header WHERE " + \
@@ -123,10 +123,13 @@ class WriteMtdSql:
 
             # Write any new headers out to the sql database
             if not new_headers.empty:
-                next_rev_id = sql_met.get_next_id(CN.MTD_HEADER, CN.REVISION_ID, sql_cur)
-                new_headers.loc[new_headers.revision_id != CN.MV_NULL, CN.REVISION_ID] = \
-                    new_headers.loc[new_headers.revision_id != CN.MV_NULL, CN.REVISION_ID] + \
-                    next_rev_id
+                # If there are any 2D revision files
+                if new_headers[CN.REVISION_ID].ne(CN.MV_NULL).any():
+                    # numbered revision ids must have max revision id added to be unique
+                    next_rev_id = sql_met.get_next_id(CN.MTD_HEADER, CN.REVISION_ID, sql_cur)
+                    new_headers.loc[new_headers.revision_id != CN.MV_NULL, CN.REVISION_ID] = \
+                        new_headers.loc[new_headers.revision_id != CN.MV_NULL, CN.REVISION_ID] + \
+                        next_rev_id
                 sql_met.write_to_sql(new_headers, CN.MTD_HEADER_FIELDS, CN.MTD_HEADER,
                                      CN.INS_MTDHEADER, sql_cur, local_infile)
                 new_headers = new_headers.iloc[0:0]

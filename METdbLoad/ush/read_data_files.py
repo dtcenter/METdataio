@@ -416,6 +416,8 @@ class ReadDataFiles:
                                 obj_id = 'new'
                                 obj_ct = 1
                                 # Create new rows by subtracting a previous row from a row by object
+                                # Unique sequential id is assigned to items with the same object id
+                                # Only object ids with more than 2 lines count and create lines
                                 for row_num, mtd_row in mtd_file.iterrows():
                                     if mtd_row[CN.OBJECT_ID] == obj_id:
                                         obj_ct += 1
@@ -744,16 +746,16 @@ class ReadDataFiles:
 
                     if vsdb_type in (CN.SL1L2, CN.SAL1L2):
                         # some SL1L2 files do not have MAE
-                        if not '6' in vsdb_data:
+                        if '6' not in vsdb_data:
                             vsdb_data.insert(25, '6', CN.MV_NOTAV)
                         one_file = vsdb_data[CN.LONG_HEADER + CN.COL_NUMS[:7] +
                                              CN.COL_NAS[:94] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type in (CN.VL1L2, CN.GRAD):
                         # some VL1L2 files do not have f_speed_bar and o_speed_bar
-                        if not '8' in vsdb_data:
+                        if '8' not in vsdb_data:
                             vsdb_data.insert(25, '8', CN.MV_NOTAV)
-                        if not '9' in vsdb_data:
+                        if '9' not in vsdb_data:
                             vsdb_data.insert(25, '9', CN.MV_NOTAV)
                         one_file = vsdb_data[CN.LONG_HEADER + CN.COL_NUMS[:10] +
                                              CN.COL_NAS[:91] + [CN.LINE_NUM, CN.FILE_ROW]]
