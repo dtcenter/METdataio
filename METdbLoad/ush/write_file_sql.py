@@ -20,6 +20,7 @@ import logging
 import time
 from datetime import timedelta
 import getpass
+import pandas as pd
 
 import constants as CN
 
@@ -37,7 +38,7 @@ class WriteFileSql:
 
     def write_file_sql(self, load_flags, data_files, stat_data, mode_cts_data,
                        mode_obj_data, tcst_data, mtd_2d_data, mtd_3d_single_data,
-                       mtd_3d_pair_data, sql_cur, local_infile):
+                       mtd_3d_pair_data, tmp_dir, sql_cur, local_infile):
         """ write data_file records to a SQL database.
             Returns:
                N/A
@@ -168,7 +169,7 @@ class WriteFileSql:
                 # write the new data files out to the sql database
                 if not new_files.empty:
                     self.sql_met.write_to_sql(new_files, CN.DATA_FILE_FIELDS, CN.DATA_FILE,
-                                              CN.INS_DATA_FILES, sql_cur, local_infile)
+                                              CN.INS_DATA_FILES, tmp_dir, sql_cur, local_infile)
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_file_sql ***", sys.exc_info()[0])
@@ -184,7 +185,7 @@ class WriteFileSql:
             mtd_2d_data, mtd_3d_single_data, mtd_3d_pair_data
 
     def write_metadata_sql(self, load_flags, data_files, group, description,
-                           load_note, xml_str, sql_cur):
+                           load_note, xml_str, tmp_dir, sql_cur, local_infile):
         """ write metadata and instance info records to a SQL database.
             Returns:
                N/A
@@ -216,7 +217,10 @@ class WriteFileSql:
                         sql_cur.execute(CN.UPD_METADATA, [group, description])
                 # otherwise, insert the category and description
                 else:
-                    sql_cur.execute(CN.INS_METADATA, [group, description])
+                    new_metadata = pd.DataFrame([[group, description]],
+                                                columns=['category', 'description'])
+                    self.sql_met.write_to_sql(new_metadata, ['category', 'description'], 'metadata',
+                                              CN.INS_METADATA, tmp_dir, sql_cur, local_infile)
 
             # --------------------
             # Write Instance Info

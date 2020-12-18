@@ -20,7 +20,6 @@ import sys
 import logging
 import time
 from datetime import timedelta
-import numpy as np
 import pandas as pd
 
 import constants as CN
@@ -35,13 +34,13 @@ class WriteTcstSql:
     """
 
     @staticmethod
-    def write_sql_data(load_flags, tcst_data, sql_cur, local_infile):
+    def write_tcst_data(load_flags, tcst_data, tmp_dir, sql_cur, local_infile):
         """ write tcst files to a SQL database.
             Returns:
                N/A
         """
 
-        logging.debug("[--- Start write_sql_data ---]")
+        logging.debug("[--- Start write_tcst_data ---]")
 
         write_time_start = time.perf_counter()
 
@@ -91,7 +90,7 @@ class WriteTcstSql:
             # Write any new headers out to the sql database
             if not new_headers.empty:
                 sql_met.write_to_sql(new_headers, CN.TCST_HEADER_FIELDS, CN.TCST_HEADER,
-                                     CN.INS_HEADER_TCST, sql_cur, local_infile)
+                                     CN.INS_HEADER_TCST, tmp_dir, sql_cur, local_infile)
 
             # put the header ids back into the dataframe of all the line data
             tcst_data = pd.merge(left=tcst_data, right=tcst_headers, on=CN.TCST_HEADER_KEYS[1:])
@@ -126,15 +125,17 @@ class WriteTcstSql:
                 all_columns = CN.LONG_HEADER_TCST + CN.COLUMNS[line_type]
                 for col in CN.LINE_DATA_FIELDS_TO_REPLACE[line_type]:
                     index = all_columns.index(col)
-                    line_data.iloc[:, index] = line_data.iloc[:, index].replace('NA', CN.MV_NOTAV).fillna(CN.MV_NOTAV)
+                    line_data.iloc[:, index] = \
+                        line_data.iloc[:, index].replace('NA', CN.MV_NOTAV).fillna(CN.MV_NOTAV)
 
                 # replace adepth and bdepth NA -> X
                 if 'adepth' in all_columns:
                     index = all_columns.index('adepth')
-                    line_data.iloc[:, index] = line_data.iloc[:, index].replace('NA', 'X').fillna('X')
+                    line_data.iloc[:, index] = \
+                        line_data.iloc[:, index].replace('NA', 'X').fillna('X')
                     index = all_columns.index('bdepth')
-                    line_data.iloc[:, index] = line_data.iloc[:, index].replace('NA', 'X').fillna('X')
-
+                    line_data.iloc[:, index] = \
+                        line_data.iloc[:, index].replace('NA', 'X').fillna('X')
 
                 # Only variable length lines have a line_data_id
                 if line_type in CN.VAR_LINE_TYPES_TCST:
@@ -180,7 +181,7 @@ class WriteTcstSql:
                 # write the lines out to a CSV file, and then load them into database
                 if not line_data.empty:
                     sql_met.write_to_sql(line_data, CN.LINE_DATA_COLS_TCST[line_type], line_table,
-                                         CN.LINE_DATA_Q[line_type], sql_cur, local_infile)
+                                         CN.LINE_DATA_Q[line_type], tmp_dir, sql_cur, local_infile)
                     line_data = line_data.iloc[0:0]
 
                 # if there are variable length records, write them out also
@@ -188,7 +189,8 @@ class WriteTcstSql:
                     all_var.columns = CN.LINE_DATA_VAR_FIELDS[line_type]
                     sql_met.write_to_sql(all_var, CN.LINE_DATA_VAR_FIELDS[line_type],
                                          CN.LINE_DATA_VAR_TABLES[line_type],
-                                         CN.LINE_DATA_VAR_Q[line_type], sql_cur, local_infile)
+                                         CN.LINE_DATA_VAR_Q[line_type],
+                                         tmp_dir, sql_cur, local_infile)
                     all_var = all_var.iloc[0:0]
 
             # end for line_type
@@ -201,4 +203,4 @@ class WriteTcstSql:
 
         logging.info("    >>> Write time Tcst: %s", str(write_time))
 
-        logging.debug("[--- End write_sql_data ---]")
+        logging.debug("[--- End write_tcst_data ---]")

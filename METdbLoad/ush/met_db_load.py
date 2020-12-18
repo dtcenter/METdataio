@@ -24,6 +24,7 @@ import time
 from datetime import datetime
 from datetime import timedelta
 import sys
+import os
 
 import constants as CN
 
@@ -55,8 +56,12 @@ def main():
     load_time_start = time.perf_counter()
 
     parser = argparse.ArgumentParser()
+    # Allow user to choose dir for tmp files - default to user home
+    tmp_dir = os.getenv('HOME')
     parser.add_argument("xmlfile", help="Please provide required xml load_spec filename")
     parser.add_argument("-index", action="store_true", help="Only process index, do not load data")
+    parser.add_argument("tmpdir", nargs='*', default=tmp_dir,
+                        help="Optional - when different directory wanted for tmp file")
 
     # get the command line arguments
     args = parser.parse_args()
@@ -76,6 +81,19 @@ def main():
     except (RuntimeError, TypeError, NameError, KeyError):
         logging.error("*** %s occurred in Main reading XML ***", sys.exc_info()[0])
         sys.exit("*** Error reading XML")
+
+    #
+    #  Verify the tmp file
+    #
+    try:
+        tmp_dir = args.tmpdir
+        if not os.path.isdir(tmp_dir):
+            logging.error("*** Error occurred in Main accessing tmp dir %s ***", tmp_dir)
+            sys.exit("*** Error accessing tmp dir")
+
+    except (RuntimeError, TypeError, NameError, KeyError):
+        logging.error("*** %s occurred in Main accessing tmp dir ***", sys.exc_info()[0])
+        sys.exit("*** Error accessing tmp dir")
 
     # If XML tag verbose is set to True, change logging to debug level
     if xml_loadfile.flags["verbose"]:
@@ -195,6 +213,7 @@ def main():
                                                          file_data.mtd_2d_data,
                                                          file_data.mtd_3d_single_data,
                                                          file_data.mtd_3d_pair_data,
+                                                         tmp_dir,
                                                          sql_run.cur,
                                                          sql_run.local_infile)
 
@@ -222,10 +241,11 @@ def main():
                 if not file_data.stat_data.empty:
                     stat_lines = WriteStatSql()
 
-                    stat_lines.write_sql_data(xml_loadfile.flags,
-                                              file_data.stat_data,
-                                              sql_run.cur,
-                                              sql_run.local_infile)
+                    stat_lines.write_stat_data(xml_loadfile.flags,
+                                               file_data.stat_data,
+                                               tmp_dir,
+                                               sql_run.cur,
+                                               sql_run.local_infile)
 
                 if (not file_data.mode_cts_data.empty) or (not file_data.mode_obj_data.empty):
                     cts_lines = WriteModeSql()
@@ -233,16 +253,18 @@ def main():
                     cts_lines.write_mode_data(xml_loadfile.flags,
                                               file_data.mode_cts_data,
                                               file_data.mode_obj_data,
+                                              tmp_dir,
                                               sql_run.cur,
                                               sql_run.local_infile)
 
                 if not file_data.tcst_data.empty:
                     tcst_lines = WriteTcstSql()
 
-                    tcst_lines.write_sql_data(xml_loadfile.flags,
-                                              file_data.tcst_data,
-                                              sql_run.cur,
-                                              sql_run.local_infile)
+                    tcst_lines.write_tcst_data(xml_loadfile.flags,
+                                               file_data.tcst_data,
+                                               tmp_dir,
+                                               sql_run.cur,
+                                               sql_run.local_infile)
 
                 if (not file_data.mtd_2d_data.empty) or (not file_data.mtd_3d_single_data.empty) \
                         or (not file_data.mtd_3d_pair_data.empty):
@@ -252,6 +274,7 @@ def main():
                                              file_data.mtd_2d_data,
                                              file_data.mtd_3d_single_data,
                                              file_data.mtd_3d_pair_data,
+                                             tmp_dir,
                                              sql_run.cur,
                                              sql_run.local_infile)
 
@@ -265,7 +288,9 @@ def main():
                                                       xml_loadfile.description,
                                                       xml_loadfile.load_note,
                                                       xml_loadfile.xml_str,
-                                                      sql_run.cur)
+                                                      tmp_dir,
+                                                      sql_run.cur,
+                                                      sql_run.local_infile)
 
                     #  if apply_indexes is set to true, load the indexes
                     if xml_loadfile.flags["apply_indexes"]:

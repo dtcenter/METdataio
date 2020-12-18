@@ -26,6 +26,7 @@ import constants as CN
 
 from run_sql import RunSql
 
+
 class WriteStatSql:
     """ Class to write stat files (MET and VSDB) to a SQL database
         Returns:
@@ -33,13 +34,13 @@ class WriteStatSql:
     """
 
     @staticmethod
-    def write_sql_data(load_flags, stat_data, sql_cur, local_infile):
+    def write_stat_data(load_flags, stat_data, tmp_dir, sql_cur, local_infile):
         """ write stat files (MET and VSDB) to a SQL database.
             Returns:
                N/A
         """
 
-        logging.debug("[--- Start write_sql_data ---]")
+        logging.debug("[--- Start write_stat_data ---]")
 
         write_time_start = time.perf_counter()
 
@@ -89,7 +90,7 @@ class WriteStatSql:
             # Write any new headers out to the sql database
             if not new_headers.empty:
                 sql_met.write_to_sql(new_headers, CN.STAT_HEADER_FIELDS, CN.STAT_HEADER,
-                                     CN.INS_HEADER, sql_cur, local_infile)
+                                     CN.INS_HEADER, tmp_dir, sql_cur, local_infile)
 
             # put the header ids back into the dataframe of all the line data
             stat_data = pd.merge(left=stat_data, right=stat_headers, on=CN.STAT_HEADER_KEYS[1:])
@@ -224,24 +225,25 @@ class WriteStatSql:
 
                             # put the fields in the correct order for ECNT
                             line_data2 = \
-                                line_data2.rename(columns={'1':'2', '2':'4',
-                                                           '3':'1', '4':'3',
-                                                           '5':'7', '7':'5'})
+                                line_data2.rename(columns={'1': '2', '2': '4',
+                                                           '3': '1', '4': '3',
+                                                           '5': '7', '7': '5'})
 
                             # Write out the ECNT lines created from old RHIST lines
                             sql_met.write_to_sql(line_data2, CN.LINE_DATA_COLS[CN.ECNT],
                                                  CN.LINE_TABLES[CN.UC_LINE_TYPES.index(CN.ECNT)],
-                                                 CN.LINE_DATA_Q[CN.ECNT], sql_cur, local_infile)
+                                                 CN.LINE_DATA_Q[CN.ECNT],
+                                                 tmp_dir, sql_cur, local_infile)
                             line_data2 = line_data2.iloc[0:0]
 
                             # copy the value of n_rank two columns earlier for old RHIST
                             line_data.loc[line_data[CN.VERSION].isin(CN.RHIST_OLD), '1'] = \
-                                        line_data['3']
+                                line_data['3']
 
                 # write the lines out to a CSV file, and then load them into database
                 if not line_data.empty:
                     sql_met.write_to_sql(line_data, CN.LINE_DATA_COLS[line_type], line_table,
-                                         CN.LINE_DATA_Q[line_type], sql_cur, local_infile)
+                                         CN.LINE_DATA_Q[line_type], tmp_dir, sql_cur, local_infile)
                     line_data = line_data.iloc[0:0]
 
                 # if there are variable length records, write them out also
@@ -249,7 +251,8 @@ class WriteStatSql:
                     all_var.columns = CN.LINE_DATA_VAR_FIELDS[line_type]
                     sql_met.write_to_sql(all_var, CN.LINE_DATA_VAR_FIELDS[line_type],
                                          CN.LINE_DATA_VAR_TABLES[line_type],
-                                         CN.LINE_DATA_VAR_Q[line_type], sql_cur, local_infile)
+                                         CN.LINE_DATA_VAR_Q[line_type],
+                                         tmp_dir, sql_cur, local_infile)
                     all_var = all_var.iloc[0:0]
 
             # end for line_type
@@ -263,7 +266,7 @@ class WriteStatSql:
                     # Write out the PERC lines
                     sql_met.write_to_sql(line_data2, CN.LINE_DATA_COLS[CN.PERC],
                                          CN.LINE_TABLES[CN.UC_LINE_TYPES.index(CN.PERC)],
-                                         CN.LINE_DATA_Q[CN.PERC], sql_cur, local_infile)
+                                         CN.LINE_DATA_Q[CN.PERC], tmp_dir, sql_cur, local_infile)
                     line_data2 = line_data2.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
@@ -274,4 +277,4 @@ class WriteStatSql:
 
         logging.info("    >>> Write time Stat: %s", str(write_time))
 
-        logging.debug("[--- End write_sql_data ---]")
+        logging.debug("[--- End write_stat_data ---]")

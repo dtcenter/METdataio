@@ -45,7 +45,7 @@ class RunSql:
 
         try:
 
-        # Connect to the database using connection info from XML file
+            # Connect to the database using connection info from XML file
             self.conn = pymysql.connect(host=connection['db_host'],
                                         port=connection['db_port'],
                                         user=connection['db_user'],
@@ -103,7 +103,7 @@ class RunSql:
             logging.error("*** %s in write_sql_data get_next_id ***", sys.exc_info()[0])
 
     @staticmethod
-    def write_to_sql(raw_data, col_list, sql_table, sql_query, sql_cur, local_infile):
+    def write_to_sql(raw_data, col_list, sql_table, sql_query, tmp_dir, sql_cur, local_infile):
         """ given a dataframe of raw_data with specific columns to write to a sql_table,
             write to a csv file and use local data infile for speed if allowed.
             otherwise, do an executemany to use a SQL insert statement to write data
@@ -112,7 +112,7 @@ class RunSql:
         try:
             if local_infile == 'ON':
                 # later in development, may wish to delete these files to clean up when done
-                tmpfile = os.getenv('HOME') + '/METdbLoad_' + sql_table + '.csv'
+                tmpfile = tmp_dir + '/METdbLoad_' + sql_table + '.csv'
                 # write the data out to a csv file, use local data infile to load to database
                 raw_data[col_list].to_csv(tmpfile, na_rep=CN.MV_NOTAV,
                                           index=False, header=False, sep=CN.SEP)
@@ -131,7 +131,10 @@ class RunSql:
                     raw_data['fcst_init_beg'] = raw_data['fcst_init_beg'].astype(str)
                     raw_data['obs_valid_beg'] = raw_data['obs_valid_beg'].astype(str)
                     raw_data['obs_valid_end'] = raw_data['obs_valid_end'].astype(str)
-
+                elif sql_table in (CN.MODE_HEADER, CN.MTD_HEADER):
+                    raw_data['fcst_valid'] = raw_data['fcst_valid_beg'].astype(str)
+                    raw_data['fcst_init'] = raw_data['fcst_valid_end'].astype(str)
+                    raw_data['obs_valid'] = raw_data['fcst_init_beg'].astype(str)
                 # make a copy of the dataframe that is a list of lists and write to database
                 dfile = raw_data[col_list].values.tolist()
                 sql_cur.executemany(sql_query, dfile)
@@ -172,4 +175,3 @@ class RunSql:
         logging.info("    >>> Apply time: %s", str(apply_time))
 
         logging.debug("[--- End apply_indexes ---]")
-            

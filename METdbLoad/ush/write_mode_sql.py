@@ -32,7 +32,7 @@ class WriteModeSql:
            N/A
     """
     @staticmethod
-    def write_mode_data(load_flags, cts_data, obj_data, sql_cur, local_infile):
+    def write_mode_data(load_flags, cts_data, obj_data, tmp_dir, sql_cur, local_infile):
         """ write mode files (cts and object) to a SQL database.
             Returns:
                N/A
@@ -107,7 +107,7 @@ class WriteModeSql:
             # Write any new headers out to the sql database
             if not new_headers.empty:
                 sql_met.write_to_sql(new_headers, CN.MODE_HEADER_FIELDS, CN.MODE_HEADER,
-                                     CN.INS_MHEADER, sql_cur, local_infile)
+                                     CN.INS_MHEADER, tmp_dir, sql_cur, local_infile)
                 new_headers = new_headers.iloc[0:0]
 
             # --------------------
@@ -121,7 +121,7 @@ class WriteModeSql:
                 cts_data = pd.merge(left=mode_headers, right=cts_data, on=CN.MODE_HEADER_KEYS)
 
                 sql_met.write_to_sql(cts_data, CN.MODE_CTS_FIELDS, CN.MODE_CTS_T,
-                                     CN.INS_CHEADER, sql_cur, local_infile)
+                                     CN.INS_CHEADER, tmp_dir, sql_cur, local_infile)
                 cts_data = cts_data.iloc[0:0]
 
             if not obj_data.empty:
@@ -176,7 +176,7 @@ class WriteModeSql:
 
                 # write out the mode single objects
                 sql_met.write_to_sql(obj_data, CN.MODE_SINGLE_FIELDS, CN.MODE_SINGLE_T,
-                                     CN.INS_SHEADER, sql_cur, local_infile)
+                                     CN.INS_SHEADER, tmp_dir, sql_cur, local_infile)
 
             if not all_pair.empty:
 
@@ -228,7 +228,7 @@ class WriteModeSql:
 
                 # write out the mode pair objects
                 sql_met.write_to_sql(all_pair, CN.MODE_PAIR_FIELDS, CN.MODE_PAIR_T,
-                                     CN.INS_PHEADER, sql_cur, local_infile)
+                                     CN.INS_PHEADER, tmp_dir, sql_cur, local_infile)
                 all_pair = all_pair.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):

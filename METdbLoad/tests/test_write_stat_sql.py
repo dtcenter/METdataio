@@ -3,6 +3,7 @@
 
 # pylint:disable=import-error
 # imported modules exist
+import os
 
 from read_load_xml import XmlLoadFile
 from read_data_files import ReadDataFiles
@@ -76,12 +77,15 @@ sql_run.cur.execute("delete from stat_header;")
 sql_run.cur.execute("delete from instance_info;")
 sql_run.cur.execute("delete from metadata;")
 
+tmp_dir = os.getenv('HOME')
+
 write_file = WriteFileSql()
 updated_data = write_file.write_file_sql(XML_LOADFILE.flags,
                                          FILE_DATA.data_files,
                                          FILE_DATA.stat_data,
                                          FILE_DATA.mode_cts_data,
                                          FILE_DATA.mode_obj_data,
+                                         tmp_dir,
                                          sql_run.cur,
                                          sql_run.local_infile)
 
@@ -90,10 +94,11 @@ FILE_DATA.stat_data = updated_data[1]
 
 STAT_LINES = WriteStatSql()
 
-STAT_LINES.write_sql_data(XML_LOADFILE.flags,
-                          FILE_DATA.stat_data,
-                          sql_run.cur,
-                          sql_run.local_infile)
+STAT_LINES.write_stat_data(XML_LOADFILE.flags,
+                           FILE_DATA.stat_data,
+                           tmp_dir,
+                           sql_run.cur,
+                           sql_run.local_infile)
 
 write_file.write_metadata_sql(XML_LOADFILE.flags,
                               FILE_DATA.data_files,
@@ -101,7 +106,10 @@ write_file.write_metadata_sql(XML_LOADFILE.flags,
                               XML_LOADFILE.description,
                               XML_LOADFILE.load_note,
                               XML_LOADFILE.xml_str,
-                              sql_run.cur)
+                              tmp_dir,
+                              sql_run.cur,
+                              sql_run.local_infile)
+
 
 def test_counts():
     """Count lines in database tables."""

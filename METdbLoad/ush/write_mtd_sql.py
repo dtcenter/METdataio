@@ -33,7 +33,7 @@ class WriteMtdSql:
     """
     @staticmethod
     def write_mtd_data(load_flags, m_2d_data, m_3d_single_data, m_3d_pair_data,
-                       sql_cur, local_infile):
+                       tmp_dir, sql_cur, local_infile):
         """ write mtd files to a SQL database.
             Returns:
                N/A
@@ -131,7 +131,7 @@ class WriteMtdSql:
                         new_headers.loc[new_headers.revision_id != CN.MV_NULL, CN.REVISION_ID] + \
                         next_rev_id
                 sql_met.write_to_sql(new_headers, CN.MTD_HEADER_FIELDS, CN.MTD_HEADER,
-                                     CN.INS_MTDHEADER, sql_cur, local_infile)
+                                     CN.INS_MTDHEADER, tmp_dir, sql_cur, local_infile)
                 new_headers = new_headers.iloc[0:0]
 
             mtd_headers.obs_valid = pd.to_datetime(mtd_headers.obs_valid, errors='coerce')
@@ -169,7 +169,7 @@ class WriteMtdSql:
                                   CN.MATCHED_FLAG] = 1
 
                 sql_met.write_to_sql(m_2d_data, CN.MTD_2D_OBJ_FIELDS, CN.MTD_2D_T,
-                                     CN.INS_M2HEADER, sql_cur, local_infile)
+                                     CN.INS_M2HEADER, tmp_dir, sql_cur, local_infile)
                 m_2d_data = m_2d_data.iloc[0:0]
 
             if not m_3d_single_data.empty:
@@ -207,7 +207,7 @@ class WriteMtdSql:
                                              CN.MATCHED_FLAG] = 1
 
                 sql_met.write_to_sql(m_3d_single_data, CN.MTD_3D_OBJ_SINGLE_FIELDS, CN.MTD_SINGLE_T,
-                                     CN.INS_M3SHEADER, sql_cur, local_infile)
+                                     CN.INS_M3SHEADER, tmp_dir, sql_cur, local_infile)
                 m_3d_single_data = m_3d_single_data.iloc[0:0]
 
             if not m_3d_pair_data.empty:
@@ -237,7 +237,7 @@ class WriteMtdSql:
                                        CN.MATCHED_FLAG] = 1
 
                 sql_met.write_to_sql(m_3d_pair_data, CN.MTD_3D_OBJ_PAIR_FIELDS, CN.MTD_PAIR_T,
-                                     CN.INS_M3PHEADER, sql_cur, local_infile)
+                                     CN.INS_M3PHEADER, tmp_dir, sql_cur, local_infile)
                 m_3d_pair_data = m_3d_pair_data.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
