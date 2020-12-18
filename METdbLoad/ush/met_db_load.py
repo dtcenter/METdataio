@@ -57,7 +57,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     # Allow user to choose dir for tmp files - default to user home
-    tmp_dir = os.getenv('HOME')
+    tmp_dir = [os.getenv('HOME')]
     parser.add_argument("xmlfile", help="Please provide required xml load_spec filename")
     parser.add_argument("-index", action="store_true", help="Only process index, do not load data")
     parser.add_argument("tmpdir", nargs='*', default=tmp_dir,
@@ -86,7 +86,7 @@ def main():
     #  Verify the tmp file
     #
     try:
-        tmp_dir = args.tmpdir
+        tmp_dir = args.tmpdir[0]
         if not os.path.isdir(tmp_dir):
             logging.error("*** Error occurred in Main accessing tmp dir %s ***", tmp_dir)
             sys.exit("*** Error accessing tmp dir")
