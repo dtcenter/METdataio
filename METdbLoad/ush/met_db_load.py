@@ -49,6 +49,9 @@ def main():
     # Default logging level is INFO. Can be changed with XML tag verbose
     logging.basicConfig(level=logging.INFO)
 
+    # Print the METdbload version from the docs folder
+    print_version()
+
     logging.info("--- *** --- Start METdbLoad --- *** ---")
     logging.info("Begin time: %s", begin_time)
 
@@ -180,7 +183,7 @@ def main():
             if file_data.data_files.empty:
                 logging.warning("!!! No files to load in current set %s", str(set_count))
                 # move indices to the next set of files
-                first_file, mid_file, last_file = next_set(first_file, mid_file, last_file)
+                first_file, mid_file, last_file = next_set(mid_file, last_file)
                 continue
 
         except (RuntimeError, TypeError, NameError, KeyError):
@@ -236,7 +239,7 @@ def main():
                 if file_data.data_files.empty:
                     logging.warning("!!! No data to load in current set %s", str(set_count))
                     # move indices to the next set of files
-                    first_file, mid_file, last_file = next_set(first_file, mid_file, last_file)
+                    first_file, mid_file, last_file = next_set(mid_file, last_file)
 
                 if not file_data.stat_data.empty:
                     stat_lines = WriteStatSql()
@@ -300,7 +303,7 @@ def main():
                         sql_run.sql_off(sql_run.conn, sql_run.cur)
 
             # move indices to the next set of files
-            first_file, mid_file, last_file = next_set(first_file, mid_file, last_file)
+            first_file, mid_file, last_file = next_set(mid_file, last_file)
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s occurred in Main writing data ***", sys.exc_info()[0])
@@ -320,7 +323,25 @@ def main():
     logging.info("--- *** --- End METdbLoad --- *** ---")
 
 
-def next_set(first_file, mid_file, last_file):
+def print_version():
+    """ Get version number from docs folder and print it
+        Returns:
+           N/A
+    """
+    try:
+        base_dir = os.path.dirname(os.path.realpath(__file__))
+        version_file = "{}/../docs/version".format(base_dir)
+        file = open(version_file, mode='r')
+        code_version = str.strip(file.read())
+        logging.info("METdbload Version: %s", code_version)
+
+    except (RuntimeError, TypeError, NameError, KeyError):
+        logging.error("*** %s occurred in print_version ***", sys.exc_info()[0])
+        logging.error("*** %s occurred in Main printing version ***", sys.exc_info()[0])
+        sys.exit("*** Error in print version")
+
+
+def next_set(mid_file, last_file):
     """ move indices to next set of files
         Returns:
            N/A
