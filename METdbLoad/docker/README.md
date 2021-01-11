@@ -11,3 +11,5 @@ docker run -v {xmldir}/name.xml:/data/name.xml -v {datadir}:{datadir} -v {dir}:/
 - Uses port 3306 for MySQL. This must match the XML load file and the exposed port in the Dockerfile
 - The XML load file has the host, username, and password information
 
+NOTE: On a MAC OS laptop, 2M was not enough memory for Docker - increased to 4M.
+

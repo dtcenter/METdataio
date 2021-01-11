@@ -163,7 +163,7 @@ class RunSql:
             for sql_cmd in sql_array:
                 sql_cur.execute(sql_cmd)
 
-        except pymysql.InternalError:
+        except (pymysql.OperationalError, pymysql.InternalError):
             if drop:
                 logging.error("*** Index to drop does not exist in run_sql apply_indexes ***")
             else:
