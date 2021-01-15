@@ -23,7 +23,7 @@ DB2 = 'mv_test_acu2'
 # model-vxtest
 # conn2 = pymysql.connect(read_default_file="~/vxt_metviewer.cnf",
 #                        db='mv_test_met9j')
-# Hagerty hadoop server
+# Alternate server
 conn2 = pymysql.connect(read_default_file="~/mysql.cnf", db=DB2)
 cur2 = conn2.cursor()
 
@@ -40,17 +40,18 @@ cur3 = conn3.cursor()
 # ******************************************************
 
 def run_query(query_txt, sql_cur):
-    '''
+    """
     *** Given text of query and cursor, run the query, printing row count
-    '''
+    """
     sql_cur.execute(query_txt)
     print(sql_cur.rowcount)
     return sql_cur.fetchall()
 
+
 def different(data1, data2):
-    '''
+    """
     *** Compare two rows to see if they are different
-    '''
+    """
     # see if the whole row matches
     if data1 == data2:
         return False
@@ -68,11 +69,12 @@ def different(data1, data2):
         row_num += 1
     return False
 
+
 def count_rows(query2, query3):
-    '''
+    """
     *** Given 2 queries that give a list of tables with their row counts,
     *** compare the counts, and only print if they are different
-    '''
+    """
     cur2.execute(query2)
     result2 = cur2.fetchall()
     cur3.execute(query3)
@@ -114,21 +116,7 @@ q_line3 = "SELECT table_name, table_rows FROM information_schema.tables " + \
 same = count_rows(q_line2, q_line3)
 
 if same:
-    print("No differences in line_data row counts\n")
-
-# *** Count mode table rows
-q_line2 = "SELECT table_name, table_rows FROM information_schema.tables " + \
-          "WHERE table_schema = '" + DB2 + "' AND " + \
-          "table_name LIKE 'mode\_%';"
-
-q_line3 = "SELECT table_name, table_rows FROM information_schema.tables " + \
-          "WHERE table_schema = '" + DB3 + "' AND " + \
-          "table_name LIKE 'mode\_%';"
-
-same = count_rows(q_line2, q_line3)
-
-if same:
-    print("No differences in mode table row counts")
+    print("%%% No differences in line_data row counts")
 
 # *** stat_header records
 q_header = 'SELECT * from stat_header ' + \
@@ -263,9 +251,24 @@ for ltype in vline_types:
     else:
         print("One or both tables are empty")
 
+# *** Count mode table rows
+q_line2 = "SELECT table_name, table_rows FROM information_schema.tables " + \
+          "WHERE table_schema = '" + DB2 + "' AND " + \
+          "table_name LIKE 'mode\_%';"
+
+q_line3 = "SELECT table_name, table_rows FROM information_schema.tables " + \
+          "WHERE table_schema = '" + DB3 + "' AND " + \
+          "table_name LIKE 'mode\_%';"
+
+same = count_rows(q_line2, q_line3)
+
+if same:
+    print("\n%%% No differences in mode table row counts")
+
 # *** mode_header records
-q_header = 'SELECT * from mode_header ' + \
-           'order by model, data_file_id limit ' + \
+q_header = 'SELECT mode_header.* from mode_header, data_file ' + \
+           'where mode_header.data_file_id = data_file.data_file_id ' + \
+           'order by path, filename, linenumber limit ' + \
            str(QUERY_COUNT) + ';'
 
 # show row counts
@@ -280,8 +283,8 @@ same = True
 # compare mode header lines from the two databases
 for row in result2:
 
-    rowl = (row[1],) + row[3:]
-    rowr = (result3[i][1],) + result3[i][3:]
+    rowl = row[3:]
+    rowr = result3[i][3:]
 
     if not rowl == rowr:
 
@@ -299,7 +302,7 @@ if same:
 
 # *** mode_cts records
 q_text = 'SELECT * from mode_cts ' + \
-         'order by mode_header_id, field limit ' + \
+         'order by total, fy_oy, field limit ' + \
          str(QUERY_COUNT) + ';'
 
 # show row counts
@@ -314,7 +317,10 @@ same = True
 # compare mode cts lines from the two databases
 for row in result2:
 
-    if not rowl[1:] == rowr[1:]:
+    rowl = row[1:]
+    rowr = result3[i][1:]
+
+    if different(rowl, rowr):
 
         if i > QUERY_COUNT:
             continue
@@ -330,7 +336,7 @@ if same:
 
 # *** mode_obj_single records
 q_text = 'SELECT * from mode_obj_single ' + \
-         'order by mode_header_id, mode_obj_id limit ' + \
+         'order by object_id, object_cat, centroid_lat, centroid_lon limit ' + \
          str(QUERY_COUNT) + ';'
 
 # show row counts
@@ -345,7 +351,10 @@ same = True
 # compare mode obj single lines from the two databases
 for row in result2:
 
-    if not rowl[2:] == rowr[2:]:
+    rowl = row[2:]
+    rowr = result3[i][2:]
+
+    if different(rowl, rowr):
 
         if i > QUERY_COUNT:
             continue
@@ -357,7 +366,7 @@ for row in result2:
     i += 1
 
 if same:
-    print("No differences for mode_obj_single")
+    print("\nNo differences for mode_obj_single")
 
 # *** mode_obj_pair records
 q_text = 'SELECT * from mode_obj_pair ' + \
@@ -377,7 +386,10 @@ same = True
 # compare mode obj pair lines from the two databases
 for row in result2:
 
-    if not rowl[3:] == rowr[3:]:
+    rowl = (row[1],) + row[3:]
+    rowr = (result3[i][1],) + result3[i][3:]
+
+    if different(rowl[3:], rowr[3:]):
 
         if i > QUERY_COUNT:
             continue
@@ -390,3 +402,167 @@ for row in result2:
 
 if same:
     print("No differences for mode_obj_pair")
+
+# *** Count mtd table rows
+q_line2 = "SELECT table_name, table_rows FROM information_schema.tables " + \
+          "WHERE table_schema = '" + DB2 + "' AND " + \
+          "table_name LIKE 'mtd\_%';"
+
+q_line3 = "SELECT table_name, table_rows FROM information_schema.tables " + \
+          "WHERE table_schema = '" + DB3 + "' AND " + \
+          "table_name LIKE 'mtd\_%';"
+
+same = count_rows(q_line2, q_line3)
+
+if same:
+    print("\n%%% No differences in mtd table row counts")
+
+#
+# *** mtd_header records
+#
+q_header = 'SELECT * from mtd_header ' + \
+           'order by model, fcst_lead, fcst_valid, fcst_var, revision_id limit ' + \
+           str(QUERY_COUNT) + ';'
+
+# show row counts
+print("\n*** Row counts for mtd_header tables")
+
+result2 = run_query(q_header, cur2)
+result3 = run_query(q_header, cur3)
+
+i = 0
+same = True
+
+# compare mtd header lines from the two databases
+for row in result2:
+
+    rowl = row[4:]
+    rowr = result3[i][4:]
+
+    if not rowl == rowr:
+
+        if i > QUERY_COUNT:
+            continue
+        same = False
+        print("*** Different ***")
+        print(rowl)
+        print(rowr)
+
+    i += 1
+
+if same:
+    print("No differences for mtd_header")
+#
+# *** mtd_2d_obj records
+#
+q_text = 'SELECT mtd_2d_obj.* from mtd_2d_obj, mtd_header, data_file ' + \
+         'where mtd_header.data_file_id = data_file.data_file_id and ' + \
+         'mtd_2d_obj.mtd_header_id = mtd_header.mtd_header_id ' + \
+         'order by path, filename, linenumber, object_id, time_index ' + \
+         'limit ' + str(QUERY_COUNT) + ';'
+
+# show row counts
+print("\n*** Row counts for mtd_2d_obj tables")
+
+result2 = run_query(q_text, cur2)
+result3 = run_query(q_text, cur3)
+
+i = 0
+same = True
+
+# compare mtd_2d_obj lines from the two databases
+for row in result2:
+
+    rowl = row[1:]
+    rowr = result3[i][1:]
+
+    if different(rowl, rowr):
+
+        if i > QUERY_COUNT:
+            continue
+        same = False
+        print("*** Different ***")
+        print(rowl)
+        print(rowr)
+
+    i += 1
+
+if same:
+    print("No differences for mtd_2d_obj")
+
+#
+# *** mtd_3d_obj_single records
+#
+q_text = 'SELECT * from mtd_3d_obj_single ' + \
+         'order by object_id, object_cat, centroid_lat, centroid_lon ' + \
+         'limit ' + str(QUERY_COUNT) + ';'
+
+# show row counts
+print("\n*** Row counts for mtd_3d_obj_single tables")
+
+result2 = run_query(q_text, cur2)
+result3 = run_query(q_text, cur3)
+
+i = 0
+same = True
+
+# compare mtd_3d_obj_single lines from the two databases
+for row in result2:
+
+    rowl = (row[1],) + row[3:]
+    rowr = (result3[i][1],) + result3[i][3:]
+
+    if different(rowl[1:], rowr[1:]):
+
+        if i > QUERY_COUNT:
+            continue
+        same = False
+        print("*** Different ***")
+        print(rowl)
+        print(rowr)
+
+    i += 1
+
+if same:
+    print("No differences for mtd_3d_obj_single")
+
+#
+# *** mtd_3d_obj_pair records
+#
+q_text = 'SELECT * from mtd_3d_obj_pair ' + \
+         'order by object_id, object_cat limit ' + \
+         str(QUERY_COUNT) + ';'
+
+# show row counts
+print("\n*** Row counts for mtd_3d_obj_pair tables")
+
+result2 = run_query(q_text, cur2)
+result3 = run_query(q_text, cur3)
+
+i = 0
+same = True
+
+# compare mtd_3d_obj_pair lines from the two databases
+for row in result2:
+
+    rowl = (row[1],) + row[3:]
+    rowr = (result3[i][1],) + result3[i][3:]
+
+    if different(rowl[1:], rowr[1:]):
+
+        if i > QUERY_COUNT:
+            continue
+        same = False
+        print("*** Different ***")
+        print(rowl)
+        print(rowr)
+
+    i += 1
+
+if same:
+    print("No differences for mtd_3d_obj_pair")
+
+cur2.close
+conn2.close()
+cur3.close
+conn3.close()
