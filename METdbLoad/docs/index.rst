@@ -6,9 +6,11 @@ METdbload User's Guide
 
 This user's guide is provided as an aid to users of METdbload, METviewer, METexpress, and MET. METdbload is a database load program designed to work with the ASCII output statistics produced by the MET software. MET is a set of verification tools developed by the Developmental Testbed Center (DTC) for use by the numerical weather prediction community - and especially users and developers of the Weather Research and Forecasting (WRF) model - to help them assess and evaluate the performance of numerical weather predictions.
 
-It is important to note here that METdbload, METviewer, METexpress, and MET are evolving software packages. Previous releases of METviewer have occurred each year since 2010. This documentation describes the |release| release dated |release_date|. Intermediate releases may include bug fixes.
+It is important to note here that METdbload, METviewer, METexpress, and MET are evolving software packages.
+Previous releases of METviewer have occurred each year since 2010. METdbload and METexpress are newer.
+This documentation describes the |release| release dated |release_date|. Intermediate releases may include bug fixes.
 
-This User's Guide was prepared by current and former NCAR and GSL employees working on METplus, including Venita Hagerty, Tatiana Burek, Tara Jensen, and Julie Prestopnik.
+This User's Guide was prepared by current and former NCAR and GSL employees working on METplus, including Venita Hagerty, Tatiana Burek, Tara Jensen, Julie Prestopnik, and Lisa Gooding.
 
 **Model Evaluation Tools data database (METdatadb) loader (METdbload)  TERMS OF USE - IMPORTANT!**
 
@@ -24,9 +26,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 **The citation for this User's Guide should be:**
 
-|author_list|, |release_year|: The METviewer Version |version| User's Guide.
+|author_list|, |release_year|: The METdbload Version |version| User's Guide.
 Developmental Testbed Center.
-Available at : https://github.com/dtcenter/METviewer/releases.
+Available at : https://github.com/dtcenter/METdatadb/releases.
 
 **Acknowledgments**
 
@@ -56,6 +58,8 @@ Foundation (NSF).
 
    overview
    installation
+   common
+   load
 
 Indices and tables
 ==================
