@@ -2,7 +2,7 @@ Loading Data
 =======================
 
 METdbload is used to insert MET output
-data in the database. The tool is invoked using the mv_load.sh script. The
+data into the database. The
 usage statement:
 
 .. code-block:: ini
@@ -19,18 +19,18 @@ usage statement:
     -h, --help  show this help message and exit
     -index      Only process index, do not load data
 
-The **load_spec_file** passes information about the MET output files to load
+The **xmlfile** passes information about the MET output files to load
 into the database to METdbload. It is an XML file whose top-level
 tag is <load_spec> and it contains the following elements, divided into
 functional sections:
 
 **<connection>:** Please reference the
 `Common XML Structures
-<https://dtcenter.github.io/METdatadb/latest/Users_Guide/common.html>`_
+<https://dtcenter.github.io/METviewer/latest/Users_Guide/common.html>`_
 documentation.
 
 **<date_list>:** Please reference the `Common XML Structures
-<https://dtcenter.github.io/METdatadb/latest/Users_Guide/common.html>`_
+<https://dtcenter.github.io/METviewer/latest/Users_Guide/common.html>`_
 documentation.
 
 **<load_stat>:** **TRUE** or **FALSE**, this option indicates whether or
@@ -143,16 +143,16 @@ Here is a simple example:
         <load_spec>
           <connection>
             <host>kemosabe:3306</host>
-            <database>metvdb_hwt</database>
+            <database>mv_db_hwt</database>
             <user>pgoldenb</user>
             <password>pgoldenb</password>
           </connection>
 
           <date_list name="folder_dates">
-            <start>2010051914V</start>
-            <end><date_offset><day_offset>0</day_offset><hour>6</hour></date_offset></end>
+            <start>2010051914</start>
+            <end>2010051915</end>
             <inc>3600</inc>
-            <format>yyyyMMddHH'V'</format>
+            <format>yyyyMMddHH</format>
           </date_list>
 
 
@@ -187,19 +187,18 @@ Here is a simple example:
 
 
 In this example, the load module would attempt to load any files with the
-suffix .stat in the following folders. This list would end at the date
-specified by the <date_offset> named folder_dates.
+suffix .stat in the following folders.
 
 .. code-block:: ini
 
-        /d1/data/arw/FULL/2010051914V
-        /d1/data/arw/SWC/2010051914V
-        /d1/data/nmm/FULL/2010051914V
-        /d1/data/nmm/SWC/2010051914V
-        /d1/data/arw/FULL/2010051915V
-        /d1/data/arw/SWC/2010051915V
-        /d1/data/nmm/FULL/2010051915V
-        /d1/data/nmm/SWC/2010051915V
+        /d1/data/arw/FULL/2010051914
+        /d1/data/arw/SWC/2010051914
+        /d1/data/nmm/FULL/2010051914
+        /d1/data/nmm/SWC/2010051914
+        /d1/data/arw/FULL/2010051915
+        /d1/data/arw/SWC/2010051915
+        /d1/data/nmm/FULL/2010051915
+        /d1/data/nmm/SWC/2010051915
         ...
 
 Troubleshooting

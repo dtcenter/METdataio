@@ -12,7 +12,7 @@ METdbload and the batch plotting module both use XML input files. Some XML struc
 |       **<management_system>:** Database type. Can be mysql or mariadb.
 |
 | **</connection>**
-
+|
 | **<date_list>:** A structure that specifies a list of date strings in a certain format. Has a name attribute.
 |
 |       **<start>:** The start date and time of the date list, specified in the format given by the tag **<format>**

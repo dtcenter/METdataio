@@ -2,7 +2,7 @@ Overview of METdbload
 =====================
 
 
-Purpose and organization of the User's Guide
+Purpose and Organization of the User's Guide
 --------------------------------------------
 
 The goal of this User's Guide is to provide basic information for users of the METdatadb database and the METviewer and METexpress display systems to enable users to create plots from their MET output statistics.

@@ -10,7 +10,7 @@ This chapter describes how to install METdbload.
 METdbload has been developed and tested on Mac and Linux operating systems.
 Support for additional platforms may be added in future releases.
 METdbload is a Python 3 program that requires some extra packages to be available on the user's computer prior to installation.
-METdbload is part of METdatadb. Additional METdatadb programs that work with the data are planned.
+METdbload is part of the METdatadb database package. Additional METdatadb programs that work with the data are planned.
 
 Installing METdbload
 --------------------
