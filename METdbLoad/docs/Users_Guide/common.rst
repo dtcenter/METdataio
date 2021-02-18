@@ -9,7 +9,7 @@ METdbload and the batch plotting module both use XML input files. Some XML struc
 |       **<database>:** One or more existing database names that start with \'\mv_\'\  separated by commas. Only one name for loading.
 |       **<user>:** Database user.
 |       **<password>:** Database user's password.
-|       **<management_system>:** Database type. Can be mysql or mariadb.
+|       **<management_system>:** Database type. Can be mysql, mariadb, or aurora.
 |
 | **</connection>**
 |
