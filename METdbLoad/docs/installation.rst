@@ -17,13 +17,14 @@ Installing METdbload
 
 METdbload relies on the following tools. These must be installed and tested prior to installing METdbload:
 
-**MySQL** - download and install the latest version. This can be on a separate computer. Use "SET GLOBAL max_allowed_packet=110000000;" by typing the command in MySQL and/or make the corresponding edit to /etc/my.cnf, so that the change persists after the next reboot.
-OR
-**MariaDB**
-OR
-**AuroraDB**
+**MySQL or MariaDB** - download and install the latest version. This can be on a separate computer.
+Use "SET GLOBAL max_allowed_packet=110000000;" by typing the command in the CLI and/or make the corresponding edit
+to /etc/my.cnf, so that the change persists after the next reboot.
 
-**Python 3.6+** - Python 3.6 or higher must be installed. METdbload also requires the Python packages pymysql, pandas, numpy, and lxml.
+**AuroraDB** could alternately be used as a database in the cloud
+
+**Python 3.6+** - Python 3.6 or higher must be installed. METdbload also requires the Python packages
+pymysql, pandas, numpy, and lxml.
 
 Download the application:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
