@@ -417,7 +417,8 @@ LINE_DATA_FIELDS[ECLV] = TOT_LINE_DATA_FIELDS + \
 
 LINE_DATA_FIELDS[ECNT] = TOT_LINE_DATA_FIELDS + \
                          ['n_ens', 'crps', 'crpss', 'ign', 'me', 'rmse', 'spread',
-                          'me_oerr', 'rmse_oerr', 'spread_oerr', 'spread_plus_oerr']
+                          'me_oerr', 'rmse_oerr', 'spread_oerr', 'spread_plus_oerr',
+                          'crpscl', 'crps_emp', 'crpscl_emp', 'crpss_emp']
 
 LINE_DATA_FIELDS[ENSCNT] = ALL_LINE_DATA_FIELDS + \
                            ['rpsf', 'rpsf_ncl', 'rpsf_ncu', 'rpsf_bcl', 'rpsf_bcu',
@@ -484,7 +485,8 @@ LINE_DATA_FIELDS[NBRCTS] = COVA_LINE_DATA_FIELDS + \
 LINE_DATA_FIELDS[ORANK] = TOT_LINE_DATA_FIELDS + \
                           ['orank_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl', 'obs_elv',
                            'obs', 'pit', 'rank', 'n_ens_vld', 'n_ens', 'obs_qc', 'ens_mean',
-                           'climo', 'spread', 'ens_mean_oerr', 'spread_oerr', 'spread_plus_oerr']
+                           'climo_mean', 'spread', 'ens_mean_oerr', 'spread_oerr', 'spread_plus_oerr',
+                           'climo_stdev']
 
 LINE_DATA_FIELDS[PCT] = COV_LINE_DATA_FIELDS + \
                         ['n_thresh']
