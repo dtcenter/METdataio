@@ -81,10 +81,10 @@ functional sections:
   * **<description>:** A short description of the database.
 
     * **<load_files>:** A list structure containing individual MET output
-       files to load into the database.
+      files to load into the database.
 
-    * **</load_files>:** Follows the list of files after the previous tag,
-       to end the list.
+    * **</load_files>:** Follows the list of files after the previous
+      tag, to end the list.
 
     * **<file>:** Contains a single MET output file to load.
 
