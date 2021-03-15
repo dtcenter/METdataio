@@ -52,9 +52,6 @@ suppress_warnings = ['ref.citation']
 #
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = ["_themes", ]
-#html_js_files = ['pop_ver.js']
-#html_theme_options = {'canonical_url': 'https://dtcenter.github.io/METdatadb/latest/'}
-#html_theme_options['versions'] = {'latest': '../latest', 'develop': '../develop'}
 html_css_files = ['theme_override.css']
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -67,7 +64,7 @@ html_static_path = ['_static']
 html_logo = os.path.join('_static','met_datadb_logo_2020_06.png')
 
 # -- Intersphinx control -----------------------------------------------------
-intersphinx_mapping = {'numpy':("https://docs.scipy.org/doc/numpy/", None)}
+#intersphinx_mapping = {'numpy':("https://docs.scipy.org/doc/numpy/", None)}
 
 numfig = True
 

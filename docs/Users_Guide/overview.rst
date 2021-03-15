@@ -2,7 +2,7 @@ Overview
 ========
 
 Purpose and organization of the User's Guide
---------------------------------------------
+____________________________________________
 
 The goal of this User's Guide is to provide basic information for users of the
 METdatadb database and the METviewer and METexpress display systems to enable
@@ -14,7 +14,7 @@ METdatadb.  Eventually, there will be utilities to add and delete databases,
 delete duplicate records, etc.
 
 The Developmental Testbed Center (DTC)
---------------------------------------
+______________________________________
 
 METdatadb has been developed, and will be maintained and enhanced, by the
 Developmental Testbed Center (DTC; http://www.dtcenter.org/ ).
@@ -35,7 +35,7 @@ for testing and evaluation of new model capabilities, applications in new
 environments, and so on.
 
 METdatadb goals and design philosophy
--------------------------------------
+_____________________________________
 
 METdatadb is a Python rewrite of the capabilities in METviewer. METdbload,
 a METdatadb utility, reads MET verification statistics ASCII files,
@@ -48,7 +48,7 @@ and operational communities, including universities, governments,
 the private sector, and operational modeling and prediction centers.
 
 METdatadb Requirements
-----------------------
+______________________
 
 METdatadb requires installation of Python 3.6+ and MySQL, MariaDB or AuroraDB.
 
@@ -57,7 +57,7 @@ METdatadb requires installation of Python 3.6+ and MySQL, MariaDB or AuroraDB.
 .. include:: release-notes.rst
 	     
 Future development plans
-------------------------
+________________________
 
 METdatadb is an evolving verification database package. New capabilities are
 planned in controlled, successive version releases. Bug fixes and
@@ -67,7 +67,7 @@ of METdatadb. Additionally, updates to accommodate new features of the MET
 software are often required.
 
 Code support
-------------
+____________
 
 Support for METdatadb is provided through a MET-help e-mail address:
 met_help@ucar.edu. We will endeavor to respond to requests for help in a
