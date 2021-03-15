@@ -55,7 +55,7 @@ METdatadb requires installation of Python 3.6+ and MySQL, MariaDB or AuroraDB.
 .. _release-notes:
 
 .. include:: release-notes.rst
-
+	     
 Future development plans
 ------------------------
 
