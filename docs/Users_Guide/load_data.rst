@@ -139,7 +139,7 @@ functional sections:
 
 
 Example
--------
+_______
 
 Here is a simple example:
 
@@ -207,7 +207,7 @@ suffix .stat in the following folders.
   ...
 
 Troubleshooting
----------------
+_______________
 .. _test:
 
 .. list-table::

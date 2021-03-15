@@ -4,7 +4,7 @@ Software Installation/Getting Started
 =====================================
 
 Introduction
-------------
+____________
 
 This chapter describes how to install and get started using METdatadb.
 METdatadb has been developed and tested on Mac and Linux operating
@@ -16,7 +16,7 @@ of the METdatadb database package. Additional METdatadb programs that work
 with the data are planned.
 
 Requirements
-------------
+____________
 
 METdatadb relies on the following tools. These must be installed and tested
 prior to installing METdatadb:
@@ -32,10 +32,10 @@ typing the command in the CLI and/or make the corresponding edit to
 requires the Python packages pymysql, pandas, numpy, and lxml.
 
 Installation
-------------
+____________
 
 Download
-~~~~~~~~
+^^^^^^^^
 
 Download METdatadb into an installation directory.  Programs can be run from
 the ush subdirectory.
@@ -46,7 +46,7 @@ the ush subdirectory.
   cd [install]/METdatadb/METdbLoad/ush
 
 Create Database
-~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^
 
 Data must be loaded into a database which has the prefix \'\mv_\'\,
 e.g. mv_met_data. This database must be structured with the METviewer
