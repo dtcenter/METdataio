@@ -97,7 +97,7 @@ Authors
 -------
 
 Many authors, listed below in alphabetical order, have contributed to the documentation of METplus.
-To cite this documentation in publications, please refer to the METplus User's Guide :ref:`Citation Instructions<citations>`.
+To cite this documentation in publications, please refer to the METdatadb User's Guide :ref:`Citation Instructions<citations>`.
 
 * Tatiana Burek [#NCAR]_
 * Venita Hagerty [#CIRA]_
