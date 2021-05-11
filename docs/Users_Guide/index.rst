@@ -19,10 +19,6 @@ contribute, we will gladly consider your contribution. Please send an email to:
 `met_help@ucar.edu <mailto:>`__. We will then determine if we will be able to
 include the contribution in a future version.
 
-This User's Guide was prepared by the developers of METdatadb, including
-Venita Hagerty, Tatiana Burek, John Halley Gotway, and Minna
-Win-Gildenmeister.
-
 **Model Evaluation Tools Datadb (METdatadb)  TERMS OF USE - IMPORTANT!**
 
 Copyright |copyright|

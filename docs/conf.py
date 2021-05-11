@@ -20,12 +20,12 @@ print(sys.path)
 
 project = 'METdatadb'
 author = 'UCAR/NCAR, NOAA, CSU/CIRA, and CU/CIRES'
-author_list = 'Hagerty, V., Burek, T., and Win-Gildenmeister, M.'
+author_list = 'Hagerty, V., T. Burek, and M. Win-Gildenmeister'
 version = 'develop'
 verinfo = version
 release = f'{version}'
 release_year = '2021'
-release_date = f'{release_year}-03-31'
+release_date = f'{release_year}-05-10'
 copyright = f'{release_year}, {author}'
 
 # -- General configuration ---------------------------------------------------
