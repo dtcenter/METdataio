@@ -28,6 +28,10 @@ release_year = '2021'
 release_date = f'{release_year}-05-10'
 copyright = f'{release_year}, {author}'
 
+# if set, adds "Last updated on " followed by
+# the date in the specified format
+html_last_updated_fmt = '%c'
+
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
