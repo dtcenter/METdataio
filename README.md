@@ -1,7 +1,7 @@
 # METdatadb
 METdatadb is a Python rewrite of capabilities in METviewer.
 
-Requires Anaconda Python 3.7, and conda install of pymysql
+Requires Anaconda Python 3.7 and conda install of pymysql.
 
 Support for the METplus components is provided through the
 [METplus Discussions](https://github.com/dtcenter/METplus/discussions) forum.
