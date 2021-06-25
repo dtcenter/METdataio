@@ -282,6 +282,7 @@ BASER = 'baser'
 FMEAN = 'fmean'
 FCST_VALID = 'fcst_valid'
 FCST_INIT = 'fcst_init'
+EC_VALUE = 'ec_value'
 
 INSTANCE_INFO = 'instance_info'
 INSTANCE_INFO_ID = 'instance_info_id'
@@ -439,12 +440,13 @@ LINE_DATA_FIELDS[ISC] = TOT_LINE_DATA_FIELDS + \
                         ['tile_dim', 'time_xll', 'tile_yll', 'nscale', 'iscale', 'mse,isc']
 
 LINE_DATA_FIELDS[MCTC] = TOT_LINE_DATA_FIELDS + \
-                         ['n_cat']
+                         ['n_cat', EC_VALUE]
 
 LINE_DATA_FIELDS[MCTS] = ALPH_LINE_DATA_FIELDS + \
                          ['n_cat', 'acc', 'acc_ncl', 'acc_ncu', 'acc_bcl', 'acc_bcu',
                           'hk', 'hk_bcl', 'hk_bcu', 'hss', 'hss_bcl', 'hss_bcu',
-                          'ger', 'ger_bcl', 'ger_bcu']
+                          'ger', 'ger_bcl', 'ger_bcu', 'hss_ec', 'hss_ec_bcl',
+                          'hss_ec_bcu', EC_VALUE]
 
 LINE_DATA_FIELDS[MPR] = TOT_LINE_DATA_FIELDS + \
                         ['mp_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl', 'obs_elv',

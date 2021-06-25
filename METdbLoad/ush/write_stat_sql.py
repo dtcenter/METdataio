@@ -205,6 +205,9 @@ class WriteStatSql:
                                 np.repeat(np.array(range(1, basic_count + 1)), basic_count)
                             j_indices = np.resize(range(1, basic_count + 1), var_count)
                             var_data.insert(2, 'j_value', j_indices)
+                            # Move the field (ec_value) that was added later back to the end of the main line
+                            line_data.iloc[row_num, var_index] = \
+                                line_data.iloc[row_num, var_index + repeat_width]
 
                         if line_type == CN.ORANK:
                             # move the values after the variable length data to the left
