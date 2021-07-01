@@ -75,7 +75,7 @@ class ReadNetCDF:
 def main():
     """
     Reads in a default config file that contains a list of netcdf files to be loaded into an xarray
-    and a pandas DataFrame
+    and/or a pandas DataFrame
     """
 
     file_reader = ReadNetCDF()
@@ -85,8 +85,9 @@ def main():
     yaml_config_file = "read_netcdf.yaml"
     load_files = file_reader.readYAMLConfig(yaml_config_file)
 
-    netcdf_df = file_reader.read_files(load_files)
-    print(netcdf_df)
+    netcdf_data_frame = file_reader.read_into_pandas(load_files)
+    netcdf_data_set = file_reader.read_into_xarray(load_files)
+    print(netcdf_data_set)
 
 
 if __name__ == "__main__":
