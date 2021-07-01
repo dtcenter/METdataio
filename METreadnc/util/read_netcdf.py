@@ -8,16 +8,8 @@ Input Files: netcdf files
 Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
 """
 
-# pylint:disable=no-member
-
 import sys
 import os
-from pathlib import Path
-import logging
-import time
-from datetime import timedelta
-from datetime import datetime
-import numpy as np
 import pandas as pd
 import xarray as xr
 import yaml
@@ -25,15 +17,14 @@ from METcalcpy.metcalcpy.util.read_env_vars_in_config import parse_config
 
 
 class ReadNetCDF:
-    """! Class to read in netcdf files iven in yaml config file
-        Returns:
+    """! Class to read in netcdf files given in yaml config file
+        Returns: Either a list of xarray DataSets or a pandas DataFrame
            N/A
     """
 
     def __init__(self):
-        self.cache = {}
-        self.nc_pandas_data = pd.DataFrame()
-        self.data_files = pd.DataFrame()
+        self.pandas_data = pd.DataFrame()
+        self.xarray_data = [] 
 
     def readYAMLConfig(self,configFile):
         """ Returns a file or list of files
@@ -55,20 +46,36 @@ class ReadNetCDF:
         return files
 
 
-    def read_files(self, load_files):
+    def read_into_pandas(self, load_files):
         """ Read in data files as given in yaml config.
             Returns: pandas dataframe
         """
         
         df = pd.DataFrame()
         for file in load_files:
-            xarray_data = xr.open_dataset(file)
-            df = df.append(xarray_data.to_dataframe(),ignore_index=True, sort=False)
+            file_data = xr.open_dataset(file)
+            df = df.append(file_data.to_dataframe(), sort=False)
+
+        return df
+
+    def read_into_xarray(self, load_files):
+        """ Read in data files as given in yaml config.
+            Returns: a list of xarry DataSets
+        """
+        
+        df = pd.DataFrame()
+        for file in load_files:
+            file_data = xr.open_dataset(file)
+            self.xarray_data.append(file_data)
+
+        print(self.xarray_data)
+        return self.xarray_data
+
 
 def main():
     """
-    Reads in a default config file that loads sample MET output data and puts it into a pandas
-    DataFrame
+    Reads in a default config file that contains a list of netcdf files to be loaded into an xarray
+    and a pandas DataFrame
     """
 
     file_reader = ReadNetCDF()
@@ -78,7 +85,8 @@ def main():
     yaml_config_file = "read_netcdf.yaml"
     load_files = file_reader.readYAMLConfig(yaml_config_file)
 
-    file_reader.read_files(load_files)
+    netcdf_df = file_reader.read_files(load_files)
+    print(netcdf_df)
 
 
 if __name__ == "__main__":
