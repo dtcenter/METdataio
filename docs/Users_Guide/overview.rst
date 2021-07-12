@@ -69,9 +69,9 @@ software are often required.
 Code support
 ____________
 
-Support for METdatadb is provided through a MET-help e-mail address:
-met_help@ucar.edu. We will endeavor to respond to requests for help in a
-timely fashion.
+Support for METdatadb is provided the
+`METplus GitHub Discussions Forum <https://github.com/dtcenter/METplus/discussions>`_.
+We will endeavor to respond to requests for help in a timely fashion.
 
 We welcome comments and suggestions for improvements to METdatadb, especially
 information regarding errors. In addition, comments on this document would be
