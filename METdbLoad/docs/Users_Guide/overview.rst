@@ -66,6 +66,6 @@ METdbload support is provided through the
 `METplus GitHub Discussions Forum <https://github.com/dtcenter/METplus/discussions>`_.
 We will endeavor to respond to requests for help in a timely fashion.
 
-We welcome comments and suggestions for improvements to METdbload, especially information regarding errors. Comments may be submitted using the MET Feedback form available on the MET website. In addition, comments on this document would be greatly appreciated. While we cannot promise to incorporate all suggested changes, we will certainly take all suggestions into consideration.
+We welcome comments and suggestions for improvements to METdbload, especially information regarding errors. Comments may be submitted using the MET Feedback form available on the MET website. In addition, comments on this document would be greatly appreciated. While we cannot promise to incorporate all suggested changes, we will certainly take all suggestions into consideration. 
 
 METdbload is a "living" application. Our goal is to continually enhance it and add to its capabilities.
