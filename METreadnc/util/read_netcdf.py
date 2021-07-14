@@ -13,7 +13,7 @@ import os
 import pandas as pd
 import xarray as xr
 import yaml
-from METcalcpy.metcalcpy.util.read_env_vars_in_config import parse_config
+from metcalcpy.util.read_env_vars_in_config import parse_config
 
 
 class ReadNetCDF:
@@ -64,11 +64,14 @@ class ReadNetCDF:
         """
         
         df = pd.DataFrame()
+        if not type(load_files) is list:
+            load_files = [load_files]
         for file in load_files:
+            print("Read into xarray",file)
             file_data = xr.open_dataset(file)
             self.xarray_data.append(file_data)
 
-        print(self.xarray_data)
+        #print(self.xarray_data)
         return self.xarray_data
 
 
