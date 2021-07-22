@@ -69,7 +69,7 @@ software are often required.
 Code support
 ____________
 
-Support for METdatadb is provided the
+Support for METdatadb is provided through the
 `METplus GitHub Discussions Forum <https://github.com/dtcenter/METplus/discussions>`_.
 We will endeavor to respond to requests for help in a timely fashion.
 
