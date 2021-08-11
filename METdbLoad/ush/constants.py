@@ -380,7 +380,8 @@ LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
                          'anom_corr_bcl', 'anom_corr_bcu',
                          'me2', 'me2_bcl', 'me2_bcu', 'msess', 'msess_bcl', 'msess_bcu',
                          'rmsfa', 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa', 'rmsoa_bcl', 'rmsoa_bcu',
-                         'anom_corr_uncntr', 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu']
+                         'anom_corr_uncntr', 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu',
+                         'si', 'si_bcl', 'si_bcu']
 
 LINE_DATA_FIELDS[CTC] = TOT_LINE_DATA_FIELDS + \
                         [FY_OY, FY_ON, FN_OY, FN_ON]
