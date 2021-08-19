@@ -412,7 +412,8 @@ LINE_DATA_FIELDS[DMAP] = ALPH_LINE_DATA_FIELDS + \
                          ['fy', 'oy', 'fbias', 'baddeley', 'hausdorff',
                           'med_fo', 'med_of', 'med_min', 'med_max', 'med_mean',
                           'fom_fo', 'fom_of', 'fom_min', 'fom_max', 'fom_mean',
-                          'zhu_fo', 'zhu_of', 'zhu_min', 'zhu_max', 'zhu_mean']
+                          'zhu_fo', 'zhu_of', 'zhu_min', 'zhu_max', 'zhu_mean',
+                          'g', 'gbeta', 'beta_value']
 
 LINE_DATA_FIELDS[ECLV] = TOT_LINE_DATA_FIELDS + \
                          [BASER, 'value_baser', 'n_pnt']
