@@ -124,6 +124,7 @@ ENSCNT = "ENSCNT"  #
 PERC = "PERC"  #
 DMAP = "DMAP"  # Distance Map
 RPS = "RPS"  # Ranked Probability Score
+SSIDX = "SSIDX"  # SKILL SCORE INDEX
 
 # VSDB line types
 BSS = "BSS"  # same as PSTD
@@ -138,12 +139,12 @@ FSS = "FSS"  # same as NBRCNT
 
 # TCST line types
 TCMPR = "TCMPR"  # Tropical Cyclone Matched Pair line type
-PROBRIRW = "PROBRIRW"  # Probability o fRapid Intensification line type
+PROBRIRW = "PROBRIRW"  # Probability of Rapid Intensification line type
 
 UC_LINE_TYPES = [FHO, CTC, CTS, MCTC, MCTS, CNT, SL1L2, SAL1L2, VL1L2, VAL1L2,
                  PCT, PSTD, PJC, PRC, ECLV, MPR, NBRCTC, NBRCTS, NBRCNT, ISC,
                  RHIST, PHIST, ORANK, SSVAR, GRAD, VCNT, RELP, ECNT, ENSCNT, PERC,
-                 DMAP, RPS]
+                 DMAP, RPS, SSIDX]
 
 UC_LINE_TYPES_TCST = [TCMPR, PROBRIRW]
 
@@ -154,7 +155,8 @@ LINE_TABLES = ['line_data_' + hname for hname in LC_LINE_TYPES]
 
 LINE_TABLES_TCST = ['line_data_' + hname for hname in LC_LINE_TYPES_TCST]
 
-ALPHA_LINE_TYPES = [CTS, NBRCTS, NBRCNT, MCTS, SSVAR, VCNT, DMAP, RPS, CNT, PSTD]
+ALPHA_LINE_TYPES = [CTS, NBRCTS, NBRCNT, MCTS, SSVAR, VCNT, DMAP, RPS, CNT, 
+                    PSTD, SSIDX]
 
 COV_THRESH_LINE_TYPES = [NBRCTC, NBRCTS, PCT, PSTD, PJC, PRC]
 
@@ -529,6 +531,10 @@ LINE_DATA_FIELDS[SL1L2] = TOT_LINE_DATA_FIELDS + \
 
 LINE_DATA_FIELDS[SAL1L2] = TOT_LINE_DATA_FIELDS + \
                            ['fabar', 'oabar', 'foabar', 'ffabar', 'ooabar', 'mae']
+                           
+LINE_DATA_FIELDS[SSIDX] = ALL_LINE_DATA_FIELDS + \
+                           [ALPHA, 'fcst_model', 'ref_model', 'n_init', 'n_term',
+                            'v_vld', 'ss_index']
 
 LINE_DATA_FIELDS[SSVAR] = ALPH_LINE_DATA_FIELDS + \
                           ['n_bin', 'bin_i', 'bin_n', 'var_min', 'var_max', 'var_mean',
@@ -1056,7 +1062,10 @@ DROP_INDEXES_QUERIES = ["DROP INDEX stat_header_model_idx ON stat_header",
                         "DROP INDEX line_data_dmap_fcst_init_beg_idx ON line_data_dmap",
                         "DROP INDEX line_data_rps_fcst_lead_idx ON line_data_rps",
                         "DROP INDEX line_data_rps_fcst_valid_beg_idx ON line_data_rps",
-                        "DROP INDEX line_data_rps_fcst_init_beg_idx ON line_data_rps"]
+                        "DROP INDEX line_data_rps_fcst_init_beg_idx ON line_data_rps",
+                        "DROP INDEX line_data_ssidx_fcst_lead_idx ON line_data_ssidx",
+                        "DROP INDEX line_data_ssidx_fcst_valid_beg_idx ON line_data_ssidx",
+                        "DROP INDEX line_data_ssidx_fcst_init_beg_idx ON line_data_ssidx"]
 
 CREATE_INDEXES_QUERIES = \
     ["CREATE INDEX stat_header_model_idx ON stat_header (model)",
@@ -1163,4 +1172,7 @@ CREATE_INDEXES_QUERIES = \
      "CREATE INDEX line_data_dmap_fcst_init_beg_idx ON line_data_dmap (fcst_init_beg)",
      "CREATE INDEX line_data_rps_fcst_lead_idx ON line_data_rps (fcst_lead)",
      "CREATE INDEX line_data_rps_fcst_valid_beg_idx ON line_data_rps (fcst_valid_beg)",
-     "CREATE INDEX line_data_rps_fcst_init_beg_idx ON line_data_rps (fcst_init_beg)"]
+     "CREATE INDEX line_data_rps_fcst_init_beg_idx ON line_data_rps (fcst_init_beg)",
+     "CREATE INDEX line_data_ssidx_fcst_lead_idx ON line_data_ssidx (fcst_lead)",
+     "CREATE INDEX line_data_ssidx_fcst_valid_beg_idx ON line_data_ssidx (fcst_valid_beg)",
+     "CREATE INDEX line_data_ssidx_fcst_init_beg_idx ON line_data_ssidx (fcst_init_beg)"]
