@@ -13,6 +13,8 @@ import os
 import pandas as pd
 import xarray as xr
 import yaml
+#Setting PYTHONPATH to METcalcpy
+#or pip install . in the directory METcalcpy makes this the better import
 from metcalcpy.util.read_env_vars_in_config import parse_config
 
 
@@ -64,14 +66,11 @@ class ReadNetCDF:
         """
         
         df = pd.DataFrame()
-        if not type(load_files) is list:
-            load_files = [load_files]
         for file in load_files:
-            print("Read into xarray",file)
             file_data = xr.open_dataset(file)
             self.xarray_data.append(file_data)
 
-        #print(self.xarray_data)
+        print(self.xarray_data)
         return self.xarray_data
 
 
@@ -88,6 +87,9 @@ def main():
     yaml_config_file = "read_netcdf.yaml"
     load_files = file_reader.readYAMLConfig(yaml_config_file)
 
+    #Pandas dataframes are much larger than xarrays
+    #The read_into_pandas should be commented out if you are testing this
+    #On very large files
     netcdf_data_frame = file_reader.read_into_pandas(load_files)
     netcdf_data_set = file_reader.read_into_xarray(load_files)
     print(netcdf_data_set)
