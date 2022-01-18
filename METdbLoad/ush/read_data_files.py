@@ -1142,7 +1142,7 @@ class ReadDataFiles:
         elif lc_filename.endswith(".vsdb"):
             lu_type = CN.VSDB_POINT_STAT
         elif (lc_filename.endswith("cts.txt") and 
-              lc_filename.startswith("mode")):
+              "/mode" in lc_filename):
             lu_type = CN.MODE_CTS
         elif lc_filename.endswith("obj.txt"):
             lu_type = CN.MODE_OBJ
