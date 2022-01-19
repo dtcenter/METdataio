@@ -441,7 +441,8 @@ LINE_DATA_FIELDS[GRAD] = TOT_LINE_DATA_FIELDS + \
                           'dx', 'dy']
 
 LINE_DATA_FIELDS[ISC] = TOT_LINE_DATA_FIELDS + \
-                        ['tile_dim', 'time_xll', 'tile_yll', 'nscale', 'iscale', 'mse,isc']
+                        ['tile_dim', 'time_xll', 'tile_yll', 'nscale', 'iscale', 'mse',
+                         'isc', 'fenergy2', 'oenergy2', BASER, 'fbias']
 
 LINE_DATA_FIELDS[MCTC] = TOT_LINE_DATA_FIELDS + \
                          ['n_cat', EC_VALUE]
