@@ -491,7 +491,7 @@ LINE_DATA_FIELDS[NBRCTS] = COVA_LINE_DATA_FIELDS + \
 
 LINE_DATA_FIELDS[ORANK] = TOT_LINE_DATA_FIELDS + \
                           ['orank_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl', 'obs_elv',
-                           'obs', 'pit', 'rank', 'n_ens_vld', 'n_ens', 'obs_qc', 'ens_mean',
+                           'obs', 'pit', 'obs_rank', 'n_ens_vld', 'n_ens', 'obs_qc', 'ens_mean',
                            'climo_mean', 'spread', 'ens_mean_oerr', 'spread_oerr', 'spread_plus_oerr',
                            'climo_stdev']
 
