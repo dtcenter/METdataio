@@ -85,16 +85,16 @@ jobs:
         shell: bash
         run: |
           cd /home/runner/work/METdatadb/METdatadb/baseold/METdbLoad/ush
-          python met_db_load.py /home/runner/work/METdatadb/METdatadb/headnew/tests/load_met_gha_prod.xml
+          python met_db_load.py /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/tests/load_met_gha_prod.xml
           mysql -e 'SHOW TABLE STATUS WHERE rows > 0;'  -uroot -proot mv_ci_prod
           mysql -e 'SELECT * from line_data_mctc_cnt limit 10;'  -uroot -proot mv_ci_prod
       - name: run METdbload new
         shell: bash
         run: |
           cd /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/ush
-          python met_db_load.py /home/runner/work/METdatadb/METdatadb/headnew/tests/load_met_gha_new.xml
+          python met_db_load.py /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/tests/load_met_gha_new.xml
           mysql -e 'SHOW TABLE STATUS WHERE rows > 0;'  -uroot -proot mv_ci_new
           mysql -e 'SELECT * from line_data_mctc_cnt limit 10;'  -uroot -proot mv_ci_new
       - name: run test_tables to compare tables in 2 databases
         shell: bash
-        run: python /home/runner/work/METdatadb/METdatadb/headnew/tests/test_tables.py
+        run: python /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/tests/test_tables.py
