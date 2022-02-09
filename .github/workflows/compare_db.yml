@@ -12,6 +12,11 @@ jobs:
   run-shell-command:
     runs-on: ubuntu-18.04
     name: job_run
+    env:
+      DB_DATABASE: mv_ci_prod
+      DB_USER: root
+      DB_PASSWORD: 'root'
+      DB_HOST: localhost
     steps:
       - name: check out headnew code
         uses: actions/checkout@v2
@@ -23,11 +28,73 @@ jobs:
         with:
           path: baseold
           ref: ${{github.event.pull_request.base.ref}}
-      - name: cat headnew
+      - name: cat mv_mysql.sql
         shell: bash
         run: |
           pwd
           ls -l
-          ls -l baseold
-          cat headnew/METdbLoad/tests/gha.cnf
-
+          ls -l headnew/METdbLoad
+          ls -l headnew/METdbLoad/sql
+          head -4 headnew/METdbLoad/sql/mv_mysql.sql
+      - name: start mysql
+        run: |
+          sudo systemctl start mysql
+          sudo apt update
+          python3 -V
+          pip3 --version
+          mysql -e 'SELECT VERSION();' -uroot -proot
+          mysql -e 'CREATE DATABASE mv_ci_prod;' -uroot -proot
+          mysql -e 'SOURCE /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_prod
+          mysql -e 'CREATE DATABASE mv_ci_new;' -uroot -proot
+          mysql -e 'SOURCE /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_new
+      - name: multiline script
+        run: |
+          pip3 install numpy
+          pip3 install pandas
+          pip3 install pymysql
+          pip3 install lxml
+      - name: change default python to python 3
+        shell: bash
+        run: |
+          which python3
+          sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10
+      - name: python command
+        run: |
+          import pymysql
+          import numpy
+          import pandas
+          import lxml
+          conn = pymysql.connect(host='localhost',port=3306,user='root',passwd='root',db='mv_ci_prod')
+          cur = conn.cursor()
+          cur.execute('select database();')
+          print(cur.fetchall())
+          cur.execute('show tables;')
+          print(cur.fetchall())
+        shell: python
+      - name: get data
+        shell: bash
+        run: |
+          mkdir metdata
+          cd metdata
+          curl 'https://dtcenter.ucar.edu/dfiles/code/METplus/METdatadb/sample_data-met_out_v9.1.tgz' -o m91.tgz
+          tar -xvf m91.tgz
+          cd met_out
+          ls -l
+          pwd
+      - name: run METdbload prod
+        shell: bash
+        run: |
+          cd /home/runner/work/METdatadb/METdatadb/baseold/METdbLoad/ush
+          python met_db_load.py /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/tests/load_met_gha_prod.xml
+          mysql -e 'SHOW TABLE STATUS WHERE rows > 0;'  -uroot -proot mv_ci_prod
+          mysql -e 'SELECT * from line_data_mctc_cnt limit 10;'  -uroot -proot mv_ci_prod
+      - name: run METdbload new
+        shell: bash
+        run: |
+          cd /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/ush
+          python met_db_load.py /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/tests/load_met_gha_new.xml
+          mysql -e 'SHOW TABLE STATUS WHERE rows > 0;'  -uroot -proot mv_ci_new
+          mysql -e 'SELECT * from line_data_mctc_cnt limit 10;'  -uroot -proot mv_ci_new
+      - name: run test_tables to compare tables in 2 databases
+        shell: bash
+        run: python /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/tests/test_tables.py

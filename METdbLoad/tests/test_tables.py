@@ -20,7 +20,7 @@ import pymysql
 # *** Connect to a "production/old" database
 DB2 = 'mv_ci_prod'
 
-cnf_file = "/home/runner/headnew/work/METdatadb/METdbLoad/tests/gha.cnf"
+cnf_file = "/home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/tests/gha.cnf"
 
 conn2 = pymysql.connect(read_default_file=cnf_file, db=DB2)
 cur2 = conn2.cursor()
@@ -516,7 +516,7 @@ if same:
     print("No differences for mtd_2d_obj")
 else:
     table_diff += 1
-    
+ 
 #
 # *** mtd_3d_obj_single records
 #
@@ -554,7 +554,7 @@ if same:
     print("No differences for mtd_3d_obj_single")
 else:
     table_diff += 1
-    
+
 #
 # *** mtd_3d_obj_pair records
 #
@@ -592,7 +592,7 @@ if same:
     print("No differences for mtd_3d_obj_pair")
 else:
     table_diff += 1
-    
+
 cur2.close
 conn2.close()
 cur3.close
