@@ -597,4 +597,5 @@ cur2.close
 conn2.close()
 cur3.close
 conn3.close()
-sys.exit(table_diff)
+# sys.exit(table_diff)
+sys.exit(3)
