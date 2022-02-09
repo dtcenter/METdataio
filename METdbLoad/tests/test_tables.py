@@ -516,7 +516,7 @@ if same:
     print("No differences for mtd_2d_obj")
 else:
     table_diff += 1
-    
+ 
 #
 # *** mtd_3d_obj_single records
 #
@@ -554,7 +554,7 @@ if same:
     print("No differences for mtd_3d_obj_single")
 else:
     table_diff += 1
-    
+
 #
 # *** mtd_3d_obj_pair records
 #
@@ -592,10 +592,9 @@ if same:
     print("No differences for mtd_3d_obj_pair")
 else:
     table_diff += 1
-    
+
 cur2.close
 conn2.close()
 cur3.close
 conn3.close()
-# sys.exit(table_diff)
-sys.exit(3)
+sys.exit(table_diff)
