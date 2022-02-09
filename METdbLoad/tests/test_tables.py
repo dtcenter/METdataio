@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Program Name: read_data_files.py
+Program Name: test_tables.py
 Contact(s): Venita Hagerty
 Abstract: Compare two MySQL databases - typically one loaded by MVLoad,
 and one loaded by METdbLoad using the same XML file
@@ -13,27 +13,22 @@ Output Files: N/A
 Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
 """
 
+import sys
 import math
 import pymysql
 
-# *** Connect to a database written by MVLoad
+# *** Connect to a "production/old" database
+DB2 = 'mv_ci_prod'
 
-DB2 = 'mv_test_acu2'
+cnf_file = "/home/runner/headnew/work/METdatadb/METdbLoad/tests/gha.cnf"
 
-# model-vxtest
-# conn2 = pymysql.connect(read_default_file="~/vxt_metviewer.cnf",
-#                        db='mv_test_met9j')
-# Alternate server
-conn2 = pymysql.connect(read_default_file="~/mysql.cnf", db=DB2)
+conn2 = pymysql.connect(read_default_file=cnf_file, db=DB2)
 cur2 = conn2.cursor()
 
-# *** Connect to a database written by METdbLoad using same XML file
-# conn3 = pymysql.connect(read_default_file="~/vxt_metviewer.cnf",
-#                        db='mv_test_met9')
+# *** Connect to a "test/new" database
+DB3 = 'mv_ci_new'
 
-DB3 = 'mv_test_acu3'
-
-conn3 = pymysql.connect(read_default_file="~/mysql.cnf", db=DB3)
+conn3 = pymysql.connect(read_default_file=cnf_file, db=DB3)
 cur3 = conn3.cursor()
 
 
@@ -95,6 +90,9 @@ def count_rows(query2, query3):
 # *** Adjust the number of records tested for each table
 QUERY_COUNT = 40
 
+# *** Track differences
+table_diff = 0
+
 # *** Check to see if all full row counts match
 
 q_header = 'SELECT count(*) from stat_header'
@@ -117,6 +115,8 @@ same = count_rows(q_line2, q_line3)
 
 if same:
     print("%%% No differences in line_data row counts")
+else:
+    table_diff += 1
 
 # *** stat_header records
 q_header = 'SELECT * from stat_header ' + \
@@ -148,13 +148,15 @@ for row in result2:
 
 if same:
     print("No differences for stat_header")
+else:
+    table_diff += 1
 
 # *** line data records
 line_types = ["cnt", "ctc", "cts", "dmap", "eclv", "ecnt", "enscnt",
               "fho", "grad", "isc", "mctc", "mcts", "mpr", "nbrcnt",
               "nbrctc", "nbrcts", "orank", "pct", "perc", "phist",
-              "pjc", "prc", "pstd", "relp", "rhist", "rps",
-              "sl1l2", "sal1l2", "vl1l2", "val1l2", "ssvar", "vcnt"]
+              "pjc", "prc", "pstd", "relp", "rhist", "rps", "sl1l2",
+              "sal1l2", "vl1l2", "val1l2", "ssidx", "ssvar", "vcnt"]
 
 for ltype in line_types:
 
@@ -197,6 +199,8 @@ for ltype in line_types:
 
         if same:
             print("No differences for line_data_" + ltype)
+        else:
+            table_diff += 1
 
     else:
         print("One or both tables are empty")
@@ -211,6 +215,10 @@ for ltype in vline_types:
     # get the name of matching line data table
     ptype = ltype.split('_')[0]
 
+    field_counter = 'i_value'
+    if ltype == "mctc_cnt":
+        field_counter = 'i_value, j_value'
+
     # rows can be created in different orders - match by data file
     q_vline = 'SELECT line_data_' + ltype + \
               '.* from line_data_' + ptype + \
@@ -220,7 +228,7 @@ for ltype in vline_types:
               'line_data_' + ptype + '.line_data_id = line_data_' + \
               ltype + '.line_data_id ' + \
               ' ORDER BY filename, line_num, line_data_' + ltype + \
-              '.line_data_id, i_value limit ' + \
+              '.line_data_id, ' + field_counter + ' limit ' + \
               str(QUERY_COUNT) + ';'
 
     # show row counts
@@ -247,6 +255,8 @@ for ltype in vline_types:
 
         if same:
             print("No differences for line_data_" + ltype)
+        else:
+            table_diff += 1
 
     else:
         print("One or both tables are empty")
@@ -264,6 +274,8 @@ same = count_rows(q_line2, q_line3)
 
 if same:
     print("\n%%% No differences in mode table row counts")
+else:
+    table_diff += 1
 
 # *** mode_header records
 q_header = 'SELECT mode_header.* from mode_header, data_file ' + \
@@ -299,6 +311,8 @@ for row in result2:
 
 if same:
     print("No differences for mode_header")
+else:
+    table_diff += 1
 
 # *** mode_cts records
 q_text = 'SELECT * from mode_cts ' + \
@@ -333,6 +347,8 @@ for row in result2:
 
 if same:
     print("No differences for mode_cts")
+else:
+    table_diff += 1
 
 # *** mode_obj_single records
 q_text = 'SELECT * from mode_obj_single ' + \
@@ -367,7 +383,9 @@ for row in result2:
 
 if same:
     print("\nNo differences for mode_obj_single")
-
+else:
+    table_diff += 1
+    
 # *** mode_obj_pair records
 q_text = 'SELECT * from mode_obj_pair ' + \
          'order by mode_header_id, mode_obj_fcst_id, ' + \
@@ -402,7 +420,9 @@ for row in result2:
 
 if same:
     print("No differences for mode_obj_pair")
-
+else:
+    table_diff += 1
+    
 # *** Count mtd table rows
 q_line2 = "SELECT table_name, table_rows FROM information_schema.tables " + \
           "WHERE table_schema = '" + DB2 + "' AND " + \
@@ -416,7 +436,9 @@ same = count_rows(q_line2, q_line3)
 
 if same:
     print("\n%%% No differences in mtd table row counts")
-
+else:
+    table_diff += 1
+    
 #
 # *** mtd_header records
 #
@@ -452,6 +474,9 @@ for row in result2:
 
 if same:
     print("No differences for mtd_header")
+else:
+    table_diff += 1
+
 #
 # *** mtd_2d_obj records
 #
@@ -489,7 +514,9 @@ for row in result2:
 
 if same:
     print("No differences for mtd_2d_obj")
-
+else:
+    table_diff += 1
+    
 #
 # *** mtd_3d_obj_single records
 #
@@ -525,7 +552,9 @@ for row in result2:
 
 if same:
     print("No differences for mtd_3d_obj_single")
-
+else:
+    table_diff += 1
+    
 #
 # *** mtd_3d_obj_pair records
 #
@@ -561,8 +590,11 @@ for row in result2:
 
 if same:
     print("No differences for mtd_3d_obj_pair")
-
+else:
+    table_diff += 1
+    
 cur2.close
 conn2.close()
 cur3.close
 conn3.close()
+sys.exit(table_diff)

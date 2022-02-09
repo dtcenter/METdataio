@@ -1,0 +1,33 @@
+name: Compare two databases
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash -leo pipefail {0}
+
+jobs: 
+  run-shell-command:
+    runs-on: ubuntu-18.04
+    name: job_run
+    steps:
+      - name: check out headnew code
+        uses: actions/checkout@v2
+        with:
+          path: headnew
+          ref: ${{github.event.pull_request.head.ref}}
+      - name: check out baseold code
+        uses: actions/checkout@v2
+        with:
+          path: baseold
+          ref: ${{github.event.pull_request.base.ref}}
+      - name: cat headnew
+        shell: bash
+        run: |
+          pwd
+          ls -l
+          ls -l baseold
+          cat headnew/METdbLoad/tests/gha.cnf
+
