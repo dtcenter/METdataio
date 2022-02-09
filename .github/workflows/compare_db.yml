@@ -28,6 +28,7 @@ jobs:
         run: |
           pwd
           ls -l
+          ls -l baseold
           cat baseold/METdbLoad/tests/gha.cnf
           cat headnew/METdbLoad/tests/gha.cnf
 
