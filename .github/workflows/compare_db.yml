@@ -4,7 +4,12 @@ on:
   pull_request:
   push:
     branches:
+      - develop
+      - develop-ref
       - feature_*
+      - issue_*
+      - main_*
+      - bugfix_*
 
 defaults:
   run:
