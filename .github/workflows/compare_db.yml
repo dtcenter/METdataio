@@ -2,7 +2,14 @@ name: Compare two databases
 
 on:
   pull_request:
-  workflow_dispatch:
+  push:
+    branches:
+      - develop
+      - develop-ref
+      - feature_*
+      - issue_*
+      - main_*
+      - bugfix_*
 
 defaults:
   run:
@@ -28,23 +35,14 @@ jobs:
         with:
           path: baseold
           ref: ${{github.event.pull_request.base.ref}}
-      - name: cat mv_mysql.sql
-        shell: bash
-        run: |
-          pwd
-          ls -l
-          ls -l headnew/METdbLoad
-          ls -l headnew/METdbLoad/sql
-          head -4 headnew/METdbLoad/sql/mv_mysql.sql
       - name: start mysql
         run: |
           sudo systemctl start mysql
-          sudo apt update
           python3 -V
           pip3 --version
           mysql -e 'SELECT VERSION();' -uroot -proot
           mysql -e 'CREATE DATABASE mv_ci_prod;' -uroot -proot
-          mysql -e 'SOURCE /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_prod
+          mysql -e 'SOURCE /home/runner/work/METdatadb/METdatadb/baseold/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_prod
           mysql -e 'CREATE DATABASE mv_ci_new;' -uroot -proot
           mysql -e 'SOURCE /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_new
       - name: multiline script
@@ -78,23 +76,19 @@ jobs:
           cd metdata
           curl 'https://dtcenter.ucar.edu/dfiles/code/METplus/METdatadb/sample_data-met_out_v9.1.tgz' -o m91.tgz
           tar -xvf m91.tgz
-          cd met_out
-          ls -l
-          pwd
+# Note that both XML files are taken from the new branch, so they can match if changed
       - name: run METdbload prod
         shell: bash
         run: |
           cd /home/runner/work/METdatadb/METdatadb/baseold/METdbLoad/ush
           python met_db_load.py /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/tests/load_met_gha_prod.xml
           mysql -e 'SHOW TABLE STATUS WHERE rows > 0;'  -uroot -proot mv_ci_prod
-          mysql -e 'SELECT * from line_data_mctc_cnt limit 10;'  -uroot -proot mv_ci_prod
       - name: run METdbload new
         shell: bash
         run: |
           cd /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/ush
           python met_db_load.py /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/tests/load_met_gha_new.xml
           mysql -e 'SHOW TABLE STATUS WHERE rows > 0;'  -uroot -proot mv_ci_new
-          mysql -e 'SELECT * from line_data_mctc_cnt limit 10;'  -uroot -proot mv_ci_new
       - name: run test_tables to compare tables in 2 databases
         shell: bash
         run: python /home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/tests/test_tables.py
