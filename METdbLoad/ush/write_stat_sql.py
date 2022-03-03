@@ -179,44 +179,51 @@ class WriteStatSql:
                         # number of sets of variables times the number of variables in the sets
                         repeat_width = int(var_count * var_repeats)
 
-                        # pull out just the repeating data
-                        list_var_data = file_line.iloc[var_index:var_index + repeat_width]
-                        # put it into the right number of rows and columns
-                        var_data = \
-                            pd.DataFrame(list_var_data.values.reshape(var_count, var_repeats))
+                        # If variable length record exceeds current line length, delete
+                        if repeat_width > (len(file_line) - var_index):
+                            logging.error('*** Variable length record %s deleted as too long ***',
+                                          line_type)
+                            line_data.drop(line_data[line_data.line_data_id == row_num].index,
+                                           inplace=True)
+                        else:
+                            # pull out just the repeating data
+                            list_var_data = file_line.iloc[var_index:var_index + repeat_width]
+                            # put it into the right number of rows and columns
+                            var_data = \
+                                pd.DataFrame(list_var_data.values.reshape(var_count, var_repeats))
 
-                        # for older versions of RHIST, blank out repeating fields in line data
-                        if line_type == CN.RHIST and file_line[CN.VERSION] in CN.RHIST_OLD:
-                            line_data.iloc[row_num, var_index:var_index + repeat_width] = \
-                                CN.MV_NOTAV
+                            # for older versions of RHIST, blank out repeating fields in line data
+                            if line_type == CN.RHIST and file_line[CN.VERSION] in CN.RHIST_OLD:
+                                line_data.iloc[row_num, var_index:var_index + repeat_width] = \
+                                    CN.MV_NOTAV
 
-                        # for stat file versions of PSTD, blank out variable fields in line data
-                        if line_type == CN.PSTD and file_line[CN.VERSION] != 'V01':
-                            line_data.iloc[row_num, var_index:var_index + repeat_width] = \
-                                CN.MV_NOTAV
+                            # for stat file versions of PSTD, blank out variable fields in line data
+                            if line_type == CN.PSTD and file_line[CN.VERSION] != 'V01':
+                                line_data.iloc[row_num, var_index:var_index + repeat_width] = \
+                                    CN.MV_NOTAV
 
-                        # add on the first two fields - line data id, and i value
-                        var_data.insert(0, CN.LINE_DATA_ID, file_line[CN.LINE_DATA_ID])
-                        var_data.insert(1, 'i_value', var_data.index + 1)
+                            # add on the first two fields - line data id, and i value
+                            var_data.insert(0, CN.LINE_DATA_ID, file_line[CN.LINE_DATA_ID])
+                            var_data.insert(1, 'i_value', var_data.index + 1)
 
-                        # MCTC has i and j counters where j increments faster
-                        if line_type == CN.MCTC:
-                            var_data.loc[:, 'i_value'] = \
-                                np.repeat(np.array(range(1, basic_count + 1)), basic_count)
-                            j_indices = np.resize(range(1, basic_count + 1), var_count)
-                            var_data.insert(2, 'j_value', j_indices)
-                            # Move the field (ec_value) that was added later back to the end of the main line
-                            line_data.iloc[row_num, var_index] = \
-                                line_data.iloc[row_num, var_index + repeat_width]
+                            # MCTC has i and j counters where j increments faster
+                            if line_type == CN.MCTC:
+                                var_data.loc[:, 'i_value'] = \
+                                    np.repeat(np.array(range(1, basic_count + 1)), basic_count)
+                                j_indices = np.resize(range(1, basic_count + 1), var_count)
+                                var_data.insert(2, 'j_value', j_indices)
+                                # Move field (ec_value) that was added later back to end of main line
+                                line_data.iloc[row_num, var_index] = \
+                                    line_data.iloc[row_num, var_index + repeat_width]
 
-                        if line_type == CN.ORANK:
-                            # move the values after the variable length data to the left
-                            var_end = var_index + repeat_width
-                            line_data.iloc[row_num, var_index:var_index + 7] = \
-                                line_data.iloc[row_num, var_end:var_end + 7].values
+                            if line_type == CN.ORANK:
+                                # move the values after the variable length data to the left
+                                var_end = var_index + repeat_width
+                                line_data.iloc[row_num, var_index:var_index + 7] = \
+                                    line_data.iloc[row_num, var_end:var_end + 7].values
 
-                        # collect all of the variable data for a line type
-                        all_var = all_var.append(var_data, ignore_index=True)
+                            # collect all of the variable data for a line type
+                            all_var = all_var.append(var_data, ignore_index=True)
 
                     # end for row_num, file_line
 
