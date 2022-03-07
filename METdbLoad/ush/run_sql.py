@@ -102,6 +102,26 @@ class RunSql:
         except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
             logging.error("*** %s in write_sql_data get_next_id ***", sys.exc_info()[0])
 
+
+    @staticmethod
+    def get_file_name(data_file_id, sql_cur):
+        """ given a data_file_id, return the matching filename.
+            Returns:
+               filename for a data_file_id
+        """
+        # get the filename
+        try:
+            file_name = None
+            query_for_name = "SELECT filename from data_file where data_file_id = " + str(data_file_id)
+            sql_cur.execute(query_for_name)
+            result = sql_cur.fetchone()
+            if result[0] is not None:
+                file_name = result[0]
+            return file_name
+
+        except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
+            logging.error("*** %s in write_sql_data get_file_name ***", sys.exc_info()[0])
+            
     @staticmethod
     def write_to_sql(raw_data, col_list, sql_table, sql_query, tmp_dir, sql_cur, local_infile):
         """ given a dataframe of raw_data with specific columns to write to a sql_table,

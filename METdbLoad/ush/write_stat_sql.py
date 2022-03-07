@@ -181,8 +181,10 @@ class WriteStatSql:
 
                         # If variable length record exceeds current line length, delete
                         if repeat_width > (len(file_line) - var_index):
-                            logging.error('*** Variable length record %s deleted as too long ***',
-                                          line_type)
+                            file_name = sql_met.get_file_name(file_line[CN.DATA_FILE_ID], sql_cur)
+                            logging.error('*** Variable length record from file %s line %s '
+                                          'type %s deleted as longer than %s ***',
+                                          file_name, row_num, line_type, CN.MAX_COL + 25)
                             line_data.drop(line_data[line_data.line_data_id == row_num].index,
                                            inplace=True)
                         else:
