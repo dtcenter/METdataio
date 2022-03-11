@@ -100,9 +100,9 @@ Many authors, listed below in alphabetical order, have contributed to the docume
 To cite this documentation in publications, please refer to the METdatadb User's Guide :ref:`Citation Instructions<citations>`.
 
 * Hank Fisher [#NCAR]_
-* Tatiana Burek [#NCAR]_
 * Venita Hagerty [#CIRA]_
 * Minna Win-Gildenmeister [#NCAR]_
+* Tatiana Burek [#NCAR]_
 
 .. rubric:: Organization
 
