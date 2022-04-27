@@ -112,6 +112,7 @@ class WriteStatSql:
             for line_type in line_types:
 
                 all_var = pd.DataFrame()
+                list_var = []
 
                 # use the UC line type to index into the list of table names
                 line_table = CN.LINE_TABLES[CN.UC_LINE_TYPES.index(line_type)]
@@ -225,9 +226,12 @@ class WriteStatSql:
                                     line_data.iloc[row_num, var_end:var_end + 7].values
 
                             # collect all of the variable data for a line type
-                            all_var = all_var.append(var_data, ignore_index=True)
+                            list_var.append(var_data)
 
                     # end for row_num, file_line
+                    if list_var:
+                        all_var = pd.concat(list_var, ignore_index=True, sort=False)
+                        list_var = []
 
                     if line_type == CN.RHIST:
                         # copy the RHIST columns and create ECNT lines from them
