@@ -195,7 +195,8 @@ class ReadDataFiles:
                             # put space in front of hyphen between numbers in case space is missing
                             # FHO can have negative thresh - fix with regex, only between numbers
                             split_file.iloc[:, 1] = \
-                                split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2')
+                                split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2', 
+                                                                  regex=True)
 
                             # merge the two halves together again
                             vsdb_file = split_file.iloc[:, 0] + ' ' + split_file.iloc[:, 1]

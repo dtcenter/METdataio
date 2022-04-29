@@ -112,6 +112,7 @@ class WriteTcstSql:
             for line_type in line_types:
 
                 all_var = pd.DataFrame()
+                list_var = []
 
                 # use the UC line type to index into the list of table names
                 line_table = CN.LINE_TABLES_TCST[CN.UC_LINE_TYPES_TCST.index(line_type)]
@@ -174,9 +175,12 @@ class WriteTcstSql:
                         var_data.insert(1, 'i_value', var_data.index + 1)
 
                         # collect all of the variable data for a line type
-                        all_var = all_var.append(var_data, ignore_index=True)
+                        list_var.append(var_data)
 
                     # end for row_num, file_line
+                    if list_var:
+                        all_var = pd.concat(list_var, ignore_index=True, sort=False)
+                        list_var = []
 
                 # write the lines out to a CSV file, and then load them into database
                 if not line_data.empty:
