@@ -107,6 +107,7 @@ class WriteStatSql:
 
             # find all of the line types in the data
             line_types = stat_data.line_type.unique()
+            line_data = pd.DataFrame()
 
             # process one kind of line data at a time
             for line_type in line_types:
@@ -119,7 +120,7 @@ class WriteStatSql:
 
                 # get the line data of just this type and re-index
                 line_data = stat_data[stat_data[CN.LINE_TYPE] == line_type].copy()
-                line_data.reset_index(drop=True, inplace=True)
+                line_data = line_data.reset_index(drop=True)
                 logging.info("%s: %s rows", line_type, str(len(line_data.index)))
 
                 # change all Not Available values to METviewer not available (-9999)
@@ -133,8 +134,10 @@ class WriteStatSql:
                     logging.debug("next_line_id is %s", next_line_id)
 
                     # try to keep order the same as MVLoad
-                    line_data = line_data.sort_values(by=[CN.DATA_FILE_ID, CN.LINE_NUM])
-                    line_data.reset_index(drop=True, inplace=True)
+                    #line_data = line_data.sort_values(by=[CN.DATA_FILE_ID, CN.LINE_NUM])
+                    #line_data.reset_index(drop=True, inplace=True)
+                    line_data = line_data.sort_values(by=[CN.DATA_FILE_ID, CN.LINE_NUM],
+                                                      ignore_index=True).copy()
 
                     line_data[CN.LINE_DATA_ID] = line_data.index + next_line_id
 
