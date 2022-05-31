@@ -134,8 +134,6 @@ class WriteStatSql:
                     logging.debug("next_line_id is %s", next_line_id)
 
                     # try to keep order the same as MVLoad
-                    #line_data = line_data.sort_values(by=[CN.DATA_FILE_ID, CN.LINE_NUM])
-                    #line_data.reset_index(drop=True, inplace=True)
                     line_data = line_data.sort_values(by=[CN.DATA_FILE_ID, CN.LINE_NUM],
                                                       ignore_index=True).copy()
 
