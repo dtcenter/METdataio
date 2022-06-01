@@ -56,8 +56,8 @@ class WriteModeSql:
             if not cts_data.empty:
                 mode_headers = cts_data[CN.MODE_HEADER_FIELDS[1:]]
             if not obj_data.empty:
-                mode_headers = mode_headers.append(obj_data[CN.MODE_HEADER_FIELDS[1:]],
-                                                   ignore_index=True)
+                mode_headers = pd.concat([mode_headers, obj_data[CN.MODE_HEADER_FIELDS[1:]]],
+                                         ignore_index=True, sort=False)
             # restore to original order now that cts and obj are recombined
             mode_headers = mode_headers.sort_values(by=[CN.DATA_FILE_ID, CN.LINENUMBER])
             # get unique values, keeping the first of the duplicate records

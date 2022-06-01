@@ -136,7 +136,7 @@ class ReadDataFiles:
                     if lu_id == CN.STAT:
                         # Get the first line of the .stat file that has the headers
                         file_hdr = pd.read_csv(filename, delim_whitespace=True,
-                                               names=range(CN.MAX_COL), nrows=1)
+                                               header=None, nrows=1)
 
                         # MET file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
@@ -195,7 +195,8 @@ class ReadDataFiles:
                             # put space in front of hyphen between numbers in case space is missing
                             # FHO can have negative thresh - fix with regex, only between numbers
                             split_file.iloc[:, 1] = \
-                                split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2')
+                                split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2', 
+                                                                  regex=True)
 
                             # merge the two halves together again
                             vsdb_file = split_file.iloc[:, 0] + ' ' + split_file.iloc[:, 1]
@@ -298,7 +299,7 @@ class ReadDataFiles:
                     elif lu_id == CN.TCST:
                         # Get the first line of the .tcst file that has the headers
                         file_hdr = pd.read_csv(filename, delim_whitespace=True,
-                                               names=range(CN.MAX_COL), nrows=1)
+                                               header=None, nrows=1)
                         # TCST file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
                             logging.warning("!!! TCST file %s is empty", filename)
@@ -1141,7 +1142,7 @@ class ReadDataFiles:
             lu_type = CN.STAT
         elif lc_filename.endswith(".vsdb"):
             lu_type = CN.VSDB_POINT_STAT
-        elif (lc_filename.endswith("cts.txt") and 
+        elif (lc_filename.endswith("cts.txt") and
               os.path.basename(lc_filename).startswith("mode")):
             lu_type = CN.MODE_CTS
         elif lc_filename.endswith("obj.txt"):
