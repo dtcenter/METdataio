@@ -1,4 +1,4 @@
-FROM centos:8
+FROM centos:7
 
 MAINTAINER Venita Hagerty <venita.hagerty@noaa.gov>
 
@@ -32,8 +32,7 @@ RUN yum -y install wget tar git ksh \
  RUN pip-3 install pandas \
   && pip-3 install numpy \
   && pip-3 install lxml \
-  && pip-3 install pymysql \
-  && pip-3 install retrying
+  && pip-3 install pymysql
 
  #
  # Create a link for python3
