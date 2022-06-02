@@ -12,7 +12,7 @@ MAINTAINER Venita Hagerty <venita.hagerty@noaa.gov>
 RUN yum -y update \
  && yum -y install epel-release \
  && yum -y install 'dnf-command(config-manager)' \
- && yum config-manager --set-enabled powertools
+ && yum-config-manager --set-enabled powertools
 
 #
 # Install required packages
