@@ -40,7 +40,7 @@ class XmlLoadFile:
         self.connection['db_port'] = CN.SQL_PORT
         self.connection['db_database'] = None
         self.connection['db_user'] = None
-        self.connection['db_password'] = None
+        self.connection['db_password'] = ''
         self.connection['db_management_system'] = "mysql"
 
         self.db_driver = None
@@ -113,10 +113,11 @@ class XmlLoadFile:
                         self.connection['db_port'] = int(host_and_port[1])
                     if (not self.connection['db_host']) or (not self.connection['db_database']):
                         logging.warning("!!! XML must include host and database tags")
-                    if (not self.connection['db_user']) or (not self.connection['db_password']):
-                        logging.warning("!!! XML must include user and passsword tags")
+                    if (not self.connection['db_user']):
+                        logging.warning("!!! XML must include user tag")
                     if not self.connection['db_database'].startswith("mv_"):
                         logging.warning("!!! Database not visible unless name starts with mv_")
+
                 elif child.tag.lower() == "load_files":
                     for subchild in list(child):
                         self.load_files.append(subchild.text)
@@ -176,6 +177,9 @@ class XmlLoadFile:
             logging.error("*** %s in read_xml ***", sys.exc_info()[0])
             sys.exit("*** Error(s) found while reading XML file!")
 
+        logging.info("*** user is %s, password is %s in read_xml ***",
+                     self.connection['db_user'],
+                     self.connection['db_password'])
         logging.info("database name is: %s", self.connection['db_database'])
 
         # if the date_list tag is included, generate a list of dates
