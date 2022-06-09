@@ -177,9 +177,6 @@ class XmlLoadFile:
             logging.error("*** %s in read_xml ***", sys.exc_info()[0])
             sys.exit("*** Error(s) found while reading XML file!")
 
-        logging.info("*** user is %s, password is %s in read_xml ***",
-                     self.connection['db_user'],
-                     self.connection['db_password'])
         logging.info("database name is: %s", self.connection['db_database'])
 
         # if the date_list tag is included, generate a list of dates
