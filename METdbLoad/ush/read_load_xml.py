@@ -39,8 +39,8 @@ class XmlLoadFile:
         self.connection['db_host'] = None
         self.connection['db_port'] = CN.SQL_PORT
         self.connection['db_database'] = None
-        self.connection['db_user'] = None
-        self.connection['db_password'] = ''
+        self.connection['db_user'] = "notag"
+        self.connection['db_password'] = "notag"
         self.connection['db_management_system'] = "mysql"
 
         self.db_driver = None
@@ -113,8 +113,10 @@ class XmlLoadFile:
                         self.connection['db_port'] = int(host_and_port[1])
                     if (not self.connection['db_host']) or (not self.connection['db_database']):
                         logging.warning("!!! XML must include host and database tags")
-                    if (not self.connection['db_user']):
-                        logging.warning("!!! XML must include user tag")
+                    if (self.connection['db_user'] == "notag" or
+                        self.connection['db_password'] == "notag"):
+                        logging.error("!!! XML must include user and password tags")
+                        raise NameError("Missing tags")
                     if not self.connection['db_database'].startswith("mv_"):
                         logging.warning("!!! Database not visible unless name starts with mv_")
 
