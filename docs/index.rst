@@ -1,5 +1,5 @@
 ===========================
-METdatadb version |version|
+METdataio version |version|
 ===========================
 Developed by the `Developmental Testbed Center <https://dtcenter.org/>`_,
 Boulder, CO
@@ -64,7 +64,7 @@ follows:
 * **METplotpy**  - suite of Python-based scripts to plot MET output,
   and in come cases provide additional post-processing of output prior
   to plotting
-* **METdatadb**  - database to store MET output and to be used by both
+* **METdataio**  - database to store MET output and to be used by both
   METviewer and METexpress
 
 The umbrella repository will be brought together by using a software package
@@ -97,7 +97,7 @@ Authors
 -------
 
 Many authors, listed below in alphabetical order, have contributed to the documentation of METplus.
-To cite this documentation in publications, please refer to the METdatadb User's Guide :ref:`Citation Instructions<citations>`.
+To cite this documentation in publications, please refer to the METdataio User's Guide :ref:`Citation Instructions<citations>`.
 
 * Hank Fisher [#NCAR]_
 * Venita Hagerty [#CIRA]_
@@ -115,7 +115,7 @@ To cite this documentation in publications, please refer to the METdatadb User's
 
 .. Toctree::
    :hidden:
-   :caption: METdatadb
+   :caption: METdataio
 
    Users_Guide/index
 

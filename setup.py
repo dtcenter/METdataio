@@ -11,14 +11,14 @@ with open(version_path) as version_file:
     exec(version_file.read(), main_ns)
 
 setuptools.setup(
-    name="metdatadb",
+    name="metdataio",
     version=main_ns['__version__'],
     author="METplus",
     author_email="met-help@ucar.edu",
     description="METplus component that loads data into a database",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/dtcenter/METdatadb",
+    url="https://github.com/dtcenter/METdataio",
     packages=setuptools.find_packages(),
     classifiers=[
          "Programming Language :: Python :: 3",
