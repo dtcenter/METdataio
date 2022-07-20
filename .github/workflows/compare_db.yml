@@ -74,7 +74,7 @@ jobs:
         run: |
           mkdir metdata
           cd metdata
-          curl 'https://dtcenter.ucar.edu/dfiles/code/METplus/METdataio/sample_data-met_out_v9.1.tgz' -o m91.tgz
+          curl 'https://dtcenter.ucar.edu/dfiles/code/METplus/METdatadb/sample_data-met_out_v9.1.tgz' -o m91.tgz
           tar -xvf m91.tgz
 # Note that both XML files are taken from the new branch, so they can match if changed
       - name: run METdbload prod
