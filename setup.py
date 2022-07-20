@@ -11,7 +11,7 @@ with open(version_path) as version_file:
     exec(version_file.read(), main_ns)
 
 setuptools.setup(
-    name="metdatadb",
+    name="metdataio",
     version=main_ns['__version__'],
     author="METplus",
     author_email="met-help@ucar.edu",
