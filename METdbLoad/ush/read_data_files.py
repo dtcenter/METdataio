@@ -92,6 +92,7 @@ class ReadDataFiles:
             # Add the code that describes what kind of file this is - stat, vsdb, etc
             self.data_files[CN.DATA_FILE_LU_ID] = \
                 np.vectorize(self.get_lookup)(self.data_files[CN.FULL_FILE])
+
             # Drop files that are not of a valid type
             self.data_files.drop(self.data_files[self.data_files[CN.DATA_FILE_LU_ID] ==
                                                  CN.NO_KEY].index, inplace=True)
@@ -248,6 +249,7 @@ class ReadDataFiles:
 
                         # use lower case of headers in file as column names
                         hdr_names = file_hdr.columns.tolist()
+                        print(hdr_names)
                         hdr_names = [hdr.lower() for hdr in hdr_names]
 
                         # change field name after intensity_90 to be intensity_nn
@@ -1166,7 +1168,7 @@ class ReadDataFiles:
             Returns:
                all the stat lines in a dataframe, with dates converted to datetime
         """
-        # added the low_memory=False option when getting a DtypeWarning
+        # switched to python engine for python 3.8
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.FCST_VALID_BEG,
@@ -1174,7 +1176,7 @@ class ReadDataFiles:
                                         CN.OBS_VALID_BEG,
                                         CN.OBS_VALID_END],
                            date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
+                           keep_default_na=False, na_values='', engine='python')
 
     def read_tcst(self, filename, hdr_names):
         """ Read in all of the lines except the header of a tcst file.
