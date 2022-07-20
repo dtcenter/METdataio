@@ -18,7 +18,7 @@ setuptools.setup(
     description="METplus component that loads data into a database",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/dtcenter/METdatadb",
+    url="https://github.com/dtcenter/METdataio",
     packages=setuptools.find_packages(),
     classifiers=[
          "Programming Language :: Python :: 3",

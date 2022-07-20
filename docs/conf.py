@@ -18,7 +18,7 @@ print(sys.path)
 
 # -- Project information -----------------------------------------------------
 
-project = 'METdatadb'
+project = 'METdataio'
 author = 'UCAR/NCAR, NOAA, CSU/CIRA, and CU/CIRES'
 author_list = 'Hagerty, V., T. Burek, H. Fisher, and M. Win-Gildenmeister'
 version = '2.0.0'

@@ -10,7 +10,7 @@ This chapter describes how to install METdbload.
 METdbload has been developed and tested on Mac and Linux operating systems.
 Support for additional platforms may be added in future releases.
 METdbload is a Python 3 program that requires some extra packages to be available on the user's computer prior to installation.
-METdbload is part of the METdatadb database package. Additional METdatadb programs that work with the data are planned.
+METdbload is part of the METdataio database package. Additional METdataio programs that work with the data are planned.
 
 Installing METdbload
 --------------------
@@ -29,14 +29,14 @@ pymysql, pandas, numpy, and lxml.
 Download the application:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Download METdatadb into an installation directory. Programs can be run from the ush subdirectory.
+Download METdataio into an installation directory. Programs can be run from the ush subdirectory.
 
 .. code-block:: ini
 
-  git clone https://github.com/dtcenter/METdatadb [install]/METdatadb
-  cd [install]/METdatadb/METdbLoad/ush
+  git clone https://github.com/dtcenter/METdataio [install]/METdataio
+  cd [install]/METdataio/METdbLoad/ush
 
-Create a METdatadb database:
+Create a METdataio database:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Data must be loaded into a database which has the prefix \'\mv_\'\, e.g. mv_met_data. This database must be structured with the METviewer mv_mysql.sql schema:
