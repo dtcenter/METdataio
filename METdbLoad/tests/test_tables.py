@@ -20,7 +20,7 @@ import pymysql
 # *** Connect to a "production/old" database
 DB2 = 'mv_ci_prod'
 
-cnf_file = "/home/runner/work/METdatadb/METdatadb/headnew/METdbLoad/tests/gha.cnf"
+cnf_file = "/home/runner/work/METdataio/METdataio/headnew/METdbLoad/tests/gha.cnf"
 
 conn2 = pymysql.connect(read_default_file=cnf_file, db=DB2)
 cur2 = conn2.cursor()

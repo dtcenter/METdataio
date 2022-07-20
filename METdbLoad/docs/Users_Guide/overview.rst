@@ -5,7 +5,7 @@ Overview of METdbload
 Purpose and Organization of the User's Guide
 --------------------------------------------
 
-The goal of this User's Guide is to provide basic information for users of the METdatadb database
+The goal of this User's Guide is to provide basic information for users of the METdataio database
 and the METviewer and METexpress display systems to enable users to create plots from their
 MET output statistics.
 
@@ -37,7 +37,7 @@ and so on.
 METdbload goals and design philosophy
 -------------------------------------
 
-METdbload is the part of METdatadb that reads MET verification statistics ASCII files
+METdbload is the part of METdataio that reads MET verification statistics ASCII files
 and loads them into a database for plotting with METviewer and METexpress.
 The specification for which files to load is written in XML.
 
@@ -56,7 +56,7 @@ METdbload requires installation of Python 3.6+ and MySQL, MariaDB or AuroraDB.
 Future development plans
 ------------------------
 
-METdatadb is an evolving verification database package. New capabilities are planned in controlled, successive version releases. Bug fixes and user-identified problems will be addressed as they are found. Plans are also in place to incorporate many new capabilities and options in future releases of METdatadb. Additionally, updates to accommodate new features of the MET software are often required.
+METdataio is an evolving verification database package. New capabilities are planned in controlled, successive version releases. Bug fixes and user-identified problems will be addressed as they are found. Plans are also in place to incorporate many new capabilities and options in future releases of METdataio. Additionally, updates to accommodate new features of the MET software are often required.
 
 
 Code support

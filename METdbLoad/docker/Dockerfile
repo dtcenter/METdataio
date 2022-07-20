@@ -41,22 +41,22 @@ RUN yum -y install wget tar git ksh \
 
  ENV METDBLOAD_GIT_NAME develop
 
- ENV METDBLOAD_GIT_URL  https://github.com/dtcenter/METdatadb
+ ENV METDBLOAD_GIT_URL  https://github.com/dtcenter/METdataio
 
 #
 # Check code out from GitHub
 #
  RUN mkdir /METdbload-python \
   && echo "Checking out METdbload ${METDBLOAD_GIT_NAME} from ${METDBLOAD_GIT_URL}" \
-  && git clone ${METDBLOAD_GIT_URL} /METdbload-python/METdatadb \
-  && cd /METdbload-python/METdatadb \
+  && git clone ${METDBLOAD_GIT_URL} /METdbload-python/METdataio \
+  && cd /METdbload-python/METdataio \
   && git checkout ${METDBLOAD_GIT_NAME}
 
  #
  # set env vars
  #
- ENV PYTHONPATH "${PYTHONPATH}:/METdbload-python/METdatadb/METdbLoad/:/METdbload-python/METdatadb/METdbLoad/ush/"
- WORKDIR /METdbload-python/METdatadb/METdbLoad/ush
+ ENV PYTHONPATH "${PYTHONPATH}:/METdbload-python/METdataio/METdbLoad/:/METdbload-python/METdataio/METdbLoad/ush/"
+ WORKDIR /METdbload-python/METdataio/METdbLoad/ush
 
  EXPOSE 3306
 

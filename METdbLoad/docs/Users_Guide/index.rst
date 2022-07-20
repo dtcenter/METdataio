@@ -12,7 +12,7 @@ This documentation describes the |release| release dated |release_date|. Interme
 
 This User's Guide was prepared by current and former NCAR and GSL employees working on METplus, including Venita Hagerty, Tatiana Burek, Tara Jensen, Julie Prestopnik, and Lisa Gooding.
 
-**Model Evaluation Tools data database (METdatadb) loader (METdbload)  TERMS OF USE - IMPORTANT!**
+**Model Evaluation Tools data database (METdataio) loader (METdbload)  TERMS OF USE - IMPORTANT!**
 
 Copyright |copyright|
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 |author_list|, |release_year|: The METdbload Version |version| User's Guide.
 Developmental Testbed Center.
-Available at : https://github.com/dtcenter/METdatadb/releases.
+Available at : https://github.com/dtcenter/METdataio/releases.
 
 **Acknowledgments**
 

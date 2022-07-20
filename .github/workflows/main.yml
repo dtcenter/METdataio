@@ -1,4 +1,4 @@
-name: METdatadb CI/CD Workflow
+name: METdataio CI/CD Workflow
 on:
   push:
     branches:

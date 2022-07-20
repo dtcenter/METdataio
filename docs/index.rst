@@ -64,8 +64,8 @@ follows:
 * **METplotpy**  - suite of Python-based scripts to plot MET output,
   and in come cases provide additional post-processing of output prior
   to plotting
-* **METdataio**  - database to store MET output and to be used by both
-  METviewer and METexpress
+* **METdataio**  - Data ingest and export to store and retrieve MET output 
+  to be used by other MET tools including METviewer and METexpress 
 
 The umbrella repository will be brought together by using a software package
 called `manage_externals <https://github.com/ESMCI/manage_externals>`_
