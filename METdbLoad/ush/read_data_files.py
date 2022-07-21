@@ -249,7 +249,6 @@ class ReadDataFiles:
 
                         # use lower case of headers in file as column names
                         hdr_names = file_hdr.columns.tolist()
-                        print(hdr_names)
                         hdr_names = [hdr.lower() for hdr in hdr_names]
 
                         # change field name after intensity_90 to be intensity_nn
@@ -1183,13 +1182,13 @@ class ReadDataFiles:
             Returns:
                all the tcst lines in a dataframe, with dates converted to datetime
         """
-        # added the low_memory=False option when getting a DtypeWarning
+        # switched to python engine for python 3.8
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.INIT,
                                         CN.VALID],
                            date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
+                           keep_default_na=False, na_values='', engine='python')
 
     def cached_date_parser(self, date_str):
         """ if date is repeated and already converted, return that value.
@@ -1212,10 +1211,10 @@ class ReadDataFiles:
             Returns:
                all the mode lines in a dataframe, with dates converted to datetime
         """
-        # added the low_memory=False option when getting a DtypeWarning
+        # switched to python engine for python 3.8
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.FCST_VALID,
                                         CN.OBS_VALID],
                            date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
+                           keep_default_na=False, na_values='', engine='python')
