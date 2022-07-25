@@ -134,6 +134,7 @@ CREATE TABLE line_data_ctc
     fy_on          INT UNSIGNED,
     fn_oy          INT UNSIGNED,
     fn_on          INT UNSIGNED,
+    ec_value       DOUBLE DEFAULT -9999,
 
     CONSTRAINT line_data_ctc_data_file_id_pk
         FOREIGN KEY (data_file_id)
@@ -263,6 +264,11 @@ CREATE TABLE line_data_cts
     bagss          DOUBLE DEFAULT -9999,
     bagss_bcl      DOUBLE DEFAULT -9999,
     bagss_bcu      DOUBLE DEFAULT -9999,
+    
+    hss_ec         DOUBLE DEFAULT -9999,
+    hss_ec_bcl     DOUBLE DEFAULT -9999,
+    hss_ec_bcu     DOUBLE DEFAULT -9999,
+    ec_value       DOUBLE DEFAULT -9999,
 
     CONSTRAINT line_data_cts_data_file_id_pk
         FOREIGN KEY (data_file_id)
@@ -931,6 +937,8 @@ CREATE TABLE line_data_val1l2
     uvfoabar       DOUBLE,
     uvffabar       DOUBLE,
     uvooabar       DOUBLE,
+    fa_speed_bar   DOUBLE,
+    oa_speed_bar   DOUBLE,
 
     CONSTRAINT line_data_val1l2_data_file_id_pk
         FOREIGN KEY (data_file_id)
@@ -1681,6 +1689,14 @@ CREATE TABLE line_data_vcnt
     dir_abserr       DOUBLE,
     dir_abserr_bcl   DOUBLE,
     dir_abserr_bcu   DOUBLE,
+    anom_corr            DOUBLE DEFAULT -9999,
+    anom_corr_ncl        DOUBLE DEFAULT -9999,
+    anom_corr_ncu        DOUBLE DEFAULT -9999,
+    anom_corr_bcl        DOUBLE DEFAULT -9999,
+    anom_corr_bcu        DOUBLE DEFAULT -9999,
+    anom_corr_uncntr     DOUBLE DEFAULT -9999,
+    anom_corr_uncntr_bcl DOUBLE DEFAULT -9999,
+    anom_corr_uncntr_bcu DOUBLE DEFAULT -9999,
 
     CONSTRAINT line_data_vcnt_data_file_id_pk
         FOREIGN KEY (data_file_id)
