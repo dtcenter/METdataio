@@ -7,7 +7,7 @@
     <password>root</password>
   </connection>
 
-	<folder_tmpl>/home/runner/work/METdatadb/METdatadb/metdata/met_out/{met_tool}</folder_tmpl>
+	<folder_tmpl>/home/runner/work/METdataio/METdataio/metdata/met_out/{met_tool}</folder_tmpl>
 
 <!--	<met_version>V9.1</met_version>-->
 

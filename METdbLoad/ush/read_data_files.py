@@ -92,6 +92,7 @@ class ReadDataFiles:
             # Add the code that describes what kind of file this is - stat, vsdb, etc
             self.data_files[CN.DATA_FILE_LU_ID] = \
                 np.vectorize(self.get_lookup)(self.data_files[CN.FULL_FILE])
+
             # Drop files that are not of a valid type
             self.data_files.drop(self.data_files[self.data_files[CN.DATA_FILE_LU_ID] ==
                                                  CN.NO_KEY].index, inplace=True)
@@ -136,7 +137,7 @@ class ReadDataFiles:
                     if lu_id == CN.STAT:
                         # Get the first line of the .stat file that has the headers
                         file_hdr = pd.read_csv(filename, delim_whitespace=True,
-                                               names=range(CN.MAX_COL), nrows=1)
+                                               header=None, nrows=1)
 
                         # MET file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
@@ -195,7 +196,8 @@ class ReadDataFiles:
                             # put space in front of hyphen between numbers in case space is missing
                             # FHO can have negative thresh - fix with regex, only between numbers
                             split_file.iloc[:, 1] = \
-                                split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2')
+                                split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2', 
+                                                                  regex=True)
 
                             # merge the two halves together again
                             vsdb_file = split_file.iloc[:, 0] + ' ' + split_file.iloc[:, 1]
@@ -298,7 +300,7 @@ class ReadDataFiles:
                     elif lu_id == CN.TCST:
                         # Get the first line of the .tcst file that has the headers
                         file_hdr = pd.read_csv(filename, delim_whitespace=True,
-                                               names=range(CN.MAX_COL), nrows=1)
+                                               header=None, nrows=1)
                         # TCST file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
                             logging.warning("!!! TCST file %s is empty", filename)
@@ -1141,7 +1143,7 @@ class ReadDataFiles:
             lu_type = CN.STAT
         elif lc_filename.endswith(".vsdb"):
             lu_type = CN.VSDB_POINT_STAT
-        elif (lc_filename.endswith("cts.txt") and 
+        elif (lc_filename.endswith("cts.txt") and
               os.path.basename(lc_filename).startswith("mode")):
             lu_type = CN.MODE_CTS
         elif lc_filename.endswith("obj.txt"):
@@ -1165,7 +1167,7 @@ class ReadDataFiles:
             Returns:
                all the stat lines in a dataframe, with dates converted to datetime
         """
-        # added the low_memory=False option when getting a DtypeWarning
+        # switched to python engine for python 3.8
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.FCST_VALID_BEG,
@@ -1173,20 +1175,20 @@ class ReadDataFiles:
                                         CN.OBS_VALID_BEG,
                                         CN.OBS_VALID_END],
                            date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
+                           keep_default_na=False, na_values='', engine='python')
 
     def read_tcst(self, filename, hdr_names):
         """ Read in all of the lines except the header of a tcst file.
             Returns:
                all the tcst lines in a dataframe, with dates converted to datetime
         """
-        # added the low_memory=False option when getting a DtypeWarning
+        # switched to python engine for python 3.8
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.INIT,
                                         CN.VALID],
                            date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
+                           keep_default_na=False, na_values='', engine='python')
 
     def cached_date_parser(self, date_str):
         """ if date is repeated and already converted, return that value.
@@ -1209,10 +1211,10 @@ class ReadDataFiles:
             Returns:
                all the mode lines in a dataframe, with dates converted to datetime
         """
-        # added the low_memory=False option when getting a DtypeWarning
+        # switched to python engine for python 3.8
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.FCST_VALID,
                                         CN.OBS_VALID],
                            date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
+                           keep_default_na=False, na_values='', engine='python')

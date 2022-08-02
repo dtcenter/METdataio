@@ -18,14 +18,14 @@ print(sys.path)
 
 # -- Project information -----------------------------------------------------
 
-project = 'METdatadb'
+project = 'METdataio'
 author = 'UCAR/NCAR, NOAA, CSU/CIRA, and CU/CIRES'
 author_list = 'Hagerty, V., T. Burek, H. Fisher, and M. Win-Gildenmeister'
-version = '1.1.0'
+version = '2.0.0'
 verinfo = version
 release = f'{version}'
 release_year = '2022'
-release_date = f'{release_year}-03-11'
+release_date = f'{release_year}-06-22'
 copyright = f'{release_year}, {author}'
 
 # if set, adds "Last updated on " followed by

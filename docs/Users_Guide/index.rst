@@ -2,18 +2,18 @@
 User's Guide
 ============
 
-**Foreword: A note to METdatadb users**
+**Foreword: A note to METdataio users**
 
-This User's guide is provided as an aid to users of METdatadb.  METdatadb is a
+This User's guide is provided as an aid to users of METdataio.  METdataio is a
 Python rewrite of the capabilities in METviewer. The METviewer tool reads MET
 verification statistics output from a database and creates plots using the R
-statistical package. METdatadb is also a component of the unified METplus
+statistical package. METdataio is also a component of the unified METplus
 verification framework. More details about METplus can be found on the
 `METplus website <http://dtcenter.org/community-code/metplus>`_.
 
-It is important to note here that METdatadb is an evolving software package.
+It is important to note here that METdataio is an evolving software package.
 This documentation describes the |release| release dated |release_date|.
-Intermediate releases may include bug fixes. METdatadb is also able to accept
+Intermediate releases may include bug fixes. METdataio is also able to accept
 new modules contributed by the community. If you have code you would like to
 contribute, we will gladly consider your contribution. Please create a post
 in the
@@ -21,7 +21,7 @@ in the
 We will then determine if we will be able to include the contribution in a
 future version.
 
-**Model Evaluation Tools Datadb (METdatadb)  TERMS OF USE - IMPORTANT!**
+**Model Evaluation Tools Datadb (METdataio)  TERMS OF USE - IMPORTANT!**
 
 Copyright |copyright|
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,9 +43,9 @@ governing permissions and limitations under the License.
 
 The citation for this User's Guide should be:
 
-|author_list|, |release_year|: The METdatadb Version |version| User's Guide.
+|author_list|, |release_year|: The METdataio Version |version| User's Guide.
 Developmental Testbed Center.
-Available at: https://github.com/dtcenter/METdatadb/releases.
+Available at: https://github.com/dtcenter/METdataio/releases.
 
 **Acknowledgments**
 

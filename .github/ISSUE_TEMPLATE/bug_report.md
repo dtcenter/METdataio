@@ -54,7 +54,7 @@ Describe the steps to reproduce the behavior:
 
 ## Define Related Issue(s) ##
 Consider the impact to the other METplus components.
-- [ ] [METplus](https://github.com/dtcenter/METplus/issues/new/choose), [MET](https://github.com/dtcenter/MET/issues/new/choose), [METdatadb](https://github.com/dtcenter/METdatadb/issues/new/choose), [METviewer](https://github.com/dtcenter/METviewer/issues/new/choose), [METexpress](https://github.com/dtcenter/METexpress/issues/new/choose), [METcalcpy](https://github.com/dtcenter/METcalcpy/issues/new/choose), [METplotpy](https://github.com/dtcenter/METplotpy/issues/new/choose)
+- [ ] [METplus](https://github.com/dtcenter/METplus/issues/new/choose), [MET](https://github.com/dtcenter/MET/issues/new/choose), [METdataio](https://github.com/dtcenter/METdataio/issues/new/choose), [METviewer](https://github.com/dtcenter/METviewer/issues/new/choose), [METexpress](https://github.com/dtcenter/METexpress/issues/new/choose), [METcalcpy](https://github.com/dtcenter/METcalcpy/issues/new/choose), [METplotpy](https://github.com/dtcenter/METplotpy/issues/new/choose)
 
 ## Bugfix Checklist ##
 See the [METplus Workflow](https://metplus.readthedocs.io/en/latest/Contributors_Guide/github_workflow.html) for details.
@@ -69,7 +69,7 @@ Branch name: `bugfix_<Issue Number>_main_<Version>_<Description>`
 - [ ] Submit a pull request to merge into **main_\<Version>**.
 Pull request: `bugfix <Issue Number> main_<Version> <Description>`
 - [ ] Define the pull request metadata, as permissions allow.
-Select: **Reviewer(s)** and **Linked issues**
+Select: **Reviewer(s)** and **Development** issues
 Select: **Organization** level software support **Project** for the current coordinated release
 Select: **Milestone** as the next bugfix version
 - [ ] Iterate until the reviewer(s) accept and merge your changes.
@@ -77,7 +77,7 @@ Select: **Milestone** as the next bugfix version
 - [ ] Complete the steps above to fix the bug on the **develop** branch.
 Branch name:  `bugfix_<Issue Number>_develop_<Description>`
 Pull request: `bugfix <Issue Number> develop <Description>`
-Select: **Reviewer(s)** and **Linked issues**
+Select: **Reviewer(s)** and **Development** issues
 Select: **Repository** level development cycle **Project** for the next official release
 Select: **Milestone** as the next official version
 - [ ] Close this issue.

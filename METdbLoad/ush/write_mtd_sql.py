@@ -58,11 +58,13 @@ class WriteMtdSql:
             if not m_2d_data.empty:
                 mtd_headers = m_2d_data[CN.MTD_HEADER_FIELDS[1:]]
             if not m_3d_single_data.empty:
-                mtd_headers = mtd_headers.append(m_3d_single_data[CN.MTD_HEADER_FIELDS[1:]],
-                                                 ignore_index=True)
+                mtd_headers = pd.concat([mtd_headers,
+                                        m_3d_single_data[CN.MTD_HEADER_FIELDS[1:]]],
+                                        ignore_index=True, sort=False)
             if not m_3d_pair_data.empty:
-                mtd_headers = mtd_headers.append(m_3d_pair_data[CN.MTD_HEADER_FIELDS[1:]],
-                                                 ignore_index=True)
+                mtd_headers = pd.concat([mtd_headers,
+                                        m_3d_pair_data[CN.MTD_HEADER_FIELDS[1:]]],
+                                        ignore_index=True, sort=False)
 
             # get unique values, keeping the first of the duplicate records
             mtd_headers = mtd_headers.drop_duplicates(CN.MTD_2D_HEADER_KEYS, keep='first')
