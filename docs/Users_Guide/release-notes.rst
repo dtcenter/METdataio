@@ -8,8 +8,32 @@ describes the bugfix, enhancement, or new feature:
 Version |version| release notes (|release_date|)
 ------------------------------------------------
 
-Version 2.0.0 release notes (20220622)
+Version 2.0.0 release notes (20220803)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+beta2 release
+^^^^^^^^^^^^^
+
+* New Functionality:
+
+
+* Enhancements:
+
+    * Update the database schema to handle new columns added to the MET-11.0-beta output  (`#92 <https://github.com/dtcenter/METdataio/issues/92>`_)*
+
+* Bugfixes:
+
+
+* Internal:
+   
+    * Update the documentation as a result of repository name from METdatadb to METdataio  (`#95 <https://github.com/dtcenter/METdataio/issues/95>`_)*
+
+
+
+
+beta1 release
+^^^^^^^^^^^^^
+
 
 * New Functionality:
 
