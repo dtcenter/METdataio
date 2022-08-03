@@ -386,7 +386,7 @@ LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
                          'si', 'si_bcl', 'si_bcu']
 
 LINE_DATA_FIELDS[CTC] = TOT_LINE_DATA_FIELDS + \
-                        [FY_OY, FY_ON, FN_OY, FN_ON]
+                        [FY_OY, FY_ON, FN_OY, FN_ON, EC_VALUE]
 
 LINE_DATA_FIELDS[CTS] = ALPH_LINE_DATA_FIELDS + \
                         [BASER, 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
@@ -408,7 +408,8 @@ LINE_DATA_FIELDS[CTS] = ALPH_LINE_DATA_FIELDS + \
                          'seds', 'seds_ncl', 'seds_ncu', 'seds_bcl', 'seds_bcu',
                          'edi', 'edi_ncl', 'edi_ncu', 'edi_bcl', 'edi_bcu',
                          'sedi', 'sedi_ncl', 'sedi_ncu', 'sedi_bcl', 'sedi_bcu',
-                         'bagss', 'bagss_bcl', 'bagss_bcu']
+                         'bagss', 'bagss_bcl', 'bagss_bcu', 'hss_ec', 'hss_ec_bcl',
+                         'hss_ec_bcu', EC_VALUE]
 
 LINE_DATA_FIELDS[DMAP] = ALPH_LINE_DATA_FIELDS + \
                          ['fy', 'oy', 'fbias', 'baddeley', 'hausdorff',
@@ -551,7 +552,7 @@ LINE_DATA_FIELDS[VL1L2] = TOT_LINE_DATA_FIELDS + \
 
 LINE_DATA_FIELDS[VAL1L2] = TOT_LINE_DATA_FIELDS + \
                            ['ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar', 'uvffabar',
-                            'uvooabar']
+                            'uvooabar', 'fa_speed_bar', 'oa_speed_bar']
 
 LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
                          ['fbar', 'fbar_bcl', 'fbar_bcu', 'obar', 'obar_bcl', 'obar_bcu',
@@ -568,7 +569,10 @@ LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
                           'speed_err', 'speed_err_bcl', 'speed_err_bcu',
                           'speed_abserr', 'speed_abserr_bcl', 'speed_abserr_bcu',
                           'dir_err', 'dir_err_bcl', 'dir_err_bcu',
-                          'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu']
+                          'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu',
+                          'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu',
+                          'anom_corr_bcl', 'anom_corr_bcu', 'anom_corr_uncntr', 
+                          'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu']
 
 COLUMNS[TCMPR] = ['total', 'index_pair', 'level', 'watch_warn', 'initials', 'alat',
                   'alon',

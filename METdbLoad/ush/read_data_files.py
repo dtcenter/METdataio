@@ -92,7 +92,7 @@ class ReadDataFiles:
             # Add the code that describes what kind of file this is - stat, vsdb, etc
             self.data_files[CN.DATA_FILE_LU_ID] = \
                 np.vectorize(self.get_lookup)(self.data_files[CN.FULL_FILE])
-
+                
             # Drop files that are not of a valid type
             self.data_files.drop(self.data_files[self.data_files[CN.DATA_FILE_LU_ID] ==
                                                  CN.NO_KEY].index, inplace=True)
@@ -196,7 +196,7 @@ class ReadDataFiles:
                             # put space in front of hyphen between numbers in case space is missing
                             # FHO can have negative thresh - fix with regex, only between numbers
                             split_file.iloc[:, 1] = \
-                                split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2', 
+                                split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2',
                                                                   regex=True)
 
                             # merge the two halves together again
@@ -237,7 +237,7 @@ class ReadDataFiles:
                     # Process mode files
                     #
                     elif lu_id in (CN.MODE_CTS, CN.MODE_OBJ):
-
+                        
                         # Get the first line of the mode cts or obj file that has the headers
                         file_hdr = pd.read_csv(filename, delim_whitespace=True,
                                                nrows=1)
@@ -1167,7 +1167,10 @@ class ReadDataFiles:
             Returns:
                all the stat lines in a dataframe, with dates converted to datetime
         """
-        # switched to python engine for python 3.8
+        # switched to python engine for python 3.8 and pandas 1.4.2
+        # switched back to c version for pandas 1.2.3
+        # added the low_memory=False option when getting a DtypeWarning
+        # to switch to python version: low_memory=False -> engine='python'
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.FCST_VALID_BEG,
@@ -1175,20 +1178,20 @@ class ReadDataFiles:
                                         CN.OBS_VALID_BEG,
                                         CN.OBS_VALID_END],
                            date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', engine='python')
+                           keep_default_na=False, na_values='', low_memory=False)
 
     def read_tcst(self, filename, hdr_names):
         """ Read in all of the lines except the header of a tcst file.
             Returns:
                all the tcst lines in a dataframe, with dates converted to datetime
         """
-        # switched to python engine for python 3.8
+        # added the low_memory=False option when getting a DtypeWarning
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.INIT,
                                         CN.VALID],
                            date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', engine='python')
+                           keep_default_na=False, na_values='', low_memory=False)
 
     def cached_date_parser(self, date_str):
         """ if date is repeated and already converted, return that value.
@@ -1211,10 +1214,10 @@ class ReadDataFiles:
             Returns:
                all the mode lines in a dataframe, with dates converted to datetime
         """
-        # switched to python engine for python 3.8
+        # added the low_memory=False option when getting a DtypeWarning
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.FCST_VALID,
                                         CN.OBS_VALID],
                            date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', engine='python')
+                           keep_default_na=False, na_values='', low_memory=False)
