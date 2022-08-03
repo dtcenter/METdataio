@@ -899,8 +899,8 @@ CREATE TABLE line_data_vl1l2
     uvfobar        DOUBLE,
     uvffbar        DOUBLE,
     uvoobar        DOUBLE,
-    f_speed_bar    DOUBLE,
-    o_speed_bar    DOUBLE,
+    f_speed_bar    DOUBLE DEFAULT -9999,
+    o_speed_bar    DOUBLE DEFAULT -9999,
 
     CONSTRAINT line_data_vl1l2_data_file_id_pk
         FOREIGN KEY (data_file_id)
@@ -937,8 +937,8 @@ CREATE TABLE line_data_val1l2
     uvfoabar       DOUBLE,
     uvffabar       DOUBLE,
     uvooabar       DOUBLE,
-    fa_speed_bar   DOUBLE,
-    oa_speed_bar   DOUBLE,
+    fa_speed_bar   DOUBLE DEFAULT -9999,
+    oa_speed_bar   DOUBLE DEFAULT -9999,
 
     CONSTRAINT line_data_val1l2_data_file_id_pk
         FOREIGN KEY (data_file_id)
