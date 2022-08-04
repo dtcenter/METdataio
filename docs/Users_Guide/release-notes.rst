@@ -19,7 +19,9 @@ beta2 release
 
 * Enhancements:
 
-    * Update the database schema to handle new columns added to the MET-11.0-beta output  (`#92 <https://github.com/dtcenter/METdataio/issues/92>`_)*
+    * **Update the database schema to handle new columns added to the MET-11.0-beta output**  (`#92 <https://github.com/dtcenter/METdataio/issues/92>`_)*
+
+    * **Set up SonarQube to run nightly**  (`#39 <https://github.com/dtcenter/METplus-Internal/issues/39>`_)*
 
 * Bugfixes:
 
