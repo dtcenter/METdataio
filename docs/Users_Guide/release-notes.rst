@@ -19,16 +19,16 @@ beta2 release
 
 * Enhancements:
 
-    * **Update the database schema to handle new columns added to the MET-11.0-beta output**  (`#92 <https://github.com/dtcenter/METdataio/issues/92>`_)*
+    * **Update the database schema to handle new columns added to the MET-11.0-beta output**  (`#92 <https://github.com/dtcenter/METdataio/issues/92>`_)
 
-    * **Set up SonarQube to run nightly**  (`#39 <https://github.com/dtcenter/METplus-Internal/issues/39>`_)*
+    * **Set up SonarQube to run nightly**  (`#39 <https://github.com/dtcenter/METplus-Internal/issues/39>`_)
 
 * Bugfixes:
 
 
 * Internal:
    
-    * Update the documentation as a result of repository name from METdatadb to METdataio  (`#95 <https://github.com/dtcenter/METdataio/issues/95>`_)*
+    * Update the documentation as a result of repository name from METdatadb to METdataio  (`#95 <https://github.com/dtcenter/METdataio/issues/95>`_)
 
 
 
@@ -42,8 +42,8 @@ beta1 release
 * Enhancements:
 
 * Bugfixes:
-    * Fix reading of data files for Python 3.8 with Pandas 1.4  (`#85 <https://github.com/dtcenter/METdataio/issues/85>`_)*
-    * User has a database without a password  (`#90 <https://github.com/dtcenter/METdataio/issues/90>`_)*
+    * **Fix reading of data files for Python 3.8 with Pandas 1.4**  (`#85 <https://github.com/dtcenter/METdataio/issues/85>`_)
+    * **User has a database without a password**  (`#90 <https://github.com/dtcenter/METdataio/issues/90>`_)
 
 * Internal:
 
