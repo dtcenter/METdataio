@@ -66,7 +66,7 @@ html_static_path = ['_static']
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = os.path.join('_static','met_datadb_logo_2020_06.png')
+html_logo = os.path.join('_static','met_dataio_logo_2022_08.png')
 
 # -- Intersphinx control -----------------------------------------------------
 #intersphinx_mapping = {'numpy':("https://docs.scipy.org/doc/numpy/", None)}
