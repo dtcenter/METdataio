@@ -92,7 +92,7 @@ class ReadDataFiles:
             # Add the code that describes what kind of file this is - stat, vsdb, etc
             self.data_files[CN.DATA_FILE_LU_ID] = \
                 np.vectorize(self.get_lookup)(self.data_files[CN.FULL_FILE])
-                
+
             # Drop files that are not of a valid type
             self.data_files.drop(self.data_files[self.data_files[CN.DATA_FILE_LU_ID] ==
                                                  CN.NO_KEY].index, inplace=True)
@@ -237,7 +237,7 @@ class ReadDataFiles:
                     # Process mode files
                     #
                     elif lu_id in (CN.MODE_CTS, CN.MODE_OBJ):
-                        
+
                         # Get the first line of the mode cts or obj file that has the headers
                         file_hdr = pd.read_csv(filename, delim_whitespace=True,
                                                nrows=1)
@@ -613,6 +613,26 @@ class ReadDataFiles:
                         1 - all_stat.loc[(all_stat.line_type == CN.RPS) &
                                          (all_stat['8'].isnull()) &
                                          (~all_stat['5'].isnull()), '5']
+
+                # Some lines in stat files may be missing ec_value
+                # CTC and CTS, set to .5
+                # MCTC and MCTS, set to 1/n_cat
+                if all_stat[CN.LINE_TYPE].eq(CN.CTC).any():
+                    print(all_stat.iloc[1].to_string())
+                    all_stat.loc[(all_stat.line_type == CN.CTC) &
+                                 (all_stat['5'].isnull()), '5'] = .5
+
+                if all_stat[CN.LINE_TYPE].eq(CN.CTS).any():
+                    print(all_stat.iloc[2].to_string())
+                    all_stat.loc[(all_stat.line_type == CN.CTS) &
+                                 (all_stat['96'].isnull()), '96'] = .5
+
+                if all_stat[CN.LINE_TYPE].eq(CN.MCTS).any():
+                    print(all_stat.iloc[114].to_string())
+                    all_stat.loc[(all_stat.line_type == CN.MCTS) &
+                                 (all_stat['19'].isnull()), '19'] = \
+                        1/all_stat.loc[(all_stat.line_type == CN.MCTS) &
+                                       (all_stat['19'].isnull()), '1']
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data if list_frames ***", sys.exc_info()[0])
