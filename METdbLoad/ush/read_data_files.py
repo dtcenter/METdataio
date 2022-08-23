@@ -136,8 +136,12 @@ class ReadDataFiles:
                     #
                     if lu_id == CN.STAT:
                         # Get the first line of the .stat file that has the headers
-                        file_hdr = pd.read_csv(filename, delim_whitespace=True,
-                                               header=None, nrows=1)
+                        try:
+                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                                                   header=None, nrows=1)
+                        except (pandas.errors.EmptyDataError):
+                            logging.warning("!!! Stat file %s has no columns", filename)
+                            continue
 
                         # MET file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
@@ -239,8 +243,12 @@ class ReadDataFiles:
                     elif lu_id in (CN.MODE_CTS, CN.MODE_OBJ):
                         
                         # Get the first line of the mode cts or obj file that has the headers
-                        file_hdr = pd.read_csv(filename, delim_whitespace=True,
-                                               nrows=1)
+                        try:
+                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                                                   nrows=1)
+                        except (pandas.errors.EmptyDataError):
+                            logging.warning("!!! Mode file %s has no columns", filename)
+                            continue
 
                         # MODE file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
@@ -299,8 +307,12 @@ class ReadDataFiles:
                     #
                     elif lu_id == CN.TCST:
                         # Get the first line of the .tcst file that has the headers
-                        file_hdr = pd.read_csv(filename, delim_whitespace=True,
-                                               header=None, nrows=1)
+                        try:
+                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                                                   header=None, nrows=1)
+                        except (pandas.errors.EmptyDataError):
+                            logging.warning("!!! TCST file %s has no columns", filename)
+                            continue
                         # TCST file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
                             logging.warning("!!! TCST file %s is empty", filename)
@@ -324,8 +336,12 @@ class ReadDataFiles:
                     elif lu_id in CN.MTD_FILES:
 
                         # Get the first line of the MTD file that has the headers
-                        file_hdr = pd.read_csv(filename, delim_whitespace=True,
-                                               nrows=1)
+                        try:
+                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                                                   nrows=1)
+                        except (pandas.errors.EmptyDataError):
+                            logging.warning("!!! MTD file %s has no columns", filename)
+                            continue
 
                         # MTD file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
