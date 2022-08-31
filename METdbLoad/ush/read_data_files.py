@@ -632,19 +632,16 @@ class ReadDataFiles:
 
                 # Some lines in stat files may be missing ec_value
                 # CTC and CTS, set to .5
-                # MCTC and MCTS, set to 1/n_cat
+                # MCTS, set to 1/n_cat. MCTC is variable length
                 if all_stat[CN.LINE_TYPE].eq(CN.CTC).any():
-                    print(all_stat.iloc[1].to_string())
                     all_stat.loc[(all_stat.line_type == CN.CTC) &
                                  (all_stat['5'].isnull()), '5'] = .5
 
                 if all_stat[CN.LINE_TYPE].eq(CN.CTS).any():
-                    print(all_stat.iloc[2].to_string())
                     all_stat.loc[(all_stat.line_type == CN.CTS) &
                                  (all_stat['96'].isnull()), '96'] = .5
 
                 if all_stat[CN.LINE_TYPE].eq(CN.MCTS).any():
-                    print(all_stat.iloc[114].to_string())
                     all_stat.loc[(all_stat.line_type == CN.MCTS) &
                                  (all_stat['19'].isnull()), '19'] = \
                         1/all_stat.loc[(all_stat.line_type == CN.MCTS) &
