@@ -635,17 +635,21 @@ class ReadDataFiles:
                 # MCTS, set to 1/n_cat. MCTC is variable length
                 if all_stat[CN.LINE_TYPE].eq(CN.CTC).any():
                     all_stat.loc[(all_stat.line_type == CN.CTC) &
-                                 (all_stat['5'].isnull()), '5'] = .5
+                                 ((all_stat['5'].isnull()) |
+                                  (all_stat['5'] == CN.NOTAV)), '5'] = .5
 
                 if all_stat[CN.LINE_TYPE].eq(CN.CTS).any():
                     all_stat.loc[(all_stat.line_type == CN.CTS) &
-                                 (all_stat['96'].isnull()), '96'] = .5
+                                 ((all_stat['96'].isnull()) |
+                                  (all_stat['96'] == CN.NOTAV)), '96'] = .5
 
                 if all_stat[CN.LINE_TYPE].eq(CN.MCTS).any():
                     all_stat.loc[(all_stat.line_type == CN.MCTS) &
-                                 (all_stat['19'].isnull()), '19'] = \
+                                 ((all_stat['19'].isnull()) |
+                                  (all_stat['19'] == CN.NOTAV)), '19'] = \
                         1/all_stat.loc[(all_stat.line_type == CN.MCTS) &
-                                       (all_stat['19'].isnull()), '1']
+                                       ((all_stat['19'].isnull()) |
+                                        (all_stat['19'] == CN.NOTAV)), '1']
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data if list_frames ***", sys.exc_info()[0])
@@ -930,9 +934,11 @@ class ReadDataFiles:
                                           vsdb_data['4'].astype(float) -
                                           vsdb_data['5'].astype(float) +
                                           vsdb_data['6'].astype(float))
+                        # Needs a default ec_value of 0.5
+                        vsdb_data['10'] = 0.5
                         one_file = vsdb_data[CN.LONG_HEADER +
-                                             ['0'] + ['6', '7', '8', '9'] +
-                                             CN.COL_NAS[:96] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             ['0'] + ['6', '7', '8', '9', '10'] +
+                                             CN.COL_NAS[:95] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.NBRCNT:
                         # fss is calculated from the other columns
