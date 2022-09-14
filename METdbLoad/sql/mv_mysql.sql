@@ -134,7 +134,7 @@ CREATE TABLE line_data_ctc
     fy_on          INT UNSIGNED,
     fn_oy          INT UNSIGNED,
     fn_on          INT UNSIGNED,
-    ec_value       DOUBLE DEFAULT -9999,
+    ec_value       DOUBLE DEFAULT 0.5,
 
     CONSTRAINT line_data_ctc_data_file_id_pk
         FOREIGN KEY (data_file_id)
@@ -268,7 +268,7 @@ CREATE TABLE line_data_cts
     hss_ec         DOUBLE DEFAULT -9999,
     hss_ec_bcl     DOUBLE DEFAULT -9999,
     hss_ec_bcu     DOUBLE DEFAULT -9999,
-    ec_value       DOUBLE DEFAULT -9999,
+    ec_value       DOUBLE DEFAULT 0.5,
 
     CONSTRAINT line_data_cts_data_file_id_pk
         FOREIGN KEY (data_file_id)
