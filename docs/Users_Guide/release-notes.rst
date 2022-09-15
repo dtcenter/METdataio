@@ -8,8 +8,33 @@ describes the bugfix, enhancement, or new feature:
 Version |version| release notes (|release_date|)
 ------------------------------------------------
 
-Version 2.0.0 release notes (20220803)
+Version 2.0.0 release notes (20220914)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+beta3 release
+^^^^^^^^^^^^^
+
+
+* New Functionality:
+
+    * **Add processing to set value of field ec_value for CTC, CTS, MCTC, and MCTS records** (`#105 <https://github.com/dtcenter/METdataio/issues/105>`_)
+
+* Enhancements:
+
+
+
+* Bugfixes:
+
+
+
+* Internal:
+
+    * Create a checksum for released code (`#112 <https://github.com/dtcenter/METdataio/issues/112>`_)
+
+    * Replace the METdatadb logo with one for METdataio (`#112 <https://github.com/dtcenter/METdataio/issues/112>`_)
+
+    * Add modulefiles used for installations on various machines (`#108 <https://github.com/dtcenter/METdataio/issues/108>`_)
+
 
 beta2 release
 ^^^^^^^^^^^^^
@@ -29,7 +54,6 @@ beta2 release
 * Internal:
    
     * Update the documentation as a result of repository name from METdatadb to METdataio  (`#95 <https://github.com/dtcenter/METdataio/issues/95>`_)
-
 
 
 
