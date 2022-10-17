@@ -1,19 +1,19 @@
+***********************
 METdataio release notes
-_______________________
+***********************
 
 When applicable, release notes are followed by the GitHub issue number which
 describes the bugfix, enhancement, or new feature:
 `METdataio GitHub issues. <https://github.com/dtcenter/METdataio/issues>`_
 
+METdataio Release Notes
+=======================
+
 Version |version| release notes (|release_date|)
 ------------------------------------------------
 
-Version 2.0.0 release notes (20220914)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 beta3 release
 ^^^^^^^^^^^^^
-
 
 * New Functionality:
 
@@ -37,7 +37,7 @@ beta3 release
 
 
 beta2 release
-^^^^^^^^^^^^^
+^^^^^^^^^^^
 
 * New Functionality:
 
@@ -71,4 +71,7 @@ beta1 release
 
 * Internal:
 
+MET Upgrade Instructions
+========================
 
+Upgrade instructions will be listed here if they are applicable for this release.

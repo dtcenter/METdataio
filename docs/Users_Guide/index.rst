@@ -71,6 +71,7 @@ Foundation (NSF).
    :numbered: 4
 
    overview
+   release_notes
    installation
    common
    load_data
