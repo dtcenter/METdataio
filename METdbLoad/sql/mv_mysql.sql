@@ -2239,7 +2239,87 @@ CREATE TABLE line_data_rps
     INDEX stat_header_id_idx (stat_header_id)
 ) ENGINE = MyISAM
   CHARACTER SET = latin1;
+  
+DROP TABLE IF EXISTS line_data_seeps;
+CREATE TABLE line_data_seeps
+(
+    line_data_id   INT UNSIGNED NOT NULL,
+    stat_header_id INT UNSIGNED NOT NULL,
+    data_file_id   INT UNSIGNED NOT NULL,
+    line_num       INT UNSIGNED,
+    fcst_lead      INT,
+    fcst_valid_beg DATETIME,
+    fcst_valid_end DATETIME,
+    fcst_init_beg  DATETIME,
+    obs_lead       INT UNSIGNED,
+    obs_valid_beg  DATETIME,
+    obs_valid_end  DATETIME,
+    total          INT UNSIGNED,
+    s12            DOUBLE,
+    s13            DOUBLE,
+    s21            DOUBLE,
+    s23            DOUBLE,
+    s31            DOUBLE,
+    s32            DOUBLE,
+    pf1            DOUBLE,
+    pf2            DOUBLE,
+    pf3            DOUBLE,
+    pv1            DOUBLE,
+    pv2            DOUBLE,
+    pv3            DOUBLE,
+    mean_fcst      DOUBLE,
+    mean_obs       DOUBLE,
+    seeps          DOUBLE,
 
+    PRIMARY KEY (line_data_id),
+    CONSTRAINT line_data_seeps_data_file_id_pk
+        FOREIGN KEY (data_file_id)
+            REFERENCES data_file (data_file_id),
+    CONSTRAINT line_data_seeps_stat_header_id_pk
+        FOREIGN KEY (stat_header_id)
+            REFERENCES stat_header (stat_header_id),
+    INDEX stat_header_id_idx (stat_header_id)
+) ENGINE = MyISAM
+  CHARACTER SET = latin1;
+
+DROP TABLE IF EXISTS line_data_seeps_mpr;
+CREATE TABLE line_data_seeps_mpr
+(
+    line_data_id   INT UNSIGNED NOT NULL,
+    stat_header_id INT UNSIGNED NOT NULL,
+    data_file_id   INT UNSIGNED NOT NULL,
+    line_num       INT UNSIGNED,
+    fcst_lead      INT,
+    fcst_valid_beg DATETIME,
+    fcst_valid_end DATETIME,
+    fcst_init_beg  DATETIME,
+    obs_lead       INT UNSIGNED,
+    obs_valid_beg  DATETIME,
+    obs_valid_end  DATETIME,
+    obs_sid        VARCHAR(32),
+    obs_lat        DOUBLE,
+    obs_lon        DOUBLE,
+    fcst           DOUBLE,
+    obs            DOUBLE,
+    obs_qc         VARCHAR(32),
+    fcst_cat       INT UNSIGNED,
+    obs_cat        INT UNSIGNED,
+    p1             DOUBLE,
+    p2             DOUBLE,
+    t1             DOUBLE,
+    t2             DOUBLE,
+    seeps          DOUBLE,
+
+    PRIMARY KEY (line_data_id),
+    CONSTRAINT line_data_seeps_mpr_data_file_id_pk
+        FOREIGN KEY (data_file_id)
+            REFERENCES data_file (data_file_id),
+    CONSTRAINT line_data_seeps_mpr_stat_header_id_pk
+        FOREIGN KEY (stat_header_id)
+            REFERENCES stat_header (stat_header_id),
+    INDEX stat_header_id_idx (stat_header_id)
+) ENGINE = MyISAM
+  CHARACTER SET = latin1;
 
 DROP TABLE IF EXISTS tcst_header;
 CREATE TABLE tcst_header
@@ -2256,7 +2336,6 @@ CREATE TABLE tcst_header
     init_mask      VARCHAR(100),
     valid_mask     VARCHAR(100),
     PRIMARY KEY (tcst_header_id)
-
 
 ) ENGINE = MyISAM
   CHARACTER SET = latin1;
