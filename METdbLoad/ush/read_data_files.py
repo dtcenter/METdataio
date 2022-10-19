@@ -433,44 +433,50 @@ class ReadDataFiles:
                                 rev_lines = []
                                 obj_id = 'new'
                                 obj_ct = 1
+                                last_line = len(mtd_file.index)
+                                create_new = False
                                 # Create new rows by subtracting a previous row from a row by object
                                 # Unique sequential id is assigned to items with the same object id
                                 # Only object ids with more than 2 lines count and create lines
                                 for row_num, mtd_row in mtd_file.iterrows():
+
                                     if mtd_row[CN.OBJECT_ID] == obj_id:
                                         obj_ct += 1
-                                        if obj_ct == 3:
+                                        if obj_ct == 2 and row_num < last_line and \
+                                            mtd_file[CN.OBJECT_ID][row_num + 1] == obj_id:
                                             rev_ctr += 1
-                                        if obj_ct > 2:
-                                            new_line = mtd_file.iloc[row_num - 1].to_dict()
+                                            create_new = True
+                                        if obj_ct > 1 and create_new:
+                                            new_line = mtd_file.iloc[row_num].to_dict()
                                             new_line[CN.FCST_VAR] = 'REV_' + new_line[CN.FCST_VAR]
                                             new_line[CN.OBS_VAR] = 'REV_' + new_line[CN.OBS_VAR]
-                                            new_line[CN.AREA] -= mtd_file[CN.AREA][row_num - 2]
+                                            new_line[CN.AREA] -= mtd_file[CN.AREA][row_num - 1]
                                             new_line[CN.CENTROID_X] -= \
-                                                mtd_file[CN.CENTROID_X][row_num - 2]
+                                                mtd_file[CN.CENTROID_X][row_num - 1]
                                             new_line[CN.CENTROID_Y] -= \
-                                                mtd_file[CN.CENTROID_Y][row_num - 2]
+                                                mtd_file[CN.CENTROID_Y][row_num - 1]
                                             new_line[CN.CENTROID_LAT] -= \
-                                                mtd_file[CN.CENTROID_LAT][row_num - 2]
+                                                mtd_file[CN.CENTROID_LAT][row_num - 1]
                                             new_line[CN.CENTROID_LON] -= \
-                                                mtd_file[CN.CENTROID_LON][row_num - 2]
+                                                mtd_file[CN.CENTROID_LON][row_num - 1]
                                             new_line[CN.AXIS_ANG] = CN.MV_NOTAV
                                             new_line[CN.INTENSITY_10] -= \
-                                                mtd_file[CN.INTENSITY_10][row_num - 2]
+                                                mtd_file[CN.INTENSITY_10][row_num - 1]
                                             new_line[CN.INTENSITY_25] -= \
-                                                mtd_file[CN.INTENSITY_25][row_num - 2]
+                                                mtd_file[CN.INTENSITY_25][row_num - 1]
                                             new_line[CN.INTENSITY_50] -= \
-                                                mtd_file[CN.INTENSITY_50][row_num - 2]
+                                                mtd_file[CN.INTENSITY_50][row_num - 1]
                                             new_line[CN.INTENSITY_75] -= \
-                                                mtd_file[CN.INTENSITY_75][row_num - 2]
+                                                mtd_file[CN.INTENSITY_75][row_num - 1]
                                             new_line[CN.INTENSITY_90] -= \
-                                                mtd_file[CN.INTENSITY_90][row_num - 2]
+                                                mtd_file[CN.INTENSITY_90][row_num - 1]
                                             new_line[CN.REVISION_ID] = rev_ctr
                                             new_line[CN.LINENUMBER] = 0
                                             rev_lines.append(new_line)
                                     else:
                                         obj_id = mtd_row[CN.OBJECT_ID]
                                         obj_ct = 1
+                                        create_new = False
                                 rev_df = pd.DataFrame(rev_lines)
                                 mtd_file = pd.concat([mtd_file, rev_df], ignore_index=True,
                                                      sort=False)
