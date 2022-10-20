@@ -26,7 +26,7 @@ jobs:
       DB_HOST: localhost
     steps:
       - name: check out headnew code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: headnew
           ref: ${{github.event.pull_request.head.ref}}
