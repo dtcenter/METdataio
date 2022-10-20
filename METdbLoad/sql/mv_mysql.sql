@@ -449,6 +449,7 @@ CREATE TABLE line_data_ecnt
     crps_emp         DOUBLE,
     crpscl_emp       DOUBLE,
     crpss_emp        DOUBLE,
+    crpss_emp_fair   DOUBLE,
 
     CONSTRAINT line_data_ecnt_data_file_id_pk
         FOREIGN KEY (data_file_id)
@@ -2239,11 +2240,10 @@ CREATE TABLE line_data_rps
     INDEX stat_header_id_idx (stat_header_id)
 ) ENGINE = MyISAM
   CHARACTER SET = latin1;
-  
+
 DROP TABLE IF EXISTS line_data_seeps;
 CREATE TABLE line_data_seeps
 (
-    line_data_id   INT UNSIGNED NOT NULL,
     stat_header_id INT UNSIGNED NOT NULL,
     data_file_id   INT UNSIGNED NOT NULL,
     line_num       INT UNSIGNED,
@@ -2271,7 +2271,6 @@ CREATE TABLE line_data_seeps
     mean_obs       DOUBLE,
     seeps          DOUBLE,
 
-    PRIMARY KEY (line_data_id),
     CONSTRAINT line_data_seeps_data_file_id_pk
         FOREIGN KEY (data_file_id)
             REFERENCES data_file (data_file_id),
@@ -2285,7 +2284,6 @@ CREATE TABLE line_data_seeps
 DROP TABLE IF EXISTS line_data_seeps_mpr;
 CREATE TABLE line_data_seeps_mpr
 (
-    line_data_id   INT UNSIGNED NOT NULL,
     stat_header_id INT UNSIGNED NOT NULL,
     data_file_id   INT UNSIGNED NOT NULL,
     line_num       INT UNSIGNED,
@@ -2310,7 +2308,6 @@ CREATE TABLE line_data_seeps_mpr
     t2             DOUBLE,
     seeps          DOUBLE,
 
-    PRIMARY KEY (line_data_id),
     CONSTRAINT line_data_seeps_mpr_data_file_id_pk
         FOREIGN KEY (data_file_id)
             REFERENCES data_file (data_file_id),
