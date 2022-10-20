@@ -17,7 +17,7 @@ defaults:
 
 jobs: 
   run-shell-command:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     name: job_run
     env:
       DB_DATABASE: mv_ci_prod
