@@ -9,6 +9,34 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
+METdataio Version 2.0.0-beta4 release notes (20221028)
+------------------------------------------------------
+
+* New Functionality:
+
+    * **Update database schema to handle new columns and line types added to MET**
+      (`#105 <https://github.com/dtcenter/METdataio/issues/119>`_)
+    
+
+* Enhancements:
+
+
+
+* Internal:
+
+    * **Move release notes into is own chapter**
+      (`#105 <https://github.com/dtcenter/METdataio/issues/123>`_)
+
+    * **Fix warnings in github Actions**
+      (`#105 <https://github.com/dtcenter/METdataio/issues/122>`_)
+
+
+* Bugfixes:
+
+    * **Fix MTD loader to include the last fcst_lead column into the series data**
+      (`#105 <https://github.com/dtcenter/METdataio/issues/120>`_)
+
+
 METdataio Version 2.0.0-beta3 release notes (20220914)
 ------------------------------------------------------
 
