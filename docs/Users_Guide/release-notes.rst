@@ -14,6 +14,34 @@ METdataio Version 2.0.0-beta3 release notes (20220914)
 
 * New Functionality:
 
+    * **Update database schema to handle new columns and line types added to MET**
+      (`#105 <https://github.com/dtcenter/METdataio/issues/119>`_)
+    
+
+* Enhancements:
+
+
+
+* Bugfixes:
+
+    * **Fix MTD loader to include the last fcst_lead column into the series data**
+      (`#105 <https://github.com/dtcenter/METdataio/issues/120>`_)
+
+
+* Internal:
+
+    * **Move release notes into is own chapter**
+      (`#105 <https://github.com/dtcenter/METdataio/issues/123>`_)
+
+    * **Fix warnings in github Actions**
+      (`#105 <https://github.com/dtcenter/METdataio/issues/122>`_)
+
+
+METdataio Version 2.0.0-beta3 release notes (20220914)
+------------------------------------------------------
+
+* New Functionality:
+
     * **Add processing to set value of field ec_value for CTC,
       CTS, MCTC, and MCTS records**
       (`#105 <https://github.com/dtcenter/METdataio/issues/105>`_)
