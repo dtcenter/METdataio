@@ -5,7 +5,7 @@ Program Name: write_stat_ascii.py
 Contact(s):  Minna Win
 Abstract:
 History Log:  Initial version
-Usage: Write stat files (MET) to an ASCII file.
+Usage: Write MET stat files (.stat) to an ASCII file with additional columns of information.
 Parameters: N/A
 Input Files: transformed dataframe of MET lines
 Output Files: N/A
@@ -21,9 +21,12 @@ import time
 from datetime import timedelta
 import numpy as np
 import pandas as pd
+import yaml
 
 import constants as cn
-
+from METdbLoad.ush.read_load_xml import XmlLoadFile
+from METdbLoad.ush.read_data_files import ReadDataFiles
+import util
 
 class WriteStatAscii:
     """ Class to write MET .stat files to an ASCII file
@@ -61,28 +64,15 @@ class WriteStatAscii:
 
             # Create a generic set of headers, the common headers for all stat files
             # (columns 1-14, then create headers for the maximum number of allowable
-            # MET stat headers).
-            common_stat_headers = cn.LONG_HEADER
+            # MET stat headers). The FCST_INIT_BEG header is added in after the FCST_VALID_END
+            # column, so there is one additional column to the common header.
+            common_stat_headers = cn.LC_COMMON_STAT_HEADER
             line_types = list(stat_data['line_type'])
             unique_line_types = set(line_types)
 
-
-            # Subset the stat_data dataframe by line types. Use a dictionary for keeping track of the
-            # subsetted data based on the line type.  Keep track of the total number of rows to verify that
-            # we haven't lost any rows in the process.
-            # expected_num_rows = stat_data.shape[0]
-            # num_rows = 0
-            # df_by_line_type = {}
-            # for idx, cur_line_type in enumerate(unique_line_types):
-            #     df_by_line_type[cur_line_type] = (stat_data[stat_data['line_type'] == cur_line_type])
-            #     num_rows = num_rows + df_by_line_type[cur_line_type].shape[0]
-
-            # Verify that we didn't lose any rows of data while we were sub-setting based on the line types.
-            # if num_rows != expected_num_rows:
-            #     raise RuntimeError(
-            #         "Total number of rows in subsetted data do not total the number of rows in the original"
-            #         "data frame.")
-
+            # ------------------------------
+            # Extract statistics information
+            # ------------------------------
             # For each line type, extract the statistics information and save it in a new dataframe
             expanded_headers = common_stat_headers + ['stat_name', 'stat_value', 'stat_bcl', 'stat_bcu', 'stat_ncl,'
                                                       'stat_ncu']
@@ -121,7 +111,6 @@ class WriteStatAscii:
 
         # FHO forecast, hit rate, observation rate
         if linetype == cn.FHO:
-            print(f"Currently processing FHO")
             # Extract the stat_names and stat_values for this line type:
             # F_RATE, H_RATE, O_RATE (these will be the stat name).  There are no corresponding xyz_bcl, xyz_bcu,
             # xyz_ncl, and xyz_ncu values where xyz = stat name
@@ -131,20 +120,15 @@ class WriteStatAscii:
             # columns.
             #
 
-            # Omit the fcst_init_beg column (column 6, zero-based count) that was added by the
-            # read_data_files.py module since this isn't one of the columns in the FHO line type.
-            #
-            no_fcst_init_beg_column = np.append(np.arange(0,6), np.arange(7,25))
 
-            # Also ignore the 'total' column (column 25, zero-based counting)
-            fho_columns_to_use = np.append(no_fcst_init_beg_column, np.arange(26,29)).tolist()
+            # Don't include the 'total' column (column 25, zero-based counting)
+            fho_columns_to_use = np.arange(0,29).tolist()
+            # fho_columns_to_use = np.append(np.arange(0,26), np.arange(27,30)).tolist()
             fho_df = stat_data[stat_data['line_type'] == linetype].iloc[:, fho_columns_to_use]
 
             # Add the stat columns for the FHO line type
-            fho_columns = cn.LC_COMMON_STAT_HEADER + ['f_rate', 'h_rate', 'o_rate']
+            fho_columns = cn.LC_COMMON_STAT_HEADER + ['total', 'F_RATE', 'H_RATE', 'O_RATE']
             fho_df.columns = fho_columns
-
-            fho_df.to_csv("/Volumes/d1/minnawin/feature_121_met_reformatter/fho_df.csv")
 
             # Create another index column to preserve the original index values from the stat_data datframe
             idx = list(fho_df.index)
@@ -167,7 +151,7 @@ class WriteStatAscii:
             linetype_data['stat_bcl'] = na_column
             linetype_data['stat_bcu'] = na_column
 
-
+            linetype_data.to_csv("/Volumes/d1/minnawin/feature_121_met_reformatter/fho_df.txt", sep="\t")
 
         # CTC Contingency Table Counts
 
@@ -209,3 +193,44 @@ class WriteStatAscii:
 
         return linetype_data
 
+
+def main():
+    '''
+       Open the yaml config file specified at the command line to get output directory, output filename,
+       and location and name of the xml specification file. The xml specification file contains information
+       about what MET file types to reformat and the directory of where input MET output files (.stat) are located.
+
+       Then invoke necessary methods to read and process data to reformat the MET .stat file from wide to long format to
+       collect statistics information into stat_name, stat_value, stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns.
+
+    '''
+
+    # Acquire the output file name and output directory information and location of the xml specification file
+    config_file = util.read_config_from_command_line()
+    with open(config_file, 'r') as stream:
+        try:
+            parms = yaml.load(stream, Loader=yaml.FullLoader)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+
+    # Read in the XML load file. This contains information about which MET output files are to be loaded.
+    xml_file = parms['xml_spec_file']
+    xml_loadfile_obj = XmlLoadFile(xml_file)
+    xml_loadfile_obj.read_xml()
+
+    # Read all of the data from the data files into a dataframe
+    rdf_obj = ReadDataFiles()
+
+    # read in the data files, with options specified by XML flags
+    rdf_obj.read_data(xml_loadfile_obj.flags,
+                      xml_loadfile_obj.load_files,
+                      xml_loadfile_obj.line_types)
+
+    # Write stat file in ASCII format, one for each line type
+    stat_lines_obj = WriteStatAscii()
+    stat_lines_obj.write_stat_ascii(xml_loadfile_obj.flags,
+                                    rdf_obj.stat_data)
+
+if __name__ == "__main__":
+    main()
