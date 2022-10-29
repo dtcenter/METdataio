@@ -1,0 +1,3 @@
+output_dir: /Volumes/d1/minnawin/feature_121_met_reformatter
+output_file: point_stat_reformatted.dat
+xml_spec_file: /Volumes/d1/minnawin/feature_121_met_reformatter/METdataio/METreformat/point_stat.xml
