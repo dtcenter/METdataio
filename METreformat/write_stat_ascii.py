@@ -83,9 +83,9 @@ class WriteStatAscii:
 
             for idx, cur_line_type in enumerate(unique_line_types):
                 if cur_line_type == cn.FHO:
+                    pass
                     fho_var:pd.DataFrame = self.process_by_stat_linetype(cur_line_type, stat_data)
                 if cur_line_type == cn.CNT:
-                    pass
                     cnt_var = self.process_by_stat_linetype(cur_line_type, stat_data)
 
             # ToDo
@@ -128,15 +128,13 @@ class WriteStatAscii:
         '''
 
         # FHO forecast, hit rate, observation rate
-        linetype_data:pd.DataFrame = self.process_fho(stat_data)
+        if linetype == cn.FHO:
+            linetype_data:pd.DataFrame = self.process_fho(stat_data)
 
         # CNT Continuous Statistics
         if linetype == cn.CNT:
-            # Relevant columns for the CNT line type
-            cnt_columns_to_use:List[str] = np.arange(0, 126).tolist()
-            cnt_df:pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, cnt_columns_to_use]
-
             pass
+            linetype_data:pd.DataFrame = self.process_cnt(stat_data)
 
         # CTC Contingency Table Counts
         if linetype == cn.CTC:
@@ -164,7 +162,6 @@ class WriteStatAscii:
             linetype_data:  The dataframe with the reshaped data for the FHO line type
         '''
 
-        linetype:str = cn.FHO
 
         # Extract the stat_names and stat_values for this line type:
         # F_RATE, H_RATE, O_RATE (these will be the stat name).  There are no corresponding xyz_bcl, xyz_bcu,
@@ -176,11 +173,12 @@ class WriteStatAscii:
         #
 
         # Relevant columns for the FHO line type
+        linetype: str = cn.FHO
         fho_columns_to_use:List[str] = np.arange(0, 29).tolist()
         fho_df:pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, fho_columns_to_use]
 
         # Add the stat columns for the FHO line type
-        fho_columns:List[str] = cn.LC_COMMON_STAT_HEADER + ['total', 'F_RATE', 'H_RATE', 'O_RATE']
+        fho_columns:List[str] = cn.qHEADER
         fho_df.columns:List[str] = fho_columns
 
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
@@ -210,10 +208,33 @@ class WriteStatAscii:
 
     def process_cnt(self, stat_data:pd.DataFrame) -> pd.DataFrame:
         '''
-           Reshape the data from the original MET output file (stat_data)
-        :param stat_data:
-        :return:
+           Reshape the data from the original MET output file (stat_data) into new statistics columns:
+           stat_name, stat_value, stat_ncl, stat_ncu, stat_bcl, and stat_bcu specifically for the CNT line type data.
+
+           Arguments:
+           @param stat_data: the dataframe containing all the data from the MET .stat file.
+
+           Returns:
+           linetype_data: the reshaped pandas dataframe with statistics data reorganized into the stat_name, stat_value,
+           stat_ncl, stat_ncu, stat_bcl, and stat_bcu columns.
+
         '''
+
+
+
+        # Relevant columns for the CNT line type
+        linetype: str = cn.CNT
+        cnt_columns_to_use: List[str] = np.arange(0, 126).tolist()
+
+
+        # Subset original dataframe to one containing only the CNT data
+        cnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, cnt_columns_to_use]
+
+        # Add the stat columns for the CNT line type
+        cnt_columns: List[str] = cn.STAT_CNT_HEADER
+        cnt_df.columns: List[str] = cnt_columns
+
+        return cnt_df
 
 
 def main():
