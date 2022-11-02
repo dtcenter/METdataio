@@ -216,6 +216,10 @@ class WriteStatSql:
                                     np.repeat(np.array(range(1, basic_count + 1)), basic_count)
                                 j_indices = np.resize(range(1, basic_count + 1), var_count)
                                 var_data.insert(2, 'j_value', j_indices)
+                                # Fill in ec_value if missing - 1/n_cat
+                                if pd.isna(line_data.iloc[row_num, var_index + repeat_width]):
+                                    line_data.iloc[row_num, var_index + repeat_width] = \
+                                        1/line_data.iloc[row_num, var_index - 1]
                                 # Move field (ec_value) that was added later back to end of main line
                                 line_data.iloc[row_num, var_index] = \
                                     line_data.iloc[row_num, var_index + repeat_width]
