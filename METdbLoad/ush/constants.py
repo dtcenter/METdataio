@@ -181,6 +181,7 @@ UC_FCST_UNITS = "FCST_UNITS"
 
 VERSION = "version"
 MODEL = "model"
+
 # MET file contains DESC. SQL field name is descr
 DESCR = "descr"
 FCST_LEAD = "fcst_lead"
@@ -237,6 +238,7 @@ MID_HEADER = LONG_HEADER[0:10] + LONG_HEADER[11:13] + LONG_HEADER[14:]
 # No DESC and no UNITS
 SHORT_HEADER = MID_HEADER[0:2] + MID_HEADER[3:]
 SHORT_HEADER_TCST = LONG_HEADER_TCST[0:3] + LONG_HEADER_TCST[4:]
+
 
 STAT_HEADER_KEYS = [VERSION, MODEL, DESCR, FCST_VAR, FCST_UNITS, FCST_LEV,
                     OBS_VAR, OBS_UNITS, OBS_LEV, OBTYPE, VX_MASK,
@@ -1194,3 +1196,33 @@ CREATE_INDEXES_QUERIES = \
      "CREATE INDEX line_data_ssidx_fcst_lead_idx ON line_data_ssidx (fcst_lead)",
      "CREATE INDEX line_data_ssidx_fcst_valid_beg_idx ON line_data_ssidx (fcst_valid_beg)",
      "CREATE INDEX line_data_ssidx_fcst_init_beg_idx ON line_data_ssidx (fcst_init_beg)"]
+
+# Used by MET reformatter
+DESC = "desc"
+COMMON_STAT_HEADER = [VERSION, MODEL, DESC, FCST_LEAD, FCST_VALID_BEG, FCST_VALID_END, FCST_INIT_BEG, OBS_LEAD, OBS_VALID_BEG,
+                      OBS_VALID_END, FCST_VAR, FCST_UNITS, FCST_LEV, OBS_VAR, OBS_UNITS, OBS_LEV, OBTYPE, VX_MASK,
+                      INTERP_MTHD, INTERP_PNTS, FCST_THRESH, OBS_THRESH, COV_THRESH, ALPHA, LINE_TYPE]
+LC_COMMON_STAT_HEADER = [cur_stat_header.lower() for cur_stat_header in COMMON_STAT_HEADER]
+STAT_FHO_HEADER = LC_COMMON_STAT_HEADER + ['total', 'F_RATE', 'H_RATE', 'O_RATE']
+LC_STAT_CNT_SPECIFIC =  ['fbar', 'fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
+                         'fstdev', 'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
+                         'obar', 'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
+                         'ostdev', 'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl', 'ostdev_bcu',
+                         'pr_corr', 'pr_corr_ncl', 'pr_corr_ncu', 'pr_corr_bcl', 'pr_corr_bcu',
+                         'sp_corr', 'kt_corr', 'ranks', 'frank_ties', 'orank_ties',
+                         'me', 'me_ncl', 'me_ncu', 'me_bcl', 'me_bcu',
+                         'estdev', 'estdev_ncl', 'estdev_ncu', 'estdev_bcl', 'estdev_bcu',
+                         'mbias', 'mbias_bcl', 'mbias_bcu', 'mae', 'mae_bcl', 'mae_bcu',
+                         'mse', 'mse_bcl', 'mse_bcu', 'bcmse', 'bcmse_bcl', 'bcmse_bcu',
+                         'rmse', 'rmse_bcl', 'rmse_bcu', 'e10', 'e10_bcl', 'e10_bcu',
+                         'e25', 'e25_bcl', 'e25_bcu', 'e50', 'e50_bcl', 'e50_bcu',
+                         'e75', 'e75_bcl', 'e75_bcu', 'e90', 'e90_bcl', 'e90_bcu',
+                         'iqr', 'iqr_bcl', 'iqr_bcu', 'mad', 'mad_bcl', 'mad_bcu',
+                         'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu',
+                         'anom_corr_bcl', 'anom_corr_bcu',
+                         'me2', 'me2_bcl', 'me2_bcu', 'msess', 'msess_bcl', 'msess_bcu',
+                         'rmsfa', 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa', 'rmsoa_bcl', 'rmsoa_bcu',
+                         'anom_corr_uncntr', 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu',
+                         'si', 'si_bcl', 'si_bcu']
+STAT_CNT_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_STAT_CNT_SPECIFIC]
+STAT_CNT_HEADER = LC_COMMON_STAT_HEADER + ['total'] + STAT_CNT_SPECIFIC
