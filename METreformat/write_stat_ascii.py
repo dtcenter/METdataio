@@ -16,6 +16,7 @@ Copyright 2022 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 # constants exist in constants.py
 
 import sys
+import os
 import logging
 import time
 from datetime import timedelta
@@ -30,22 +31,25 @@ import util
 
 class WriteStatAscii:
     """ Class to write MET .stat files to an ASCII file
+
         Returns:
-           N/A
+           None. Generates an output file
     """
 
-    def write_stat_ascii(self, load_flags, stat_data):
-        """ write stat files (MET and VSDB) to an ASCII file.
-            Returns:
-               N/A
+    def write_stat_ascii(self, load_flags, stat_data, parms):
+        """ write MET stat files (.stat) to an ASCII file with stat_name, stat_value, stat_bcl, stat_bcu,
+            stat_ncl, and stat_ncu columns, converting the original data file from wide form to long form.
+
 
             Args:
                 @param load_flags: flag values set in the XML spec file, indicating which items
                             are to be loaded
                 @ param stat_data: pandas dataframe corresponding to the MET stat input file
 
+                @param parms:  The yaml configuration object containing the settings for output dir, output file
+
             Returns:  None, write an output ASCII file associated with the original MET .stat file with statistics
-                      information aggregated into these four columns: stat_name, stat_value, stat_ncl, stat_ncu,
+                      information aggregated into these six columns: stat_name, stat_value, stat_ncl, stat_ncu,
                       stat_bcl, and stat_bcu (the stat_xyz are not available in all line types,
                       these will have values of NA)
 
@@ -80,7 +84,23 @@ class WriteStatAscii:
 
             for idx, cur_line_type in enumerate(unique_line_types):
                 if cur_line_type == cn.FHO:
-                    fho_var = self.process_by_stat_linetype(cur_line_type, stat_data, all_var)
+                    fho_var = self.process_by_stat_linetype(cur_line_type, stat_data)
+                if cur_line_type == cn.CNT:
+                    cnt_var = self.process_by_stat_linetype(cur_line_type, stat_data)
+
+            # ToDo
+            # Consolidate all the line type dataframes into one dataframe
+            #
+
+            # Write out to an ASCII file
+            out_path = parms['output_dir']
+            out_filename = parms['output_filename']
+            output_file = os.path.join(out_path, out_filename)
+            print(f"Writing output...")
+            final_df = fho_var.to_csv(output_file, index=None, sep='\t', mode='a')
+
+
+
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_stat_ascii ***", sys.exc_info()[0])
@@ -92,7 +112,7 @@ class WriteStatAscii:
 
         logging.debug("[--- End write_stat_data ---]")
 
-    def process_by_stat_linetype(self, linetype, stat_data, linetype_data):
+    def process_by_stat_linetype(self, linetype, stat_data):
         '''
            For a given linetype, extract the relevant statistics information into the
            stat_name, stat_value, stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns,
@@ -102,94 +122,85 @@ class WriteStatAscii:
             @param linetype: The linetype of interest (i.e. CNT, CTS, FHO, etc.)
             @param stat_data: The original MET data read in from the .stat file. Empty columns from the original .stat
                               file are named with the string representation of the numbers 1-n.
-            @param linetype_data: The dataframe that will contain the data for the line type of interest,
-                                  with the aggregated statistics information in the stat_name, stat_value,
-                                  stat_ncl, stat_ncu, stat_bcu, and stat_bcl columns.
 
-            @return: linetype_data
+            @return: linetype_data The dataframe that is reshaped (from wide to long), now including the stat_name,
+            stat_value, stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns.
         '''
 
         # FHO forecast, hit rate, observation rate
-        if linetype == cn.FHO:
-            # Extract the stat_names and stat_values for this line type:
-            # F_RATE, H_RATE, O_RATE (these will be the stat name).  There are no corresponding xyz_bcl, xyz_bcu,
-            # xyz_ncl, and xyz_ncu values where xyz = stat name
+        linetype_data = self.process_fho(stat_data)
 
-            #
-            # Subset the stat_data dataframe into a smaller data frame containing only the FHO line type with all its
-            # columns.
-            #
-
-
-            # Don't include the 'total' column (column 25, zero-based counting)
-            fho_columns_to_use = np.arange(0,29).tolist()
-            # fho_columns_to_use = np.append(np.arange(0,26), np.arange(27,30)).tolist()
-            fho_df = stat_data[stat_data['line_type'] == linetype].iloc[:, fho_columns_to_use]
-
-            # Add the stat columns for the FHO line type
-            fho_columns = cn.LC_COMMON_STAT_HEADER + ['total', 'F_RATE', 'H_RATE', 'O_RATE']
-            fho_df.columns = fho_columns
-
-            # Create another index column to preserve the original index values from the stat_data datframe
-            idx = list(fho_df.index)
-            fho_df.insert(loc=0, column='Idx', value=idx)
-
-            # Use pandas 'melt' to reshape the data frame from wide to long shape (i.e. collecting the f_rate, h_rate,
-            # and o_rate values and putting them under the column 'stat_value' corresponding to the 'stat_name' column
-            # containing the names F_RATE, H_RATE, and O_RATE
-
-            # columns that we don't want to change
-            columns_to_use = fho_df.columns[0:-3]
-            fho_copy = fho_df.copy(deep=True)
-            linetype_data = pd.melt(fho_copy, id_vars=list(columns_to_use), var_name='stat_name', value_name='stat_value')
-
-            # FHO line type doesn't have the bcl and bcu stat values set these to NA
-            na_column = ['NA' for na_column in range(0, linetype_data.shape[0])]
-
-            linetype_data['stat_ncl'] = na_column
-            linetype_data['stat_ncu'] = na_column
-            linetype_data['stat_bcl'] = na_column
-            linetype_data['stat_bcu'] = na_column
-
-            linetype_data.to_csv("/Volumes/d1/minnawin/feature_121_met_reformatter/fho_df.txt", sep="\t")
-
-        # CTC Contingency Table Counts
-
-        # CTS Contingency Table Statistics
 
         # CNT Continuous Statistics
+        if linetype == cn.CNT:
+            # Relevant columns for the CNT line type
+            cnt_columns_to_use = np.arange(0, 126).tolist()
+            cnt_df = stat_data[stat_data['line_type'] == linetype].iloc[:, cnt_columns_to_use]
 
-        # MCTC Multi-category Contingency Table Count
+            pass
 
-        # MCTS Multi-category Contingency Table Statistics
+        # CTC Contingency Table Counts
+        if linetype == cn.CTC:
+            pass
 
-        # PCT Contingency Table Counts for Probabilistic forecasts
-
-        # PSTD Contingency Table Statistics for Probabilistic forecasts
-
-        # PJC Joint and Conditional factorization for Probabilistic forecasts
-
-        # PRC Receiver Operating Characteristic for Probabilistic forecasts
-
-        # ECLV Economic Cost/Loss Relative Value
+        # CTS Contingency Table Statistics
+        if linetype == cn.CTS:
+            pass
 
         # SL1L2 Scalar Partial sums
+        if linetype == cn.SL1L2:
+            pass
 
-        # SAL1L2 Scalar Anomaly Partial Sums
+        return linetype_data
 
-        # VL1L2 Vector Partial Sums
+    def process_fho(self, stat_data ):
+        '''
 
-        # VAL1L2 Vector Anomaly Partial Sums
+        :param stat_data:
+        :return:
+        '''
 
-        # VCNT Vector Continuous Statistics
+        linetype = cn.FHO
 
-        # MPR Matched Pair
+        # if linetype == cn.FHO:
+        # Extract the stat_names and stat_values for this line type:
+        # F_RATE, H_RATE, O_RATE (these will be the stat name).  There are no corresponding xyz_bcl, xyz_bcu,
+        # xyz_ncl, and xyz_ncu values where xyz = stat name
 
-        # SEEPS_MPR Stable Equitable Error in Probability space of Matched Pair
+        #
+        # Subset the stat_data dataframe into a smaller data frame containing only the FHO line type with all its
+        # columns.
+        #
 
-        # SEEPS Stable Equitable Error in Probability Space
+        # Relevant columns for the FHO line type
+        fho_columns_to_use = np.arange(0, 29).tolist()
+        fho_df = stat_data[stat_data['line_type'] == linetype].iloc[:, fho_columns_to_use]
 
+        # Add the stat columns for the FHO line type
+        fho_columns = cn.LC_COMMON_STAT_HEADER + ['total', 'F_RATE', 'H_RATE', 'O_RATE']
+        fho_df.columns = fho_columns
 
+        # Create another index column to preserve the original index values from the stat_data dataframe
+        idx = list(fho_df.index)
+        fho_df.insert(loc=0, column='Idx', value=idx)
+
+        # Use pandas 'melt' to reshape the data frame from wide to long shape (i.e. collecting the f_rate, h_rate,
+        # and o_rate values and putting them under the column 'stat_value' corresponding to the 'stat_name' column
+        # containing the names F_RATE, H_RATE, and O_RATE
+
+        # columns that we don't want to change
+        columns_to_use = fho_df.columns[0:-3]
+        fho_copy = fho_df.copy(deep=True)
+        linetype_data = pd.melt(fho_copy, id_vars=list(columns_to_use), var_name='stat_name',
+                                value_name='stat_value')
+
+        # FHO line type doesn't have the bcl and bcu stat values set these to NA
+        na_column = ['NA' for na_column in range(0, linetype_data.shape[0])]
+
+        linetype_data['stat_ncl'] = na_column
+        linetype_data['stat_ncu'] = na_column
+        linetype_data['stat_bcl'] = na_column
+        linetype_data['stat_bcu'] = na_column
 
         return linetype_data
 
@@ -230,7 +241,7 @@ def main():
     # Write stat file in ASCII format, one for each line type
     stat_lines_obj = WriteStatAscii()
     stat_lines_obj.write_stat_ascii(xml_loadfile_obj.flags,
-                                    rdf_obj.stat_data)
+                                    rdf_obj.stat_data, parms)
 
 if __name__ == "__main__":
     main()
