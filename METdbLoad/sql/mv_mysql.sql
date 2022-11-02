@@ -449,7 +449,7 @@ CREATE TABLE line_data_ecnt
     crps_emp         DOUBLE,
     crpscl_emp       DOUBLE,
     crpss_emp        DOUBLE,
-    crpss_emp_fair   DOUBLE DEFAULT -9999,
+    crps_emp_fair    DOUBLE DEFAULT -9999,
 
     CONSTRAINT line_data_ecnt_data_file_id_pk
         FOREIGN KEY (data_file_id)
