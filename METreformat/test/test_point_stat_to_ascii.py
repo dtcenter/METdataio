@@ -42,7 +42,7 @@ def test_point_stat_FHO_consistency(setup):
     fho_df = stat_data[stat_data['line_type'] == linetype].iloc[:, fho_columns_to_use]
 
     wsa = WriteStatAscii()
-    reshaped_df = wsa.process_by_stat_linetype(linetype, stat_data, fho_df)
+    reshaped_df = wsa.process_by_stat_linetype(linetype, stat_data)
 
     expected_num_rows = fho_df.shape[0]
     actual_num_rows = reshaped_df.shape[0]
