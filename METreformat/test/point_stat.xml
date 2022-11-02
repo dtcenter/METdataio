@@ -1,0 +1,18 @@
+<load_spec>
+	<folder_tmpl>/Volumes/d1/minnawin/feature_121_met_reformatter/METdataio/METreformatter/test/data/point_stat</folder_tmpl>
+	<verbose>true</verbose>
+
+	<load_val>
+		<field name="met_tool">
+			<val>ensemble_stat</val>
+			<val>grid_stat</val>
+			<val>mode</val>
+			<val>point_stat</val>
+			<val>stat_analysis</val>
+			<val>wavelet_stat</val>
+		</field>
+	</load_val>
+
+	<description>MET output </description>
+
+</load_spec>
