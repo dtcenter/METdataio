@@ -47,6 +47,14 @@ Colorado. The MET package is freely available to the modeling, verification,
 and operational communities, including universities, governments,
 the private sector, and operational modeling and prediction centers.
 
+METdataio Requirements
+______________________
+
+METdataio requires installation of Python 3.6+ and MySQL, MariaDB or AuroraDB.
+
+.. _release-notes:
+
+.. include:: release-notes.rst
 	     
 Future development plans
 ________________________

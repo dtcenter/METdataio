@@ -125,8 +125,6 @@ PERC = "PERC"  #
 DMAP = "DMAP"  # Distance Map
 RPS = "RPS"  # Ranked Probability Score
 SSIDX = "SSIDX"  # SKILL SCORE INDEX
-SEEPS = "SEEPS"  # Stable Equitable Error in Probability Space (SEEPS) score
-SEEPS_MPR = "SEEPS_MPR"  # SEEPS Matched Pair Data
 
 # VSDB line types
 BSS = "BSS"  # same as PSTD
@@ -146,7 +144,7 @@ PROBRIRW = "PROBRIRW"  # Probability of Rapid Intensification line type
 UC_LINE_TYPES = [FHO, CTC, CTS, MCTC, MCTS, CNT, SL1L2, SAL1L2, VL1L2, VAL1L2,
                  PCT, PSTD, PJC, PRC, ECLV, MPR, NBRCTC, NBRCTS, NBRCNT, ISC,
                  RHIST, PHIST, ORANK, SSVAR, GRAD, VCNT, RELP, ECNT, ENSCNT, PERC,
-                 DMAP, RPS, SSIDX, SEEPS, SEEPS_MPR]
+                 DMAP, RPS, SSIDX]
 
 UC_LINE_TYPES_TCST = [TCMPR, PROBRIRW]
 
@@ -157,7 +155,7 @@ LINE_TABLES = ['line_data_' + hname for hname in LC_LINE_TYPES]
 
 LINE_TABLES_TCST = ['line_data_' + hname for hname in LC_LINE_TYPES_TCST]
 
-ALPHA_LINE_TYPES = [CTS, NBRCTS, NBRCNT, MCTS, SSVAR, VCNT, DMAP, RPS, CNT,
+ALPHA_LINE_TYPES = [CTS, NBRCTS, NBRCNT, MCTS, SSVAR, VCNT, DMAP, RPS, CNT, 
                     PSTD, SSIDX]
 
 COV_THRESH_LINE_TYPES = [NBRCTC, NBRCTS, PCT, PSTD, PJC, PRC]
@@ -388,7 +386,7 @@ LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
                          'si', 'si_bcl', 'si_bcu']
 
 LINE_DATA_FIELDS[CTC] = TOT_LINE_DATA_FIELDS + \
-                        [FY_OY, FY_ON, FN_OY, FN_ON, EC_VALUE]
+                        [FY_OY, FY_ON, FN_OY, FN_ON]
 
 LINE_DATA_FIELDS[CTS] = ALPH_LINE_DATA_FIELDS + \
                         [BASER, 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
@@ -410,8 +408,7 @@ LINE_DATA_FIELDS[CTS] = ALPH_LINE_DATA_FIELDS + \
                          'seds', 'seds_ncl', 'seds_ncu', 'seds_bcl', 'seds_bcu',
                          'edi', 'edi_ncl', 'edi_ncu', 'edi_bcl', 'edi_bcu',
                          'sedi', 'sedi_ncl', 'sedi_ncu', 'sedi_bcl', 'sedi_bcu',
-                         'bagss', 'bagss_bcl', 'bagss_bcu', 'hss_ec', 'hss_ec_bcl',
-                         'hss_ec_bcu', EC_VALUE]
+                         'bagss', 'bagss_bcl', 'bagss_bcu']
 
 LINE_DATA_FIELDS[DMAP] = ALPH_LINE_DATA_FIELDS + \
                          ['fy', 'oy', 'fbias', 'baddeley', 'hausdorff',
@@ -426,8 +423,7 @@ LINE_DATA_FIELDS[ECLV] = TOT_LINE_DATA_FIELDS + \
 LINE_DATA_FIELDS[ECNT] = TOT_LINE_DATA_FIELDS + \
                          ['n_ens', 'crps', 'crpss', 'ign', 'me', 'rmse', 'spread',
                           'me_oerr', 'rmse_oerr', 'spread_oerr', 'spread_plus_oerr',
-                          'crpscl', 'crps_emp', 'crpscl_emp', 'crpss_emp',
-                          'crps_emp_fair']
+                          'crpscl', 'crps_emp', 'crpscl_emp', 'crpss_emp']
 
 LINE_DATA_FIELDS[ENSCNT] = ALL_LINE_DATA_FIELDS + \
                            ['rpsf', 'rpsf_ncl', 'rpsf_ncu', 'rpsf_bcl', 'rpsf_bcu',
@@ -536,17 +532,7 @@ LINE_DATA_FIELDS[SL1L2] = TOT_LINE_DATA_FIELDS + \
 
 LINE_DATA_FIELDS[SAL1L2] = TOT_LINE_DATA_FIELDS + \
                            ['fabar', 'oabar', 'foabar', 'ffabar', 'ooabar', 'mae']
-
-LINE_DATA_FIELDS[SEEPS] = TOT_LINE_DATA_FIELDS + \
-                          ['s12', 's13', 's21', 's23', 's31', 's32',
-                           'pf1', 'pf2', 'pf3', 'pv1', 'pv2', 'pv3',
-                           'mean_fcst', 'mean_obs', 'seeps']
-
-LINE_DATA_FIELDS[SEEPS_MPR] = ALL_LINE_DATA_FIELDS + \
-                              ['obs_sid', 'obs_lat', 'obs_lon',
-                               'fcst', 'obs', 'obs_qc', 'fcst_cat', 'obs_cat',
-                               'p1', 'p2', 't1', 't2', 'seeps']
-
+                           
 LINE_DATA_FIELDS[SSIDX] = ALL_LINE_DATA_FIELDS + \
                            [ALPHA, 'fcst_model', 'ref_model', 'n_init', 'n_term',
                             'v_vld', 'ss_index']
@@ -565,7 +551,7 @@ LINE_DATA_FIELDS[VL1L2] = TOT_LINE_DATA_FIELDS + \
 
 LINE_DATA_FIELDS[VAL1L2] = TOT_LINE_DATA_FIELDS + \
                            ['ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar', 'uvffabar',
-                            'uvooabar', 'fa_speed_bar', 'oa_speed_bar']
+                            'uvooabar']
 
 LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
                          ['fbar', 'fbar_bcl', 'fbar_bcu', 'obar', 'obar_bcl', 'obar_bcu',
@@ -582,10 +568,7 @@ LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
                           'speed_err', 'speed_err_bcl', 'speed_err_bcu',
                           'speed_abserr', 'speed_abserr_bcl', 'speed_abserr_bcu',
                           'dir_err', 'dir_err_bcl', 'dir_err_bcu',
-                          'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu',
-                          'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu',
-                          'anom_corr_bcl', 'anom_corr_bcu', 'anom_corr_uncntr',
-                          'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu']
+                          'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu']
 
 COLUMNS[TCMPR] = ['total', 'index_pair', 'level', 'watch_warn', 'initials', 'alat',
                   'alon',

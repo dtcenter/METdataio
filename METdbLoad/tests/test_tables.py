@@ -156,8 +156,7 @@ line_types = ["cnt", "ctc", "cts", "dmap", "eclv", "ecnt", "enscnt",
               "fho", "grad", "isc", "mctc", "mcts", "mpr", "nbrcnt",
               "nbrctc", "nbrcts", "orank", "pct", "perc", "phist",
               "pjc", "prc", "pstd", "relp", "rhist", "rps", "sl1l2",
-              "sal1l2", "vl1l2", "val1l2", "seeps", "seeps_mpr",
-              "ssidx", "ssvar", "vcnt"]
+              "sal1l2", "vl1l2", "val1l2", "ssidx", "ssvar", "vcnt"]
 
 for ltype in line_types:
 
