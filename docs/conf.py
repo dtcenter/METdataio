@@ -25,7 +25,7 @@ version = '2.0.0'
 verinfo = version
 release = f'{version}'
 release_year = '2022'
-release_date = f'{release_year}-09-14'
+release_date = f'{release_year}-06-22'
 copyright = f'{release_year}, {author}'
 
 # if set, adds "Last updated on " followed by
@@ -66,7 +66,7 @@ html_static_path = ['_static']
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = os.path.join('_static','met_dataio_logo_2022_08.png')
+html_logo = os.path.join('_static','met_datadb_logo_2020_06.png')
 
 # -- Intersphinx control -----------------------------------------------------
 #intersphinx_mapping = {'numpy':("https://docs.scipy.org/doc/numpy/", None)}

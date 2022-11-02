@@ -136,12 +136,8 @@ class ReadDataFiles:
                     #
                     if lu_id == CN.STAT:
                         # Get the first line of the .stat file that has the headers
-                        try:
-                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
-                                                   header=None, nrows=1)
-                        except (pandas.errors.EmptyDataError):
-                            logging.warning("!!! Stat file %s has no columns", filename)
-                            continue
+                        file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                                               header=None, nrows=1)
 
                         # MET file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
@@ -200,7 +196,7 @@ class ReadDataFiles:
                             # put space in front of hyphen between numbers in case space is missing
                             # FHO can have negative thresh - fix with regex, only between numbers
                             split_file.iloc[:, 1] = \
-                                split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2',
+                                split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2', 
                                                                   regex=True)
 
                             # merge the two halves together again
@@ -243,12 +239,8 @@ class ReadDataFiles:
                     elif lu_id in (CN.MODE_CTS, CN.MODE_OBJ):
 
                         # Get the first line of the mode cts or obj file that has the headers
-                        try:
-                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
-                                                   nrows=1)
-                        except (pandas.errors.EmptyDataError):
-                            logging.warning("!!! Mode file %s has no columns", filename)
-                            continue
+                        file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                                               nrows=1)
 
                         # MODE file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
@@ -307,12 +299,8 @@ class ReadDataFiles:
                     #
                     elif lu_id == CN.TCST:
                         # Get the first line of the .tcst file that has the headers
-                        try:
-                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
-                                                   header=None, nrows=1)
-                        except (pandas.errors.EmptyDataError):
-                            logging.warning("!!! TCST file %s has no columns", filename)
-                            continue
+                        file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                                               header=None, nrows=1)
                         # TCST file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
                             logging.warning("!!! TCST file %s is empty", filename)
@@ -336,12 +324,8 @@ class ReadDataFiles:
                     elif lu_id in CN.MTD_FILES:
 
                         # Get the first line of the MTD file that has the headers
-                        try:
-                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
-                                                   nrows=1)
-                        except (pandas.errors.EmptyDataError):
-                            logging.warning("!!! MTD file %s has no columns", filename)
-                            continue
+                        file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                                               nrows=1)
 
                         # MTD file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
@@ -433,50 +417,44 @@ class ReadDataFiles:
                                 rev_lines = []
                                 obj_id = 'new'
                                 obj_ct = 1
-                                last_line = len(mtd_file.index)
-                                create_new = False
                                 # Create new rows by subtracting a previous row from a row by object
                                 # Unique sequential id is assigned to items with the same object id
                                 # Only object ids with more than 2 lines count and create lines
                                 for row_num, mtd_row in mtd_file.iterrows():
-
                                     if mtd_row[CN.OBJECT_ID] == obj_id:
                                         obj_ct += 1
-                                        if obj_ct == 2 and row_num < last_line and \
-                                            mtd_file[CN.OBJECT_ID][row_num + 1] == obj_id:
+                                        if obj_ct == 3:
                                             rev_ctr += 1
-                                            create_new = True
-                                        if obj_ct > 1 and create_new:
-                                            new_line = mtd_file.iloc[row_num].to_dict()
+                                        if obj_ct > 2:
+                                            new_line = mtd_file.iloc[row_num - 1].to_dict()
                                             new_line[CN.FCST_VAR] = 'REV_' + new_line[CN.FCST_VAR]
                                             new_line[CN.OBS_VAR] = 'REV_' + new_line[CN.OBS_VAR]
-                                            new_line[CN.AREA] -= mtd_file[CN.AREA][row_num - 1]
+                                            new_line[CN.AREA] -= mtd_file[CN.AREA][row_num - 2]
                                             new_line[CN.CENTROID_X] -= \
-                                                mtd_file[CN.CENTROID_X][row_num - 1]
+                                                mtd_file[CN.CENTROID_X][row_num - 2]
                                             new_line[CN.CENTROID_Y] -= \
-                                                mtd_file[CN.CENTROID_Y][row_num - 1]
+                                                mtd_file[CN.CENTROID_Y][row_num - 2]
                                             new_line[CN.CENTROID_LAT] -= \
-                                                mtd_file[CN.CENTROID_LAT][row_num - 1]
+                                                mtd_file[CN.CENTROID_LAT][row_num - 2]
                                             new_line[CN.CENTROID_LON] -= \
-                                                mtd_file[CN.CENTROID_LON][row_num - 1]
+                                                mtd_file[CN.CENTROID_LON][row_num - 2]
                                             new_line[CN.AXIS_ANG] = CN.MV_NOTAV
                                             new_line[CN.INTENSITY_10] -= \
-                                                mtd_file[CN.INTENSITY_10][row_num - 1]
+                                                mtd_file[CN.INTENSITY_10][row_num - 2]
                                             new_line[CN.INTENSITY_25] -= \
-                                                mtd_file[CN.INTENSITY_25][row_num - 1]
+                                                mtd_file[CN.INTENSITY_25][row_num - 2]
                                             new_line[CN.INTENSITY_50] -= \
-                                                mtd_file[CN.INTENSITY_50][row_num - 1]
+                                                mtd_file[CN.INTENSITY_50][row_num - 2]
                                             new_line[CN.INTENSITY_75] -= \
-                                                mtd_file[CN.INTENSITY_75][row_num - 1]
+                                                mtd_file[CN.INTENSITY_75][row_num - 2]
                                             new_line[CN.INTENSITY_90] -= \
-                                                mtd_file[CN.INTENSITY_90][row_num - 1]
+                                                mtd_file[CN.INTENSITY_90][row_num - 2]
                                             new_line[CN.REVISION_ID] = rev_ctr
                                             new_line[CN.LINENUMBER] = 0
                                             rev_lines.append(new_line)
                                     else:
                                         obj_id = mtd_row[CN.OBJECT_ID]
                                         obj_ct = 1
-                                        create_new = False
                                 rev_df = pd.DataFrame(rev_lines)
                                 mtd_file = pd.concat([mtd_file, rev_df], ignore_index=True,
                                                      sort=False)
@@ -635,27 +613,6 @@ class ReadDataFiles:
                         1 - all_stat.loc[(all_stat.line_type == CN.RPS) &
                                          (all_stat['8'].isnull()) &
                                          (~all_stat['5'].isnull()), '5']
-
-                # Some lines in stat files may be missing ec_value
-                # CTC and CTS, set to .5
-                # MCTS, set to 1/n_cat. MCTC is variable length
-                if all_stat[CN.LINE_TYPE].eq(CN.CTC).any():
-                    all_stat.loc[(all_stat.line_type == CN.CTC) &
-                                 ((all_stat['5'].isnull()) |
-                                  (all_stat['5'] == CN.NOTAV)), '5'] = .5
-
-                if all_stat[CN.LINE_TYPE].eq(CN.CTS).any():
-                    all_stat.loc[(all_stat.line_type == CN.CTS) &
-                                 ((all_stat['96'].isnull()) |
-                                  (all_stat['96'] == CN.NOTAV)), '96'] = .5
-
-                if all_stat[CN.LINE_TYPE].eq(CN.MCTS).any():
-                    all_stat.loc[(all_stat.line_type == CN.MCTS) &
-                                 ((all_stat['19'].isnull()) |
-                                  (all_stat['19'] == CN.NOTAV)), '19'] = \
-                        1/all_stat.loc[(all_stat.line_type == CN.MCTS) &
-                                       ((all_stat['19'].isnull()) |
-                                        (all_stat['19'] == CN.NOTAV)), '1']
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_data if list_frames ***", sys.exc_info()[0])
@@ -940,11 +897,9 @@ class ReadDataFiles:
                                           vsdb_data['4'].astype(float) -
                                           vsdb_data['5'].astype(float) +
                                           vsdb_data['6'].astype(float))
-                        # Needs a default ec_value of 0.5
-                        vsdb_data['10'] = 0.5
                         one_file = vsdb_data[CN.LONG_HEADER +
-                                             ['0'] + ['6', '7', '8', '9', '10'] +
-                                             CN.COL_NAS[:95] + [CN.LINE_NUM, CN.FILE_ROW]]
+                                             ['0'] + ['6', '7', '8', '9'] +
+                                             CN.COL_NAS[:96] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                     elif vsdb_type == CN.NBRCNT:
                         # fss is calculated from the other columns
@@ -1212,10 +1167,7 @@ class ReadDataFiles:
             Returns:
                all the stat lines in a dataframe, with dates converted to datetime
         """
-        # switched to python engine for python 3.8 and pandas 1.4.2
-        # switched back to c version for pandas 1.2.3
-        # added the low_memory=False option when getting a DtypeWarning
-        # to switch to python version: low_memory=False -> engine='python'
+        # switched to python engine for python 3.8
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.FCST_VALID_BEG,
@@ -1223,20 +1175,20 @@ class ReadDataFiles:
                                         CN.OBS_VALID_BEG,
                                         CN.OBS_VALID_END],
                            date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
+                           keep_default_na=False, na_values='', engine='python')
 
     def read_tcst(self, filename, hdr_names):
         """ Read in all of the lines except the header of a tcst file.
             Returns:
                all the tcst lines in a dataframe, with dates converted to datetime
         """
-        # added the low_memory=False option when getting a DtypeWarning
+        # switched to python engine for python 3.8
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.INIT,
                                         CN.VALID],
                            date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
+                           keep_default_na=False, na_values='', engine='python')
 
     def cached_date_parser(self, date_str):
         """ if date is repeated and already converted, return that value.
@@ -1259,10 +1211,10 @@ class ReadDataFiles:
             Returns:
                all the mode lines in a dataframe, with dates converted to datetime
         """
-        # added the low_memory=False option when getting a DtypeWarning
+        # switched to python engine for python 3.8
         return pd.read_csv(filename, delim_whitespace=True,
                            names=hdr_names, skiprows=1,
                            parse_dates=[CN.FCST_VALID,
                                         CN.OBS_VALID],
                            date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
+                           keep_default_na=False, na_values='', engine='python')
