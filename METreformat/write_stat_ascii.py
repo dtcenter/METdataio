@@ -178,7 +178,7 @@ class WriteStatAscii:
         fho_df:pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, fho_columns_to_use]
 
         # Add the stat columns for the FHO line type
-        fho_columns:List[str] = cn.qHEADER
+        fho_columns:List[str] = cn.STAT_FHO_HEADER
         fho_df.columns:List[str] = fho_columns
 
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
@@ -229,6 +229,9 @@ class WriteStatAscii:
 
         # Subset original dataframe to one containing only the CNT data
         cnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, cnt_columns_to_use]
+
+        orig_cols = cnt_df.shape[1]
+        print("number of columns in CNT dataframe: ", orig_cols)
 
         # Add the stat columns for the CNT line type
         cnt_columns: List[str] = cn.STAT_CNT_HEADER
