@@ -132,20 +132,19 @@ class WriteStatAscii:
             linetype_data:pd.DataFrame = self.process_fho(stat_data)
 
         # CNT Continuous Statistics
-        if linetype == cn.CNT:
-            pass
+        elif linetype == cn.CNT:
             linetype_data:pd.DataFrame = self.process_cnt(stat_data)
 
         # CTC Contingency Table Counts
-        if linetype == cn.CTC:
+        elif linetype == cn.CTC:
             pass
 
         # CTS Contingency Table Statistics
-        if linetype == cn.CTS:
+        elif linetype == cn.CTS:
             pass
 
         # SL1L2 Scalar Partial sums
-        if linetype == cn.SL1L2:
+        elif linetype == cn.SL1L2:
             pass
 
         return linetype_data
@@ -174,7 +173,7 @@ class WriteStatAscii:
 
         # Relevant columns for the FHO line type
         linetype: str = cn.FHO
-        fho_columns_to_use:List[str] = np.arange(0, 29).tolist()
+        fho_columns_to_use:List[str] = np.arange(0, cn.NUM_STAT_FHO_COLS-1).tolist()
         fho_df:pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, fho_columns_to_use]
 
         # Add the stat columns for the FHO line type
@@ -190,7 +189,8 @@ class WriteStatAscii:
         # and o_rate values and putting them under the column 'stat_value' corresponding to the 'stat_name' column
         # containing the names F_RATE, H_RATE, and O_RATE
 
-        # columns that we don't want to change
+        # columns that we don't want to change (the last three columns are the stat columns of interest,
+        # we want to capture that information into the stat_name and stat_values columns)
         columns_to_use:pd.Index = fho_df.columns[0:-3]
         fho_copy:pd.DataFrame = fho_df.copy(deep=True)
         linetype_data:pd.DataFrame = pd.melt(fho_copy, id_vars=list(columns_to_use), var_name='stat_name',
@@ -221,10 +221,9 @@ class WriteStatAscii:
         '''
 
 
-
         # Relevant columns for the CNT line type
         linetype: str = cn.CNT
-        cnt_columns_to_use: List[str] = np.arange(0, 126).tolist()
+        cnt_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_CNT_COLS).tolist()
 
 
         # Subset original dataframe to one containing only the CNT data
@@ -236,8 +235,45 @@ class WriteStatAscii:
         # Add the stat columns for the CNT line type
         cnt_columns: List[str] = cn.STAT_CNT_HEADER
         cnt_df.columns: List[str] = cnt_columns
+        print("number of columns for CNT line type: ", cnt_df.shape[1])
 
-        return cnt_df
+        # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
+        # containing the original data from the MET output file).
+        idx: int = list(cnt_df.index)
+        cnt_df.insert(loc=0, column='Idx', value=idx)
+
+        # Use pandas 'melt' to reshape the data frame from wide to long shape (i.e. collecting the statistics
+        # values that are NOT xyz_bcl|bcu and xyz_ncl|ncu and putting them under the column 'stat_value'
+        # corresponding to the 'stat_name' column the corresponding statistics name.
+
+        # columns that we *DO NOT* want to be re-shaped (We want to capture the first statistic of each 'block'
+        # into the stat_name and stat_val column. So for the CNT line type, we want FBAR, FSTDEV, OBAR, ..., and SI
+        # while ignoring their corresponding bootstrap upper and lower confidence levels.  These confidence levels
+        # will be captured into the appropriate stat_bcl|bcu, stat_ncl|ncu columns in subsequent melting operations).
+        column_nums:List[int] = []
+        for i in range(0,25):
+            column_nums.append(i)
+        other_columns = cn.STAT_CNT_FBAR_COLS
+        [other_columns.extend(l) for l in (cn.STAT_CNT_FSTDEV_COLS, cn.STAT_CNT_FBAR_COLS, cn.STAT_CNT_OSTDEV_COLS,
+                                           cn.STAT_CNT_PRCORR_COLS, cn.STAT_CNT_ME_COLS,
+                                           cn.STAT_CNT_ESTDEV_COLS, cn.STAT_CNT_MBIAS_COLS,
+                                           cn.STAT_CNT_MAE_COLS, cn.STAT_CNT_MSE_COLS,
+                                           cn.STAT_CNT_BCMSE_COLS, cn.STAT_CNT_RMSE_COLS,
+                                           cn.STAT_CNT_E10_COLS, cn.STAT_CNT_E25_COLS,
+                                           cn.STAT_CNT_E50_COLS, cn.STAT_CNT_E75_COLS,
+                                           cn.STAT_CNT_E90_COLS, cn.STAT_CNT_EIQR_COLS,
+                                           cn.STAT_CNT_MAD_COLS, cn.STAT_CNT_ANOM_CORR_COLS,
+                                           cn.STAT_CNT_ME2_CORR_COLS, cn.STAT_CNT_MSESS_COLS,
+                                           cn.STAT_CNT_RMSFA_COLS, cn.STAT_CNT_RMSOA_COLS,
+                                           cn.STAT_CNT_ANOM_CORR_UNCTNR_COLS, cn.STAT_CNT_SI_COLS)]
+        cnt_columns_to_use = column_nums + other_columns
+        columns_to_use:pd.Index = cnt_df.columns[cnt_columns_to_use]
+
+        cnt_copy: pd.DataFrame = cnt_df.copy(deep=True)
+        linetype_data: pd.DataFrame = pd.melt(cnt_copy, id_vars=list(columns_to_use), var_name='stat_name',
+                                              value_name='stat_value')
+
+        return linetype_data
 
 
 def main():
