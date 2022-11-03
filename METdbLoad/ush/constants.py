@@ -5,6 +5,7 @@
 # constants exist in constants.py
 
 from collections import OrderedDict
+import numpy as np
 
 # name to use for a group when no group tag is included in load_spec
 DEFAULT_DATABASE_GROUP = "NO GROUP"
@@ -1217,7 +1218,7 @@ LC_STAT_CNT_SPECIFIC =  ['fbar', 'fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
                          'rmse', 'rmse_bcl', 'rmse_bcu', 'e10', 'e10_bcl', 'e10_bcu',
                          'e25', 'e25_bcl', 'e25_bcu', 'e50', 'e50_bcl', 'e50_bcu',
                          'e75', 'e75_bcl', 'e75_bcu', 'e90', 'e90_bcl', 'e90_bcu',
-                         'iqr', 'iqr_bcl', 'iqr_bcu', 'mad', 'mad_bcl', 'mad_bcu',
+                         'eiqr', 'iqr_bcl', 'iqr_bcu', 'mad', 'mad_bcl', 'mad_bcu',
                          'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu',
                          'anom_corr_bcl', 'anom_corr_bcu',
                          'me2', 'me2_bcl', 'me2_bcu', 'msess', 'msess_bcl', 'msess_bcu',
@@ -1226,3 +1227,41 @@ LC_STAT_CNT_SPECIFIC =  ['fbar', 'fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
                          'si', 'si_bcl', 'si_bcu']
 STAT_CNT_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_STAT_CNT_SPECIFIC]
 STAT_CNT_HEADER = LC_COMMON_STAT_HEADER + ['total'] + STAT_CNT_SPECIFIC
+NUM_STAT_FHO_COLS = 30
+NUM_STAT_CNT_COLS = 125
+# Column numbers corresponding to the statistics "groups" in point stat CNT line type
+# Column numbers are 2+ column number in the MET documentation to account for the
+# addition of the fcst_init_beg and Idx columns. The fcst_init_beg is calculated after reading
+# in the MET .stat file and the Idx index column is created prior to reshaping the dataframe.
+
+STAT_CNT_FBAR_COLS = list(range(28, 32, 1))
+STAT_CNT_FSTDEV_COLS = list(range(33,37,1))
+STAT_CNT_OBAR_COLS = list(range(38, 42,1))
+STAT_CNT_OSTDEV_COLS = list(range(43, 47, 1))
+STAT_CNT_PRCORR_COLS = list(range(48, 52, 1))
+STAT_CNT_SP_KT_RANKS_FRANK_ORANK = list(range(52, 57, 1))
+STAT_CNT_ME_COLS = list(range(58, 62, 1))
+STAT_CNT_ESTDEV_COLS = list(range(63, 67, 1))
+STAT_CNT_MBIAS_COLS = list(range(68, 70, 1))
+STAT_CNT_MAE_COLS = list(range(71, 73, 1))
+STAT_CNT_MSE_COLS = list(range(74, 76, 1))
+STAT_CNT_BCMSE_COLS = list(range(77, 79, 1))
+STAT_CNT_RMSE_COLS = list(range(80, 82, 1))
+STAT_CNT_E10_COLS = list(range(83, 85, 1))
+STAT_CNT_E25_COLS = list(range(86, 88, 1))
+STAT_CNT_E50_COLS = list(range(89, 91, 1))
+STAT_CNT_E75_COLS = list(range(92, 94, 1))
+STAT_CNT_E90_COLS = list(range(95, 97, 1))
+STAT_CNT_EIQR_COLS = list(range(98, 100, 1))
+STAT_CNT_MAD_COLS = list(range(101, 103, 1))
+STAT_CNT_ANOM_CORR_COLS = list(range(104, 108, 1))
+STAT_CNT_ME2_CORR_COLS = list(range(109, 111, 1))
+STAT_CNT_MSESS_COLS = list(range(112, 114, 1))
+
+#---- Fix these
+STAT_CNT_RMSFA_COLS = list(range(115, 117, 1))
+STAT_CNT_RMSOA_COLS = list(range(118, 120, 1))
+STAT_CNT_ANOM_CORR_UNCTNR_COLS = list(range(121, 123, 1))
+STAT_CNT_SI_COLS = list(range(124, 126, 1))
+
+
