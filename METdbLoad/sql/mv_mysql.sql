@@ -450,6 +450,14 @@ CREATE TABLE line_data_ecnt
     crpscl_emp       DOUBLE,
     crpss_emp        DOUBLE,
     crps_emp_fair    DOUBLE DEFAULT -9999,
+    spread_md        DOUBLE,
+    mae              DOUBLE DEFAULT -9999,
+    mae_oerr         DOUBLE,
+    bias_ratio       DOUBLE,
+    n_ge_obs         INT,
+    me_ge_obs        DOUBLE,
+    n_lt_obs         INT,
+    me_lt_obs        DOUBLE,
 
     CONSTRAINT line_data_ecnt_data_file_id_pk
         FOREIGN KEY (data_file_id)
