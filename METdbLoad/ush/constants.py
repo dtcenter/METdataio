@@ -1198,14 +1198,22 @@ CREATE_INDEXES_QUERIES = \
      "CREATE INDEX line_data_ssidx_fcst_valid_beg_idx ON line_data_ssidx (fcst_valid_beg)",
      "CREATE INDEX line_data_ssidx_fcst_init_beg_idx ON line_data_ssidx (fcst_init_beg)"]
 
+#
 # Used by MET reformatter
+#
+
+
 DESC = "desc"
 COMMON_STAT_HEADER = [VERSION, MODEL, DESC, FCST_LEAD, FCST_VALID_BEG, FCST_VALID_END, FCST_INIT_BEG, OBS_LEAD, OBS_VALID_BEG,
                       OBS_VALID_END, FCST_VAR, FCST_UNITS, FCST_LEV, OBS_VAR, OBS_UNITS, OBS_LEV, OBTYPE, VX_MASK,
                       INTERP_MTHD, INTERP_PNTS, FCST_THRESH, OBS_THRESH, COV_THRESH, ALPHA, LINE_TYPE]
 LC_COMMON_STAT_HEADER = [cur_stat_header.lower() for cur_stat_header in COMMON_STAT_HEADER]
+
+#
+# POINT STAT specific
+#
 STAT_FHO_HEADER = LC_COMMON_STAT_HEADER + ['total', 'F_RATE', 'H_RATE', 'O_RATE']
-LC_STAT_CNT_SPECIFIC =  ['fbar', 'fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
+LC_STAT_CNT_SPECIFIC =  ['fbar', 'fbar_ncl', 'fbar_ncu','fbar_bcl', 'fbar_bcu',
                          'fstdev', 'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
                          'obar', 'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
                          'ostdev', 'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl', 'ostdev_bcu',
@@ -1227,41 +1235,97 @@ LC_STAT_CNT_SPECIFIC =  ['fbar', 'fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
                          'si', 'si_bcl', 'si_bcu']
 STAT_CNT_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_STAT_CNT_SPECIFIC]
 STAT_CNT_HEADER = LC_COMMON_STAT_HEADER + ['total'] + STAT_CNT_SPECIFIC
+LC_STAT_CNT_STATISTICS_HEADERS = ['fbar',
+                                  'fstdev',
+                                  'obar',
+                                  'ostdev',
+                                  'pr_corr',
+                                  'sp_corr', 'kt_corr', 'ranks', 'frank_ties', 'orank_ties',
+                                  'me',
+                                  'estdev',
+                                  'mbias', 'mae',
+                                  'mse', 'bcmse',
+                                  'rmse', 'e10',
+                                  'e25', 'e50',
+                                  'e75', 'e90',
+                                  'eiqr', 'mad',
+                                  'anom_corr',
+                                  'me2', 'msess',
+                                  'rmsfa', 'rmsoa',
+                                  'anom_corr_uncntr',
+                                  'si']
+STAT_CNT_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_STAT_CNT_STATISTICS_HEADERS]
+LC_STAT_CNT_BOOTSTRAP_HEADERS = ['fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
+                                 'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
+                                 'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
+                                 'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl', 'ostdev_bcu',
+                                 'pr_corr_ncl', 'pr_corr_ncu', 'pr_corr_bcl', 'pr_corr_bcu',
+                                 'me_ncl', 'me_ncu', 'me_bcl', 'me_bcu',
+                                 'estdev_ncl', 'estdev_ncu', 'estdev_bcl', 'estdev_bcu',
+                                 'mbias_bcl', 'mbias_bcu', 'mae_bcl', 'mae_bcu',
+                                 'mse_bcl', 'mse_bcu', 'bcmse_bcl', 'bcmse_bcu',
+                                 'rmse_bcl', 'rmse_bcu', 'e10_bcl', 'e10_bcu',
+                                 'e25_bcl', 'e25_bcu', 'e50_bcl', 'e50_bcu',
+                                 'e75_bcl', 'e75_bcu', 'e90_bcl', 'e90_bcu',
+                                 'iqr_bcl', 'iqr_bcu', 'mad_bcl', 'mad_bcu',
+                                 'anom_corr_ncl', 'anom_corr_ncu',
+                                 'anom_corr_bcl', 'anom_corr_bcu',
+                                 'me2_bcl', 'me2_bcu', 'msess_bcl', 'msess_bcu',
+                                 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa_bcl', 'rmsoa_bcu',
+                                 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu',
+                                 'si_bcl', 'si_bcu']
+STAT_CNT_BOOTSTRAP_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_STAT_CNT_BOOTSTRAP_HEADERS]
 NUM_STAT_FHO_COLS = 30
 NUM_STAT_CNT_COLS = 125
-# Column numbers corresponding to the statistics "groups" in point stat CNT line type
-# Column numbers are 2+ column number in the MET documentation to account for the
-# addition of the fcst_init_beg and Idx columns. The fcst_init_beg is calculated after reading
-# in the MET .stat file and the Idx index column is created prior to reshaping the dataframe.
 
-STAT_CNT_FBAR_COLS = list(range(28, 32, 1))
-STAT_CNT_FSTDEV_COLS = list(range(33,37,1))
-STAT_CNT_OBAR_COLS = list(range(38, 42,1))
-STAT_CNT_OSTDEV_COLS = list(range(43, 47, 1))
-STAT_CNT_PRCORR_COLS = list(range(48, 52, 1))
-STAT_CNT_SP_KT_RANKS_FRANK_ORANK = list(range(52, 57, 1))
-STAT_CNT_ME_COLS = list(range(58, 62, 1))
-STAT_CNT_ESTDEV_COLS = list(range(63, 67, 1))
-STAT_CNT_MBIAS_COLS = list(range(68, 70, 1))
-STAT_CNT_MAE_COLS = list(range(71, 73, 1))
-STAT_CNT_MSE_COLS = list(range(74, 76, 1))
-STAT_CNT_BCMSE_COLS = list(range(77, 79, 1))
-STAT_CNT_RMSE_COLS = list(range(80, 82, 1))
-STAT_CNT_E10_COLS = list(range(83, 85, 1))
-STAT_CNT_E25_COLS = list(range(86, 88, 1))
-STAT_CNT_E50_COLS = list(range(89, 91, 1))
-STAT_CNT_E75_COLS = list(range(92, 94, 1))
-STAT_CNT_E90_COLS = list(range(95, 97, 1))
-STAT_CNT_EIQR_COLS = list(range(98, 100, 1))
-STAT_CNT_MAD_COLS = list(range(101, 103, 1))
-STAT_CNT_ANOM_CORR_COLS = list(range(104, 108, 1))
-STAT_CNT_ME2_CORR_COLS = list(range(109, 111, 1))
-STAT_CNT_MSESS_COLS = list(range(112, 114, 1))
+# Column numbers corresponding to the bootstrap confidence level "groups" in point stat CNT line type
+# Column numbers are (column number + 1) in the MET documentation to account for the
+# addition of the fcst_init_beg column. The fcst_init_beg is calculated after reading
+# in the MET .stat file.
 
-#---- Fix these
-STAT_CNT_RMSFA_COLS = list(range(115, 117, 1))
-STAT_CNT_RMSOA_COLS = list(range(118, 120, 1))
-STAT_CNT_ANOM_CORR_UNCTNR_COLS = list(range(121, 123, 1))
-STAT_CNT_SI_COLS = list(range(124, 126, 1))
+STAT_CNT_FBAR_CL_COLS = list(range(28, 32, 1))
+STAT_CNT_FSTDEV_CL_COLS = list(range(33, 37, 1))
+STAT_CNT_OBAR_CL_COLS = list(range(38, 42, 1))
+STAT_CNT_OSTDEV_CL_COLS = list(range(43, 47, 1))
+STAT_CNT_PRCORR_CL_COLS = list(range(48, 52, 1))
+STAT_CNT_ME_CL_COLS = list(range(58, 62, 1))
+STAT_CNT_ESTDEV_CL_COLS = list(range(63, 67, 1))
+STAT_CNT_MBIAS_CL_COLS = list(range(68, 70, 1))
+STAT_CNT_MAE_CL_COLS = list(range(71, 73, 1))
+STAT_CNT_MSE_CL_COLS = list(range(74, 76, 1))
+STAT_CNT_BCMSE_CL_COLS = list(range(77, 79, 1))
+STAT_CNT_RMSE_CL_COLS = list(range(80, 82, 1))
+STAT_CNT_E10_CL_COLS = list(range(83, 85, 1))
+STAT_CNT_E25_CL_COLS = list(range(86, 88, 1))
+STAT_CNT_E50_CL_COLS = list(range(89, 91, 1))
+STAT_CNT_E75_CL_COLS = list(range(92, 94, 1))
+STAT_CNT_E90_CL_COLS = list(range(95, 97, 1))
+STAT_CNT_EIQR_CL_COLS = list(range(98, 100, 1))
+STAT_CNT_MAD_CL_COLS = list(range(101, 103, 1))
+STAT_CNT_ANOM_CORR_CL_COLS = list(range(104, 108, 1))
+STAT_CNT_ME2_CORR_CL_COLS = list(range(109, 111, 1))
+STAT_CNT_MSESS_CL_COLS = list(range(112, 114, 1))
+STAT_CNT_RMSFA_CL_COLS = list(range(115, 117, 1))
+STAT_CNT_RMSOA_CL_COLS = list(range(118, 120, 1))
+STAT_CNT_ANOM_CORR_UNCTNR_CL_COLS = list(range(121, 123, 1))
+STAT_CNT_SI_CL_COLS = list(range(124, 126, 1))
 
+#
+# Column numbers corresponding to the statistics in point stat CNT line type
+# (i.e. FBAR, FSTDEV, OBAR, OSTDEV, PR_CORR, etc.  Any non-bootstrap confidence level)
+# The fcst_init_beg is calculated after reading in the MET .stat file.
+STAT_CNT_STATISTCS_COLS = [27, 32, 37, 42, 47, 52, 53, 54, 55, 56, 57, 62, 67, 70, 73, 76, 79, 82, 85, 88, 91, 94, 97,
+                           100, 103, 108, 111, 114, 117, 120, 123]
+STAT_CNT_NCL_HEADERS = ['FBAR_NCL', 'FSTDEV_NCL', 'OBAR_NCL', 'OSTDEV_NCL', 'PR_CORR_NCL', 'ME_NCL', 'ESTDEV_NCL',
+                        'ANOM_CORR_NCL']
+STAT_CNT_NCU_HEADERS = ['FBAR_NCU', 'FSTDEV_NCU', 'OBAR_NCU', 'OSTDEV_NCU', 'PR_CORR_NCU', 'ME_NCU', 'ESTDEV_NCU',
+                        'ANOM_CORR_NCU']
+STAT_CNT_BCL_HEADERS = ['FBAR_BCL', 'FSTDEV_BCL', 'OBAR_BCL', 'OSTDEV_BCL', 'PR_CORR_BCL', 'ME_BCL', 'ESTDEV_BCL',
+                        'MBIAS_BCL', 'MAE_BCL', 'MSE_BCL', 'BCMSE_BCL', 'RMSE_BCL', 'E10_BCL', 'E25_BCL', 'E50_BCL',
+                        'E75_BCL', 'E90_BCL', 'IQR_BCL', 'MAD_BCL', 'ANOM_CORR_BCL', 'ME2_BCL', 'MSESS_BCL',
+                        'RMSFA_BCL', 'RMSOA_BCL','ANOM_CORR_UNCNTR_BCL', 'SI_BCL']
 
+STAT_CNT_BCU_HEADERS = ['FBAR_BCU', 'FSTDEV_BCU', 'OBAR_BCU', 'OSTDEV_BCU', 'PR_CORR_BCU', 'ME_BCU', 'ESTDEV_BCU',
+                        'MBIAS_BCU', 'MAE_BCU', 'MSE_BCU', 'BCMSE_BCU', 'RMSE_BCU', 'E10_BCU', 'E25_BCU', 'E50_BCU',
+                        'E75_BCU', 'E90_BCU', 'IQR_BCU', 'MAD_BCU', 'ANOM_CORR_BCU', 'ME2_BCU', 'MSESS_BCU',
+                        'RMSFA_BCU', 'RMSOA_BCU','ANOM_CORR_UNCNTR_BCU', 'SI_BCU']
