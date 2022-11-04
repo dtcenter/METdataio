@@ -24,6 +24,7 @@ from typing import List, Set
 import numpy as np
 import pandas as pd
 import yaml
+import re
 
 import constants as cn
 from METdbLoad.ush.read_load_xml import XmlLoadFile
@@ -135,6 +136,7 @@ class WriteStatAscii:
         # CNT Continuous Statistics
         elif linetype == cn.CNT:
             linetype_data: pd.DataFrame = self.process_cnt(stat_data)
+            # linetype_data: pd.DataFrame = self.process_cnt_full(stat_data)
 
         # CTC Contingency Table Counts
         elif linetype == cn.CTC:
@@ -209,6 +211,55 @@ class WriteStatAscii:
     def process_cnt(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         '''
            Reshape the data from the original MET output file (stat_data) into new statistics columns:
+           stat_name, stat_value specifically for the CNT line type data.
+
+           Arguments:
+           @param stat_data: the dataframe containing all the data from the MET .stat file.
+
+           Returns:
+           linetype_data: the reshaped pandas dataframe with statistics data reorganized into the stat_name and
+           stat_value columns.
+
+        '''
+
+        # Relevant columns for the CNT line type
+        linetype: str = cn.CNT
+        cnt_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_CNT_COLS).tolist()
+
+        # Subset original dataframe to one containing only the CNT data
+        cnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, cnt_columns_to_use]
+
+        # Add the stat columns for the CNT line type
+        cnt_columns: List[str] = cn.STAT_CNT_HEADER
+        cnt_df.columns: List[str] = cnt_columns
+
+        # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
+        # containing the original data from the MET output file).
+        idx: int = list(cnt_df.index)
+        cnt_df.insert(loc=0, column='Idx', value=idx)
+        cnt_df.to_csv('/Users/minnawin/Desktop/reformat/cnt_df.csv')
+
+        # Use the pd.wide_to_long() to convert the bcl bootstrap on the stats_only dataframe, stats_only_df
+        # Rename the <stat_group>_BCL|BCU|NCL|NCU to BCL|BCU|NCL|NCU_<stat_group> in order to
+        # use pd.wide_to_long().
+
+        # Columns for statistics
+        stat_columns: List[str] = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total'] + cn.STAT_CNT_STATISTICS_HEADERS
+        cnt_stat_only_df: pd.DataFrame = cnt_df[stat_columns]
+
+        # Now apply melt to get the stat_name and stat_values from the statistics
+
+        # Columns we don't want to stack (i.e. treat these columns as a multi index)
+        id_vars_list = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
+        reshaped = cnt_stat_only_df.melt(id_vars=id_vars_list, value_vars=cn.STAT_CNT_STATISTICS_HEADERS,
+                               var_name='stat_name',
+                               value_name='stat_value', ignore_index=False).sort_values('Idx')
+
+        return reshaped
+
+    def process_cnt_full(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        '''
+           Reshape the data from the original MET output file (stat_data) into new statistics columns:
            stat_name, stat_value, stat_ncl, stat_ncu, stat_bcl, and stat_bcu specifically for the CNT line type data.
 
            Arguments:
@@ -219,7 +270,6 @@ class WriteStatAscii:
            stat_ncl, stat_ncu, stat_bcl, and stat_bcu columns.
 
         '''
-        print("Number of statistics: ", len(cn.LC_STAT_CNT_STATISTICS_HEADERS))
 
         # Relevant columns for the CNT line type
         linetype: str = cn.CNT
@@ -227,8 +277,6 @@ class WriteStatAscii:
 
         # Subset original dataframe to one containing only the CNT data
         cnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, cnt_columns_to_use]
-
-        print("Num rows of original CNT dataframe: ", cnt_df.shape[0])
 
         # Add the stat columns for the CNT line type
         cnt_columns: List[str] = cn.STAT_CNT_HEADER
@@ -239,58 +287,71 @@ class WriteStatAscii:
         idx: int = list(cnt_df.index)
         cnt_df.insert(loc=0, column='Idx', value=idx)
 
-        # melt the cnt_no_bootstrap_df dataframe (statistics only dataframe) to populate the
-        # stat_name and stat_value columns
-        no_statistics_headers: List[int] = ['Idx'] + cn.LC_COMMON_STAT_HEADER + \
-                                           ['total'] + cn.STAT_CNT_BOOTSTRAP_HEADERS
-        stats_only_df: pd.DataFrame = cnt_df.melt(id_vars=no_statistics_headers, var_name='stat_name',
-                                                  value_name='stat_value')
-        stats_only_df.to_csv('/Users/minnawin/Desktop/reformat/stats_only_ordered.csv')
+        # Use the pd.wide_to_long() to convert the bcl bootstrap on the stats_only dataframe, stats_only_df
+        # Rename the <stat_group>_BCL|BCU|NCL|NCU to BCL|BCU|NCL|NCU_<stat_group> in order to
+        # use pd.wide_to_long().
 
-        print("Number of rows of reshaped to stats dataframe: ", stats_only_df.shape[0])
+        # Columns for boostrapped and stat values
+        stat_bootstrap_columns:List[str] = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total'] + \
+                                            cn.STAT_CNT_STATISTICS_HEADERS + \
+                                            cn.STAT_CNT_BCL_HEADERS + cn.STAT_CNT_BCU_HEADERS + \
+                                            cn.STAT_CNT_NCU_HEADERS + cn.STAT_CNT_NCL_HEADERS
+        cnt_stat_bcl_only_df:pd.DataFrame = cnt_df[stat_bootstrap_columns]
+        stat_bcl_columns_renamed:List[str] = self.rename_bootstrap_columns(cnt_stat_bcl_only_df.columns.tolist())
+        cnt_stat_bcl_only_df.columns:List[str] = stat_bcl_columns_renamed
 
-        # Process the bcl statistics columns into the stat_bcl column
-        # Create a dataframe without the other bootstrap columns (i.e. a dataframe with bcl columns
-        # and the other common columns).
-        stat_and_bootstrap_headers: List[str] = stats_only_df.columns.tolist()
-        no_bcl_columns: List[str] = [x for x in no_statistics_headers if x not in cn.STAT_CNT_BCL_HEADERS]
-        stats_bcl_df: pd.DataFrame = cnt_df.melt(id_vars=no_bcl_columns, var_name='bcl_name',
-                                                 value_name='stat_bcl')
-        stats_bcl_df.to_csv('/Users/minnawin/Desktop/reformat/stats_bcl_df.csv')
-        print("stat_and_bootstrap headers: ", stat_and_bootstrap_headers)
-        print("no_statistics_headers: ", no_statistics_headers)
+        wide_to_long_df:pd.DataFrame = pd.wide_to_long(cnt_stat_bcl_only_df,
+                        stubnames=['BCL', 'BCU', 'NCL', 'NCU'],
+                        i=['Idx'],
+                        j='confidence_statistic',
+                        sep='_',
+                        suffix='.+'
+                        ).sort_values('Idx')
 
-        # Reindex so we don't generate extra rows of redundant information (**NOTE** When setting the index, you
-        # cannot substitute the column names with a list, the syntax for set_index requires explicit string elements).
-        group_list: List[str] = ['Idx', 'version', 'model', 'desc', 'fcst_lead', 'fcst_valid_beg', 'fcst_valid_end',
-                                 'fcst_init_beg', 'obs_lead', 'obs_valid_beg', 'obs_valid_end', 'fcst_var',
-                                 'fcst_units', 'fcst_lev', 'obs_var', 'obs_units', 'obs_lev', 'obtype', 'vx_mask',
-                                 'interp_mthd', 'interp_pnts', 'fcst_thresh', 'obs_thresh', 'cov_thresh', 'alpha',
-                                 'line_type', 'total']
 
-        stats_only_df = stats_only_df.set_index(
-            ['Idx', 'version', 'model', 'desc', 'fcst_lead', 'fcst_valid_beg', 'fcst_valid_end', 'fcst_init_beg',
-             'obs_lead', 'obs_valid_beg', 'obs_valid_end', 'fcst_var', 'fcst_units', 'fcst_lev', 'obs_var', 'obs_units',
-             'obs_lev', 'obtype', 'vx_mask', 'interp_mthd', 'interp_pnts', 'fcst_thresh', 'obs_thresh', 'cov_thresh',
-             'alpha', 'line_type', 'total', stats_only_df.groupby(group_list).cumcount()])
+        # Now apply melt to get the stat_name and stat_values from the statistics
 
-        stats_bcl_df = stats_bcl_df.set_index(
-            ['Idx', 'version', 'model', 'desc', 'fcst_lead', 'fcst_valid_beg', 'fcst_valid_end', 'fcst_init_beg',
-             'obs_lead', 'obs_valid_beg', 'obs_valid_end', 'fcst_var', 'fcst_units', 'fcst_lev', 'obs_var', 'obs_units',
-             'obs_lev', 'obtype', 'vx_mask', 'interp_mthd', 'interp_pnts', 'fcst_thresh', 'obs_thresh', 'cov_thresh',
-             'alpha', 'line_type', 'total', stats_bcl_df.groupby(group_list).cumcount()])
-        stats_bcl_df.to_csv('/Users/minnawin/Desktop/reformat/stats_bcl_reindexed.csv')
-        stats_only_df.to_csv('/Users/minnawin/Desktop/reformat/stats_only_reindexed.csv')
-        print("Number of rows of reindexed stats only df: ", stats_only_df.shape[0])
-        print("Number of rows of reindexed stats bcl df: ", stats_bcl_df.shape[0])
+        # Columns we don't want to stack (treat these columns as a multi index)
+        id_vars_list = cn.LC_COMMON_STAT_HEADER + ['total', 'BCL', 'BCU', 'NCL', 'NCU']
+        reshaped = wide_to_long_df.melt(id_vars=id_vars_list,
+                                        value_vars=cn.STAT_CNT_STATISTICS_HEADERS,
+                                        var_name='stat_name',
+                                        value_name='stat_value',
+                                        ignore_index=False)
 
-        df3 = (pd.concat([stats_only_df, stats_bcl_df], axis=1)
-               .sort_index(level=2)
-               .reset_index(level=2, drop=True)
-               .reset_index())
-        df3.to_csv('/Users/minnawin/Desktop/reformat/concatenated_dfs.csv')
 
-        return None
+        # Rename the BCL, BCU, NCL, and NCU columns to stat_bcl, stat_bcu, stat_ncl, and stat_ncu respectively.
+        reshaped.rename(columns = {'BCL':'stat_bcl',
+                                   'BCU':'stat_bcu',
+                                   'NCL':'stat_ncl',
+                                   'NCU':'stat_ncl'},
+                        inplace=True)
+
+        return reshaped
+
+    def rename_bootstrap_columns(self, bootstrap_columns:List[str]) -> List[str]:
+        '''
+
+        Rename the column headers for the boostrap confidence levels so they begin with the name of the
+        confidence level (i.e. BCL_FBAR rather than FBAR_BCL).  This facilitates using pandas
+        wide_to_long() to reshape the data in the dataframe.  Maintain the order of the column header, leaving
+        the non-bootstrap column names unchanged.
+
+        :param bootstrap_columns: A list of all the columns in a dataframe
+        :return:
+        '''
+
+        renamed:List[str] = []
+
+        for cur_col in bootstrap_columns:
+                match = re.match(r'(.+)_(BCL|bcl|BCU|bcu|NCL|ncl|NCU|ncu)', cur_col)
+                if match:
+                    rearranged = match.group(2) + '_' + match.group(1)
+                    renamed.append(rearranged.upper())
+                else:
+                    renamed.append(cur_col)
+
+        return renamed
 
 
 def main():
