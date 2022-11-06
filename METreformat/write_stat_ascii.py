@@ -91,6 +91,9 @@ class WriteStatAscii:
                 elif cur_line_type == cn.CTC:
                     ctc_df = self.process_by_stat_linetype(cur_line_type, stat_data)
                     all_reshaped_data_df.append(ctc_df)
+                elif cur_line_type == cn.CTS:
+                    cts_df = self.process_by_stat_linetype(cur_line_type, stat_data)
+                    all_reshaped_data_df.append(cts_df)
                 elif cur_line_type == cn.SL1L2:
                     sl1l2_df = self.process_by_stat_linetype(cur_line_type, stat_data)
                     all_reshaped_data_df.append(sl1l2_df)
@@ -158,7 +161,9 @@ class WriteStatAscii:
 
         # CTS Contingency Table Statistics
         elif linetype == cn.CTS:
-            pass
+            linetype_data: pd.DataFrame = self.process_cts(stat_data)
+            linetype_data.to_csv('/Users/minnawin/Desktop/reformat/cts_stats.csv')
+
 
         # SL1L2 Scalar Partial sums
         elif linetype == cn.SL1L2:
@@ -500,6 +505,53 @@ class WriteStatAscii:
                     renamed.append(cur_col)
 
         return renamed
+
+
+    def process_cts(self, stat_data:pd.DataFrame ) -> pd.DataFrame:
+       '''
+            Reshape the data from the original MET output file (stat_data) into new statistics columns:
+            stat_name, stat_value specifically for the CTS line type data.
+
+            Arguments:
+            @param stat_data: the dataframe containing all the data from the MET .stat file.
+
+            Returns:
+                linetype_data: the reshaped pandas dataframe with statistics data reorganized into the stat_name and
+                               stat_value columns.
+
+       '''
+
+
+       # Relevant columns for the CTS line type
+       linetype: str = cn.CTS
+       cts_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_CTS_COLS).tolist()
+
+       # Subset original dataframe to one containing only the CTS data
+       cts_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, cts_columns_to_use]
+
+       # Add all the columns header names for the CTS line type
+       cts_columns: List[str] = cn.CTS_SPECIFIC_HEADERS
+       cts_df.columns: List[str] = cts_columns
+
+
+       # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
+       # containing the original data from the MET output file).
+       idx:int = list(cts_df.index)
+       cts_df.insert(loc=0, column='Idx', value=idx)
+       cts_df.to_csv('/Users/minnawin/Desktop/reformat/cts_df.csv')
+
+       # Subset so we only have the statistics, ignoring the bootstrap columns for now
+       cts_stats_only = cts_df[cn.CTS_HEADERS]
+
+       # Now apply melt to get the stat_name and stat_values from the statistics
+
+       # Columns we don't want to stack (i.e. treat these columns as a multi index)
+       id_vars_list =  ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
+       reshaped = cts_df.melt(id_vars=id_vars_list, value_vars=cn.CTS_STATS_ONLY_HEADERS,
+                                        var_name='stat_name',
+                                        value_name='stat_value').sort_values('Idx')
+
+       return reshaped
 
 
 def main():
