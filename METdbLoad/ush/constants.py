@@ -1342,6 +1342,8 @@ LC_CTS_SPECIFIC =[BASER, 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
                          'sedi', 'sedi_ncl', 'sedi_ncu', 'sedi_bcl', 'sedi_bcu',
                          'bagss', 'bagss_bcl', 'bagss_bcu', 'hss_ec', 'hss_ec_bcl',
                          'hss_ec_bcu', EC_VALUE]
+CTS_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_CTS_SPECIFIC]
+CTS_SPECIFIC_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + CTS_SPECIFIC
 CTS_STATS_ONLY = [BASER, FMEAN, 'acc', 'fbias', 'pody', 'podn', 'pofd', 'far', 'csi', 'gss', 'odds', 'lodds', 'orss',
                   'eds', 'sedi', 'bagss', 'hss_ec_bcu']
 CTS_STATS_ONLY_HEADERS = [cur_stat_header.upper() for cur_stat_header in CTS_STATS_ONLY]
