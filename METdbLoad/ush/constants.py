@@ -1205,6 +1205,10 @@ CREATE_INDEXES_QUERIES = \
 # Used by MET reformatter
 #
 
+NUM_STAT_FHO_COLS = 30
+NUM_STAT_CNT_COLS = 125
+NUM_STAT_CTC_COLS = 31
+
 
 DESC = "desc"
 COMMON_STAT_HEADER = [VERSION, MODEL, DESC, FCST_LEAD, FCST_VALID_BEG, FCST_VALID_END, FCST_INIT_BEG, OBS_LEAD, OBS_VALID_BEG,
@@ -1215,8 +1219,11 @@ LC_COMMON_STAT_HEADER = [cur_stat_header.lower() for cur_stat_header in COMMON_S
 #
 # POINT STAT specific
 #
-STAT_FHO_HEADER = LC_COMMON_STAT_HEADER + ['total', 'F_RATE', 'H_RATE', 'O_RATE']
-LC_STAT_CNT_SPECIFIC =  ['fbar', 'fbar_ncl', 'fbar_ncu','fbar_bcl', 'fbar_bcu',
+
+
+#### FHO Line type ####
+FHO_FULL_HEADER = LC_COMMON_STAT_HEADER + ['total', 'F_RATE', 'H_RATE', 'O_RATE']
+LC_CNT_SPECIFIC =  ['fbar', 'fbar_ncl', 'fbar_ncu','fbar_bcl', 'fbar_bcu',
                          'fstdev', 'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
                          'obar', 'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
                          'ostdev', 'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl', 'ostdev_bcu',
@@ -1236,9 +1243,9 @@ LC_STAT_CNT_SPECIFIC =  ['fbar', 'fbar_ncl', 'fbar_ncu','fbar_bcl', 'fbar_bcu',
                          'rmsfa', 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa', 'rmsoa_bcl', 'rmsoa_bcu',
                          'anom_corr_uncntr', 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu',
                          'si', 'si_bcl', 'si_bcu']
-STAT_CNT_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_STAT_CNT_SPECIFIC]
-STAT_CNT_HEADER = LC_COMMON_STAT_HEADER + ['total'] + STAT_CNT_SPECIFIC
-LC_STAT_CNT_STATISTICS_HEADERS = ['fbar',
+CNT_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_CNT_SPECIFIC]
+FULL_CNT_HEADER = LC_COMMON_STAT_HEADER + ['total'] + CNT_SPECIFIC
+LC_CNT_STATISTICS_HEADERS = ['fbar',
                                   'fstdev',
                                   'obar',
                                   'ostdev',
@@ -1257,8 +1264,8 @@ LC_STAT_CNT_STATISTICS_HEADERS = ['fbar',
                                   'rmsfa', 'rmsoa',
                                   'anom_corr_uncntr',
                                   'si']
-STAT_CNT_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_STAT_CNT_STATISTICS_HEADERS]
-LC_STAT_CNT_BOOTSTRAP_HEADERS = ['fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
+CNT_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_CNT_STATISTICS_HEADERS]
+LC_CNT_BOOTSTRAP_HEADERS = ['fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
                                  'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
                                  'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
                                  'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl', 'ostdev_bcu',
@@ -1277,14 +1284,10 @@ LC_STAT_CNT_BOOTSTRAP_HEADERS = ['fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
                                  'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa_bcl', 'rmsoa_bcu',
                                  'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu',
                                  'si_bcl', 'si_bcu']
-STAT_CNT_BOOTSTRAP_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_STAT_CNT_BOOTSTRAP_HEADERS]
-NUM_STAT_FHO_COLS = 30
-NUM_STAT_CNT_COLS = 125
+CNT_BOOTSTRAP_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_CNT_BOOTSTRAP_HEADERS]
 
 
-# Column numbers corresponding to the statistics in point stat CNT line type
-# (i.e. FBAR, FSTDEV, OBAR, OSTDEV, PR_CORR, etc.  Any non-bootstrap confidence level)
-# The fcst_init_beg is calculated after reading in the MET .stat file.
+# Column headers for the CNT line type's bootstrap confidence levels
 
 STAT_CNT_NCL_HEADERS = ['FBAR_NCL', 'FSTDEV_NCL', 'OBAR_NCL', 'OSTDEV_NCL', 'PR_CORR_NCL', 'ME_NCL', 'ESTDEV_NCL',
                         'ANOM_CORR_NCL']
@@ -1301,3 +1304,8 @@ STAT_CNT_BCU_HEADERS = ['FBAR_BCU', 'FSTDEV_BCU', 'OBAR_BCU', 'OSTDEV_BCU', 'PR_
                         'MBIAS_BCU', 'MAE_BCU', 'MSE_BCU', 'BCMSE_BCU', 'RMSE_BCU', 'E10_BCU', 'E25_BCU', 'E50_BCU',
                         'E75_BCU', 'E90_BCU', 'IQR_BCU', 'MAD_BCU', 'ANOM_CORR_BCU', 'ME2_BCU', 'MSESS_BCU',
                         'RMSFA_BCU', 'RMSOA_BCU','ANOM_CORR_UNCNTR_BCU', 'SI_BCU']
+
+##### CTC Line type ######
+LC_STAT_CTC_SPECIFIC = [FY_OY, FY_ON, FN_OY, FN_ON, EC_VALUE]
+CTC_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_STAT_CTC_SPECIFIC]
+CTC_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + CTC_STATISTICS_HEADERS
