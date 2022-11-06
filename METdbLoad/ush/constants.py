@@ -1321,3 +1321,28 @@ SL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + SL1L2_STATISTICS_HEADERS
 
 
 #### CTS Line type ####
+LC_CTS_SPECIFIC =[BASER, 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
+                         FMEAN, 'fmean_ncl', 'fmean_ncu', 'fmean_bcl', 'fmean_bcu',
+                         'acc', 'acc_ncl', 'acc_ncu', 'acc_bcl', 'acc_bcu',
+                         'fbias', 'fbias_bcl', 'fbias_bcu',
+                         'pody', 'pody_ncl', 'pody_ncu', 'pody_bcl', 'pody_bcu',
+                         'podn', 'podn_ncl', 'podn_ncu', 'podn_bcl', 'podn_bcu',
+                         'pofd', 'pofd_ncl', 'pofd_ncu', 'pofd_bcl', 'pofd_bcu',
+                         'far', 'far_ncl', 'far_ncu', 'far_bcl', 'far_bcu',
+                         'csi', 'csi_ncl', 'csi_ncu', 'csi_bcl', 'csi_bcu',
+                         'gss', 'gss_bcl', 'gss_bcu',
+                         'hk', 'hk_ncl', 'hk_ncu', 'hk_bcl', 'hk_bcu',
+                         'hss', 'hss_bcl', 'hss_bcu',
+                         'odds', 'odds_ncl', 'odds_ncu', 'odds_bcl', 'odds_bcu',
+                         'lodds', 'lodds_ncl', 'lodds_ncu', 'lodds_bcl', 'lodds_bcu',
+                         'orss', 'orss_ncl', 'orss_ncu', 'orss_bcl', 'orss_bcu',
+                         'eds', 'eds_ncl', 'eds_ncu', 'eds_bcl', 'eds_bcu',
+                         'seds', 'seds_ncl', 'seds_ncu', 'seds_bcl', 'seds_bcu',
+                         'edi', 'edi_ncl', 'edi_ncu', 'edi_bcl', 'edi_bcu',
+                         'sedi', 'sedi_ncl', 'sedi_ncu', 'sedi_bcl', 'sedi_bcu',
+                         'bagss', 'bagss_bcl', 'bagss_bcu', 'hss_ec', 'hss_ec_bcl',
+                         'hss_ec_bcu', EC_VALUE]
+CTS_STATS_ONLY = [BASER, FMEAN, 'acc', 'fbias', 'pody', 'podn', 'pofd', 'far', 'csi', 'gss', 'odds', 'lodds', 'orss',
+                  'eds', 'sedi', 'bagss', 'hss_ec_bcu']
+CTS_STATS_ONLY_HEADERS = [cur_stat_header.upper() for cur_stat_header in CTS_STATS_ONLY]
+CTS_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + CTS_STATS_ONLY_HEADERS
