@@ -77,29 +77,37 @@ class WriteStatAscii:
             # ------------------------------
             # Extract statistics information
             # ------------------------------
-            # For each line type, extract the statistics information and save it in a new dataframe
-            expanded_headers: List[str] = common_stat_headers + ['stat_name', 'stat_value', 'stat_bcl', 'stat_bcu',
-                                                                 'stat_ncl,'
-                                                                 'stat_ncu']
-            all_var: pd.DataFrame = pd.DataFrame(columns=expanded_headers)
+            # For each line type, extract the statistics information and save it in a list of dataframes to
+            # append later.
+            all_reshaped_data_df:List[pd.DataFrame] = []
 
             for idx, cur_line_type in enumerate(unique_line_types):
                 if cur_line_type == cn.FHO:
-                    pass
-                    fho_var: pd.DataFrame = self.process_by_stat_linetype(cur_line_type, stat_data)
-                if cur_line_type == cn.CNT:
-                    cnt_var = self.process_by_stat_linetype(cur_line_type, stat_data)
+                    fho_df: pd.DataFrame = self.process_by_stat_linetype(cur_line_type, stat_data)
+                    all_reshaped_data_df.append(fho_df)
+                elif cur_line_type == cn.CNT:
+                    cnt_df = self.process_by_stat_linetype(cur_line_type, stat_data)
+                    all_reshaped_data_df.append(cnt_df)
+                elif cur_line_type == cn.CTC:
+                    ctc_df = self.process_by_stat_linetype(cur_line_type, stat_data)
+                    all_reshaped_data_df.append(ctc_df)
 
-            # ToDo
             # Consolidate all the line type dataframes into one dataframe
             #
+            for idx, dfs in enumerate(all_reshaped_data_df):
+                if idx == 0:
+                    combined_dfs = all_reshaped_data_df[0].copy(deep=True)
+                elif idx != 0:
+                    combined_dfs = combined_dfs.append(dfs)
+
+            combined_dfs.to_csv('/Users/minnawin/Desktop/reformat/combined_df.csv')
 
             # Write out to an ASCII file
             out_path: str = parms['output_dir']
             out_filename: str = parms['output_filename']
             output_file: os.path = os.path.join(out_path, out_filename)
             print(f"Writing output...")
-            final_df: pd.DataFrame = fho_var.to_csv(output_file, index=None, sep='\t', mode='a')
+            final_df: pd.DataFrame = fho_df.to_csv(output_file, index=None, sep='\t', mode='a')
 
 
 
@@ -117,7 +125,7 @@ class WriteStatAscii:
     def process_by_stat_linetype(self, linetype: str, stat_data: pd.DataFrame):
         '''
            For a given linetype, extract the relevant statistics information into the
-           stat_name, stat_value, stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns,
+           stat_name, stat_value columns,
            along with the original data in the all_vars dataframe.
 
         Args:
@@ -131,16 +139,19 @@ class WriteStatAscii:
 
         # FHO forecast, hit rate, observation rate
         if linetype == cn.FHO:
-            linetype_data: pd.DataFrame = self.process_fho(stat_data)
+            linetype_data:pd.DataFrame = self.process_fho(stat_data)
+            linetype_data.to_csv('/Users/minnawin/Desktop/reformat/fho_stat.csv')
 
         # CNT Continuous Statistics
         elif linetype == cn.CNT:
-            linetype_data: pd.DataFrame = self.process_cnt(stat_data)
+            linetype_data:pd.DataFrame = self.process_cnt(stat_data)
             # linetype_data: pd.DataFrame = self.process_cnt_full(stat_data)
+            linetype_data.to_csv('/Users/minnawin/Desktop/reformat/cnt_stats.csv')
 
         # CTC Contingency Table Counts
         elif linetype == cn.CTC:
-            pass
+            linetype_data:pd.DataFrame = self.process_ctc(stat_data)
+            linetype_data.to_csv('/Users/minnawin/Desktop/reformat/ctc_stats.csv')
 
         # CTS Contingency Table Statistics
         elif linetype == cn.CTS:
@@ -179,8 +190,53 @@ class WriteStatAscii:
         fho_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, fho_columns_to_use]
 
         # Add the stat columns for the FHO line type
-        fho_columns: List[str] = cn.STAT_FHO_HEADER
+        fho_columns: List[str] = cn.FHO_FULL_HEADER
         fho_df.columns: List[str] = fho_columns
+
+        # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
+        # containing the original data from the MET output file).
+        idx: int = list(fho_df.index)
+        fho_df.insert(loc=0, column='Idx', value=idx)
+
+        # Use pandas 'melt' to reshape the data frame from wide to long shape (i.e. collecting the f_rate, h_rate,
+        # and o_rate values and putting them under the column 'stat_value' corresponding to the 'stat_name' column
+        # containing the names F_RATE, H_RATE, and O_RATE
+
+        # columns that we don't want to change (the last three columns are the stat columns of interest,
+        # we want to capture that information into the stat_name and stat_values columns)
+        columns_to_use: pd.Index = fho_df.columns[0:-3]
+        fho_copy: pd.DataFrame = fho_df.copy(deep=True)
+        linetype_data: pd.DataFrame = pd.melt(fho_copy, id_vars=list(columns_to_use), var_name='stat_name',
+                                              value_name='stat_value').sort_values('Idx')
+
+        return linetype_data
+
+
+    def process_fho_full(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        '''
+            Retrieve the FHO line type data and reshape it to replace the original columns (based on column number) into
+            stat_name, stat_value, stat_bcl, stat_bcu, stat_ncu, and stat_ncl
+
+            Arguments:
+            @param stat_data: The dataframe containing all the original data from the MET .stat file.
+
+            Returns:
+            linetype_data:  The dataframe with the reshaped data for the FHO line type
+        '''
+
+        # Extract the stat_names and stat_values for this line type:
+        # F_RATE, H_RATE, O_RATE (these will be the stat name).  There are no corresponding xyz_bcl, xyz_bcu,
+        # xyz_ncl, and xyz_ncu values where xyz = stat name
+
+        #
+        # Subset the stat_data dataframe into a smaller data frame containing only the FHO line type with all its
+        # columns.
+        #
+
+        # Relevant columns for the FHO line type
+        linetype: str = cn.FHO
+        fho_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_FHO_COLS - 1).tolist()
+        fho_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, fho_columns_to_use]
 
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
@@ -208,6 +264,8 @@ class WriteStatAscii:
 
         return linetype_data
 
+
+
     def process_cnt(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         '''
            Reshape the data from the original MET output file (stat_data) into new statistics columns:
@@ -230,7 +288,7 @@ class WriteStatAscii:
         cnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, cnt_columns_to_use]
 
         # Add the stat columns for the CNT line type
-        cnt_columns: List[str] = cn.STAT_CNT_HEADER
+        cnt_columns: List[str] = cn.FULL_CNT_HEADER
         cnt_df.columns: List[str] = cnt_columns
 
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
@@ -240,24 +298,22 @@ class WriteStatAscii:
         cnt_df.to_csv('/Users/minnawin/Desktop/reformat/cnt_df.csv')
 
         # Use the pd.wide_to_long() to convert the bcl bootstrap on the stats_only dataframe, stats_only_df
-        # Rename the <stat_group>_BCL|BCU|NCL|NCU to BCL|BCU|NCL|NCU_<stat_group> in order to
-        # use pd.wide_to_long().
 
         # Columns for statistics
-        stat_columns: List[str] = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total'] + cn.STAT_CNT_STATISTICS_HEADERS
+        stat_columns: List[str] = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total'] + cn.CNT_STATISTICS_HEADERS
         cnt_stat_only_df: pd.DataFrame = cnt_df[stat_columns]
 
         # Now apply melt to get the stat_name and stat_values from the statistics
 
         # Columns we don't want to stack (i.e. treat these columns as a multi index)
         id_vars_list = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
-        reshaped = cnt_stat_only_df.melt(id_vars=id_vars_list, value_vars=cn.STAT_CNT_STATISTICS_HEADERS,
+        reshaped = cnt_stat_only_df.melt(id_vars=id_vars_list, value_vars=cn.CNT_STATISTICS_HEADERS,
                                var_name='stat_name',
                                value_name='stat_value', ignore_index=False).sort_values('Idx')
 
         return reshaped
 
-    def process_cnt_full(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+    def process_cnt_full(self, stat_data:pd.DataFrame) -> pd.DataFrame:
         '''
            Reshape the data from the original MET output file (stat_data) into new statistics columns:
            stat_name, stat_value, stat_ncl, stat_ncu, stat_bcl, and stat_bcu specifically for the CNT line type data.
@@ -279,7 +335,7 @@ class WriteStatAscii:
         cnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, cnt_columns_to_use]
 
         # Add the stat columns for the CNT line type
-        cnt_columns: List[str] = cn.STAT_CNT_HEADER
+        cnt_columns: List[str] = cn.FULL_CNT_HEADER
         cnt_df.columns: List[str] = cnt_columns
 
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
@@ -328,6 +384,50 @@ class WriteStatAscii:
                         inplace=True)
 
         return reshaped
+
+    def process_ctc(self, stat_data:pd.DataFrame ) -> pd.DataFrame:
+       '''
+            Reshape the data from the original MET output file (stat_data) into new statistics columns:
+            stat_name, stat_value specifically for the CTC line type data.
+
+            Arguments:
+            @param stat_data: the dataframe containing all the data from the MET .stat file.
+
+            Returns:
+                linetype_data: the reshaped pandas dataframe with statistics data reorganized into the stat_name and
+                               stat_value columns.
+
+       '''
+
+
+       # Relevant columns for the CTC line type
+       linetype: str = cn.CTC
+       ctc_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_CTC_COLS).tolist()
+
+       # Subset original dataframe to one containing only the CTC data
+       ctc_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, ctc_columns_to_use]
+
+       # Add the stat columns header names for the CTC line type
+       ctc_columns: List[str] = cn.CTC_HEADERS
+       ctc_df.columns: List[str] = ctc_columns
+
+
+       # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
+       # containing the original data from the MET output file).
+       idx:int = list(ctc_df.index)
+       ctc_df.insert(loc=0, column='Idx', value=idx)
+       ctc_df.to_csv('/Users/minnawin/Desktop/reformat/ctc_df.csv')
+
+       # Now apply melt to get the stat_name and stat_values from the statistics
+
+       # Columns we don't want to stack (i.e. treat these columns as a multi index)
+       id_vars_list =  cn.LC_COMMON_STAT_HEADER + ['total']
+       reshaped = ctc_df.melt(id_vars=id_vars_list, value_vars=cn.CTC_STATISTICS_HEADERS,
+                                        var_name='stat_name',
+                                        value_name='stat_value', ignore_index=False)
+
+       return reshaped
+
 
     def rename_bootstrap_columns(self, bootstrap_columns:List[str]) -> List[str]:
         '''
