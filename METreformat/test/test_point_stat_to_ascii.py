@@ -11,7 +11,7 @@ from METdataio.METreformat.write_stat_ascii import WriteStatAscii
 @pytest.fixture
 def setup():
     # Read in the XML load file. This contains information about which MET output files are to be loaded.
-    xml_file = '/Volumes/d1/minnawin/feature_121_met_reformatter/METdataio/METreformat/point_stat.xml'
+    xml_file = './point_stat.xml'
 
     xml_loadfile_obj = XmlLoadFile(xml_file)
     xml_loadfile_obj.read_xml()
