@@ -172,7 +172,119 @@ def test_point_stat_CTC_consistency(setup):
     assert expected_val == actual_value
 
 
+def test_point_stat_CTS_consistency(setup):
+    '''
+           For the data frame for the CTS line type, verify that a value in the original data
+           corresponds to the value identified with the same criteria in the newly reformatted
+           dataframe.
 
+    '''
+
+    # Original data
+    stat_data = setup.stat_data
+
+    # Relevant columns for the CTS line type
+    linetype: str = cn.CTS
+    cts_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_CTS_COLS).tolist()
+
+    # Subset original dataframe to one containing only the CTS data
+    cts_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, cts_columns_to_use]
+
+    # Add all the columns header names for the CTS line type
+    cts_columns: List[str] = cn.CTS_SPECIFIC_HEADERS
+    cts_df.columns: List[str] = cts_columns
+
+    # get the value of the record corresponding to line_type CTS, total number of pairs, obs_var,
+    # obs_lev, and fcst_thresh, for the BASER statistic.
+    total = 3956
+    obs_var = 'CEILING'
+    obs_level = 'L0'
+    fcst_thresh = '<152'
+    expected_df:pd.DataFrame = cts_df.loc[(cts_df['total'] == total) & (cts_df['obs_var'] == obs_var) &
+                                    (cts_df['obs_lev'] == obs_level) &
+                                    (cts_df['fcst_thresh'] == fcst_thresh)]
+    expected_row:pd.Series = expected_df.iloc[0]
+    expected_name: str = "BASER"
+    expected_ncu: str = "BASER_NCU"
+    expected_ncl: str = "BASER_NCL"
+    expected_val:float = expected_row.loc[expected_name]
+    expected_ncl:float = expected_row.loc[expected_ncl]
+    expected_ncu:float = expected_row.loc[expected_ncu]
+
+    wsa = WriteStatAscii()
+    reshaped_df = wsa.process_cts(stat_data)
+    actual_df:pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
+                                           (reshaped_df['obs_lev'] == obs_level) &
+                                           (reshaped_df['fcst_thresh'] == fcst_thresh) &
+                                           (reshaped_df['stat_name'] == expected_name)]
+    actual_row:pd.Series = actual_df.iloc[0]
+    actual_value:float = actual_row['stat_value']
+    actual_ncl:float = actual_row['stat_ncl']
+    actual_ncu:float = actual_row['stat_ncu']
+
+
+    # Checking for consistency between the reformatted/reshaped data and the "original" data.
+    assert expected_val == actual_value
+    assert expected_ncl == actual_ncl
+    assert expected_ncu == actual_ncu
+
+
+
+def test_point_stat_CNT_consistency(setup):
+    '''
+           For the data frame for the CNT line type, verify that a value in the original data
+           corresponds to the value identified with the same criteria in the newly reformatted
+           dataframe.
+
+    '''
+
+    # Original data
+    stat_data = setup.stat_data
+
+    # Relevant columns for the CNT line type
+    linetype: str = cn.CNT
+    cnt_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_CNT_COLS).tolist()
+
+    # Subset original dataframe to one containing only the CTC data
+    cnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, cnt_columns_to_use]
+
+    # Add the stat columns for the CNT line type
+    cnt_columns: List[str] = cn.FULL_CNT_HEADER
+    cnt_df.columns: List[str] = cnt_columns
+
+    # get the value of the record corresponding to line_type CTC, total number of pairs, obs_var,
+    # obs_lev, and fcst_thresh, for the ME statistic.
+    total = 4028
+    obs_var = 'TMP'
+    obs_level = 'Z2'
+    fcst_thresh = 'NA'
+    expected_df:pd.DataFrame = cnt_df.loc[(cnt_df['total'] == total) & (cnt_df['obs_var'] == obs_var) &
+                                    (cnt_df['obs_lev'] == obs_level) &
+                                    (cnt_df['fcst_thresh'] == fcst_thresh)]
+    expected_row:pd.Series = expected_df.iloc[0]
+    expected_name: str = "ME"
+    expected_ncu: str = "ME_NCU"
+    expected_ncl: str = "ME_NCL"
+    expected_val:float = expected_row.loc[expected_name]
+    expected_ncl:float = expected_row.loc[expected_ncl]
+    expected_ncu:float = expected_row.loc[expected_ncu]
+
+    wsa = WriteStatAscii()
+    reshaped_df = wsa.process_cnt(stat_data)
+    actual_df:pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
+                                           (reshaped_df['obs_lev'] == obs_level) &
+                                           (reshaped_df['fcst_thresh'] == fcst_thresh) &
+                                           (reshaped_df['stat_name'] == expected_name)]
+    actual_row:pd.Series = actual_df.iloc[0]
+    actual_value:float = actual_row['stat_value']
+    actual_ncl:float = actual_row['stat_ncl']
+    actual_ncu:float = actual_row['stat_ncu']
+
+
+    # Checking for consistency between the reformatted/reshaped data and the "original" data.
+    assert expected_val == actual_value
+    assert expected_ncl == actual_ncl
+    assert expected_ncu == actual_ncu
 
 
 
