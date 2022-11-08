@@ -1225,6 +1225,10 @@ LC_COMMON_STAT_HEADER = [cur_stat_header.lower() for cur_stat_header in COMMON_S
 
 #### FHO Line type ####
 FHO_FULL_HEADER = LC_COMMON_STAT_HEADER + ['total', 'F_RATE', 'H_RATE', 'O_RATE']
+
+
+
+###### CNT line type
 LC_CNT_SPECIFIC =  ['fbar', 'fbar_ncl', 'fbar_ncu','fbar_bcl', 'fbar_bcu',
                          'fstdev', 'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
                          'obar', 'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
@@ -1345,6 +1349,6 @@ LC_CTS_SPECIFIC =[BASER, 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
 CTS_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_CTS_SPECIFIC]
 CTS_SPECIFIC_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + CTS_SPECIFIC
 CTS_STATS_ONLY = [BASER, FMEAN, 'acc', 'fbias', 'pody', 'podn', 'pofd', 'far', 'csi', 'gss', 'odds', 'lodds', 'orss',
-                  'eds', 'sedi', 'bagss', 'hss_ec_bcu']
+                  'eds', 'sedi', 'bagss', 'hss_ec_bcu', 'edi', 'hk', 'seds', 'hss', 'hss_ec', EC_VALUE]
 CTS_STATS_ONLY_HEADERS = [cur_stat_header.upper() for cur_stat_header in CTS_STATS_ONLY]
 CTS_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + CTS_STATS_ONLY_HEADERS
