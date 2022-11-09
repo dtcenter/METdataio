@@ -2503,3 +2503,45 @@ CREATE TABLE line_data_tcmpr
     INDEX tcst_header_id_idx (tcst_header_id)
 ) ENGINE = MyISAM
   CHARACTER SET = latin1;
+
+DROP TABLE IF EXISTS line_data_tcdiag;
+CREATE TABLE line_data_tcdiag
+(
+    line_data_id   INT UNSIGNED NOT NULL,
+    tcst_header_id INT UNSIGNED NOT NULL,
+    data_file_id   INT UNSIGNED NOT NULL,
+    line_num       INT UNSIGNED NOT NULL,
+    fcst_lead      INT,
+    fcst_valid     DATETIME,
+    fcst_init      DATETIME,
+    total          INT UNSIGNED,
+    index_pair     DOUBLE,
+    diag_source    VARCHAR(20),
+    n_diag         INT UNSIGNED,
+
+    PRIMARY KEY (line_data_id),
+    CONSTRAINT line_data_tcdiag_data_file_id_pk
+        FOREIGN KEY (data_file_id)
+            REFERENCES data_file (data_file_id),
+    CONSTRAINT line_data_tcdiag_stat_header_id_pk
+        FOREIGN KEY (tcst_header_id)
+            REFERENCES tcst_header (tcst_header_id),
+    INDEX tcst_header_id_idx (tcst_header_id)
+) ENGINE = MyISAM
+  CHARACTER SET = latin1;
+
+DROP TABLE IF EXISTS line_data_tcdiag_diag;
+CREATE TABLE line_data_tcdiag_diag
+(
+    line_data_id INT UNSIGNED NOT NULL,
+    i_value      INT UNSIGNED NOT NULL,
+    diag_i       VARCHAR(20),
+    value_i      INT,
+
+    PRIMARY KEY (line_data_id, i_value),
+    CONSTRAINT line_data_tcdiag_id_pk
+        FOREIGN KEY (line_data_id)
+            REFERENCES line_data_tcdiag (line_data_id)
+) ENGINE = MyISAM
+  CHARACTER SET = latin1;
+  
