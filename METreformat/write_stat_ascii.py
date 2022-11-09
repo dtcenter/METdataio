@@ -83,23 +83,18 @@ class WriteStatAscii:
             for idx, cur_line_type in enumerate(unique_line_types):
                 if cur_line_type == cn.FHO:
                     fho_df: pd.DataFrame = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    fho_df.to_csv('/Users/minnawin/Desktop/reformat/fho_df.csv')
                     all_reshaped_data_df.append(fho_df)
                 elif cur_line_type == cn.CNT:
                     cnt_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    cnt_df.to_csv('/Users/minnawin/Desktop/reformat/cnt_df.csv')
                     all_reshaped_data_df.append(cnt_df)
                 elif cur_line_type == cn.CTC:
                     ctc_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    ctc_df.to_csv('/Users/minnawin/Desktop/reformat/ctc_df.csv')
                     all_reshaped_data_df.append(ctc_df)
                 elif cur_line_type == cn.CTS:
                     cts_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    cts_df.to_csv('/Users/minnawin/Desktop/reformat/cts_df.csv')
                     all_reshaped_data_df.append(cts_df)
                 elif cur_line_type == cn.SL1L2:
                     sl1l2_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    sl1l2_df.to_csv('/Users/minnawin/Desktop/reformat/sl1l2_df.csv')
                     all_reshaped_data_df.append(sl1l2_df)
 
             # Consolidate all the line type dataframes into one dataframe
@@ -113,7 +108,6 @@ class WriteStatAscii:
             # Write out to the tab-separated text file
             output_file = os.path.join(parms['output_dir'], parms['output_filename'])
             final_df: pd.DataFrame = combined_dfs.to_csv(output_file, index=None, sep='\t', mode='a')
-            combined_dfs.to_csv('/Users/minnawin/Desktop/reformat/final_df.csv')
 
 
         except (RuntimeError, TypeError, NameError, KeyError):
