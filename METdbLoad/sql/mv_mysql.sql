@@ -2536,7 +2536,7 @@ CREATE TABLE line_data_tcdiag_diag
     line_data_id INT UNSIGNED NOT NULL,
     i_value      INT UNSIGNED NOT NULL,
     diag_i       VARCHAR(20),
-    value_i      INT,
+    value_i      DOUBLE,
 
     PRIMARY KEY (line_data_id, i_value),
     CONSTRAINT line_data_tcdiag_id_pk
