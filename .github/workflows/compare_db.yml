@@ -17,7 +17,7 @@ defaults:
 
 jobs: 
   run-shell-command:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-18.04
     name: job_run
     env:
       DB_DATABASE: mv_ci_prod
@@ -82,13 +82,13 @@ jobs:
         run: |
           cd /home/runner/work/METdataio/METdataio/baseold/METdbLoad/ush
           python met_db_load.py /home/runner/work/METdataio/METdataio/headnew/METdbLoad/tests/load_met_gha_prod.xml
-          mysql -e 'SHOW TABLE STATUS WHERE `rows` > 0;'  -uroot -proot mv_ci_prod
+          mysql -e 'SHOW TABLE STATUS WHERE rows > 0;'  -uroot -proot mv_ci_prod
       - name: run METdbload new
         shell: bash
         run: |
           cd /home/runner/work/METdataio/METdataio/headnew/METdbLoad/ush
           python met_db_load.py /home/runner/work/METdataio/METdataio/headnew/METdbLoad/tests/load_met_gha_new.xml
-          mysql -e 'SHOW TABLE STATUS WHERE `rows` > 0;'  -uroot -proot mv_ci_new
+          mysql -e 'SHOW TABLE STATUS WHERE rows > 0;'  -uroot -proot mv_ci_new
       - name: run test_tables to compare tables in 2 databases
         shell: bash
         run: python /home/runner/work/METdataio/METdataio/headnew/METdbLoad/tests/test_tables.py
