@@ -72,6 +72,8 @@ def test_point_stat_FHO_consistency(setup):
     assert expected_val == actual_value
     assert expected_name == actual_name
 
+
+
 def test_point_stat_SL1L2_consistency(setup):
     '''
            For the data frame for the SL1L2 line type, verify that a value in the original data
@@ -121,6 +123,9 @@ def test_point_stat_SL1L2_consistency(setup):
     # Checking for consistency between the reformatted/reshaped data and the "original" data.
     assert expected_val == actual_value
 
+    # Check for any nan values in the dataframe
+    assert reshaped_df.isnull().values.any() == False
+
 
 def test_point_stat_CTC_consistency(setup):
     '''
@@ -168,8 +173,12 @@ def test_point_stat_CTC_consistency(setup):
 
     actual_name:str = actual_row['stat_name']
 
+
     # Checking for consistency between the reformatted/reshaped data and the "original" data.
     assert expected_val == actual_value
+
+    # Check for any nan values in the dataframe
+    assert reshaped_df.isnull().values.any() == False
 
 
 def test_point_stat_CTS_consistency(setup):
@@ -228,6 +237,8 @@ def test_point_stat_CTS_consistency(setup):
     assert expected_ncl == actual_ncl
     assert expected_ncu == actual_ncu
 
+    # Check for any nan values in the dataframe
+    assert reshaped_df.isnull().values.any() == False
 
 
 def test_point_stat_CNT_consistency(setup):
@@ -286,6 +297,8 @@ def test_point_stat_CNT_consistency(setup):
     assert expected_ncl == actual_ncl
     assert expected_ncu == actual_ncu
 
+    # Check for any nan values in the dataframe
+    assert reshaped_df.isnull().values.any() == False
 
 
 
