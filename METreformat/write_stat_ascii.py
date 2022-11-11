@@ -45,8 +45,8 @@ class WriteStatAscii:
 
 
             Args:
-                @param stat_data: pandas dataframe corresponding to the MET stat input file
-
+                @param stat_data: pandas dataframe corresponding to the MET stat input file generated from the METdbLoad
+                                  file reader
                 @param parms:  The yaml configuration object (dictionary) containing the settings for output dir, output file
 
             Returns:  None, write an output ASCII file associated with the original MET .stat file with statistics
@@ -80,26 +80,24 @@ class WriteStatAscii:
             # be appended together.
             all_reshaped_data_df: List[pd.DataFrame] = []
 
+            # Replace any nan records with 'NA'.  These nan values were set by the METdbLoad read_data_files module.
+            stat_data = stat_data.fillna('NA')
+
             for idx, cur_line_type in enumerate(unique_line_types):
                 if cur_line_type == cn.FHO:
                     fho_df: pd.DataFrame = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    fho_df.to_csv('/Users/minnawin/Desktop/reformat/fho_df.csv')
                     all_reshaped_data_df.append(fho_df)
                 elif cur_line_type == cn.CNT:
                     cnt_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    cnt_df.to_csv('/Users/minnawin/Desktop/reformat/cnt_df.csv')
                     all_reshaped_data_df.append(cnt_df)
                 elif cur_line_type == cn.CTC:
                     ctc_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    ctc_df.to_csv('/Users/minnawin/Desktop/reformat/ctc_df.csv')
                     all_reshaped_data_df.append(ctc_df)
                 elif cur_line_type == cn.CTS:
                     cts_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    cts_df.to_csv('/Users/minnawin/Desktop/reformat/cts_df.csv')
                     all_reshaped_data_df.append(cts_df)
                 elif cur_line_type == cn.SL1L2:
                     sl1l2_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    sl1l2_df.to_csv('/Users/minnawin/Desktop/reformat/sl1l2_df.csv')
                     all_reshaped_data_df.append(sl1l2_df)
 
             # Consolidate all the line type dataframes into one dataframe
@@ -113,7 +111,6 @@ class WriteStatAscii:
             # Write out to the tab-separated text file
             output_file = os.path.join(parms['output_dir'], parms['output_filename'])
             final_df: pd.DataFrame = combined_dfs.to_csv(output_file, index=None, sep='\t', mode='a')
-            combined_dfs.to_csv('/Users/minnawin/Desktop/reformat/final_df.csv')
 
 
         except (RuntimeError, TypeError, NameError, KeyError):
@@ -144,24 +141,27 @@ class WriteStatAscii:
 
         # FHO forecast, hit rate, observation rate
         if linetype == cn.FHO:
+            pass
             linetype_data: pd.DataFrame = self.process_fho(stat_data)
 
         # CNT Continuous Statistics
         elif linetype == cn.CNT:
             linetype_data: pd.DataFrame = self.process_cnt(stat_data)
-            # linetype_data: pd.DataFrame = self.process_cnt_full(stat_data)
 
         # CTC Contingency Table Counts
         elif linetype == cn.CTC:
+            pass
             linetype_data: pd.DataFrame = self.process_ctc(stat_data)
 
         # CTS Contingency Table Statistics
         elif linetype == cn.CTS:
+            pass
             linetype_data: pd.DataFrame = self.process_cts(stat_data)
 
 
         # SL1L2 Scalar Partial sums
         elif linetype == cn.SL1L2:
+            pass
             linetype_data: pd.DataFrame = self.process_sl1l2(stat_data)
 
         return linetype_data
@@ -233,7 +233,7 @@ class WriteStatAscii:
            @param stat_data: the dataframe containing all the data from the MET .stat file.
 
            Returns:
-           linetype_data: the reshaped pandas dataframe with statistics and bootstrap data reorganized into the
+           linetype_data: the reshaped pandas dataframe with statistics and confidence level data reorganized into the
                           stat_name, stat_value, stat_ncl, stat_ncu, stat_bcl, and stat_bcu columns.
 
         """
@@ -254,26 +254,26 @@ class WriteStatAscii:
         idx: int = list(cnt_df.index)
         cnt_df.insert(loc=0, column='Idx', value=idx)
 
-        # Use the pd.wide_to_long() to collect the statistics and bootstrap data into the appropriate columns.
+        # Use the pd.wide_to_long() to collect the statistics and confidence level data into the appropriate columns.
         # Rename the <stat_group>_BCL|BCU|NCL|NCU to BCL|BCU|NCL|NCU_<stat_group> in order to
         # use pd.wide_to_long().
 
-        # Rename bootstrap column header names so the BCL, BCU, NCL, and NCU are appended with the statistic name
+        # Rename confidence level column header names so the BCL, BCU, NCL, and NCU are appended with the statistic name
         # (i.e. from FBAR_BCU to BCU_FBAR to be able to use the pandas wide_to_long).
-        bootstrap_columns_renamed: List[str] = self.rename_bootstrap_columns(cnt_df.columns.tolist())
-        cnt_df.columns: List[str] = bootstrap_columns_renamed
+        confidence_level_columns_renamed: List[str] = self.rename_confidence_level_columns(cnt_df.columns.tolist())
+        cnt_df.columns: List[str] = confidence_level_columns_renamed
 
         # Rename the statistics columns (ie. FBAR, MAE, FSTDEV, etc. to STAT_FBAR, STAT_MAE, etc.)
-        stat_bootstrap_columns_renamed = self.rename_statistics_columns(cnt_df, cn.CNT_STATISTICS_HEADERS)
-        cnt_df.columns = stat_bootstrap_columns_renamed
+        stat_confidence_level_columns_renamed = self.rename_statistics_columns(cnt_df, cn.CNT_STATISTICS_HEADERS)
+        cnt_df.columns = stat_confidence_level_columns_renamed
 
         # Get the name of the columns to be used for indexing, this will also preserve the ordering of columns from the
         # original data.
-        indexing_colums = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
+        indexing_columns = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
 
         wide_to_long_df: pd.DataFrame = pd.wide_to_long(cnt_df,
                                                         stubnames=['STAT', 'NCL', 'NCU', 'BCL', 'BCU'],
-                                                        i=indexing_colums,
+                                                        i=indexing_columns,
                                                         j='stat_name',
                                                         sep='_',
                                                         suffix='.+'
@@ -283,8 +283,13 @@ class WriteStatAscii:
         # respectively.
         wide_to_long_df = wide_to_long_df.reset_index()
 
-        linetype_data = wide_to_long_df.rename(
+        renamed_wide_to_long_df:pd.DataFrame = wide_to_long_df.rename(
             columns={'BCL': 'stat_bcl', 'BCU': 'stat_bcu', 'NCL': 'stat_ncl', 'NCU': 'stat_ncu', 'STAT': 'stat_value'})
+
+        # Some statistics in the CNT line type only have confidence level confidence limits (ie. no normal confidence limits).
+        # Set any nan stat_ncl and stat_ncu records to 'NA'
+        linetype_data: pd.DataFrame = renamed_wide_to_long_df.fillna('NA')
+
 
         return linetype_data
 
@@ -366,26 +371,26 @@ class WriteStatAscii:
         idx: int = list(cts_df.index)
         cts_df.insert(loc=0, column='Idx', value=idx)
 
-        # Use the pd.wide_to_long() to collect the statistics and bootstrap data into the appropriate columns.
+        # Use the pd.wide_to_long() to collect the statistics and confidence level data into the appropriate columns.
         # Rename the <stat_group>_BCL|BCU|NCL|NCU to BCL|BCU|NCL|NCU_<stat_group> in order to
         # use pd.wide_to_long().
 
-        # Rename bootstrap column header names so the BCL, BCU, NCL, and NCU are appended with the statistic name
+        # Rename confidence level column header names so the BCL, BCU, NCL, and NCU are appended with the statistic name
         # (i.e. from FBAR_BCU to BCU_FBAR to be able to use the pandas wide_to_long).
-        bootstrap_columns_renamed: List[str] = self.rename_bootstrap_columns(cts_df.columns.tolist())
-        cts_df.columns: List[str] = bootstrap_columns_renamed
+        confidence_level_columns_renamed: List[str] = self.rename_confidence_level_columns(cts_df.columns.tolist())
+        cts_df.columns: List[str] = confidence_level_columns_renamed
 
         # Rename the statistics columns (ie. FBAR, MAE, FSTDEV, etc. to STAT_FBAR, STAT_MAE, etc.)
-        stat_bootstrap_columns_renamed = self.rename_statistics_columns(cts_df, cn.CTS_STATS_ONLY_HEADERS)
-        cts_df.columns = stat_bootstrap_columns_renamed
+        stat_confidence_level_columns_renamed = self.rename_statistics_columns(cts_df, cn.CTS_STATS_ONLY_HEADERS)
+        cts_df.columns = stat_confidence_level_columns_renamed
 
         # Get the name of the columns to be used for indexing, this will also preserve the ordering of columns from the
         # original data.
-        indexing_colums = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
+        indexing_columns = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
 
         wide_to_long_df: pd.DataFrame = pd.wide_to_long(cts_df,
                                                         stubnames=['STAT', 'NCL', 'NCU', 'BCL', 'BCU'],
-                                                        i=indexing_colums,
+                                                        i=indexing_columns,
                                                         j='stat_name',
                                                         sep='_',
                                                         suffix='.+'
@@ -395,8 +400,12 @@ class WriteStatAscii:
         # respectively.
         wide_to_long_df = wide_to_long_df.reset_index()
 
-        linetype_data = wide_to_long_df.rename(
+        renamed_wide_to_long_df = wide_to_long_df.rename(
             columns={'BCL': 'stat_bcl', 'BCU': 'stat_bcu', 'NCL': 'stat_ncl', 'NCU': 'stat_ncu', 'STAT': 'stat_value'})
+
+        # Some statistics in the CNT line type only have confidence level confidence limits (ie. no normal confidence limits).
+        # Set any nan stat_ncl and stat_ncu records to 'NA'
+        linetype_data: pd.DataFrame = renamed_wide_to_long_df.fillna('NA')
 
         return linetype_data
 
@@ -448,21 +457,24 @@ class WriteStatAscii:
 
         return reshaped
 
-    def rename_bootstrap_columns(self, bootstrap_columns: List[str]) -> List[str]:
+    def rename_confidence_level_columns(self, confidence_level_columns: List[str]) -> List[str]:
         """
 
-        Rename the column headers for the boostrap confidence levels so they begin with the name of the
-        confidence level (i.e. BCL_FBAR rather than FBAR_BCL).  This facilitates using pandas
+        Rename the column headers for the confidence levels so they begin with the name of the
+        confidence level type (i.e. BCL_FBAR rather than FBAR_BCL).  This facilitates using pandas
         wide_to_long() to reshape the data in the dataframe.  Maintain the order of the column header, leaving
-        the non-bootstrap column header names unchanged.
+        the other column header names unchanged.
 
-        :param bootstrap_columns: A list of all the columns in a dataframe
-        :return:
+        Arguments:
+        @param confidence_level_columns: A list of all the columns in a dataframe
+
+        Returns:
+          renamed:  A list of renamed confidence level header names.
         """
 
         renamed: List[str] = []
 
-        for cur_col in bootstrap_columns:
+        for cur_col in confidence_level_columns:
             match = re.match(r'(.+)_(BCL|bcl|BCU|bcu|NCL|ncl|NCU|ncu)', cur_col)
             if match:
                 rearranged = match.group(2) + '_' + match.group(1)
@@ -475,7 +487,7 @@ class WriteStatAscii:
     def rename_statistics_columns(self, df: pd.DataFrame, statistics_columns: List[str]) -> List[str]:
         """
 
-        Rename the column headers for the statistics columns so they begin with 'STAT_' (i.e. FBAR becomes STAT_FBAR)
+        Rename the column headers for the statistics columns to begin with 'STAT_' (i.e. FBAR becomes STAT_FBAR)
         This facilitates using pandas wide_to_long() to reshape the data in the dataframe.
         Maintain the order of the column header, leaving all other column header names unchanged.
 
