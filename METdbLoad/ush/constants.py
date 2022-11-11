@@ -5,6 +5,7 @@
 # constants exist in constants.py
 
 from collections import OrderedDict
+import numpy as np
 
 # name to use for a group when no group tag is included in load_spec
 DEFAULT_DATABASE_GROUP = "NO GROUP"
@@ -181,6 +182,7 @@ UC_FCST_UNITS = "FCST_UNITS"
 
 VERSION = "version"
 MODEL = "model"
+
 # MET file contains DESC. SQL field name is descr
 DESCR = "descr"
 FCST_LEAD = "fcst_lead"
@@ -237,6 +239,7 @@ MID_HEADER = LONG_HEADER[0:10] + LONG_HEADER[11:13] + LONG_HEADER[14:]
 # No DESC and no UNITS
 SHORT_HEADER = MID_HEADER[0:2] + MID_HEADER[3:]
 SHORT_HEADER_TCST = LONG_HEADER_TCST[0:3] + LONG_HEADER_TCST[4:]
+
 
 STAT_HEADER_KEYS = [VERSION, MODEL, DESCR, FCST_VAR, FCST_UNITS, FCST_LEV,
                     OBS_VAR, OBS_UNITS, OBS_LEV, OBTYPE, VX_MASK,
@@ -1197,3 +1200,155 @@ CREATE_INDEXES_QUERIES = \
      "CREATE INDEX line_data_ssidx_fcst_lead_idx ON line_data_ssidx (fcst_lead)",
      "CREATE INDEX line_data_ssidx_fcst_valid_beg_idx ON line_data_ssidx (fcst_valid_beg)",
      "CREATE INDEX line_data_ssidx_fcst_init_beg_idx ON line_data_ssidx (fcst_init_beg)"]
+
+#
+# Used by MET reformatter
+#
+
+NUM_STAT_FHO_COLS = 30
+NUM_STAT_CNT_COLS = 125
+NUM_STAT_CTC_COLS = 31
+NUM_STAT_SL1L2_COLS = 32
+NUM_STAT_CTS_COLS = 122
+
+
+DESC = "desc"
+COMMON_STAT_HEADER = [VERSION, MODEL, DESC, FCST_LEAD, FCST_VALID_BEG, FCST_VALID_END, FCST_INIT_BEG, OBS_LEAD, OBS_VALID_BEG,
+                      OBS_VALID_END, FCST_VAR, FCST_UNITS, FCST_LEV, OBS_VAR, OBS_UNITS, OBS_LEV, OBTYPE, VX_MASK,
+                      INTERP_MTHD, INTERP_PNTS, FCST_THRESH, OBS_THRESH, COV_THRESH, ALPHA, LINE_TYPE]
+LC_COMMON_STAT_HEADER = [cur_stat_header.lower() for cur_stat_header in COMMON_STAT_HEADER]
+
+#
+# POINT STAT specific
+#
+
+
+#### FHO Line type ####
+FHO_FULL_HEADER = LC_COMMON_STAT_HEADER + ['total', 'F_RATE', 'H_RATE', 'O_RATE']
+
+
+
+###### CNT line type
+LC_CNT_SPECIFIC =  ['fbar', 'fbar_ncl', 'fbar_ncu','fbar_bcl', 'fbar_bcu',
+                         'fstdev', 'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
+                         'obar', 'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
+                         'ostdev', 'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl', 'ostdev_bcu',
+                         'pr_corr', 'pr_corr_ncl', 'pr_corr_ncu', 'pr_corr_bcl', 'pr_corr_bcu',
+                         'sp_corr', 'kt_corr', 'ranks', 'frank_ties', 'orank_ties',
+                         'me', 'me_ncl', 'me_ncu', 'me_bcl', 'me_bcu',
+                         'estdev', 'estdev_ncl', 'estdev_ncu', 'estdev_bcl', 'estdev_bcu',
+                         'mbias', 'mbias_bcl', 'mbias_bcu', 'mae', 'mae_bcl', 'mae_bcu',
+                         'mse', 'mse_bcl', 'mse_bcu', 'bcmse', 'bcmse_bcl', 'bcmse_bcu',
+                         'rmse', 'rmse_bcl', 'rmse_bcu', 'e10', 'e10_bcl', 'e10_bcu',
+                         'e25', 'e25_bcl', 'e25_bcu', 'e50', 'e50_bcl', 'e50_bcu',
+                         'e75', 'e75_bcl', 'e75_bcu', 'e90', 'e90_bcl', 'e90_bcu',
+                         'eiqr', 'iqr_bcl', 'iqr_bcu', 'mad', 'mad_bcl', 'mad_bcu',
+                         'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu',
+                         'anom_corr_bcl', 'anom_corr_bcu',
+                         'me2', 'me2_bcl', 'me2_bcu', 'msess', 'msess_bcl', 'msess_bcu',
+                         'rmsfa', 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa', 'rmsoa_bcl', 'rmsoa_bcu',
+                         'anom_corr_uncntr', 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu',
+                         'si', 'si_bcl', 'si_bcu']
+CNT_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_CNT_SPECIFIC]
+FULL_CNT_HEADER = LC_COMMON_STAT_HEADER + ['total'] + CNT_SPECIFIC
+LC_CNT_STATISTICS_HEADERS = ['fbar',
+                                  'fstdev',
+                                  'obar',
+                                  'ostdev',
+                                  'pr_corr',
+                                  'sp_corr', 'kt_corr', 'ranks', 'frank_ties', 'orank_ties',
+                                  'me',
+                                  'estdev',
+                                  'mbias', 'mae',
+                                  'mse', 'bcmse',
+                                  'rmse', 'e10',
+                                  'e25', 'e50',
+                                  'e75', 'e90',
+                                  'eiqr', 'mad',
+                                  'anom_corr',
+                                  'me2', 'msess',
+                                  'rmsfa', 'rmsoa',
+                                  'anom_corr_uncntr',
+                                  'si']
+CNT_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_CNT_STATISTICS_HEADERS]
+LC_CNT_BOOTSTRAP_HEADERS = ['fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
+                                 'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
+                                 'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
+                                 'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl', 'ostdev_bcu',
+                                 'pr_corr_ncl', 'pr_corr_ncu', 'pr_corr_bcl', 'pr_corr_bcu',
+                                 'me_ncl', 'me_ncu', 'me_bcl', 'me_bcu',
+                                 'estdev_ncl', 'estdev_ncu', 'estdev_bcl', 'estdev_bcu',
+                                 'mbias_bcl', 'mbias_bcu', 'mae_bcl', 'mae_bcu',
+                                 'mse_bcl', 'mse_bcu', 'bcmse_bcl', 'bcmse_bcu',
+                                 'rmse_bcl', 'rmse_bcu', 'e10_bcl', 'e10_bcu',
+                                 'e25_bcl', 'e25_bcu', 'e50_bcl', 'e50_bcu',
+                                 'e75_bcl', 'e75_bcu', 'e90_bcl', 'e90_bcu',
+                                 'iqr_bcl', 'iqr_bcu', 'mad_bcl', 'mad_bcu',
+                                 'anom_corr_ncl', 'anom_corr_ncu',
+                                 'anom_corr_bcl', 'anom_corr_bcu',
+                                 'me2_bcl', 'me2_bcu', 'msess_bcl', 'msess_bcu',
+                                 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa_bcl', 'rmsoa_bcu',
+                                 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu',
+                                 'si_bcl', 'si_bcu']
+CNT_BOOTSTRAP_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_CNT_BOOTSTRAP_HEADERS]
+
+
+# Column headers for the CNT line type's bootstrap confidence levels
+
+CNT_NCL_HEADERS = ['FBAR_NCL', 'FSTDEV_NCL', 'OBAR_NCL', 'OSTDEV_NCL', 'PR_CORR_NCL', 'ME_NCL', 'ESTDEV_NCL',
+                        'ANOM_CORR_NCL']
+
+CNT_NCU_HEADERS = ['FBAR_NCU', 'FSTDEV_NCU', 'OBAR_NCU', 'OSTDEV_NCU', 'PR_CORR_NCU', 'ME_NCU', 'ESTDEV_NCU',
+                        'ANOM_CORR_NCU']
+
+CNT_BCL_HEADERS = ['FBAR_BCL', 'FSTDEV_BCL', 'OBAR_BCL', 'OSTDEV_BCL', 'PR_CORR_BCL', 'ME_BCL', 'ESTDEV_BCL',
+                        'MBIAS_BCL', 'MAE_BCL', 'MSE_BCL', 'BCMSE_BCL', 'RMSE_BCL', 'E10_BCL', 'E25_BCL', 'E50_BCL',
+                        'E75_BCL', 'E90_BCL', 'IQR_BCL', 'MAD_BCL', 'ANOM_CORR_BCL', 'ME2_BCL', 'MSESS_BCL',
+                        'RMSFA_BCL', 'RMSOA_BCL','ANOM_CORR_UNCNTR_BCL', 'SI_BCL']
+
+CNT_BCU_HEADERS = ['FBAR_BCU', 'FSTDEV_BCU', 'OBAR_BCU', 'OSTDEV_BCU', 'PR_CORR_BCU', 'ME_BCU', 'ESTDEV_BCU',
+                        'MBIAS_BCU', 'MAE_BCU', 'MSE_BCU', 'BCMSE_BCU', 'RMSE_BCU', 'E10_BCU', 'E25_BCU', 'E50_BCU',
+                        'E75_BCU', 'E90_BCU', 'IQR_BCU', 'MAD_BCU', 'ANOM_CORR_BCU', 'ME2_BCU', 'MSESS_BCU',
+                        'RMSFA_BCU', 'RMSOA_BCU','ANOM_CORR_UNCNTR_BCU', 'SI_BCU']
+
+##### CTC Line type ######
+LC_STAT_CTC_SPECIFIC = [FY_OY, FY_ON, FN_OY, FN_ON, EC_VALUE]
+CTC_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_STAT_CTC_SPECIFIC]
+CTC_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + CTC_STATISTICS_HEADERS
+
+
+#### SL1L2 Line type ####
+
+LC_SL1L2_SPECIFIC = ['fbar', 'obar', 'fobar', 'ffbar', 'oobar', 'mae']
+SL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_SL1L2_SPECIFIC]
+SL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + SL1L2_STATISTICS_HEADERS
+
+
+#### CTS Line type ####
+LC_CTS_SPECIFIC =[BASER, 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
+                         FMEAN, 'fmean_ncl', 'fmean_ncu', 'fmean_bcl', 'fmean_bcu',
+                         'acc', 'acc_ncl', 'acc_ncu', 'acc_bcl', 'acc_bcu',
+                         'fbias', 'fbias_bcl', 'fbias_bcu',
+                         'pody', 'pody_ncl', 'pody_ncu', 'pody_bcl', 'pody_bcu',
+                         'podn', 'podn_ncl', 'podn_ncu', 'podn_bcl', 'podn_bcu',
+                         'pofd', 'pofd_ncl', 'pofd_ncu', 'pofd_bcl', 'pofd_bcu',
+                         'far', 'far_ncl', 'far_ncu', 'far_bcl', 'far_bcu',
+                         'csi', 'csi_ncl', 'csi_ncu', 'csi_bcl', 'csi_bcu',
+                         'gss', 'gss_bcl', 'gss_bcu',
+                         'hk', 'hk_ncl', 'hk_ncu', 'hk_bcl', 'hk_bcu',
+                         'hss', 'hss_bcl', 'hss_bcu',
+                         'odds', 'odds_ncl', 'odds_ncu', 'odds_bcl', 'odds_bcu',
+                         'lodds', 'lodds_ncl', 'lodds_ncu', 'lodds_bcl', 'lodds_bcu',
+                         'orss', 'orss_ncl', 'orss_ncu', 'orss_bcl', 'orss_bcu',
+                         'eds', 'eds_ncl', 'eds_ncu', 'eds_bcl', 'eds_bcu',
+                         'seds', 'seds_ncl', 'seds_ncu', 'seds_bcl', 'seds_bcu',
+                         'edi', 'edi_ncl', 'edi_ncu', 'edi_bcl', 'edi_bcu',
+                         'sedi', 'sedi_ncl', 'sedi_ncu', 'sedi_bcl', 'sedi_bcu',
+                         'bagss', 'bagss_bcl', 'bagss_bcu', 'hss_ec', 'hss_ec_bcl',
+                         'hss_ec_bcu', EC_VALUE]
+CTS_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_CTS_SPECIFIC]
+CTS_SPECIFIC_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + CTS_SPECIFIC
+CTS_STATS_ONLY = [BASER, FMEAN, 'acc', 'fbias', 'pody', 'podn', 'pofd', 'far', 'csi', 'gss', 'odds', 'lodds', 'orss',
+                  'eds', 'sedi', 'bagss', 'hss_ec_bcu', 'edi', 'hk', 'seds', 'hss', 'hss_ec', EC_VALUE]
+CTS_STATS_ONLY_HEADERS = [cur_stat_header.upper() for cur_stat_header in CTS_STATS_ONLY]
+CTS_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + CTS_STATS_ONLY_HEADERS
