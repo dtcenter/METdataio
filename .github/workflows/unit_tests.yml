@@ -12,6 +12,7 @@ on:
       - main_*
       - bugfix_*
       - issue_*
+      - gha_*
 
   pull_request:
     types: [opened, reopened, synchronize]
