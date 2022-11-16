@@ -55,5 +55,6 @@ jobs:
     - name: Test with pytest
       run: |
           export PYTHONPATH=$PYTHON_PATH
-          cd METreformat/test
+          cd METreformat
+          cd test
           pytest test_point_stat_to_ascii.py
