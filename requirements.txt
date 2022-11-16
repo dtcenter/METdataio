@@ -12,7 +12,7 @@ networkx==2.8.4
 numpy==1.23.1
 pandas==1.2.3
 pip==22.2
-pycosat==0.6.4
+pycosat>=0.6.3
 pycparser==2.21
 PyMySQL==1.0.2
 pyOpenSSL==22.0.0
