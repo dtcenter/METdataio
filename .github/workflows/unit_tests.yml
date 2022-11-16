@@ -18,7 +18,7 @@ on:
     types: [opened, reopened, synchronize]
 
 env: 
-  PYTHONPATH: METdataio/METdbLoad:MEtdataio/METdbLoad/ush
+  PYTHONPATH: METdataio/:METdataio/METdbLoad:METdataio/METdbLoad/ush:METdataio/METreformat
 
 jobs:
   build:
