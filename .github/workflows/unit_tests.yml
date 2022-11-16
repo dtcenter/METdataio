@@ -1,0 +1,53 @@
+# This workflow will install Python dependencies, run tests the specified Python version
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Python tests
+
+on:
+  push:
+    branches:
+      - develop
+      - develop-ref
+      - feature_*
+      - main_*
+      - bugfix_*
+      - issue_*
+
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8.6", "3.8.12"]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install pytest>=7.1.1
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        
+
+#   Checking the branch name, not necessary but useful when setting things up.
+#     - name: Extract branch name
+#       shell: bash
+#       run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+#       id: extract_branch
+
+
+    - name: Test with pytest
+      run: |
+          cd METreformat
+          cd test
+          pytest test_point_stat_to_ascii.py
