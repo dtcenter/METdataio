@@ -3,8 +3,6 @@ certifi==2022.9.24
 cffi==1.15.1
 charset-normalizer==2.0.4
 click==8.0.4
-conda==22.9.0
-conda-package-handling==1.9.0
 cryptography==38.0.1
 idna==3.4
 lxml==4.9.1
