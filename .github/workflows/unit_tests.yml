@@ -60,4 +60,4 @@ jobs:
           cd METreformat
           #python write_stat_ascii.py ./point_stat.yaml
           #cd test
-          #pytest test_point_stat_to_ascii.py
+          pytest test_point_stat_to_ascii.py
