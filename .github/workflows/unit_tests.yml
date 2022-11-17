@@ -17,7 +17,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
 
-  env:
+env:
      PWD=$(pwd)
      PYTHON_PATH=$PWD/:$PWD/METdbLoad:$PWD/METdbLoad/ush:$PWD/METreformat
 
