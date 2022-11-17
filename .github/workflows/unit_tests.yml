@@ -17,8 +17,6 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
 
-env:
-     PYTHON_PATH: $GITHUB_WORKSPACE/:$GITHUB_WORKSPACE/METdbLoad:$GITHUB_WORKSPACE/METdbLoad/ush:$GITHUB_WORKSPACE/METreformat
 
 jobs:
   build:
@@ -56,9 +54,9 @@ jobs:
 
     - name: Test with pytest
       run: |
-          export PYTHONPATH=$PYTHON_PATH
-          echo "PYTHONPATH is $PYTHON_PATH"
           echo "GITHUB wspace: $GITHUB_WORKSPACE"
+          export PYTHONPATH=$GITHUB_WORKSPACE/:$GITHUB_WORKSPACE/METdbLoad:$GITHUB_WORKSPACE/METdbLoad/ush:$GITHUB_WORKSPACE/METreformat
+          echo "PYTHONPATH is $PYTHONPATH"
           cd METreformat
           #python write_stat_ascii.py ./point_stat.yaml
           #cd test
