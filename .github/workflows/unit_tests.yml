@@ -58,7 +58,8 @@ jobs:
       run: |
           export PYTHONPATH=$PYTHON_PATH
           echo "PYTHONPATH is $PYTHON_PATH"
+          echo "GITHUB wspace: $GITHUB_WORKSPACE"
           cd METreformat
-          python write_stat_ascii.py ./point_stat.yaml
+          #python write_stat_ascii.py ./point_stat.yaml
           #cd test
           #pytest test_point_stat_to_ascii.py
