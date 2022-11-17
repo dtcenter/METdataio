@@ -58,6 +58,6 @@ jobs:
           export PYTHONPATH=$GITHUB_WORKSPACE/:$GITHUB_WORKSPACE/METdbLoad:$GITHUB_WORKSPACE/METdbLoad/ush:$GITHUB_WORKSPACE/METreformat
           echo "PYTHONPATH is $PYTHONPATH"
           cd $GITHUB_WORKSPACE/METreformat
-          #python write_stat_ascii.py ./point_stat.yaml
           cd test
           pytest test_point_stat_to_ascii.py
+          echo "Finished unit tests"
