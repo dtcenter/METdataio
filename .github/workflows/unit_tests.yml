@@ -18,8 +18,7 @@ on:
     types: [opened, reopened, synchronize]
 
 env:
-     PWD: $(pwd)
-     PYTHON_PATH: $PWD/:$PWD/METdbLoad:$PWD/METdbLoad/ush:$PWD/METreformat
+     PYTHON_PATH: $GITHUB_WORKSPACE/:$GITHUB_WORKSPACE/METdbLoad:$GITHUB_WORKSPACE/METdbLoad/ush:$GITHUB_WORKSPACE/METreformat
 
 jobs:
   build:
