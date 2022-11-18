@@ -2493,6 +2493,12 @@ CREATE TABLE line_data_tcmpr
     bspeed         DOUBLE,
     adepth         VARCHAR(1),
     bdepth         VARCHAR(1),
+    
+    num_members     INT,
+    track_spread    DOUBLE,
+    track_stdev     DOUBLE,
+    mslp_stdev      DOUBLE,
+    max_wind_stdev  DOUBLE,
 
     CONSTRAINT line_data_tcmpr_data_file_id_pk
         FOREIGN KEY (data_file_id)
@@ -2517,6 +2523,8 @@ CREATE TABLE line_data_tcdiag
     total          INT UNSIGNED,
     index_pair     DOUBLE,
     diag_source    VARCHAR(20),
+    track_source   VARCHAR(20),
+    field_source   VARCHAR(20),
     n_diag         INT UNSIGNED,
 
     PRIMARY KEY (line_data_id),

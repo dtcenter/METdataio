@@ -613,7 +613,9 @@ COLUMNS[TCMPR] = ['total', 'index_pair', 'level', 'watch_warn', 'initials', 'ala
                   'bnw_wind_64', 'aradp',
                   'bradp', 'arrp', 'brrp', 'amrd', 'bmrd', 'agusts', 'bgusts',
                   'aeye', 'beye', 'adir', 'bdir',
-                  'aspeed', 'bspeed', 'adepth', 'bdepth']
+                  'aspeed', 'bspeed', 'adepth', 'bdepth',
+                  'num_members', 'track_spread', 'track_stdev',
+                  'mslp_stdev', 'max_wind_stdev']
 
 LINE_DATA_FIELDS[TCMPR] = ALL_LINE_DATA_FIELDS_TCST + COLUMNS[TCMPR]
 
@@ -625,7 +627,8 @@ COLUMNS[PROBRIRW] = ['alat', 'alon', 'blat', 'blon', 'initials', 'tk_err', 'x_er
 
 LINE_DATA_FIELDS[PROBRIRW] = ALL_LINE_DATA_FIELDS_TCST + COLUMNS[PROBRIRW]
 
-COLUMNS[TCDIAG] = ['total', 'index_pair', 'diag_source', 'n_diag']
+COLUMNS[TCDIAG] = ['total', 'index_pair', 'diag_source', 'track_source',
+                   'field_source', 'n_diag']
 
 LINE_DATA_FIELDS[TCDIAG] = ALL_LINE_DATA_FIELDS_TCST + COLUMNS[TCDIAG]
 
@@ -646,7 +649,9 @@ LINE_DATA_FIELDS_TO_REPLACE[TCMPR] = ['lead', 'total', 'index_pair', 'alat', 'al
                                       'anw_wind_64', 'bnw_wind_64',
                                       'aradp', 'bradp', 'arrp', 'brrp', 'amrd', 'bmrd',
                                       'agusts', 'bgusts', 'aeye', 'beye',
-                                      'adir', 'bdir', 'aspeed', 'bspeed']
+                                      'adir', 'bdir', 'aspeed', 'bspeed',
+                                      'num_members', 'track_spread', 'track_stdev',
+                                      'mslp_stdev', 'max_wind_stdev']
 
 LINE_DATA_FIELDS_TO_REPLACE[PROBRIRW] = ['lead', 'alat', 'alon', 'blat', 'blon', 'tk_err', 'x_err',
                                          'y_err', 'adland', 'bdland', 'rirw_beg', 'rirw_end',
@@ -771,7 +776,7 @@ LINE_VAR_COUNTER[PHIST] = '2'
 LINE_VAR_COUNTER[ORANK] = '11'
 LINE_VAR_COUNTER[ECLV] = '3'
 LINE_VAR_COUNTER[PROBRIRW] = '20'
-LINE_VAR_COUNTER[TCDIAG] = '3'
+LINE_VAR_COUNTER[TCDIAG] = '5'
 
 # how many variables/fields appear after i_value (length of repeat)
 LINE_VAR_REPEATS[PCT] = 3
