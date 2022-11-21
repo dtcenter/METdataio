@@ -9,6 +9,41 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
+METdataio Version 2.0.0-beta5 release notes (20221121)
+------------------------------------------------------
+
+* New Functionality:
+
+    * **Create a MET data reformatter**
+      (`#121 <https://github.com/dtcenter/METdataio/issues/121>`_)
+
+    * **Update database schema to handle new columns and line types added to MET Beta 4**
+      (`#131 <https://github.com/dtcenter/METdataio/issues/131>`_)
+
+    * **Update database schema to handle new columns and line types added to MET Beta 5**
+      (`#141 <https://github.com/dtcenter/METdataio/issues/141>`_)
+
+
+
+* Enhancements:
+
+    * **Add 8 new columns to ecnt line data**
+      (`#136 <https://github.com/dtcenter/METdataio/issues/136>`_)
+
+
+
+* Internal:
+
+    * **Update ubuntu version in github action workflow**
+      (`#114 <https://github.com/dtcenter/METdataio/issues/114>`_)
+
+    * **Deprecate old ubuntu version in github actions**
+      (`#128 <https://github.com/dtcenter/METdataio/issues/128>`_)
+
+
+* Bugfixes:
+
+
 METdataio Version 2.0.0-beta4 release notes (20221028)
 ------------------------------------------------------
 
