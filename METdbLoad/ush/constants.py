@@ -143,13 +143,14 @@ FSS = "FSS"  # same as NBRCNT
 # TCST line types
 TCMPR = "TCMPR"  # Tropical Cyclone Matched Pair line type
 PROBRIRW = "PROBRIRW"  # Probability of Rapid Intensification line type
+TCDIAG = "TCDIAG"  # Tropical Cyclone Diagnostics line type
 
 UC_LINE_TYPES = [FHO, CTC, CTS, MCTC, MCTS, CNT, SL1L2, SAL1L2, VL1L2, VAL1L2,
                  PCT, PSTD, PJC, PRC, ECLV, MPR, NBRCTC, NBRCTS, NBRCNT, ISC,
                  RHIST, PHIST, ORANK, SSVAR, GRAD, VCNT, RELP, ECNT, ENSCNT, PERC,
                  DMAP, RPS, SSIDX, SEEPS, SEEPS_MPR]
 
-UC_LINE_TYPES_TCST = [TCMPR, PROBRIRW]
+UC_LINE_TYPES_TCST = [TCMPR, PROBRIRW, TCDIAG]
 
 LC_LINE_TYPES = [ltype.lower() for ltype in UC_LINE_TYPES]
 LC_LINE_TYPES_TCST = [ltype.lower() for ltype in UC_LINE_TYPES_TCST]
@@ -165,7 +166,7 @@ COV_THRESH_LINE_TYPES = [NBRCTC, NBRCTS, PCT, PSTD, PJC, PRC]
 
 VAR_LINE_TYPES = [PCT, PSTD, PJC, PRC, MCTC, RHIST, PHIST, RELP, ORANK, ECLV]
 
-VAR_LINE_TYPES_TCST = [PROBRIRW]
+VAR_LINE_TYPES_TCST = [PROBRIRW, TCDIAG]
 
 OLD_VSDB_LINE_TYPES = [BSS, ECON, HIST, RELI, RMSE, RPS, FHO, FSS]
 
@@ -367,6 +368,7 @@ LINE_DATA_VAR_TABLES[PHIST] = 'line_data_phist_bin'
 LINE_DATA_VAR_TABLES[ORANK] = 'line_data_orank_ens'
 LINE_DATA_VAR_TABLES[ECLV] = 'line_data_eclv_pnt'
 LINE_DATA_VAR_TABLES[PROBRIRW] = 'line_data_probrirw_thresh'
+LINE_DATA_VAR_TABLES[TCDIAG] = 'line_data_tcdiag_diag'
 
 LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
                         ['fbar', 'fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
@@ -611,7 +613,10 @@ COLUMNS[TCMPR] = ['total', 'index_pair', 'level', 'watch_warn', 'initials', 'ala
                   'bnw_wind_64', 'aradp',
                   'bradp', 'arrp', 'brrp', 'amrd', 'bmrd', 'agusts', 'bgusts',
                   'aeye', 'beye', 'adir', 'bdir',
-                  'aspeed', 'bspeed', 'adepth', 'bdepth']
+                  'aspeed', 'bspeed', 'adepth', 'bdepth',
+                  'num_members', 'track_spread', 'track_stdev',
+                  'mslp_stdev', 'max_wind_stdev']
+
 LINE_DATA_FIELDS[TCMPR] = ALL_LINE_DATA_FIELDS_TCST + COLUMNS[TCMPR]
 
 COLUMNS[PROBRIRW] = ['alat', 'alon', 'blat', 'blon', 'initials', 'tk_err', 'x_err',
@@ -621,6 +626,11 @@ COLUMNS[PROBRIRW] = ['alat', 'alon', 'blat', 'blon', 'initials', 'tk_err', 'x_er
                      'n_thresh']
 
 LINE_DATA_FIELDS[PROBRIRW] = ALL_LINE_DATA_FIELDS_TCST + COLUMNS[PROBRIRW]
+
+COLUMNS[TCDIAG] = ['total', 'index_pair', 'diag_source', 'track_source',
+                   'field_source', 'n_diag']
+
+LINE_DATA_FIELDS[TCDIAG] = ALL_LINE_DATA_FIELDS_TCST + COLUMNS[TCDIAG]
 
 LINE_DATA_FIELDS_TO_REPLACE[TCMPR] = ['lead', 'total', 'index_pair', 'alat', 'alon',
                                       'blat', 'blon', 'tk_err', 'x_err', 'y_err', 'altk_err',
@@ -639,12 +649,16 @@ LINE_DATA_FIELDS_TO_REPLACE[TCMPR] = ['lead', 'total', 'index_pair', 'alat', 'al
                                       'anw_wind_64', 'bnw_wind_64',
                                       'aradp', 'bradp', 'arrp', 'brrp', 'amrd', 'bmrd',
                                       'agusts', 'bgusts', 'aeye', 'beye',
-                                      'adir', 'bdir', 'aspeed', 'bspeed']
+                                      'adir', 'bdir', 'aspeed', 'bspeed',
+                                      'num_members', 'track_spread', 'track_stdev',
+                                      'mslp_stdev', 'max_wind_stdev']
 
 LINE_DATA_FIELDS_TO_REPLACE[PROBRIRW] = ['lead', 'alat', 'alon', 'blat', 'blon', 'tk_err', 'x_err',
                                          'y_err', 'adland', 'bdland', 'rirw_beg', 'rirw_end',
                                          'rirw_window', 'awind_end',
                                          'bwind_beg', 'bwind_end', 'bdelta', 'bdelta_max']
+
+LINE_DATA_FIELDS_TO_REPLACE[TCDIAG] = ['lead', 'total', 'index_pair']
 
 VAR_DATA_FIELDS = [LINE_DATA_ID, 'i_value']
 
@@ -671,6 +685,8 @@ LINE_DATA_VAR_FIELDS[ORANK] = VAR_DATA_FIELDS + ['ens_i']
 LINE_DATA_VAR_FIELDS[ECLV] = VAR_DATA_FIELDS + ['x_pnt_i', 'y_pnt_i']
 
 LINE_DATA_VAR_FIELDS[PROBRIRW] = VAR_DATA_FIELDS + ['thresh_i', 'prob_i']
+
+LINE_DATA_VAR_FIELDS[TCDIAG] = VAR_DATA_FIELDS + ['diag_i', 'value_i']
 
 for line_type in UC_LINE_TYPES_TCST:
     LINE_DATA_COLS_TCST[line_type] = \
@@ -760,6 +776,7 @@ LINE_VAR_COUNTER[PHIST] = '2'
 LINE_VAR_COUNTER[ORANK] = '11'
 LINE_VAR_COUNTER[ECLV] = '3'
 LINE_VAR_COUNTER[PROBRIRW] = '20'
+LINE_VAR_COUNTER[TCDIAG] = '5'
 
 # how many variables/fields appear after i_value (length of repeat)
 LINE_VAR_REPEATS[PCT] = 3
@@ -773,6 +790,7 @@ LINE_VAR_REPEATS[PHIST] = 1
 LINE_VAR_REPEATS[ORANK] = 1
 LINE_VAR_REPEATS[ECLV] = 2
 LINE_VAR_REPEATS[PROBRIRW] = 2
+LINE_VAR_REPEATS[TCDIAG] = 2
 
 RHIST_OLD = ['V7.0', 'V6.1', 'V6.0', 'V5.2', 'V5.1', 'V5.0',
              'V4.2', 'V4.1', 'V4.0', 'V3.1', 'V3.0']
