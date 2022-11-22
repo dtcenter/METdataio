@@ -1,5 +1,5 @@
 <load_spec>
-	<folder_tmpl>/path/to/METdataio-point_stat-data</folder_tmpl>
+	<folder_tmpl>/path/to/METdataio/METreformat/test/data/point_stat</folder_tmpl>
 	<verbose>true</verbose>
 
 	<load_val>
