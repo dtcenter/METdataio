@@ -48,7 +48,7 @@ The following MET line types* can be reformatted:
 
 - SL1L2
 
-*Other line types will be supported in the future.
+*Other line types will be supported in the future*.
 
 Required Components
 ___________________
@@ -131,6 +131,7 @@ _______
 
 - modify the point_stat.yaml file to specify the output directory, output filename, and location of the
   XML specification file:
+
 .. code-block:: ini
 
   output_dir: /path/to/output_dir
@@ -142,8 +143,7 @@ _______
 
 - For *output_dir*, replace /path/to with the full path to the outputdir
 
-- For *xml_spec_file*, replace /path/to with the full path to the XML spec file you edited in the
-step above and replace the <xml filename> with *point_stat*.
+- For *xml_spec_file*, replace /path/to with the full path to the XML spec file you edited in the step above and replace the <xml filename> with *point_stat*.
 
 - **NOTE**: Do NOT use environment variables for /path/to, specify the actual path.
 
