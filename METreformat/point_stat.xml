@@ -4,12 +4,7 @@
 
 	<load_val>
 		<field name="met_tool">
-			<val>ensemble_stat</val>
-			<val>grid_stat</val>
-			<val>mode</val>
 			<val>point_stat</val>
-			<val>stat_analysis</val>
-			<val>wavelet_stat</val>
 		</field>
 	</load_val>
 
