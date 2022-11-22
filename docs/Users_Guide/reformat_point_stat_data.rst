@@ -112,6 +112,8 @@ _______
 
 - replacing the /path/to with the directory where you saved the source code (**NOTE**: Do NOT use environment variables, you must specify the full path to the METdataio source code).
 
+- this example uses the sample data in the METdataio/METreformat/test/data/point_stat
+
 - the following code does not need to be modified, it is used by METdbLoad to determine what types
   of files to look for and process.  Currently, only point_stat is supported, with support for the other
   MET tools to be added in the future.
