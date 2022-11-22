@@ -149,17 +149,14 @@ _______
 
 - set the PYTHONPATH:
 
+
+.. code-block:: ini
+
   bash
+  export PYTHONPATH=$BASE_DIR:/$BASE_DIR/METdbLoad:$BASE_DIR/METdbLoad/ush:$BASE_DIR/METreformat
 
-.. code-block:: ini
-
-export PYTHONPATH=$BASE_DIR:/$BASE_DIR/METdbLoad:$BASE_DIR/METdbLoad/ush:$BASE_DIR/METreformat
-
-   csh
-
-.. code-block:: ini
-
-setenv PYTHONPATH $BASE_DIR:/$BASE_DIR/METdbLoad:$BASE_DIR/METdbLoad/ush:$BASE_DIR/METreformat
+  csh
+  setenv PYTHONPATH $BASE_DIR:/$BASE_DIR/METdbLoad:$BASE_DIR/METdbLoad/ush:$BASE_DIR/METreformat
 
 - Generate the reformatted file:
 
