@@ -16,16 +16,16 @@ import sys
 sys.path.insert(0, os.path.abspath('.'))
 print(sys.path)
 
-# -- Project information -----------------------------------------------------
 
+# -- Project information -----------------------------------------------------
 project = 'METdataio'
 author = 'UCAR/NCAR, NOAA, CSU/CIRA, and CU/CIRES'
-author_list = 'Hagerty, V., T. Burek, H. Fisher, and M. Win-Gildenmeister'
+author_list = 'Burek, T., H. Fisher, and M. Win-Gildenmeister, V. Hagerty '
 version = '2.0.0'
 verinfo = version
 release = f'{version}'
 release_year = '2022'
-release_date = f'{release_year}-09-14'
+release_date = f'{release_year}-12-07'
 copyright = f'{release_year}, {author}'
 
 # if set, adds "Last updated on " followed by
