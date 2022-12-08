@@ -330,7 +330,7 @@ def print_version():
     """
     try:
         base_dir = os.path.dirname(os.path.realpath(__file__))
-        version_file = "{}/../docs/version".format(base_dir)
+        version_file = "{}/../../docs/version".format(base_dir)
         file = open(version_file, mode='r')
         code_version = str.strip(file.read())
         logging.info("METdbload Version: %s", code_version)
