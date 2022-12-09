@@ -442,7 +442,7 @@ class ReadDataFiles:
 
                                     if mtd_row[CN.OBJECT_ID] == obj_id:
                                         obj_ct += 1
-                                        if obj_ct == 2 and row_num < last_line and \
+                                        if obj_ct == 2 and (row_num + 1) < last_line and \
                                             mtd_file[CN.OBJECT_ID][row_num + 1] == obj_id:
                                             rev_ctr += 1
                                             create_new = True
