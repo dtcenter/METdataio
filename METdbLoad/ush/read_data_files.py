@@ -151,7 +151,7 @@ class ReadDataFiles:
                         # Add a DESC column if the data file does not have one
                         if not file_hdr.iloc[0].str.contains(CN.UC_DESC).any():
                             hdr_names = CN.SHORT_HEADER + CN.COL_NUMS
-                            one_file = self.read_stat(filename, hdr_names)
+                            one_file = self.read_stat2(filename, hdr_names)
 
                             # If the file has no DESC column, add UNITS as well
                             one_file.insert(2, CN.DESCR, CN.NOTAV)
@@ -161,14 +161,14 @@ class ReadDataFiles:
                         # If the file has a DESC column, but no UNITS columns
                         elif not file_hdr.iloc[0].str.contains(CN.UC_FCST_UNITS).any():
                             hdr_names = CN.MID_HEADER + CN.COL_NUMS
-                            one_file = self.read_stat(filename, hdr_names)
+                            one_file = self.read_stat2(filename, hdr_names)
 
                             one_file.insert(10, CN.FCST_UNITS, CN.NOTAV)
                             one_file.insert(13, CN.OBS_UNITS, CN.NOTAV)
 
                         else:
                             hdr_names = CN.LONG_HEADER + CN.COL_NUMS
-                            one_file = self.read_stat(filename, hdr_names)
+                            one_file = self.read_stat2(filename, hdr_names)
 
                         # add line numbers and count the header line, for stat files
                         one_file[CN.LINE_NUM] = one_file.index + 2
@@ -1290,9 +1290,23 @@ class ReadDataFiles:
                all the mode lines in a dataframe, with dates converted to datetime
         """
         # added the low_memory=False option when getting a DtypeWarning
-        return pd.read_csv(filename, delim_whitespace=True,
-                           names=hdr_names, skiprows=1,
-                           parse_dates=[CN.FCST_VALID,
-                                        CN.OBS_VALID],
-                           date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
+        stat_file = pd.DataFrame()
+        
+        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1)
+        
+        # break fields out, separated by 1 or more spaces
+        stat_file = stat_file.str.split(' +', expand=True)
+        
+        if len(stat_file.columns) < len(hdr_names):
+            for col_no in range(len(stat_file.columns), len(hdr_names)): 
+                stat_file[col_no] = CN.NOTAV
+
+        # add column names
+        stat_file.columns = hdr_names
+        
+        stat_file[CN.FCST_VALID] = \
+            self.cached_date_parser(stat_file[CN.FCST_VALID])
+        stat_file[CN.OBS_VALID] = \
+            self.cached_date_parser(stat_file[CN.OBS_VALID])
+            
+        return stat_file
