@@ -1224,7 +1224,37 @@ class ReadDataFiles:
                                         CN.OBS_VALID_END],
                            date_parser=self.cached_date_parser,
                            keep_default_na=False, na_values='', low_memory=False)
+    
+    def read_stat2(self, filename, hdr_names):
+        """ Read stat files without assuming read_csv can pad lines
+            Returns:
+               all the stat lines in a dataframe, with dates converted to datetime
+        """
+        stat_file = pd.DataFrame()
+        
+        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1)
+        
+        # break fields out, separated by 1 or more spaces
+        stat_file = stat_file.str.split(' +', expand=True)
+        
+        if len(stat_file.columns) < len(hdr_names):
+            for col_no in range(len(stat_file.columns), len(hdr_names)): 
+                stat_file[col_no] = CN.NOTAV
 
+        # add column names
+        stat_file.columns = hdr_names
+        
+        stat_file[CN.FCST_VALID_BEG] = \
+            self.cached_date_parser(stat_file[CN.FCST_VALID_BEG])
+        stat_file[CN.FCST_VALID_END] = \
+            self.cached_date_parser(stat_file[CN.FCST_VALID_END])
+        stat_file[CN.OBS_VALID_BEG] = \
+            self.cached_date_parser(stat_file[CN.OBS_VALID_BEG])
+        stat_file[CN.OBS_VALID_END] = \
+            self.cached_date_parser(stat_file[CN.OBS_VALID_END])
+            
+        return stat_file
+            
     def read_tcst(self, filename, hdr_names):
         """ Read in all of the lines except the header of a tcst file.
             Returns:
