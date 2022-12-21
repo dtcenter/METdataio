@@ -390,6 +390,7 @@ class ReadDataFiles:
                             mtd_file.insert(20, CN.OBS_UNITS, CN.NOTAV)
 
                         # if FCST_LEAD is NA, set it to 0 to do math
+                        mtd_file[CN.FCST_LEAD] = pd.to_numeric(mtd_file[CN.FCST_LEAD])
                         if not mtd_file.fcst_lead.dtypes == 'int':
                             mtd_file.loc[mtd_file.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
 
@@ -545,6 +546,10 @@ class ReadDataFiles:
             if list_frames:
                 all_stat = pd.concat(list_frames, ignore_index=True, sort=False)
                 list_frames = []
+                
+                all_stat.fcst_thresh = all_stat.fcst_thresh.astype(str)
+                all_stat.obs_thresh = all_stat.obs_thresh.astype(str)
+
 
                 # if a fcst percentage thresh is used, it is in parens in fcst_thresh
                 if all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False).any():
@@ -979,6 +984,10 @@ class ReadDataFiles:
             if list_cts:
                 all_cts = pd.concat(list_cts, ignore_index=True, sort=False)
                 list_cts = []
+                
+                all_cts[CN.FCST_LEAD] = pd.to_numeric(all_cts[CN.FCST_LEAD])
+                if not all_cts.fcst_lead.dtypes == 'int':
+                    all_cts.loc[all_cts.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
 
                 # Copy forecast lead times, without trailing 0000 if they have them
                 all_cts[CN.FCST_LEAD_HR] = \
@@ -1001,6 +1010,10 @@ class ReadDataFiles:
                 # gather all mode lines
                 all_obj = pd.concat(list_obj, ignore_index=True, sort=False)
                 list_obj = []
+                
+                all_obj[CN.FCST_LEAD] = pd.to_numeric(all_obj[CN.FCST_LEAD])
+                if not all_obj.fcst_lead.dtypes == 'int':
+                    all_obj.loc[all_obj.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
 
                 # Copy forecast lead times, without trailing 0000 if they have them
                 all_obj[CN.FCST_LEAD_HR] = \
@@ -1065,9 +1078,12 @@ class ReadDataFiles:
                                                                        CN.STAT])
                 self.data_files.drop(self.data_files[files_to_drop & files_stat].index,
                                      inplace=True)
-
                 self.data_files.reset_index(drop=True, inplace=True)
 
+                all_stat[CN.FCST_LEAD] = pd.to_numeric(all_stat[CN.FCST_LEAD])
+                if not all_stat.fcst_lead.dtypes == 'int':
+                    all_stat.loc[all_stat.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+                    
                 # Copy forecast lead times, without trailing 0000 if they have them
                 all_stat[CN.FCST_LEAD_HR] = \
                     np.where(all_stat[CN.FCST_LEAD] > 9999,
@@ -1233,26 +1249,27 @@ class ReadDataFiles:
         stat_file = pd.DataFrame()
         
         stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1)
+        stat_file = stat_file.iloc[:, 0]
         
         # break fields out, separated by 1 or more spaces
         stat_file = stat_file.str.split(' +', expand=True)
-        
-        if len(stat_file.columns) < len(hdr_names):
-            for col_no in range(len(stat_file.columns), len(hdr_names)): 
-                stat_file[col_no] = CN.NOTAV
+                
+        # add new blank columns, and column headers
+        stat_file = stat_file.reindex(columns = hdr_names)
 
-        # add column names
-        stat_file.columns = hdr_names
-        
+        # convert MET dates to correct date format
         stat_file[CN.FCST_VALID_BEG] = \
-            self.cached_date_parser(stat_file[CN.FCST_VALID_BEG])
+            pd.to_datetime(stat_file[CN.FCST_VALID_BEG], 
+                           format='%Y%m%d_%H%M%S', errors='ignore')
         stat_file[CN.FCST_VALID_END] = \
-            self.cached_date_parser(stat_file[CN.FCST_VALID_END])
+            pd.to_datetime(stat_file[CN.FCST_VALID_END], 
+                           format='%Y%m%d_%H%M%S', errors='ignore')
         stat_file[CN.OBS_VALID_BEG] = \
-            self.cached_date_parser(stat_file[CN.OBS_VALID_BEG])
+            pd.to_datetime(stat_file[CN.OBS_VALID_BEG], 
+                           format='%Y%m%d_%H%M%S', errors='ignore')
         stat_file[CN.OBS_VALID_END] = \
-            self.cached_date_parser(stat_file[CN.OBS_VALID_END])
-            
+            pd.to_datetime(stat_file[CN.OBS_VALID_END], 
+                           format='%Y%m%d_%H%M%S', errors='ignore')
         return stat_file
             
     def read_tcst(self, filename, hdr_names):
@@ -1274,6 +1291,7 @@ class ReadDataFiles:
                date in datetime format while reading in file
         """
         # if date is repeated and already converted, return that value
+        date_str = str(date_str)
         if date_str in self.cache:
             return self.cache[date_str]
         if date_str.startswith('F') or date_str.startswith('O'):
@@ -1293,20 +1311,22 @@ class ReadDataFiles:
         stat_file = pd.DataFrame()
         
         stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1)
+        stat_file = stat_file.iloc[:, 0]
         
         # break fields out, separated by 1 or more spaces
         stat_file = stat_file.str.split(' +', expand=True)
         
         if len(stat_file.columns) < len(hdr_names):
             for col_no in range(len(stat_file.columns), len(hdr_names)): 
-                stat_file[col_no] = CN.NOTAV
+                stat_file[hdr_names[col_no]] = CN.NOTAV
 
         # add column names
         stat_file.columns = hdr_names
         
         stat_file[CN.FCST_VALID] = \
-            self.cached_date_parser(stat_file[CN.FCST_VALID])
+            pd.to_datetime(stat_file[CN.FCST_VALID], 
+                           format='%Y%m%d_%H%M%S', errors='ignore')
         stat_file[CN.OBS_VALID] = \
-            self.cached_date_parser(stat_file[CN.OBS_VALID])
-            
+            pd.to_datetime(stat_file[CN.OBS_VALID], 
+                           format='%Y%m%d_%H%M%S', errors='ignore')            
         return stat_file
