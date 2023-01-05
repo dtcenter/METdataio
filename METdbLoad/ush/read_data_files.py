@@ -151,7 +151,7 @@ class ReadDataFiles:
                         # Add a DESC column if the data file does not have one
                         if not file_hdr.iloc[0].str.contains(CN.UC_DESC).any():
                             hdr_names = CN.SHORT_HEADER + CN.COL_NUMS
-                            one_file = self.read_stat2(filename, hdr_names)
+                            one_file = self.read_stat(filename, hdr_names)
 
                             # If the file has no DESC column, add UNITS as well
                             one_file.insert(2, CN.DESCR, CN.NOTAV)
@@ -161,14 +161,14 @@ class ReadDataFiles:
                         # If the file has a DESC column, but no UNITS columns
                         elif not file_hdr.iloc[0].str.contains(CN.UC_FCST_UNITS).any():
                             hdr_names = CN.MID_HEADER + CN.COL_NUMS
-                            one_file = self.read_stat2(filename, hdr_names)
+                            one_file = self.read_stat(filename, hdr_names)
 
                             one_file.insert(10, CN.FCST_UNITS, CN.NOTAV)
                             one_file.insert(13, CN.OBS_UNITS, CN.NOTAV)
 
                         else:
                             hdr_names = CN.LONG_HEADER + CN.COL_NUMS
-                            one_file = self.read_stat2(filename, hdr_names)
+                            one_file = self.read_stat(filename, hdr_names)
 
                         # add line numbers and count the header line, for stat files
                         one_file[CN.LINE_NUM] = one_file.index + 2
@@ -333,6 +333,9 @@ class ReadDataFiles:
                                                               "lead": "fcst_lead",
                                                               "valid": "fcst_valid"})
 
+                    #
+                    # Process MTD files
+                    #
                     elif lu_id in CN.MTD_FILES:
 
                         # Get the first line of the MTD file that has the headers
@@ -546,10 +549,10 @@ class ReadDataFiles:
             if list_frames:
                 all_stat = pd.concat(list_frames, ignore_index=True, sort=False)
                 list_frames = []
-                
+
                 all_stat.fcst_thresh = all_stat.fcst_thresh.astype(str)
                 all_stat.obs_thresh = all_stat.obs_thresh.astype(str)
-
+                all_stat['1'] = all_stat['1'].astype(float)
 
                 # if a fcst percentage thresh is used, it is in parens in fcst_thresh
                 if all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False).any():
@@ -623,6 +626,7 @@ class ReadDataFiles:
                 # Change 'NA' values in column INTERP_PNTS to 0 if present
                 if not all_stat.interp_pnts.dtypes == 'int':
                     all_stat.loc[all_stat.interp_pnts == CN.NOTAV, CN.INTERP_PNTS] = 0
+                    all_stat.loc[all_stat.interp_pnts.isnull(), CN.INTERP_PNTS] = 0
                     all_stat.interp_pnts = all_stat.interp_pnts.astype(int)
 
                 # PCT lines in stat files are short one row, subtract 1 from n_thresh
@@ -984,7 +988,7 @@ class ReadDataFiles:
             if list_cts:
                 all_cts = pd.concat(list_cts, ignore_index=True, sort=False)
                 list_cts = []
-                
+
                 all_cts[CN.FCST_LEAD] = pd.to_numeric(all_cts[CN.FCST_LEAD])
                 if not all_cts.fcst_lead.dtypes == 'int':
                     all_cts.loc[all_cts.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
@@ -1010,7 +1014,7 @@ class ReadDataFiles:
                 # gather all mode lines
                 all_obj = pd.concat(list_obj, ignore_index=True, sort=False)
                 list_obj = []
-                
+
                 all_obj[CN.FCST_LEAD] = pd.to_numeric(all_obj[CN.FCST_LEAD])
                 if not all_obj.fcst_lead.dtypes == 'int':
                     all_obj.loc[all_obj.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
@@ -1083,7 +1087,7 @@ class ReadDataFiles:
                 all_stat[CN.FCST_LEAD] = pd.to_numeric(all_stat[CN.FCST_LEAD])
                 if not all_stat.fcst_lead.dtypes == 'int':
                     all_stat.loc[all_stat.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
-                    
+
                 # Copy forecast lead times, without trailing 0000 if they have them
                 all_stat[CN.FCST_LEAD_HR] = \
                     np.where(all_stat[CN.FCST_LEAD] > 9999,
@@ -1224,83 +1228,75 @@ class ReadDataFiles:
         return lu_type
 
     def read_stat(self, filename, hdr_names):
-        """ Read in all of the lines except the header of a stat file.
-            Returns:
-               all the stat lines in a dataframe, with dates converted to datetime
-        """
-        # switched to python engine for python 3.8 and pandas 1.4.2
-        # switched back to c version for pandas 1.2.3
-        # added the low_memory=False option when getting a DtypeWarning
-        # to switch to python version: low_memory=False -> engine='python'
-        return pd.read_csv(filename, delim_whitespace=True,
-                           names=hdr_names, skiprows=1,
-                           parse_dates=[CN.FCST_VALID_BEG,
-                                        CN.FCST_VALID_END,
-                                        CN.OBS_VALID_BEG,
-                                        CN.OBS_VALID_END],
-                           date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
-    
-    def read_stat2(self, filename, hdr_names):
         """ Read stat files without assuming read_csv can pad lines
             Returns:
                all the stat lines in a dataframe, with dates converted to datetime
         """
         stat_file = pd.DataFrame()
-        
-        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1)
+
+        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None)
         stat_file = stat_file.iloc[:, 0]
-        
+
         # break fields out, separated by 1 or more spaces
         stat_file = stat_file.str.split(' +', expand=True)
-                
+
         # add new blank columns, and column headers
-        stat_file = stat_file.reindex(columns = hdr_names)
+        #stat_file = stat_file.reindex(columns=hdr_names)
+        
+        if len(stat_file.columns) < len(hdr_names):
+            for col_no in range(len(stat_file.columns), len(hdr_names)):
+                stat_file[hdr_names[col_no]] = CN.NOTAV
+
+        # add column names
+        stat_file.columns = hdr_names
 
         # convert MET dates to correct date format
         stat_file[CN.FCST_VALID_BEG] = \
-            pd.to_datetime(stat_file[CN.FCST_VALID_BEG], 
+            pd.to_datetime(stat_file[CN.FCST_VALID_BEG],
                            format='%Y%m%d_%H%M%S', errors='ignore')
         stat_file[CN.FCST_VALID_END] = \
-            pd.to_datetime(stat_file[CN.FCST_VALID_END], 
+            pd.to_datetime(stat_file[CN.FCST_VALID_END],
                            format='%Y%m%d_%H%M%S', errors='ignore')
         stat_file[CN.OBS_VALID_BEG] = \
-            pd.to_datetime(stat_file[CN.OBS_VALID_BEG], 
+            pd.to_datetime(stat_file[CN.OBS_VALID_BEG],
                            format='%Y%m%d_%H%M%S', errors='ignore')
         stat_file[CN.OBS_VALID_END] = \
-            pd.to_datetime(stat_file[CN.OBS_VALID_END], 
+            pd.to_datetime(stat_file[CN.OBS_VALID_END],
                            format='%Y%m%d_%H%M%S', errors='ignore')
         return stat_file
-            
+
     def read_tcst(self, filename, hdr_names):
         """ Read in all of the lines except the header of a tcst file.
             Returns:
                all the tcst lines in a dataframe, with dates converted to datetime
         """
-        # added the low_memory=False option when getting a DtypeWarning
-        return pd.read_csv(filename, delim_whitespace=True,
-                           names=hdr_names, skiprows=1,
-                           parse_dates=[CN.INIT,
-                                        CN.VALID],
-                           date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
+        stat_file = pd.DataFrame()
 
-    def cached_date_parser(self, date_str):
-        """ if date is repeated and already converted, return that value.
-            Returns:
-               date in datetime format while reading in file
-        """
-        # if date is repeated and already converted, return that value
-        date_str = str(date_str)
-        if date_str in self.cache:
-            return self.cache[date_str]
-        if date_str.startswith('F') or date_str.startswith('O'):
-            return pd.to_datetime('20000101_000000', format='%Y%m%d_%H%M%S')
-        if date_str == CN.NOTAV:
-            return CN.MV_NULL
-        date_time = pd.to_datetime(date_str, format='%Y%m%d_%H%M%S', errors='ignore')
-        self.cache[date_str] = date_time
-        return date_time
+        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None)
+        stat_file = stat_file.iloc[:, 0]
+
+        # break fields out, separated by 1 or more spaces
+        stat_file = stat_file.str.split(' +', expand=True)
+
+        # add new blank columns, and column headers
+        #stat_file = stat_file.reindex(columns=hdr_names)
+
+        if len(stat_file.columns) < len(hdr_names):
+            for col_no in range(len(stat_file.columns), len(hdr_names)):
+                stat_file[hdr_names[col_no]] = CN.NOTAV
+
+        # add column names
+        stat_file.columns = hdr_names
+
+        # convert MET dates to correct date format
+        stat_file[CN.INIT] = \
+            pd.to_datetime(stat_file[CN.INIT],
+                           format='%Y%m%d_%H%M%S', errors='ignore')
+        stat_file[CN.VALID] = \
+            pd.to_datetime(stat_file[CN.VALID],
+                           format='%Y%m%d_%H%M%S', errors='ignore')
+
+        return stat_file
 
     def read_mode(self, filename, hdr_names):
         """ Read in all of the lines except the header of a mode file.
@@ -1309,24 +1305,25 @@ class ReadDataFiles:
         """
         # added the low_memory=False option when getting a DtypeWarning
         stat_file = pd.DataFrame()
-        
-        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1)
+
+        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None)
         stat_file = stat_file.iloc[:, 0]
-        
+
         # break fields out, separated by 1 or more spaces
         stat_file = stat_file.str.split(' +', expand=True)
-        
+
         if len(stat_file.columns) < len(hdr_names):
-            for col_no in range(len(stat_file.columns), len(hdr_names)): 
+            for col_no in range(len(stat_file.columns), len(hdr_names)):
                 stat_file[hdr_names[col_no]] = CN.NOTAV
 
         # add column names
         stat_file.columns = hdr_names
-        
+
+        # convert MET dates to correct date format
         stat_file[CN.FCST_VALID] = \
-            pd.to_datetime(stat_file[CN.FCST_VALID], 
+            pd.to_datetime(stat_file[CN.FCST_VALID],
                            format='%Y%m%d_%H%M%S', errors='ignore')
         stat_file[CN.OBS_VALID] = \
-            pd.to_datetime(stat_file[CN.OBS_VALID], 
-                           format='%Y%m%d_%H%M%S', errors='ignore')            
+            pd.to_datetime(stat_file[CN.OBS_VALID],
+                           format='%Y%m%d_%H%M%S', errors='ignore')
         return stat_file

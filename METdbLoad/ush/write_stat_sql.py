@@ -124,7 +124,7 @@ class WriteStatSql:
                 logging.info("%s: %s rows", line_type, str(len(line_data.index)))
 
                 # change all Not Available values to METviewer not available (-9999)
-                line_data = line_data.replace('NA', CN.MV_NOTAV)
+                line_data = line_data.replace(CN.NOTAV, CN.MV_NOTAV)
 
                 # Only variable length lines have a line_data_id
                 if line_type in CN.VAR_LINE_TYPES:
@@ -217,6 +217,10 @@ class WriteStatSql:
                                 j_indices = np.resize(range(1, basic_count + 1), var_count)
                                 var_data.insert(2, 'j_value', j_indices)
                                 # Fill in ec_value if missing - 1/n_cat
+                                line_data[var_index + repeat_width] = \
+                                    line_data[var_index + repeat_width].istype(float)
+                                line_data[var_index - 1] = \
+                                    line_data[var_index - 1].istype(float)
                                 if pd.isna(line_data.iloc[row_num, var_index + repeat_width]):
                                     line_data.iloc[row_num, var_index + repeat_width] = \
                                         1/line_data.iloc[row_num, var_index - 1]
@@ -291,7 +295,7 @@ class WriteStatSql:
                     line_data2 = line_data2.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in write_sql_data ***", sys.exc_info()[0])
+            logging.error("*** %s in write_stat_data ***", sys.exc_info()[0])
 
         write_time_end = time.perf_counter()
         write_time = timedelta(seconds=write_time_end - write_time_start)
