@@ -393,9 +393,9 @@ class ReadDataFiles:
                             mtd_file.insert(20, CN.OBS_UNITS, CN.NOTAV)
 
                         # if FCST_LEAD is NA, set it to 0 to do math
-                        mtd_file[CN.FCST_LEAD] = pd.to_numeric(mtd_file[CN.FCST_LEAD])
                         if not mtd_file.fcst_lead.dtypes == 'int':
                             mtd_file.loc[mtd_file.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+                            mtd_file[CN.FCST_LEAD] = pd.to_numeric(mtd_file[CN.FCST_LEAD])
 
                         # Copy forecast lead times, without trailing 0000 if they have them
                         mtd_file[CN.FCST_LEAD_HR] = \
@@ -404,7 +404,7 @@ class ReadDataFiles:
                                      mtd_file[CN.FCST_LEAD])
 
                         # Calculate fcst_init = fcst_valid - fcst_lead hours
-                        mtd_file.insert(5, CN.FCST_INIT, CN.NOTAV)
+                        mtd_file.insert(5, CN.FCST_INIT, 0)
                         mtd_file[CN.FCST_INIT] = mtd_file[CN.FCST_VALID] - \
                             pd.to_timedelta(mtd_file[CN.FCST_LEAD_HR], unit='h')
 
@@ -415,6 +415,7 @@ class ReadDataFiles:
                         # if OBS_LEAD is NA, set it to -9999
                         if not mtd_file.obs_lead.dtypes == 'int':
                             mtd_file.loc[mtd_file.obs_lead == CN.NOTAV, CN.OBS_LEAD] = CN.MV_NOTAV
+                            mtd_file[CN.OBS_LEAD] = pd.to_numeric(mtd_file[CN.OBS_LEAD])
 
                         # initially, match line data to the index of the file names
                         mtd_file[CN.FILE_ROW] = row_num
@@ -439,6 +440,9 @@ class ReadDataFiles:
                                 obj_ct = 1
                                 last_line = len(mtd_file.index)
                                 create_new = False
+
+                                # Make all the fields float that are needed to do math
+                                mtd_file.iloc[:, 26:38] = mtd_file.iloc[:, 26:38].astype(float)
                                 # Create new rows by subtracting a previous row from a row by object
                                 # Unique sequential id is assigned to items with the same object id
                                 # Only object ids with more than 2 lines count and create lines
@@ -447,7 +451,7 @@ class ReadDataFiles:
                                     if mtd_row[CN.OBJECT_ID] == obj_id:
                                         obj_ct += 1
                                         if obj_ct == 2 and (row_num + 1) < last_line and \
-                                            mtd_file[CN.OBJECT_ID][row_num + 1] == obj_id:
+                                           mtd_file[CN.OBJECT_ID][row_num + 1] == obj_id:
                                             rev_ctr += 1
                                             create_new = True
                                         if obj_ct > 1 and create_new:
@@ -618,10 +622,12 @@ class ReadDataFiles:
                 # Added for tc_gen files
                 if not all_stat.fcst_lead.dtypes == 'int':
                     all_stat.loc[all_stat.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+                    all_stat[CN.FCST_LEAD] = pd.to_numeric(all_stat[CN.FCST_LEAD])
 
                 # Change ALL items in column OBS_LEAD to 0 if they are 'NA'
                 if not all_stat.obs_lead.dtypes == 'int':
                     all_stat.loc[all_stat.obs_lead == CN.NOTAV, CN.OBS_LEAD] = 0
+                    all_stat[CN.OBS_LEAD] = pd.to_numeric(all_stat[CN.OBS_LEAD])
 
                 # Change 'NA' values in column INTERP_PNTS to 0 if present
                 if not all_stat.interp_pnts.dtypes == 'int':
@@ -1241,8 +1247,6 @@ class ReadDataFiles:
         stat_file = stat_file.str.split(' +', expand=True)
 
         # add new blank columns, and column headers
-        #stat_file = stat_file.reindex(columns=hdr_names)
-        
         if len(stat_file.columns) < len(hdr_names):
             for col_no in range(len(stat_file.columns), len(hdr_names)):
                 stat_file[hdr_names[col_no]] = CN.NOTAV
@@ -1279,8 +1283,6 @@ class ReadDataFiles:
         stat_file = stat_file.str.split(' +', expand=True)
 
         # add new blank columns, and column headers
-        #stat_file = stat_file.reindex(columns=hdr_names)
-
         if len(stat_file.columns) < len(hdr_names):
             for col_no in range(len(stat_file.columns), len(hdr_names)):
                 stat_file[hdr_names[col_no]] = CN.NOTAV
@@ -1303,15 +1305,16 @@ class ReadDataFiles:
             Returns:
                all the mode lines in a dataframe, with dates converted to datetime
         """
-        # added the low_memory=False option when getting a DtypeWarning
         stat_file = pd.DataFrame()
 
-        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None)
+        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None,
+                                skipinitialspace=True)
         stat_file = stat_file.iloc[:, 0]
 
         # break fields out, separated by 1 or more spaces
         stat_file = stat_file.str.split(' +', expand=True)
 
+        # add new blank columns, and column headers
         if len(stat_file.columns) < len(hdr_names):
             for col_no in range(len(stat_file.columns), len(hdr_names)):
                 stat_file[hdr_names[col_no]] = CN.NOTAV
@@ -1326,4 +1329,6 @@ class ReadDataFiles:
         stat_file[CN.OBS_VALID] = \
             pd.to_datetime(stat_file[CN.OBS_VALID],
                            format='%Y%m%d_%H%M%S', errors='ignore')
+        stat_file.loc[stat_file.obs_valid == CN.NOTAV, CN.OBS_VALID] = CN.MV_NULL
+
         return stat_file

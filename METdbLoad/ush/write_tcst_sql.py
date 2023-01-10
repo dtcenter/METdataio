@@ -179,6 +179,7 @@ class WriteTcstSql:
                     # end for row_num, file_line
                     if list_var:
                         all_var = pd.concat(list_var, ignore_index=True, sort=False)
+                        list_var = []
 
                 # write the lines out to a CSV file, and then load them into database
                 if not line_data.empty:

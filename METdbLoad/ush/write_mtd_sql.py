@@ -121,6 +121,7 @@ class WriteMtdSql:
 
             # get just the new headers with their keys
             new_headers = mtd_headers[mtd_headers[CN.MTD_HEADER_ID] > (next_header_id - 1)]
+            new_headers.obs_valid = pd.to_datetime(new_headers.obs_valid, errors='coerce')
             logging.info("New MTD headers: %s rows", str(len(new_headers.index)))
 
             # Write any new headers out to the sql database
@@ -145,6 +146,9 @@ class WriteMtdSql:
             # write the lines out to a CSV file, and then load them into database
 
             if not m_2d_data.empty:
+                # make sure type of columns is consistent between headers and line data
+                m_2d_data.obs_valid = pd.to_datetime(m_2d_data.obs_valid,
+                                                     errors='coerce')
                 # put the header ids back into the dataframe
                 m_2d_data = pd.merge(left=mtd_headers, right=m_2d_data, on=CN.MTD_2D_HEADER_KEYS)
 
@@ -175,7 +179,6 @@ class WriteMtdSql:
                 m_2d_data = m_2d_data.iloc[0:0]
 
             if not m_3d_single_data.empty:
-
                 # make sure type of columns is consistent between headers and line data
                 m_3d_single_data.fcst_lead = m_3d_single_data.fcst_lead.astype('int64')
                 m_3d_single_data.obs_lead = m_3d_single_data.obs_lead.astype('int64')
@@ -213,7 +216,6 @@ class WriteMtdSql:
                 m_3d_single_data = m_3d_single_data.iloc[0:0]
 
             if not m_3d_pair_data.empty:
-
                 # make sure type of columns is consistent between headers and line data
                 m_3d_pair_data.fcst_lead = m_3d_pair_data.fcst_lead.astype('int64')
                 m_3d_pair_data.obs_lead = m_3d_pair_data.obs_lead.astype('int64')
