@@ -133,25 +133,30 @@ class WriteMtdSql:
                     new_headers.loc[new_headers.revision_id != CN.MV_NULL, CN.REVISION_ID] = \
                         new_headers.loc[new_headers.revision_id != CN.MV_NULL, CN.REVISION_ID] + \
                         next_rev_id
+                new_headers.loc[new_headers.obs_valid.isnull(), CN.OBS_VALID] = CN.MV_NULL
                 sql_met.write_to_sql(new_headers, CN.MTD_HEADER_FIELDS, CN.MTD_HEADER,
                                      CN.INS_MTDHEADER, tmp_dir, sql_cur, local_infile)
                 new_headers = new_headers.iloc[0:0]
 
             mtd_headers.obs_valid = pd.to_datetime(mtd_headers.obs_valid, errors='coerce')
 
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in write_mtd_sql write MTD headers ***", sys.exc_info()[0])
+
+        try:
             # --------------------
             # Write Line Data
             # --------------------
 
             # write the lines out to a CSV file, and then load them into database
-
             if not m_2d_data.empty:
                 # make sure type of columns is consistent between headers and line data
                 m_2d_data.obs_valid = pd.to_datetime(m_2d_data.obs_valid,
                                                      errors='coerce')
                 # put the header ids back into the dataframe
                 m_2d_data = pd.merge(left=mtd_headers, right=m_2d_data, on=CN.MTD_2D_HEADER_KEYS)
-
+                m_2d_data.loc[m_2d_data.obs_valid.isnull(), CN.OBS_VALID] = CN.MV_NULL
+                
                 # create defaults for flags
                 m_2d_data[CN.SIMPLE_FLAG] = 1
                 m_2d_data[CN.FCST_FLAG] = 0
@@ -188,6 +193,7 @@ class WriteMtdSql:
                 # put the header ids back into the dataframe
                 m_3d_single_data = pd.merge(left=mtd_headers, right=m_3d_single_data,
                                             on=CN.MTD_HEADER_KEYS)
+                m_3d_single_data.loc[m_3d_single_data.obs_valid.isnull(), CN.OBS_VALID] = CN.MV_NULL
 
                 # create defaults for flags
                 m_3d_single_data[CN.SIMPLE_FLAG] = 1
@@ -219,11 +225,13 @@ class WriteMtdSql:
                 # make sure type of columns is consistent between headers and line data
                 m_3d_pair_data.fcst_lead = m_3d_pair_data.fcst_lead.astype('int64')
                 m_3d_pair_data.obs_lead = m_3d_pair_data.obs_lead.astype('int64')
-                m_3d_pair_data.obs_valid = pd.to_datetime(m_3d_pair_data.obs_valid, errors='coerce')
+                m_3d_pair_data.obs_valid = pd.to_datetime(m_3d_pair_data.obs_valid, 
+                                                          errors='coerce')
 
                 # put the header ids back into the dataframe
                 m_3d_pair_data = pd.merge(left=mtd_headers, right=m_3d_pair_data,
                                           on=CN.MTD_HEADER_KEYS)
+                m_3d_pair_data.loc[m_3d_pair_data.obs_valid.isnull(), CN.OBS_VALID] = CN.MV_NULL
                 mtd_headers = mtd_headers.iloc[0:0]
 
                 # create defaults for flags
@@ -245,7 +253,7 @@ class WriteMtdSql:
                 m_3d_pair_data = m_3d_pair_data.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in write_mtd_sql ***", sys.exc_info()[0])
+            logging.error("*** %s in write_mtd_sql write line data ***", sys.exc_info()[0])
 
         write_time_end = time.perf_counter()
         write_time = timedelta(seconds=write_time_end - write_time_start)

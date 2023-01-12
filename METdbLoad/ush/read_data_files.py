@@ -173,10 +173,13 @@ class ReadDataFiles:
                         # add line numbers and count the header line, for stat files
                         one_file[CN.LINE_NUM] = one_file.index + 2
 
+                        # Defragmenting
+                        one_file = one_file.copy()
+
                         # add columns for fcst_perc and obs_perc
                         # these can be in parens in fcst_thresh and obs_thresh in stat files
-                        one_file[CN.FCST_PERC] = CN.MV_NOTAV
-                        one_file[CN.OBS_PERC] = CN.MV_NOTAV
+                        one_file[[CN.FCST_PERC, CN.OBS_PERC]] = \
+                            (CN.MV_NOTAV, CN.MV_NOTAV)
 
                     #
                     # Process vsdb files
@@ -199,8 +202,8 @@ class ReadDataFiles:
 
                             # put space in front of hyphen between numbers in case space is missing
                             # FHO can have negative thresh - fix with regex, only between numbers
-                            split_file.iloc[:, 1] = \
-                                split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2',
+                            split_file[split_file.columns[1]] = \
+                                split_file[split_file.columns[1]].str.replace(r'(\d)-(\d)', r'\1 -\2',
                                                                   regex=True)
 
                             # merge the two halves together again
@@ -442,7 +445,8 @@ class ReadDataFiles:
                                 create_new = False
 
                                 # Make all the fields float that are needed to do math
-                                mtd_file.iloc[:, 26:38] = mtd_file.iloc[:, 26:38].astype(float)
+                                mtd_file[mtd_file.columns[26:38]] = \
+                                    mtd_file[mtd_file.columns[26:38]].astype(float)
                                 # Create new rows by subtracting a previous row from a row by object
                                 # Unique sequential id is assigned to items with the same object id
                                 # Only object ids with more than 2 lines count and create lines
@@ -649,7 +653,7 @@ class ReadDataFiles:
                                  (~all_stat['5'].isnull()), '8'] = \
                         1 - all_stat.loc[(all_stat.line_type == CN.RPS) &
                                          (all_stat['8'].isnull()) &
-                                         (~all_stat['5'].isnull()), '5']
+                                         (~all_stat['5'].isnull()), '5'].astype(float)
 
                 # Some lines in stat files may be missing ec_value
                 # CTC and CTS, set to .5
@@ -898,8 +902,8 @@ class ReadDataFiles:
                                                            *vsdb_data.columns.tolist()[n_var_col:]],
                                                   fill_value=CN.MV_NOTAV)
                         for i in range(n_var):
-                            vsdb_data.iloc[:, last_col] = vsdb_data.iloc[:, mid_col]
-                            vsdb_data.iloc[:, last_col - 1] = CN.X_POINTS_ECON[last_point]
+                            vsdb_data[vsdb_data.columns[last_col]] = vsdb_data.iloc[:, mid_col]
+                            vsdb_data[vsdb_data.columns[last_col - 1]] = CN.X_POINTS_ECON[last_point]
                             last_col = last_col - 2
                             mid_col = mid_col - 1
                             last_point = last_point - 1
@@ -1326,9 +1330,9 @@ class ReadDataFiles:
         stat_file[CN.FCST_VALID] = \
             pd.to_datetime(stat_file[CN.FCST_VALID],
                            format='%Y%m%d_%H%M%S', errors='ignore')
+        stat_file.loc[stat_file.obs_valid == CN.NOTAV, CN.OBS_VALID] = CN.MV_NULL
         stat_file[CN.OBS_VALID] = \
             pd.to_datetime(stat_file[CN.OBS_VALID],
                            format='%Y%m%d_%H%M%S', errors='ignore')
-        stat_file.loc[stat_file.obs_valid == CN.NOTAV, CN.OBS_VALID] = CN.MV_NULL
 
         return stat_file
