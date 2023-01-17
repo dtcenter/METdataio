@@ -135,6 +135,7 @@ class ReadDataFiles:
                     # Process stat files
                     #
                     if lu_id == CN.STAT:
+
                         # Get the first line of the .stat file that has the headers
                         try:
                             file_hdr = pd.read_csv(filename, delim_whitespace=True,
@@ -170,10 +171,11 @@ class ReadDataFiles:
                             hdr_names = CN.LONG_HEADER + CN.COL_NUMS
                             one_file = self.read_stat(filename, hdr_names)
 
+                        # Defragmenting
+                        one_file = one_file.copy()
+
                         # add line numbers and count the header line, for stat files
                         one_file[CN.LINE_NUM] = one_file.index + 2
-
-                        # Defragmenting
                         one_file = one_file.copy()
 
                         # add columns for fcst_perc and obs_perc
@@ -204,7 +206,7 @@ class ReadDataFiles:
                             # FHO can have negative thresh - fix with regex, only between numbers
                             split_file[split_file.columns[1]] = \
                                 split_file[split_file.columns[1]].str.replace(r'(\d)-(\d)', r'\1 -\2',
-                                                                  regex=True)
+                                                                              regex=True)
 
                             # merge the two halves together again
                             vsdb_file = split_file.iloc[:, 0] + ' ' + split_file.iloc[:, 1]
@@ -309,6 +311,7 @@ class ReadDataFiles:
                     # Process TCST files
                     #
                     elif lu_id == CN.TCST:
+
                         # Get the first line of the .tcst file that has the headers
                         try:
                             file_hdr = pd.read_csv(filename, delim_whitespace=True,
@@ -398,7 +401,7 @@ class ReadDataFiles:
                         # if FCST_LEAD is NA, set it to 0 to do math
                         if not mtd_file.fcst_lead.dtypes == 'int':
                             mtd_file.loc[mtd_file.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
-                            mtd_file[CN.FCST_LEAD] = pd.to_numeric(mtd_file[CN.FCST_LEAD])
+                            mtd_file[CN.FCST_LEAD] = mtd_file[CN.FCST_LEAD].astype(int)
 
                         # Copy forecast lead times, without trailing 0000 if they have them
                         mtd_file[CN.FCST_LEAD_HR] = \
@@ -418,7 +421,7 @@ class ReadDataFiles:
                         # if OBS_LEAD is NA, set it to -9999
                         if not mtd_file.obs_lead.dtypes == 'int':
                             mtd_file.loc[mtd_file.obs_lead == CN.NOTAV, CN.OBS_LEAD] = CN.MV_NOTAV
-                            mtd_file[CN.OBS_LEAD] = pd.to_numeric(mtd_file[CN.OBS_LEAD])
+                            mtd_file[CN.OBS_LEAD] = mtd_file[CN.OBS_LEAD].astype(int)
 
                         # initially, match line data to the index of the file names
                         mtd_file[CN.FILE_ROW] = row_num
@@ -626,12 +629,12 @@ class ReadDataFiles:
                 # Added for tc_gen files
                 if not all_stat.fcst_lead.dtypes == 'int':
                     all_stat.loc[all_stat.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
-                    all_stat[CN.FCST_LEAD] = pd.to_numeric(all_stat[CN.FCST_LEAD])
+                    all_stat[CN.FCST_LEAD] = all_stat[CN.FCST_LEAD].astype(int)
 
                 # Change ALL items in column OBS_LEAD to 0 if they are 'NA'
                 if not all_stat.obs_lead.dtypes == 'int':
                     all_stat.loc[all_stat.obs_lead == CN.NOTAV, CN.OBS_LEAD] = 0
-                    all_stat[CN.OBS_LEAD] = pd.to_numeric(all_stat[CN.OBS_LEAD])
+                    all_stat[CN.OBS_LEAD] = all_stat[CN.OBS_LEAD].astype(int)
 
                 # Change 'NA' values in column INTERP_PNTS to 0 if present
                 if not all_stat.interp_pnts.dtypes == 'int':
@@ -714,7 +717,7 @@ class ReadDataFiles:
 
                 # handle model names that contain a forward slash followed by a number
                 if all_vsdb.model.str.contains(CN.FWD_SLASH).any():
-                    all_vsdb.loc[:, CN.N_VAR] = 0
+                    all_vsdb[all_vsdb.columns[CN.N_VAR]] = 0
                     # save the value after the slash in model
                     all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH),
                                  CN.N_VAR] = \
@@ -775,16 +778,16 @@ class ReadDataFiles:
                 all_vsdb.fcst_valid_beg = pd.to_datetime(all_vsdb.fcst_valid_beg,
                                                          format='%Y%m%d%H')
                 # fcst_valid_end is the same as fcst_valid_beg
-                all_vsdb.loc[:, CN.FCST_VALID_END] = all_vsdb.fcst_valid_beg
+                all_vsdb[all_vsdb.columns[CN.FCST_VALID_END]] = all_vsdb.fcst_valid_beg
                 # fcst_lead must be numeric for later calculations
-                all_vsdb.fcst_lead = pd.to_numeric(all_vsdb.fcst_lead)
+                all_vsdb.fcst_lead = all_vsdb.fcst_lead.astype(int)
                 all_vsdb.insert(11, CN.OBS_LEAD, 0)
                 # copy obs values from fcst values
-                all_vsdb.loc[:, CN.OBS_VALID_BEG] = all_vsdb.fcst_valid_beg
-                all_vsdb.loc[:, CN.OBS_VALID_END] = all_vsdb.fcst_valid_beg
-                all_vsdb.loc[:, CN.OBS_VAR] = all_vsdb.fcst_var
-                all_vsdb.loc[:, CN.OBS_LEV] = all_vsdb.fcst_lev
-                all_vsdb.loc[:, CN.OBS_THRESH] = all_vsdb.fcst_thresh
+                all_vsdb[all_vsdb.columns[CN.OBS_VALID_BEG]] = all_vsdb.fcst_valid_beg
+                all_vsdb[all_vsdb.columns[CN.OBS_VALID_END]] = all_vsdb.fcst_valid_beg
+                all_vsdb[all_vsdb.columns[CN.OBS_VAR]] = all_vsdb.fcst_var
+                all_vsdb[all_vsdb.columns[CN.OBS_LEV]] = all_vsdb.fcst_lev
+                all_vsdb[all_vsdb.columns[CN.OBS_THRESH]] = all_vsdb.fcst_thresh
                 # add units
                 all_vsdb.insert(12, CN.FCST_UNITS, CN.NOTAV)
                 all_vsdb.insert(13, CN.OBS_UNITS, CN.NOTAV)
@@ -999,7 +1002,7 @@ class ReadDataFiles:
                 all_cts = pd.concat(list_cts, ignore_index=True, sort=False)
                 list_cts = []
 
-                all_cts[CN.FCST_LEAD] = pd.to_numeric(all_cts[CN.FCST_LEAD])
+                all_cts[CN.FCST_LEAD] = all_cts[CN.FCST_LEAD].astype(int)
                 if not all_cts.fcst_lead.dtypes == 'int':
                     all_cts.loc[all_cts.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
 
@@ -1025,7 +1028,7 @@ class ReadDataFiles:
                 all_obj = pd.concat(list_obj, ignore_index=True, sort=False)
                 list_obj = []
 
-                all_obj[CN.FCST_LEAD] = pd.to_numeric(all_obj[CN.FCST_LEAD])
+                all_obj[CN.FCST_LEAD] = all_obj[CN.FCST_LEAD].astype(int)
                 if not all_obj.fcst_lead.dtypes == 'int':
                     all_obj.loc[all_obj.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
 
@@ -1094,7 +1097,7 @@ class ReadDataFiles:
                                      inplace=True)
                 self.data_files.reset_index(drop=True, inplace=True)
 
-                all_stat[CN.FCST_LEAD] = pd.to_numeric(all_stat[CN.FCST_LEAD])
+                all_stat[CN.FCST_LEAD] = all_stat[CN.FCST_LEAD].astype(int)
                 if not all_stat.fcst_lead.dtypes == 'int':
                     all_stat.loc[all_stat.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
 
