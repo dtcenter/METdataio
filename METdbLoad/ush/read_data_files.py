@@ -717,7 +717,7 @@ class ReadDataFiles:
 
                 # handle model names that contain a forward slash followed by a number
                 if all_vsdb.model.str.contains(CN.FWD_SLASH).any():
-                    all_vsdb[all_vsdb.columns[CN.N_VAR]] = 0
+                    all_vsdb[CN.N_VAR] = 0
                     # save the value after the slash in model
                     all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH),
                                  CN.N_VAR] = \
@@ -778,16 +778,16 @@ class ReadDataFiles:
                 all_vsdb.fcst_valid_beg = pd.to_datetime(all_vsdb.fcst_valid_beg,
                                                          format='%Y%m%d%H')
                 # fcst_valid_end is the same as fcst_valid_beg
-                all_vsdb[all_vsdb.columns[CN.FCST_VALID_END]] = all_vsdb.fcst_valid_beg
+                all_vsdb[CN.FCST_VALID_END] = all_vsdb.fcst_valid_beg
                 # fcst_lead must be numeric for later calculations
                 all_vsdb.fcst_lead = all_vsdb.fcst_lead.astype(int)
                 all_vsdb.insert(11, CN.OBS_LEAD, 0)
                 # copy obs values from fcst values
-                all_vsdb[all_vsdb.columns[CN.OBS_VALID_BEG]] = all_vsdb.fcst_valid_beg
-                all_vsdb[all_vsdb.columns[CN.OBS_VALID_END]] = all_vsdb.fcst_valid_beg
-                all_vsdb[all_vsdb.columns[CN.OBS_VAR]] = all_vsdb.fcst_var
-                all_vsdb[all_vsdb.columns[CN.OBS_LEV]] = all_vsdb.fcst_lev
-                all_vsdb[all_vsdb.columns[CN.OBS_THRESH]] = all_vsdb.fcst_thresh
+                all_vsdb[CN.OBS_VALID_BEG] = all_vsdb.fcst_valid_beg
+                all_vsdb[CN.OBS_VALID_END] = all_vsdb.fcst_valid_beg
+                all_vsdb[CN.OBS_VAR] = all_vsdb.fcst_var
+                all_vsdb[CN.OBS_LEV] = all_vsdb.fcst_lev
+                all_vsdb[CN.OBS_THRESH] = all_vsdb.fcst_thresh
                 # add units
                 all_vsdb.insert(12, CN.FCST_UNITS, CN.NOTAV)
                 all_vsdb.insert(13, CN.OBS_UNITS, CN.NOTAV)
