@@ -1247,6 +1247,7 @@ class ReadDataFiles:
         """
         stat_file = pd.DataFrame()
 
+        # Read file in as 1 column to avoid problems with varying line lengths
         stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None)
         stat_file = stat_file.iloc[:, 0]
 
@@ -1255,8 +1256,7 @@ class ReadDataFiles:
 
         # add new blank columns, and column headers
         if len(stat_file.columns) < len(hdr_names):
-            for col_no in range(len(stat_file.columns), len(hdr_names)):
-                stat_file[hdr_names[col_no]] = CN.NOTAV
+            stat_file[hdr_names[len(stat_file.columns):len(hdr_names) + 1]] = CN.NOTAV
 
         # add column names
         stat_file.columns = hdr_names
@@ -1283,6 +1283,7 @@ class ReadDataFiles:
         """
         stat_file = pd.DataFrame()
 
+        # Read file in as 1 column to avoid problems with varying line lengths
         stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None)
         stat_file = stat_file.iloc[:, 0]
 
@@ -1291,8 +1292,7 @@ class ReadDataFiles:
 
         # add new blank columns, and column headers
         if len(stat_file.columns) < len(hdr_names):
-            for col_no in range(len(stat_file.columns), len(hdr_names)):
-                stat_file[hdr_names[col_no]] = CN.NOTAV
+            stat_file[hdr_names[len(stat_file.columns):len(hdr_names) + 1]] = CN.NOTAV
 
         # add column names
         stat_file.columns = hdr_names
@@ -1314,6 +1314,7 @@ class ReadDataFiles:
         """
         stat_file = pd.DataFrame()
 
+        # Read file in as 1 column to avoid problems with varying line lengths
         stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None,
                                 skipinitialspace=True)
         stat_file = stat_file.iloc[:, 0]
@@ -1323,8 +1324,7 @@ class ReadDataFiles:
 
         # add new blank columns, and column headers
         if len(stat_file.columns) < len(hdr_names):
-            for col_no in range(len(stat_file.columns), len(hdr_names)):
-                stat_file[hdr_names[col_no]] = CN.NOTAV
+            stat_file[hdr_names[len(stat_file.columns):len(hdr_names) + 1]] = CN.NOTAV
 
         # add column names
         stat_file.columns = hdr_names
