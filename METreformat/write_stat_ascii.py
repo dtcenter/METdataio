@@ -106,7 +106,7 @@ class WriteStatAscii:
                 if idx == 0:
                     combined_dfs: pd.DataFrame = all_reshaped_data_df[0].copy(deep=True)
                 elif idx != 0:
-                    combined_dfs: pd.DataFrame = combined_dfs.append(dfs)
+                    combined_dfs: pd.DataFrame = pd.concat([combined_dfs, dfs])
 
             # Write out to the tab-separated text file
             output_file = os.path.join(parms['output_dir'], parms['output_filename'])
