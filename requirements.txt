@@ -4,7 +4,7 @@ iniconfig==1.1.1
 lxml==4.9.1
 numpy==1.23.5
 packaging==22.0
-pandas==1.2.3
+pandas==1.5.1
 pip==22.2.2
 pluggy==1.0.0
 PyMySQL==1.0.2
