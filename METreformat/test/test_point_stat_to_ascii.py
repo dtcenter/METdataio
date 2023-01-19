@@ -46,7 +46,7 @@ def test_point_stat_FHO_consistency(setup):
 
     # get the value of the record corresponding to line_type FHO, total number of pairs=3962, obs_var=WIND,
     # obs_lev=Z10, and stat_name=F_RATE
-    total = 3962
+    total = str(3962)
     obs_var = 'WIND'
     obs_level = 'Z10'
     fcst_thresh = '>=10.288'
@@ -98,7 +98,7 @@ def test_point_stat_SL1L2_consistency(setup):
 
     # get the value of the record corresponding to line_type Sl1L2, total number of pairs, obs_var,
     # obs_lev, and fcst_thresh, for the MAE statistic.
-    total = 3965
+    total = str(3965)
     obs_var = 'RH'
     obs_level = 'Z2'
     fcst_thresh = 'NA'
@@ -151,7 +151,7 @@ def test_point_stat_CTC_consistency(setup):
 
     # get the value of the record corresponding to line_type CTC, total number of pairs=3956, obs_var=CEILING,
     # obs_lev=L0, and fcst_thresh<3040, for the FN_ON statistic.
-    total = 3956
+    total = str(3956)
     obs_var = 'CEILING'
     obs_level = 'L0'
     fcst_thresh = '<3040'
@@ -205,7 +205,7 @@ def test_point_stat_CTS_consistency(setup):
 
     # get the value of the record corresponding to line_type CTS, total number of pairs, obs_var,
     # obs_lev, and fcst_thresh, for the BASER statistic.
-    total = 3956
+    total = str(3956)
     obs_var = 'CEILING'
     obs_level = 'L0'
     fcst_thresh = '<152'
@@ -265,7 +265,7 @@ def test_point_stat_CNT_consistency(setup):
 
     # get the value of the record corresponding to line_type CTC, total number of pairs, obs_var,
     # obs_lev, and fcst_thresh, for the ME statistic.
-    total = 4028
+    total = str(4028)
     obs_var = 'TMP'
     obs_level = 'Z2'
     fcst_thresh = 'NA'
