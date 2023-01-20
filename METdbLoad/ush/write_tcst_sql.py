@@ -101,6 +101,12 @@ class WriteTcstSql:
             tcst_headers = tcst_headers.iloc[0:0]
             new_headers = new_headers.iloc[0:0]
 
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in write_tcst_data write tcst headers ***", sys.exc_info()[0])
+
+        try:
+
+
             # --------------------
             # Write Line Data
             # --------------------
@@ -123,20 +129,13 @@ class WriteTcstSql:
                 logging.info("%s: %s rows", line_type, str(len(line_data.index)))
 
                 # change all Not Available numerical values to METviewer not available (-9999)
-                all_columns = CN.LONG_HEADER_TCST + CN.COLUMNS[line_type]
-                for col in CN.LINE_DATA_FIELDS_TO_REPLACE[line_type]:
-                    index = all_columns.index(col)
-                    line_data.iloc[:, index] = \
-                        line_data.iloc[:, index].replace('NA', CN.MV_NOTAV).fillna(CN.MV_NOTAV)
-
                 # replace adepth and bdepth NA -> X
-                if 'adepth' in all_columns:
-                    index = all_columns.index('adepth')
-                    line_data.iloc[:, index] = \
-                        line_data.iloc[:, index].replace('NA', 'X').fillna('X')
-                    index = all_columns.index('bdepth')
-                    line_data.iloc[:, index] = \
-                        line_data.iloc[:, index].replace('NA', 'X').fillna('X')
+                if line_type == CN.TCMPR:
+                    line_data['64'] = line_data['64'].replace(CN.NOTAV, 'X')
+                    line_data['65'] = line_data['65'].replace(CN.NOTAV, 'X')
+
+                # Change remaining NA values
+                line_data = line_data.replace(CN.NOTAV, CN.MV_NOTAV)
 
                 # Only variable length lines have a line_data_id
                 if line_type in CN.VAR_LINE_TYPES_TCST:
@@ -146,8 +145,8 @@ class WriteTcstSql:
                     logging.debug("next_line_id is %s", next_line_id)
 
                     # try to keep order the same as MVLoad
-                    line_data = line_data.sort_values(by=[CN.DATA_FILE_ID, CN.LINE_NUM])
-                    line_data.reset_index(drop=True, inplace=True)
+                    line_data = line_data.sort_values(by=[CN.DATA_FILE_ID, CN.LINE_NUM],
+                                                      ignore_index=True).copy()
 
                     line_data[CN.LINE_DATA_ID] = line_data.index + next_line_id
 
@@ -200,7 +199,7 @@ class WriteTcstSql:
             # end for line_type
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in write_sql_data ***", sys.exc_info()[0])
+            logging.error("*** %s in write_tcst_data write line data ***", sys.exc_info()[0])
 
         write_time_end = time.perf_counter()
         write_time = timedelta(seconds=write_time_end - write_time_start)
