@@ -13,9 +13,11 @@ module load intel/2021.2
 
 prepend-path PATH /glade/p/ral/jntp/MET/METplus/miniconda/miniconda3/envs/metplus_v5.0_py3.8/bin
 
+prepend-path PATH /glade/p/ral/jntp/MET/METdataio/METdataio-2.0.0/METreformat
 prepend-path PATH /glade/p/ral/jntp/MET/METdataio/METdataio-2.0.0/METreadnc/util
 prepend-path PATH /glade/p/ral/jntp/MET/METdataio/METdataio-2.0.0/METreadnc
 prepend-path PATH /glade/p/ral/jntp/MET/METdataio/METdataio-2.0.0
+prepend-path PYTHONPATH /glade/p/ral/jntp/MET/METdataio/METdataio-2.0.0/METreformat
 prepend-path PYTHONPATH /glade/p/ral/jntp/MET/METdataio/METdataio-2.0.0/METreadnc/util
 prepend-path PYTHONPATH /glade/p/ral/jntp/MET/METdataio/METdataio-2.0.0/METreadnc
 prepend-path PYTHONPATH /glade/p/ral/jntp/MET/METdataio/METdataio-2.0.0
