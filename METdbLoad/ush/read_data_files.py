@@ -135,6 +135,7 @@ class ReadDataFiles:
                     # Process stat files
                     #
                     if lu_id == CN.STAT:
+
                         # Get the first line of the .stat file that has the headers
                         try:
                             file_hdr = pd.read_csv(filename, delim_whitespace=True,
@@ -170,13 +171,17 @@ class ReadDataFiles:
                             hdr_names = CN.LONG_HEADER + CN.COL_NUMS
                             one_file = self.read_stat(filename, hdr_names)
 
+                        # Defragmenting
+                        one_file = one_file.copy()
+
                         # add line numbers and count the header line, for stat files
                         one_file[CN.LINE_NUM] = one_file.index + 2
+                        one_file = one_file.copy()
 
                         # add columns for fcst_perc and obs_perc
                         # these can be in parens in fcst_thresh and obs_thresh in stat files
-                        one_file[CN.FCST_PERC] = CN.MV_NOTAV
-                        one_file[CN.OBS_PERC] = CN.MV_NOTAV
+                        one_file[[CN.FCST_PERC, CN.OBS_PERC]] = \
+                            (CN.MV_NOTAV, CN.MV_NOTAV)
 
                     #
                     # Process vsdb files
@@ -199,9 +204,9 @@ class ReadDataFiles:
 
                             # put space in front of hyphen between numbers in case space is missing
                             # FHO can have negative thresh - fix with regex, only between numbers
-                            split_file.iloc[:, 1] = \
-                                split_file.iloc[:, 1].str.replace(r'(\d)-(\d)', r'\1 -\2',
-                                                                  regex=True)
+                            split_file[split_file.columns[1]] = \
+                                split_file[split_file.columns[1]].str.replace(r'(\d)-(\d)', r'\1 -\2',
+                                                                              regex=True)
 
                             # merge the two halves together again
                             vsdb_file = split_file.iloc[:, 0] + ' ' + split_file.iloc[:, 1]
@@ -306,6 +311,7 @@ class ReadDataFiles:
                     # Process TCST files
                     #
                     elif lu_id == CN.TCST:
+
                         # Get the first line of the .tcst file that has the headers
                         try:
                             file_hdr = pd.read_csv(filename, delim_whitespace=True,
@@ -333,6 +339,9 @@ class ReadDataFiles:
                                                               "lead": "fcst_lead",
                                                               "valid": "fcst_valid"})
 
+                    #
+                    # Process MTD files
+                    #
                     elif lu_id in CN.MTD_FILES:
 
                         # Get the first line of the MTD file that has the headers
@@ -392,6 +401,7 @@ class ReadDataFiles:
                         # if FCST_LEAD is NA, set it to 0 to do math
                         if not mtd_file.fcst_lead.dtypes == 'int':
                             mtd_file.loc[mtd_file.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+                            mtd_file[CN.FCST_LEAD] = mtd_file[CN.FCST_LEAD].astype(int)
 
                         # Copy forecast lead times, without trailing 0000 if they have them
                         mtd_file[CN.FCST_LEAD_HR] = \
@@ -400,7 +410,7 @@ class ReadDataFiles:
                                      mtd_file[CN.FCST_LEAD])
 
                         # Calculate fcst_init = fcst_valid - fcst_lead hours
-                        mtd_file.insert(5, CN.FCST_INIT, CN.NOTAV)
+                        mtd_file.insert(5, CN.FCST_INIT, 0)
                         mtd_file[CN.FCST_INIT] = mtd_file[CN.FCST_VALID] - \
                             pd.to_timedelta(mtd_file[CN.FCST_LEAD_HR], unit='h')
 
@@ -411,6 +421,7 @@ class ReadDataFiles:
                         # if OBS_LEAD is NA, set it to -9999
                         if not mtd_file.obs_lead.dtypes == 'int':
                             mtd_file.loc[mtd_file.obs_lead == CN.NOTAV, CN.OBS_LEAD] = CN.MV_NOTAV
+                            mtd_file[CN.OBS_LEAD] = mtd_file[CN.OBS_LEAD].astype(int)
 
                         # initially, match line data to the index of the file names
                         mtd_file[CN.FILE_ROW] = row_num
@@ -435,6 +446,10 @@ class ReadDataFiles:
                                 obj_ct = 1
                                 last_line = len(mtd_file.index)
                                 create_new = False
+
+                                # Make all the fields float that are needed to do math
+                                mtd_file[mtd_file.columns[26:38]] = \
+                                    mtd_file[mtd_file.columns[26:38]].astype(float)
                                 # Create new rows by subtracting a previous row from a row by object
                                 # Unique sequential id is assigned to items with the same object id
                                 # Only object ids with more than 2 lines count and create lines
@@ -443,7 +458,7 @@ class ReadDataFiles:
                                     if mtd_row[CN.OBJECT_ID] == obj_id:
                                         obj_ct += 1
                                         if obj_ct == 2 and (row_num + 1) < last_line and \
-                                            mtd_file[CN.OBJECT_ID][row_num + 1] == obj_id:
+                                           mtd_file[CN.OBJECT_ID][row_num + 1] == obj_id:
                                             rev_ctr += 1
                                             create_new = True
                                         if obj_ct > 1 and create_new:
@@ -546,6 +561,10 @@ class ReadDataFiles:
                 all_stat = pd.concat(list_frames, ignore_index=True, sort=False)
                 list_frames = []
 
+                all_stat.fcst_thresh = all_stat.fcst_thresh.astype(str)
+                all_stat.obs_thresh = all_stat.obs_thresh.astype(str)
+                all_stat['1'] = all_stat['1'].astype(float)
+
                 # if a fcst percentage thresh is used, it is in parens in fcst_thresh
                 if all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False).any():
                     # save the value in parens
@@ -610,14 +629,17 @@ class ReadDataFiles:
                 # Added for tc_gen files
                 if not all_stat.fcst_lead.dtypes == 'int':
                     all_stat.loc[all_stat.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+                    all_stat[CN.FCST_LEAD] = all_stat[CN.FCST_LEAD].astype(int)
 
                 # Change ALL items in column OBS_LEAD to 0 if they are 'NA'
                 if not all_stat.obs_lead.dtypes == 'int':
                     all_stat.loc[all_stat.obs_lead == CN.NOTAV, CN.OBS_LEAD] = 0
+                    all_stat[CN.OBS_LEAD] = all_stat[CN.OBS_LEAD].astype(int)
 
                 # Change 'NA' values in column INTERP_PNTS to 0 if present
                 if not all_stat.interp_pnts.dtypes == 'int':
                     all_stat.loc[all_stat.interp_pnts == CN.NOTAV, CN.INTERP_PNTS] = 0
+                    all_stat.loc[all_stat.interp_pnts.isnull(), CN.INTERP_PNTS] = 0
                     all_stat.interp_pnts = all_stat.interp_pnts.astype(int)
 
                 # PCT lines in stat files are short one row, subtract 1 from n_thresh
@@ -634,7 +656,7 @@ class ReadDataFiles:
                                  (~all_stat['5'].isnull()), '8'] = \
                         1 - all_stat.loc[(all_stat.line_type == CN.RPS) &
                                          (all_stat['8'].isnull()) &
-                                         (~all_stat['5'].isnull()), '5']
+                                         (~all_stat['5'].isnull()), '5'].astype(float)
 
                 # Some lines in stat files may be missing ec_value
                 # CTC and CTS, set to .5
@@ -695,7 +717,7 @@ class ReadDataFiles:
 
                 # handle model names that contain a forward slash followed by a number
                 if all_vsdb.model.str.contains(CN.FWD_SLASH).any():
-                    all_vsdb.loc[:, CN.N_VAR] = 0
+                    all_vsdb[CN.N_VAR] = 0
                     # save the value after the slash in model
                     all_vsdb.loc[all_vsdb.model.str.contains(CN.FWD_SLASH),
                                  CN.N_VAR] = \
@@ -756,16 +778,16 @@ class ReadDataFiles:
                 all_vsdb.fcst_valid_beg = pd.to_datetime(all_vsdb.fcst_valid_beg,
                                                          format='%Y%m%d%H')
                 # fcst_valid_end is the same as fcst_valid_beg
-                all_vsdb.loc[:, CN.FCST_VALID_END] = all_vsdb.fcst_valid_beg
+                all_vsdb[CN.FCST_VALID_END] = all_vsdb.fcst_valid_beg
                 # fcst_lead must be numeric for later calculations
-                all_vsdb.fcst_lead = pd.to_numeric(all_vsdb.fcst_lead)
+                all_vsdb.fcst_lead = all_vsdb.fcst_lead.astype(int)
                 all_vsdb.insert(11, CN.OBS_LEAD, 0)
                 # copy obs values from fcst values
-                all_vsdb.loc[:, CN.OBS_VALID_BEG] = all_vsdb.fcst_valid_beg
-                all_vsdb.loc[:, CN.OBS_VALID_END] = all_vsdb.fcst_valid_beg
-                all_vsdb.loc[:, CN.OBS_VAR] = all_vsdb.fcst_var
-                all_vsdb.loc[:, CN.OBS_LEV] = all_vsdb.fcst_lev
-                all_vsdb.loc[:, CN.OBS_THRESH] = all_vsdb.fcst_thresh
+                all_vsdb[CN.OBS_VALID_BEG] = all_vsdb.fcst_valid_beg
+                all_vsdb[CN.OBS_VALID_END] = all_vsdb.fcst_valid_beg
+                all_vsdb[CN.OBS_VAR] = all_vsdb.fcst_var
+                all_vsdb[CN.OBS_LEV] = all_vsdb.fcst_lev
+                all_vsdb[CN.OBS_THRESH] = all_vsdb.fcst_thresh
                 # add units
                 all_vsdb.insert(12, CN.FCST_UNITS, CN.NOTAV)
                 all_vsdb.insert(13, CN.OBS_UNITS, CN.NOTAV)
@@ -883,8 +905,8 @@ class ReadDataFiles:
                                                            *vsdb_data.columns.tolist()[n_var_col:]],
                                                   fill_value=CN.MV_NOTAV)
                         for i in range(n_var):
-                            vsdb_data.iloc[:, last_col] = vsdb_data.iloc[:, mid_col]
-                            vsdb_data.iloc[:, last_col - 1] = CN.X_POINTS_ECON[last_point]
+                            vsdb_data[vsdb_data.columns[last_col]] = vsdb_data.iloc[:, mid_col]
+                            vsdb_data[vsdb_data.columns[last_col - 1]] = CN.X_POINTS_ECON[last_point]
                             last_col = last_col - 2
                             mid_col = mid_col - 1
                             last_point = last_point - 1
@@ -980,6 +1002,10 @@ class ReadDataFiles:
                 all_cts = pd.concat(list_cts, ignore_index=True, sort=False)
                 list_cts = []
 
+                all_cts[CN.FCST_LEAD] = all_cts[CN.FCST_LEAD].astype(int)
+                if not all_cts.fcst_lead.dtypes == 'int':
+                    all_cts.loc[all_cts.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+
                 # Copy forecast lead times, without trailing 0000 if they have them
                 all_cts[CN.FCST_LEAD_HR] = \
                     np.where(all_cts[CN.FCST_LEAD] > 9999,
@@ -1001,6 +1027,10 @@ class ReadDataFiles:
                 # gather all mode lines
                 all_obj = pd.concat(list_obj, ignore_index=True, sort=False)
                 list_obj = []
+
+                all_obj[CN.FCST_LEAD] = all_obj[CN.FCST_LEAD].astype(int)
+                if not all_obj.fcst_lead.dtypes == 'int':
+                    all_obj.loc[all_obj.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
 
                 # Copy forecast lead times, without trailing 0000 if they have them
                 all_obj[CN.FCST_LEAD_HR] = \
@@ -1065,8 +1095,11 @@ class ReadDataFiles:
                                                                        CN.STAT])
                 self.data_files.drop(self.data_files[files_to_drop & files_stat].index,
                                      inplace=True)
-
                 self.data_files.reset_index(drop=True, inplace=True)
+
+                all_stat[CN.FCST_LEAD] = all_stat[CN.FCST_LEAD].astype(int)
+                if not all_stat.fcst_lead.dtypes == 'int':
+                    all_stat.loc[all_stat.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
 
                 # Copy forecast lead times, without trailing 0000 if they have them
                 all_stat[CN.FCST_LEAD_HR] = \
@@ -1208,61 +1241,101 @@ class ReadDataFiles:
         return lu_type
 
     def read_stat(self, filename, hdr_names):
-        """ Read in all of the lines except the header of a stat file.
+        """ Read stat files without assuming read_csv can pad lines
             Returns:
                all the stat lines in a dataframe, with dates converted to datetime
         """
-        # switched to python engine for python 3.8 and pandas 1.4.2
-        # switched back to c version for pandas 1.2.3
-        # added the low_memory=False option when getting a DtypeWarning
-        # to switch to python version: low_memory=False -> engine='python'
-        return pd.read_csv(filename, delim_whitespace=True,
-                           names=hdr_names, skiprows=1,
-                           parse_dates=[CN.FCST_VALID_BEG,
-                                        CN.FCST_VALID_END,
-                                        CN.OBS_VALID_BEG,
-                                        CN.OBS_VALID_END],
-                           date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
+        stat_file = pd.DataFrame()
+
+        # Read file in as 1 column to avoid problems with varying line lengths
+        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None)
+        stat_file = stat_file.iloc[:, 0]
+
+        # break fields out, separated by 1 or more spaces
+        stat_file = stat_file.str.split(' +', expand=True)
+
+        # add new blank columns, and column headers
+        if len(stat_file.columns) < len(hdr_names):
+            stat_file[hdr_names[len(stat_file.columns):len(hdr_names) + 1]] = CN.NOTAV
+
+        # add column names
+        stat_file.columns = hdr_names
+
+        # convert MET dates to correct date format
+        stat_file[CN.FCST_VALID_BEG] = \
+            pd.to_datetime(stat_file[CN.FCST_VALID_BEG],
+                           format='%Y%m%d_%H%M%S', errors='ignore')
+        stat_file[CN.FCST_VALID_END] = \
+            pd.to_datetime(stat_file[CN.FCST_VALID_END],
+                           format='%Y%m%d_%H%M%S', errors='ignore')
+        stat_file[CN.OBS_VALID_BEG] = \
+            pd.to_datetime(stat_file[CN.OBS_VALID_BEG],
+                           format='%Y%m%d_%H%M%S', errors='ignore')
+        stat_file[CN.OBS_VALID_END] = \
+            pd.to_datetime(stat_file[CN.OBS_VALID_END],
+                           format='%Y%m%d_%H%M%S', errors='ignore')
+        return stat_file
 
     def read_tcst(self, filename, hdr_names):
         """ Read in all of the lines except the header of a tcst file.
             Returns:
                all the tcst lines in a dataframe, with dates converted to datetime
         """
-        # added the low_memory=False option when getting a DtypeWarning
-        return pd.read_csv(filename, delim_whitespace=True,
-                           names=hdr_names, skiprows=1,
-                           parse_dates=[CN.INIT,
-                                        CN.VALID],
-                           date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
+        stat_file = pd.DataFrame()
 
-    def cached_date_parser(self, date_str):
-        """ if date is repeated and already converted, return that value.
-            Returns:
-               date in datetime format while reading in file
-        """
-        # if date is repeated and already converted, return that value
-        if date_str in self.cache:
-            return self.cache[date_str]
-        if date_str.startswith('F') or date_str.startswith('O'):
-            return pd.to_datetime('20000101_000000', format='%Y%m%d_%H%M%S')
-        if date_str == CN.NOTAV:
-            return CN.MV_NULL
-        date_time = pd.to_datetime(date_str, format='%Y%m%d_%H%M%S', errors='ignore')
-        self.cache[date_str] = date_time
-        return date_time
+        # Read file in as 1 column to avoid problems with varying line lengths
+        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None)
+        stat_file = stat_file.iloc[:, 0]
+
+        # break fields out, separated by 1 or more spaces
+        stat_file = stat_file.str.split(' +', expand=True)
+
+        # add new blank columns, and column headers
+        if len(stat_file.columns) < len(hdr_names):
+            stat_file[hdr_names[len(stat_file.columns):len(hdr_names) + 1]] = CN.NOTAV
+
+        # add column names
+        stat_file.columns = hdr_names
+
+        # convert MET dates to correct date format
+        stat_file[CN.INIT] = \
+            pd.to_datetime(stat_file[CN.INIT],
+                           format='%Y%m%d_%H%M%S', errors='ignore')
+        stat_file[CN.VALID] = \
+            pd.to_datetime(stat_file[CN.VALID],
+                           format='%Y%m%d_%H%M%S', errors='ignore')
+
+        return stat_file
 
     def read_mode(self, filename, hdr_names):
         """ Read in all of the lines except the header of a mode file.
             Returns:
                all the mode lines in a dataframe, with dates converted to datetime
         """
-        # added the low_memory=False option when getting a DtypeWarning
-        return pd.read_csv(filename, delim_whitespace=True,
-                           names=hdr_names, skiprows=1,
-                           parse_dates=[CN.FCST_VALID,
-                                        CN.OBS_VALID],
-                           date_parser=self.cached_date_parser,
-                           keep_default_na=False, na_values='', low_memory=False)
+        stat_file = pd.DataFrame()
+
+        # Read file in as 1 column to avoid problems with varying line lengths
+        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None,
+                                skipinitialspace=True)
+        stat_file = stat_file.iloc[:, 0]
+
+        # break fields out, separated by 1 or more spaces
+        stat_file = stat_file.str.split(' +', expand=True)
+
+        # add new blank columns, and column headers
+        if len(stat_file.columns) < len(hdr_names):
+            stat_file[hdr_names[len(stat_file.columns):len(hdr_names) + 1]] = CN.NOTAV
+
+        # add column names
+        stat_file.columns = hdr_names
+
+        # convert MET dates to correct date format
+        stat_file[CN.FCST_VALID] = \
+            pd.to_datetime(stat_file[CN.FCST_VALID],
+                           format='%Y%m%d_%H%M%S', errors='ignore')
+        stat_file.loc[stat_file.obs_valid == CN.NOTAV, CN.OBS_VALID] = CN.MV_NULL
+        stat_file[CN.OBS_VALID] = \
+            pd.to_datetime(stat_file[CN.OBS_VALID],
+                           format='%Y%m%d_%H%M%S', errors='ignore')
+
+        return stat_file

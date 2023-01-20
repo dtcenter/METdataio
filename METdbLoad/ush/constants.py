@@ -632,7 +632,7 @@ COLUMNS[TCDIAG] = ['total', 'index_pair', 'diag_source', 'track_source',
 
 LINE_DATA_FIELDS[TCDIAG] = ALL_LINE_DATA_FIELDS_TCST + COLUMNS[TCDIAG]
 
-LINE_DATA_FIELDS_TO_REPLACE[TCMPR] = ['lead', 'total', 'index_pair', 'alat', 'alon',
+LINE_DATA_FIELDS_TO_REPLACE[TCMPR] = ['fcst_lead', 'total', 'index_pair', 'alat', 'alon',
                                       'blat', 'blon', 'tk_err', 'x_err', 'y_err', 'altk_err',
                                       'crtk_err',
                                       'adland', 'bdland', 'amslp', 'bmslp',
@@ -653,12 +653,12 @@ LINE_DATA_FIELDS_TO_REPLACE[TCMPR] = ['lead', 'total', 'index_pair', 'alat', 'al
                                       'num_members', 'track_spread', 'track_stdev',
                                       'mslp_stdev', 'max_wind_stdev']
 
-LINE_DATA_FIELDS_TO_REPLACE[PROBRIRW] = ['lead', 'alat', 'alon', 'blat', 'blon', 'tk_err', 'x_err',
+LINE_DATA_FIELDS_TO_REPLACE[PROBRIRW] = ['fcst_lead', 'alat', 'alon', 'blat', 'blon', 'tk_err', 'x_err',
                                          'y_err', 'adland', 'bdland', 'rirw_beg', 'rirw_end',
                                          'rirw_window', 'awind_end',
                                          'bwind_beg', 'bwind_end', 'bdelta', 'bdelta_max']
 
-LINE_DATA_FIELDS_TO_REPLACE[TCDIAG] = ['lead', 'total', 'index_pair']
+LINE_DATA_FIELDS_TO_REPLACE[TCDIAG] = ['fcst_lead', 'total', 'index_pair']
 
 VAR_DATA_FIELDS = [LINE_DATA_ID, 'i_value']
 
