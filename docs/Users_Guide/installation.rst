@@ -29,7 +29,7 @@ typing the command in the CLI and/or make the corresponding edit to
 **AuroraDB** could alternately be used as a database in the cloud.
 
 **Python 3.8.6+** - Python 3.8.6 or higher must be installed. METdataio also
-requires the Python packages pymysql, pandas (1.2.3 only), numpy, and lxml.
+requires the Python packages pymysql, pandas (1.5 and above), numpy, pyyaml, and lxml.
 
 Installation
 ____________
