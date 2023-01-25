@@ -9,6 +9,25 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
+METdataio Version 2.0.1 release notes (20230125)
+------------------------------------------------------
+* Bugfixes:
+
+   * **METdbLoad INFO message changed to show correct version**
+     (`#154 <https://github.com/dtcenter/METdataio/issues/154>`_)
+
+   * **Getting KeyError multiple times when loading test data**
+     (`#157 <https://github.com/dtcenter/METdataio/issues/157>`_)
+
+   * **Upgrade pandas version from 1.2.3**
+     (`#161 <https://github.com/dtcenter/METdataio/issues/161>`_)
+
+   * **Add nco_requirements.txt file**
+     (`#167 <https://github.com/dtcenter/METdataio/issues/167>`_)
+
+   * **Add modulefiles to the repository**
+     (`#170 <https://github.com/dtcenter/METdataio/issues/170>`_)
+
 METdataio Version 2.0.0 release notes (20221207)
 ------------------------------------------------------
 
