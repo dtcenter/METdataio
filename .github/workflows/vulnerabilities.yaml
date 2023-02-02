@@ -19,9 +19,6 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
 
-env:
-  DEP_PATH: ./requirements.txt
-
 jobs:
   selftest:
     runs-on: ubuntu-latest
@@ -37,3 +34,4 @@ jobs:
           inputs: requirements.txt
           virtual-environment: env/
           local: true
+          summary: true
