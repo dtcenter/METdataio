@@ -154,6 +154,10 @@ class ReadDataFiles:
                             hdr_names = CN.SHORT_HEADER + CN.COL_NUMS
                             one_file = self.read_stat(filename, hdr_names)
 
+                            # File has headers but not data
+                            if not len(one_file):
+                                continue
+
                             # If the file has no DESC column, add UNITS as well
                             one_file.insert(2, CN.DESCR, CN.NOTAV)
                             one_file.insert(10, CN.FCST_UNITS, CN.NOTAV)
@@ -164,12 +168,20 @@ class ReadDataFiles:
                             hdr_names = CN.MID_HEADER + CN.COL_NUMS
                             one_file = self.read_stat(filename, hdr_names)
 
+                            # File has headers but not data
+                            if not len(one_file):
+                                continue
+
                             one_file.insert(10, CN.FCST_UNITS, CN.NOTAV)
                             one_file.insert(13, CN.OBS_UNITS, CN.NOTAV)
 
                         else:
                             hdr_names = CN.LONG_HEADER + CN.COL_NUMS
                             one_file = self.read_stat(filename, hdr_names)
+
+                            # File has headers but not data
+                            if not len(one_file):
+                                continue
 
                         # Defragmenting
                         one_file = one_file.copy()
@@ -271,6 +283,10 @@ class ReadDataFiles:
                         # read the file
                         mode_file = self.read_mode(filename, hdr_names)
 
+                        # File has headers but not data
+                        if not len(mode_file):
+                            continue
+
                         # add line numbers and count the header line, for mode files
                         mode_file[CN.LINENUMBER] = mode_file.index + 2
 
@@ -319,18 +335,30 @@ class ReadDataFiles:
                         except (pandas.errors.EmptyDataError):
                             logging.warning("!!! TCST file %s has no columns", filename)
                             continue
+
                         # TCST file has no headers or no text - it's empty
                         if file_hdr.empty or stat_info.st_size == 0:
                             logging.warning("!!! TCST file %s is empty", filename)
                             continue
+
+                        # File has headers but not data
+                        if not len(tcst_file):
+                            continue
+
                         # Add a DESC column if the data file does not have one
                         if not file_hdr.iloc[0].str.contains(CN.UC_DESC).any():
                             hdr_names = CN.SHORT_HEADER_TCST + CN.COL_NUMS
                             tcst_file = self.read_tcst(filename, hdr_names)
+                            # File has headers but not data
+                            if not len(tcst_file):
+                                continue
                             tcst_file.insert(3, CN.DESCR, CN.NOTAV)
                         else:
                             hdr_names = CN.LONG_HEADER_TCST + CN.COL_NUMS
                             tcst_file = self.read_tcst(filename, hdr_names)
+                            # File has headers but not data
+                            if not len(tcst_file):
+                                continue
 
                         # add line numbers and count the header line, for tcst files
                         tcst_file[CN.LINE_NUM] = tcst_file.index + 2
@@ -366,6 +394,10 @@ class ReadDataFiles:
 
                         # read the MTD file the same way as a mode file
                         mtd_file = self.read_mode(filename, hdr_names)
+
+                        # File has headers but not data
+                        if not len(mtd_file):
+                            continue
 
                         # change field name after intensity_90 to be intensity_nn
                         if CN.INTENSITY_90 in mtd_file:
@@ -1247,8 +1279,15 @@ class ReadDataFiles:
         """
         stat_file = pd.DataFrame()
 
-        # Read file in as 1 column to avoid problems with varying line lengths
-        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None)
+        try:
+            # Read file in as 1 column to avoid problems with varying line lengths
+            stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None,
+                                    skipinitialspace=True)
+        except (pd.errors.EmptyDataError):
+            logging.warning("!!! Stat file %s has no data after headers",
+                            filename)
+            return stat_file
+
         stat_file = stat_file.iloc[:, 0]
 
         # break fields out, separated by 1 or more spaces
@@ -1283,8 +1322,15 @@ class ReadDataFiles:
         """
         stat_file = pd.DataFrame()
 
-        # Read file in as 1 column to avoid problems with varying line lengths
-        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None)
+        try:
+            # Read file in as 1 column to avoid problems with varying line lengths
+            stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None,
+                                    skipinitialspace=True)
+        except (pd.errors.EmptyDataError):
+            logging.warning("!!! Tcst file %s has no data after headers",
+                            filename)
+            return stat_file
+
         stat_file = stat_file.iloc[:, 0]
 
         # break fields out, separated by 1 or more spaces
@@ -1314,9 +1360,15 @@ class ReadDataFiles:
         """
         stat_file = pd.DataFrame()
 
-        # Read file in as 1 column to avoid problems with varying line lengths
-        stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None,
-                                skipinitialspace=True)
+        try:
+            # Read file in as 1 column to avoid problems with varying line lengths
+            stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None,
+                                    skipinitialspace=True)
+        except (pd.errors.EmptyDataError):
+            logging.warning("!!! Mode or MTD file %s has no data after headers",
+                            filename)
+            return stat_file
+
         stat_file = stat_file.iloc[:, 0]
 
         # break fields out, separated by 1 or more spaces
