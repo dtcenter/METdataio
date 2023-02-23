@@ -9,6 +9,14 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
+METdataio Version 2.0.2 release notes (20230223)
+------------------------------------------------------
+* Bugfixes:
+    * **New way of reading files did not handle files with headers but no data**
+      (`#181 <https://github.com/dtcenter/METdataio/issues/181>`_)
+
+
+
 METdataio Version 2.0.1 release notes (20230125)
 ------------------------------------------------------
 * Bugfixes:
