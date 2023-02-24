@@ -1,7 +1,7 @@
 # METdataio
 METdataio is a Python rewrite of capabilities in METviewer.
 
-Requires Anaconda Python 3.7 and conda install of pymysql.
+requires Anaconda or miniconda, Python 3.10.4 (or above) and conda installs of the following: pymysql, lxml, pyyaml, pandas, and numpy.
 
 Please see the [METdataio User's Guide](https://metdataio.readthedocs.io/en/latest) for more information.
 
