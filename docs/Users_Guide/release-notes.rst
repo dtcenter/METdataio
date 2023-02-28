@@ -9,6 +9,26 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
+METdataio Version 2.1.0 release notes (20230228)
+------------------------------------------------------
+
+
+* New Functionality:
+
+* Enhancements:
+    * **Upgrade to using Python 3.10.4**
+      (`#176 <https://github.com/dtcenter/METdataio/issues/176>`_)
+
+* Internal:
+   * Add 'License.txt' to the METdatio repo** (`#184 <https://github.com/dtcenter/METdataio/issues/184>`_)
+
+
+* Bugfixes:
+
+   * **New way of reading files did not handle files with headers but no data** (`#181 <https://github.com/dtcenter/METdataio/issues/181>`_)
+
+
+
 METdataio Version 2.0.0 release notes (20221207)
 ------------------------------------------------------
 
