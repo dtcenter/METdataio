@@ -21,11 +21,11 @@ print(sys.path)
 project = 'METdataio'
 author = 'UCAR/NCAR, NOAA, CSU/CIRA, and CU/CIRES'
 author_list = 'Burek, T., H. Fisher, and M. Win-Gildenmeister, V. Hagerty '
-version = '2.0.0'
+version = '2.0.1'
 verinfo = version
 release = f'{version}'
-release_year = '2022'
-release_date = f'{release_year}-12-07'
+release_year = '2023'
+release_date = f'{release_year}-02-28'
 copyright = f'{release_year}, {author}'
 
 # if set, adds "Last updated on " followed by
