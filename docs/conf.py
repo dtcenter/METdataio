@@ -10,6 +10,8 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+# Adding 'sphinx_design' to use drop-down menus in release_notes. 
+extensions = ['sphinx_design',]
 
 import os
 import sys
