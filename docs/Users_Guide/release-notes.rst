@@ -12,7 +12,6 @@ METdataio Release Notes
 METdataio Version 2.1.0-beta1 release notes (20230228)
 ------------------------------------------------------
 
-
   .. dropdown:: New Functionality
      
      None
