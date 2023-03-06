@@ -18,8 +18,7 @@ METdataio Version 2.1.0-beta1 release notes (20230228)
 
   .. dropdown:: Enhancements
      
-     * **Upgrade to using Python 3.10.4**
-      (`#176 <https://github.com/dtcenter/METdataio/issues/176>`_)
+     * **Upgrade to using Python 3.10.4** (`#176 <https://github.com/dtcenter/METdataio/issues/176>`_)
 
   .. dropdown:: Internal
      
