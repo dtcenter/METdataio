@@ -16,7 +16,6 @@ import sys
 sys.path.insert(0, os.path.abspath('.'))
 print(sys.path)
 
-
 # -- Project information -----------------------------------------------------
 project = 'METdataio'
 author = 'UCAR/NCAR, NOAA, CSU/CIRA, and CU/CIRES'
