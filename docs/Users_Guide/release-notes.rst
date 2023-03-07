@@ -22,7 +22,7 @@ METdataio Version 2.1.0-beta1 release notes (20230228)
 
   .. dropdown:: Internal
      
-     * **Add 'License.txt' to the METdatio repo** (`#184 <https://github.com/dtcenter/METdataio/issues/184>`_)
+     * **Add 'LICENSE.md' to the METdatio repo** (`#184 <https://github.com/dtcenter/METdataio/issues/184>`_)
 
 
   .. dropdown:: Bugfixes
