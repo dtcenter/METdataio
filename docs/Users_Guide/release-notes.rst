@@ -9,7 +9,7 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
-METdataio Version 2.1.0-beta2 release notes (20230428)
+METdataio Version 2.1.0-beta2 release notes (20230412)
 ------------------------------------------------------
 
   .. dropdown:: New Functionality
