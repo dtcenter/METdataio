@@ -79,6 +79,7 @@ class XmlLoadFile:
                 sys.exit("*** XML file " + self.xmlfilename + " can not be found!")
 
             # parse the XML file
+            logging.info('Reading XML Load file')
             parser = etree.XMLParser(remove_comments=True, resolve_entities=False)
             tree = etree.parse(self.xmlfilename, parser=parser)
             root = tree.getroot()
@@ -87,23 +88,18 @@ class XmlLoadFile:
             logging.error("*** %s in read_xml ***", sys.exc_info()[0])
             sys.exit("*** Parsing error(s) in XML file!")
 
-        folder_template = None
-        template_fills = {}
-        date_list = {}
-        all_dates = []
-        
         # Extract values from load_spec XML tags, store in attributes of class XmlLoadFile
         try:
+
+            # Extract values for connecting to database
+            if root.xpath("connection"):
+                self.read_db_connect(root)
 
             # group and description for putting databases into groups/categories
             if root.xpath("group"):
                 self.group = root.xpath("group")[0].text
             if root.xpath("description"):
                 self.description = root.xpath("description")[0].text
-
-            # Extract values for connecting to database
-            if root.xpath("connection"):
-                self.read_db_connect(root)
 
             # load_note and load_xml are used to put a note in the database
             if root.xpath('load_note'):
@@ -134,16 +130,51 @@ class XmlLoadFile:
                              "load_mpr", "load_orank", "force_dup_file"]
 
             self.flag_default_false(root, default_false)
-            
+
+            # if requested, get a string of the XML to put in the database
+            if self.flags['load_xml']:
+                self.xml_str = etree.tostring(tree).decode().replace('\n', '').replace(' ', '')
+
+            # Get info on file template, fill-in values, and dates
+            self.read_file_info(root)
+
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in read_xml ***", sys.exc_info()[0])
+            sys.exit("*** Error(s) found while reading XML file!")
+
+        # This removes duplicate file names. do we want that?
+        if self.load_files:
+            self.load_files = list(dict.fromkeys(self.load_files))
+
+        # Remove directory names
+        self.load_files = [lf for lf in self.load_files if '.' in lf.split('/')[-1]]
+
+        logging.info("Database name is: %s", self.connection['db_database'])
+
+        logging.info("Initial number of files: %s", str(len(self.load_files)))
+
+        logging.debug("[--- End read_xml ---]")
+
+    def read_file_info(self, root):
+        """! Gather info on file template, fill-in values, and dates
+            Returns:
+               N/A
+        """
+        try:
+            folder_template = None
+            template_fills = {}
+            date_list = {}
+            all_dates = []
+
             # Handle the date_list tag and its child tags
             if root.xpath('date_list'):
-                date_list = {x.tag: x.text for x in root.xpath('date_list')[0]}
+                date_list = {x.tag.lower(): x.text for x in root.xpath('date_list')[0]}
                 date_list['name'] = root.xpath('date_list')[0].attrib['name']
-                
+
             # if the date_list tag is included, generate a list of dates
             if "start" in date_list.keys() and "end" in date_list.keys():
                 all_dates = self.filenames_from_date(date_list)
-            
+
             if root.xpath("folder_tmpl"):
                 folder_template = root.xpath("folder_tmpl")[0].text
 
@@ -159,37 +190,23 @@ class XmlLoadFile:
                     xml_exp = "//field[@name='" + field_name + "']/val"
                     template_fills[field_name] = [x.text for x in root.xpath(xml_exp)]
 
-            # if requested, get a string of the XML to put in the database
-            if self.flags['load_xml']:
-                self.xml_str = etree.tostring(tree).decode().replace('\n', '').replace(' ', '')
+            # If the date_list tag was used correctly, put the dates in
+            if folder_template and all_dates and template_fills['date'][0] == date_list["name"]:
+                template_fills['date'] = all_dates
+
+            # Generate all possible path/filenames from folder template
+            if folder_template and template_fills:
+                self.load_files = self.filenames_from_template(folder_template, template_fills)
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_xml ***", sys.exc_info()[0])
-            sys.exit("*** Error(s) found while reading XML file!")
+            logging.error("*** %s in read_xml read_file_info ***", sys.exc_info()[0])
+            sys.exit("*** Error(s) found while reading XML file info!")
 
-        logging.info("database name is: %s", self.connection['db_database'])
-
-        # if the folder template tag is used
-        if folder_template:
-
-            # if the date_list tag was used correctly, put the dates in
-            if all_dates and template_fills['date'][0] == date_list["name"]:
-                template_fills['date'] = all_dates
-            # Generate all possible path/filenames from folder template
-            self.load_files = self.filenames_from_template(folder_template, template_fills)
-
-        # this removes duplicate file names. do we want that?
-        if self.load_files:
-            self.load_files = list(dict.fromkeys(self.load_files))
-
-        # remove directory names
-        self.load_files = [lf for lf in self.load_files if '.' in lf.split('/')[-1]]
-
-        logging.info("Initial number of files: %s", str(len(self.load_files)))
-
-        logging.debug("[--- End read_xml ---]")
-        
     def read_db_connect(self, root):
+        """! Gather values from tags that have info on database connection
+            Returns:
+               N/A
+        """
         try:
             host_and_port = root.xpath('connection')[0].xpath('host')[0].text
             if host_and_port:
@@ -224,17 +241,25 @@ class XmlLoadFile:
                 root.xpath('connection')[0].xpath('management_system')[0].text
             if not self.connection['db_management_system']:
                 self.connection['db_management_system'] = "mysql"
-            
+
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_xml read_db_connect ***", sys.exc_info()[0])
             sys.exit("*** Error(s) found while reading XML file connection tag!")
 
     def flag_default_true(self, root, default_true):
+        """! Given list of flags that default to true, set to false if needed
+            Returns:
+               N/A
+        """
         for flag_name in default_true:
             if root.xpath(flag_name) and root.xpath(flag_name)[0].text.lower() == CN.LC_FALSE:
                 self.flags[root.xpath(flag_name)[0].tag.lower()] = False
 
     def flag_default_false(self, root, default_false):
+        """! Given list of flags that default to false, set to true if needed
+            Returns:
+               N/A
+        """
         for flag_name in default_false:
             if root.xpath(flag_name) and root.xpath(flag_name)[0].text.lower() == CN.LC_TRUE:
                 self.flags[root.xpath(flag_name)[0].tag.lower()] = True
