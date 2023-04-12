@@ -9,6 +9,31 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
+METdataio Version 2.1.0-beta2 release notes (20230412)
+------------------------------------------------------
+
+  .. dropdown:: New Functionality
+
+     None
+
+  .. dropdown:: Enhancements
+
+     * Enhance the Release Notes by adding dropdown menus (`#193 <https://github.com/dtcenter/METdataio/issues/193>`_)
+
+  .. dropdown:: Internal
+
+     None
+
+  .. dropdown:: Bugfixes
+
+     None
+
+
+
+
+
+
+
 METdataio Version 2.1.0-beta1 release notes (20230228)
 ------------------------------------------------------
 
