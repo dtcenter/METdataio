@@ -22,7 +22,7 @@ METdataio Version 2.1.0-beta2 release notes (20230428)
 
   .. dropdown:: Internal
 
-     * Enhance the Release Notes by adding dropdown menus (`#193 <https://github.com/dtcenter/METdataio/issues/193`_)
+     * Enhance the Release Notes by adding dropdown menus (`#193 <https://github.com/dtcenter/METdataio/issues/193>`_)
 
 
   .. dropdown:: Bugfixes
