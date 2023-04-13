@@ -94,20 +94,16 @@ class XmlLoadFile:
             # Extract values for connecting to database
             if root.xpath("connection"):
                 self.read_db_connect(root)
+                logging.info("Database name is: %s", self.connection['db_database'])
 
             # group and description for putting databases into groups/categories
-            if root.xpath("group"):
+            if root.xpath("group") and root.xpath("description"):
                 self.group = root.xpath("group")[0].text
-            if root.xpath("description"):
                 self.description = root.xpath("description")[0].text
 
             # load_note and load_xml are used to put a note in the database
             if root.xpath('load_note'):
                 self.load_note = root.xpath("load_note")[0].text
-
-            # Get a list of all of the file names to load
-            if root.xpath('load_files'):
-                self.load_files = [x.text for x in root.xpath('load_files')[0]]
 
             # MET line types to load. If omitted, all line types are loaded
             if root.xpath('line_type'):
@@ -135,8 +131,12 @@ class XmlLoadFile:
             if self.flags['load_xml']:
                 self.xml_str = etree.tostring(tree).decode().replace('\n', '').replace(' ', '')
 
-            # Get info on file template, fill-in values, and dates
-            self.read_file_info(root)
+            # Get a list of all of the file names to load
+            if root.xpath('load_files'):
+                self.load_files = [x.text for x in root.xpath('load_files')[0]]
+            else:
+                # Or get info on file template, fill-in values, and dates, if needed
+                self.read_file_info(root)
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_xml ***", sys.exc_info()[0])
@@ -148,11 +148,6 @@ class XmlLoadFile:
 
         # Remove directory names
         self.load_files = [lf for lf in self.load_files if '.' in lf.split('/')[-1]]
-
-        if 'db_database' in self.connection.keys():
-            logging.info("Database name is: %s", self.connection['db_database'])
-        else:
-            logging.info("Database name is missing!")
 
         logging.info("Initial number of files: %s", str(len(self.load_files)))
 
