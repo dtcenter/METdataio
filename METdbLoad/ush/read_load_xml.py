@@ -149,7 +149,10 @@ class XmlLoadFile:
         # Remove directory names
         self.load_files = [lf for lf in self.load_files if '.' in lf.split('/')[-1]]
 
-        logging.info("Database name is: %s", self.connection['db_database'])
+        if 'db_database' in self.connection.keys():
+            logging.info("Database name is: %s", self.connection['db_database'])
+        else:
+            logging.info("Database name is missing!")
 
         logging.info("Initial number of files: %s", str(len(self.load_files)))
 
@@ -231,6 +234,7 @@ class XmlLoadFile:
             else:
                 logging.error("!!! XML must include database tag")
                 raise NameError("Missing required database tag")
+
             if not self.connection['db_database'].startswith("mv_"):
                 logging.warning("!!! Database not visible unless name starts with mv_")
 
