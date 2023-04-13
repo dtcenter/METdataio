@@ -180,19 +180,22 @@ class XmlLoadFile:
 
             # get the values to fill in to the folder template
             field_names = [x.attrib['name'] for x in root.xpath('load_val')[0].xpath('field')]
-            for field_name in field_names:
-                # The field tag with attribute date has a date_list tag
-                if field_name == 'date':
-                    template_fills[field_name] = \
-                        [root.xpath("//field[@name='date']/date_list")[0].attrib['name']]
-                # The other field tags have one or more val tags
-                else:
-                    xml_exp = "//field[@name='" + field_name + "']/val"
-                    template_fills[field_name] = [x.text for x in root.xpath(xml_exp)]
 
-            # If the date_list tag was used correctly, put the dates in
-            if folder_template and all_dates and template_fills['date'][0] == date_list["name"]:
-                template_fills['date'] = all_dates
+            for field_name in field_names:
+                # Process zero or more val tags
+                xml_exp = "//field[@name='" + field_name + "']/val"
+                if root.xpath(xml_exp):
+                    template_fills[field_name] = \
+                        [x.text for x in root.xpath(xml_exp)]
+                    
+                # Process date_list tag, if any
+                xml_exp = "//field[@name='" + field_name + "']/date_list"
+                if root.xpath(xml_exp):
+                    template_fills[field_name] = \
+                        [root.xpath(xml_exp)[0].attrib['name']]
+                    # If the date_list tag was used correctly, put the dates in
+                    if all_dates and template_fills[field_name][0] == date_list["name"]:
+                        template_fills[field_name] = all_dates
 
             # Generate all possible path/filenames from folder template
             if folder_template and template_fills:
@@ -310,14 +313,15 @@ class XmlLoadFile:
         logging.debug("folder template is: %s", folder_template)
 
         try:
-
             fills_open = folder_template.count("{")
             if fills_open != folder_template.count("}"):
                 raise ValueError("mismatched curly braces")
+
             # remove any fill values that are not in the template
             not_in = []
             if template_fills:
                 not_in = [tf for tf in template_fills.keys() if not (tf in folder_template)]
+
             for wrong_key in not_in:
                 del template_fills[wrong_key]
 
@@ -329,7 +333,7 @@ class XmlLoadFile:
             for key in template_fills:
                 alist = []
                 for tvalue in load_dirs:
-                    alist = [tvalue.replace("{" + key + "}", x) for x in template_fills[key]]
+                    alist = alist + [tvalue.replace("{" + key + "}", x) for x in template_fills[key]]
                 load_dirs = alist
 
             # find all files in directories, append path to them, and put on load_files list
