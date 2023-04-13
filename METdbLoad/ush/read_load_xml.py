@@ -187,15 +187,17 @@ class XmlLoadFile:
                 if root.xpath(xml_exp):
                     template_fills[field_name] = \
                         [x.text for x in root.xpath(xml_exp)]
-                    
+
                 # Process date_list tag, if any
                 xml_exp = "//field[@name='" + field_name + "']/date_list"
                 if root.xpath(xml_exp):
                     template_fills[field_name] = \
                         [root.xpath(xml_exp)[0].attrib['name']]
-                    # If the date_list tag was used correctly, put the dates in
-                    if all_dates and template_fills[field_name][0] == date_list["name"]:
-                        template_fills[field_name] = all_dates
+                    date_field = field_name
+
+            # If the date_list tag was used correctly, put the dates in
+            if all_dates and template_fills[date_field][0] == date_list["name"]:
+                template_fills[date_field] = all_dates
 
             # Generate all possible path/filenames from folder template
             if folder_template and template_fills:
@@ -223,9 +225,10 @@ class XmlLoadFile:
                 logging.error("!!! XML must include host tag")
                 raise NameError("Missing required host tag")
 
-            self.connection['db_database'] = \
-                root.xpath('connection')[0].xpath('database')[0].text
-            if not self.connection['db_database']:
+            if root.xpath('connection')[0].xpath('database'):
+                self.connection['db_database'] = \
+                    root.xpath('connection')[0].xpath('database')[0].text
+            else:
                 logging.error("!!! XML must include database tag")
                 raise NameError("Missing required database tag")
             if not self.connection['db_database'].startswith("mv_"):
@@ -236,7 +239,7 @@ class XmlLoadFile:
             self.connection['db_password'] = \
                 root.xpath('connection')[0].xpath('password')[0].text
             if ((not self.connection['db_user']) or
-                (not self.connection['db_password'])):
+                    (not self.connection['db_password'])):
                 logging.error("!!! XML must include user and password tags")
                 raise NameError("Missing required user or password tag or both")
 
@@ -333,7 +336,8 @@ class XmlLoadFile:
             for key in template_fills:
                 alist = []
                 for tvalue in load_dirs:
-                    alist = alist + [tvalue.replace("{" + key + "}", x) for x in template_fills[key]]
+                    alist = alist + \
+                        [tvalue.replace("{" + key + "}", x) for x in template_fills[key]]
                 load_dirs = alist
 
             # find all files in directories, append path to them, and put on load_files list
