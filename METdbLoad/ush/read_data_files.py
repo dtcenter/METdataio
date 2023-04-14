@@ -595,7 +595,9 @@ class ReadDataFiles:
 
                 all_stat.fcst_thresh = all_stat.fcst_thresh.astype(str)
                 all_stat.obs_thresh = all_stat.obs_thresh.astype(str)
-                all_stat['1'] = all_stat['1'].astype(float)
+                if not all_stat['1'].dtypes == 'float':
+                    all_stat.loc[all_stat['1'] == CN.NOTAV, '1'] = CN.MV_NOTAV
+                    all_stat['1'] = all_stat['1'].astype(float)
 
                 # if a fcst percentage thresh is used, it is in parens in fcst_thresh
                 if all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False).any():
