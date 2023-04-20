@@ -71,7 +71,7 @@ class XmlLoadFile:
         """
 
         logging.debug("[--- Start read_xml ---]")
-        logging.info("User name is: %s", os.getlogin())
+        logging.info("User name is: %s",  os.environ['LOGNAME'])
 
         try:
 
