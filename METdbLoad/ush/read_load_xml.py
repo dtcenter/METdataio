@@ -19,6 +19,7 @@ import sys
 import os
 from pathlib import Path
 import logging
+import getpass
 import pandas as pd
 from lxml import etree
 
@@ -71,7 +72,11 @@ class XmlLoadFile:
         """
 
         logging.debug("[--- Start read_xml ---]")
-        logging.info("User name is: %s",  os.environ['LOGNAME'])
+        
+        try:
+            logging.info("User name is: %s",  getpass.getuser())
+        except:
+            logging.info("User name is not available")
 
         try:
 
