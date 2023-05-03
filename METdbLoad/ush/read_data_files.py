@@ -312,6 +312,7 @@ class ReadDataFiles:
                         # if FCST_LEAD is NA, set it to 0
                         if not mode_file.fcst_lead.dtypes == 'int':
                             mode_file.loc[mode_file.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+                            mode_file[CN.FCST_LEAD] = mode_file[CN.FCST_LEAD].astype(int)
 
                         # initially, match line data to the index of the file names
                         mode_file[CN.FILE_ROW] = row_num
@@ -1076,7 +1077,7 @@ class ReadDataFiles:
 
                 # Copy forecast lead times, without trailing 0000 if they have them
                 all_obj[CN.FCST_LEAD_HR] = \
-                    np.where(all_obj[CN.FCST_LEAD] > 25,
+                    np.where(all_obj[CN.FCST_LEAD] < 25,
                              all_obj[CN.FCST_LEAD] * 10000,
                              all_obj[CN.FCST_LEAD])
 
