@@ -36,14 +36,8 @@ class XmlLoadFile:
         self.xmlfilename = xmlfile
 
         self.connection = {}
-        self.connection['db_host'] = None
         self.connection['db_port'] = CN.SQL_PORT
-        self.connection['db_database'] = None
-        self.connection['db_user'] = "notag"
-        self.connection['db_password'] = "notag"
-        self.connection['db_management_system'] = "mysql"
 
-        self.db_driver = None
         self.insert_size = 1
         self.load_note = None
         self.group = CN.DEFAULT_DATABASE_GROUP
@@ -85,7 +79,8 @@ class XmlLoadFile:
                 sys.exit("*** XML file " + self.xmlfilename + " can not be found!")
 
             # parse the XML file
-            parser = etree.XMLParser(remove_comments=True)
+            logging.info('Reading XML Load file')
+            parser = etree.XMLParser(remove_comments=True, resolve_entities=False)
             tree = etree.parse(self.xmlfilename, parser=parser)
             root = tree.getroot()
 
@@ -93,120 +88,186 @@ class XmlLoadFile:
             logging.error("*** %s in read_xml ***", sys.exc_info()[0])
             sys.exit("*** Parsing error(s) in XML file!")
 
-        folder_template = None
-        template_fills = {}
-        date_list = {}
-
+        # Extract values from load_spec XML tags, store in attributes of class XmlLoadFile
         try:
-            # extract values from load_spec XML tags, store in attributes of class XmlLoadFile
-            for child in root:
-                if child.tag.lower() == "connection":
-                    for subchild in list(child):
-                        if subchild.tag.lower() == "host":
-                            host_and_port = subchild.text.split(":")
-                        elif subchild.tag.lower() in ("user", "password", "database",
-                                                      "management_system"):
-                            self.connection["db_" + subchild.tag.lower()] = subchild.text
-                    # separate out the port if there is one
-                    self.connection['db_host'] = host_and_port[0]
-                    if len(host_and_port) > 1:
-                        self.connection['db_port'] = int(host_and_port[1])
-                    if (not self.connection['db_host']) or (not self.connection['db_database']):
-                        logging.warning("!!! XML must include host and database tags")
-                    if (self.connection['db_user'] == "notag" or
-                        self.connection['db_password'] == "notag"):
-                        logging.error("!!! XML must include user and password tags")
-                        raise NameError("Missing tags")
-                    if not self.connection['db_database'].startswith("mv_"):
-                        logging.warning("!!! Database not visible unless name starts with mv_")
 
-                elif child.tag.lower() == "load_files":
-                    for subchild in list(child):
-                        self.load_files.append(subchild.text)
-                elif child.tag.lower() == "folder_tmpl":
-                    folder_template = child.text
-                # get the values to fill in to the folder template
-                elif child.tag.lower() == "load_val":
-                    for subchild in list(child):
-                        template_key = subchild.get("name")
-                        template_values = []
-                        for template_value in list(subchild):
-                            if template_value.tag.lower() == "val":
-                                template_values.append(template_value.text)
-                            elif template_value.tag.lower() == "date_list":
-                                template_values.append(template_value.get("name"))
-                        template_fills[template_key] = template_values
-                # Handle the date_list tag and its child tags
-                elif child.tag.lower() == "date_list":
-                    date_list["name"] = child.get("name")
-                    for subchild in list(child):
-                        date_list[subchild.tag.lower()] = subchild.text
-                # Handle flags with a default of False
-                elif child.tag.lower() in ("verbose", "drop_indexes", "apply_indexes",
-                                           "load_mpr", "load_orank", "force_dup_file"):
-                    if child.text.lower() == CN.LC_TRUE:
-                        self.flags[child.tag.lower()] = True
-                # Handle flags with a default of True
-                elif child.tag.lower() in ("stat_header_db_check", "mode_header_db_check",
-                                           "mtd_header_db_check", "tcst_header_db_check",
-                                           "load_stat", "load_mode", "load_mtd", "load_xml"):
-                    if child.text.lower() == CN.LC_FALSE:
-                        self.flags[child.tag.lower()] = False
-                elif child.tag.lower() == "insert_size":
-                    if child.text.isdigit():
-                        self.insert_size = int(child.text)
-                # group and description for putting databases into groups/categories
-                elif child.tag.lower() == "group":
-                    self.group = child.text
-                elif child.tag.lower() == "description":
-                    self.description = child.text
-                # load_note and load_xml are used to put a note in the database
-                elif child.tag.lower() == "load_note":
-                    self.load_note = child.text
-                # MET line types to load. If omitted, all line types are loaded
-                elif child.tag.lower() == "line_type":
-                    self.flags['line_type_load'] = True
-                    for subchild in list(child):
-                        self.line_types.append(subchild.text.upper())
-                else:
-                    logging.warning("!!! Unknown tag: %s", child.tag)
+            # Extract values for connecting to database
+            if root.xpath("connection"):
+                self.read_db_connect(root)
+                logging.info("Database name is: %s", self.connection['db_database'])
+
+            # group and description for putting databases into groups/categories
+            if root.xpath("group") and root.xpath("description"):
+                self.group = root.xpath("group")[0].text
+                self.description = root.xpath("description")[0].text
+
+            # load_note and load_xml are used to put a note in the database
+            if root.xpath('load_note'):
+                self.load_note = root.xpath("load_note")[0].text
+
+            # MET line types to load. If omitted, all line types are loaded
+            if root.xpath('line_type'):
+                self.flags['line_type_load'] = True
+                self.line_types = [x.text.upper() for x in root.xpath('line_type')[0]]
+
+            # insert_size value is an integer
+            if root.xpath('insert_size') and root.xpath('insert_size')[0].text.isdigit():
+                self.insert_size = int(root.xpath('insert_size')[0].text)
+
+            # Handle flags with a default of True
+            default_true = ["stat_header_db_check", "mode_header_db_check",
+                            "mtd_header_db_check", "tcst_header_db_check",
+                            "load_stat", "load_mode", "load_mtd", "load_xml"]
+
+            self.flag_default_true(root, default_true)
+
+            # Handle flags with a default of False
+            default_false = ["verbose", "drop_indexes", "apply_indexes",
+                             "load_mpr", "load_orank", "force_dup_file"]
+
+            self.flag_default_false(root, default_false)
 
             # if requested, get a string of the XML to put in the database
             if self.flags['load_xml']:
                 self.xml_str = etree.tostring(tree).decode().replace('\n', '').replace(' ', '')
 
+            # Get a list of all of the file names to load
+            if root.xpath('load_files'):
+                self.load_files = [x.text for x in root.xpath('load_files')[0]]
+            else:
+                # Or get info on file template, fill-in values, and dates, if needed
+                self.read_file_info(root)
+
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_xml ***", sys.exc_info()[0])
             sys.exit("*** Error(s) found while reading XML file!")
 
-        logging.info("database name is: %s", self.connection['db_database'])
-
-        # if the date_list tag is included, generate a list of dates
-        if "start" in date_list.keys() and "end" in date_list.keys():
-            all_dates = self.filenames_from_date(date_list)
-        else:
-            all_dates = []
-
-        # if the folder template tag is used
-        if folder_template is not None:
-            # if the date_list tag was used correctly, put the dates in
-            if all_dates:
-                for t_fill in template_fills:
-                    if template_fills[t_fill][0] == date_list["name"]:
-                        template_fills[t_fill] = all_dates
-            # Generate all possible path/filenames from folder template
-            self.load_files = self.filenames_from_template(folder_template, template_fills)
-
-        # this removes duplicate file names. do we want that?
-        if self.load_files is not None:
+        # This removes duplicate file names. do we want that?
+        if self.load_files:
             self.load_files = list(dict.fromkeys(self.load_files))
 
-        # remove directory names
+        # Remove directory names
         self.load_files = [lf for lf in self.load_files if '.' in lf.split('/')[-1]]
 
         logging.info("Initial number of files: %s", str(len(self.load_files)))
 
         logging.debug("[--- End read_xml ---]")
+
+    def read_file_info(self, root):
+        """! Gather info on file template, fill-in values, and dates
+            Returns:
+               N/A
+        """
+        try:
+            folder_template = None
+            template_fills = {}
+            date_list = {}
+            all_dates = []
+
+            # Handle the date_list tag and its child tags
+            if root.xpath('date_list'):
+                date_list = {x.tag.lower(): x.text for x in root.xpath('date_list')[0]}
+                date_list['name'] = root.xpath('date_list')[0].attrib['name']
+
+            # if the date_list tag is included, generate a list of dates
+            if "start" in date_list.keys() and "end" in date_list.keys():
+                all_dates = self.filenames_from_date(date_list)
+
+            if root.xpath("folder_tmpl"):
+                folder_template = root.xpath("folder_tmpl")[0].text
+
+            # get the values to fill in to the folder template
+            field_names = [x.attrib['name'] for x in root.xpath('load_val')[0].xpath('field')]
+
+            for field_name in field_names:
+                # Process zero or more val tags
+                xml_exp = "//field[@name='" + field_name + "']/val"
+                if root.xpath(xml_exp):
+                    template_fills[field_name] = \
+                        [x.text for x in root.xpath(xml_exp)]
+
+                # Process date_list tag, if any
+                xml_exp = "//field[@name='" + field_name + "']/date_list"
+                if root.xpath(xml_exp):
+                    template_fills[field_name] = \
+                        [root.xpath(xml_exp)[0].attrib['name']]
+                    date_field = field_name
+
+            # If the date_list tag was used correctly, put the dates in
+            if all_dates and template_fills[date_field][0] == date_list["name"]:
+                template_fills[date_field] = all_dates
+
+            # Generate all possible path/filenames from folder template
+            if folder_template and template_fills:
+                self.load_files = self.filenames_from_template(folder_template, template_fills)
+
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in read_xml read_file_info ***", sys.exc_info()[0])
+            sys.exit("*** Error(s) found while reading XML file info!")
+
+    def read_db_connect(self, root):
+        """! Gather values from tags that have info on database connection
+            Returns:
+               N/A
+        """
+        try:
+            host_and_port = root.xpath('connection')[0].xpath('host')[0].text
+            if host_and_port:
+                host_and_port = host_and_port.split(":")
+                self.connection['db_host'] = host_and_port[0]
+                if len(host_and_port) > 1:
+                    self.connection['db_port'] = int(host_and_port[1])
+                else:
+                    self.connection['db_port'] = CN.SQL_PORT
+            else:
+                logging.error("!!! XML must include host tag")
+                raise NameError("Missing required host tag")
+
+            if root.xpath('connection')[0].xpath('database'):
+                self.connection['db_database'] = \
+                    root.xpath('connection')[0].xpath('database')[0].text
+            else:
+                logging.error("!!! XML must include database tag")
+                raise NameError("Missing required database tag")
+
+            if not self.connection['db_database'].startswith("mv_"):
+                logging.warning("!!! Database not visible unless name starts with mv_")
+
+            self.connection['db_user'] = \
+                root.xpath('connection')[0].xpath('user')[0].text
+            self.connection['db_password'] = \
+                root.xpath('connection')[0].xpath('password')[0].text
+            if ((not self.connection['db_user']) or
+                    (not self.connection['db_password'])):
+                logging.error("!!! XML must include user and password tags")
+                raise NameError("Missing required user or password tag or both")
+
+            self.connection['db_management_system'] = \
+                root.xpath('connection')[0].xpath('management_system')[0].text
+            if not self.connection['db_management_system']:
+                self.connection['db_management_system'] = "mysql"
+
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logging.error("*** %s in read_xml read_db_connect ***", sys.exc_info()[0])
+            sys.exit("*** Error(s) found while reading XML file connection tag!")
+
+    def flag_default_true(self, root, default_true):
+        """! Given list of flags that default to true, set to false if needed
+            Returns:
+               N/A
+        """
+        for flag_name in default_true:
+            if root.xpath(flag_name) and root.xpath(flag_name)[0].text.lower() == CN.LC_FALSE:
+                self.flags[root.xpath(flag_name)[0].tag.lower()] = False
+
+    def flag_default_false(self, root, default_false):
+        """! Given list of flags that default to false, set to true if needed
+            Returns:
+               N/A
+        """
+        for flag_name in default_false:
+            if root.xpath(flag_name) and root.xpath(flag_name)[0].text.lower() == CN.LC_TRUE:
+                self.flags[root.xpath(flag_name)[0].tag.lower()] = True
 
     @staticmethod
     def filenames_from_date(date_list):
@@ -254,32 +315,36 @@ class XmlLoadFile:
         logging.debug("folder template is: %s", folder_template)
 
         try:
-
             fills_open = folder_template.count("{")
             if fills_open != folder_template.count("}"):
                 raise ValueError("mismatched curly braces")
+
             # remove any fill values that are not in the template
+            not_in = []
             if template_fills:
-                copy_template_fills = dict(template_fills)
-                for key in copy_template_fills:
-                    if key not in folder_template:
-                        del template_fills[key]
+                not_in = [tf for tf in template_fills.keys() if not (tf in folder_template)]
+
+            for wrong_key in not_in:
+                del template_fills[wrong_key]
+
             if fills_open > len(template_fills):
                 raise ValueError("not enough template fill values")
+
             # generate a list of directories with all combinations of values filled in
             load_dirs = [folder_template]
             for key in template_fills:
                 alist = []
-                for fvalue in template_fills[key]:
-                    for tvalue in load_dirs:
-                        alist.append(tvalue.replace("{" + key + "}", fvalue))
+                for tvalue in load_dirs:
+                    alist = alist + \
+                        [tvalue.replace("{" + key + "}", x) for x in template_fills[key]]
                 load_dirs = alist
+
             # find all files in directories, append path to them, and put on load_files list
             file_list = []
             for file_dir in load_dirs:
                 if os.path.exists(file_dir):
-                    for file_name in os.listdir(file_dir):
-                        file_list.append(file_dir + "/" + file_name)
+                    file_list = file_list + [os.path.join(file_dir, x)
+                                             for x in os.listdir(file_dir)]
 
         except ValueError as value_error:
             logging.error("*** %s in filenames_from_template ***", sys.exc_info()[0])
