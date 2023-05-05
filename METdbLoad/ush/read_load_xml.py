@@ -37,6 +37,7 @@ class XmlLoadFile:
 
         self.connection = {}
         self.connection['db_port'] = CN.SQL_PORT
+        self.connection['db_management_system'] = "mysql"
 
         self.insert_size = 1
         self.load_note = None
@@ -211,7 +212,8 @@ class XmlLoadFile:
                N/A
         """
         try:
-            host_and_port = root.xpath('connection')[0].xpath('host')[0].text
+            if root.xpath('connection')[0].xpath('host'):
+                host_and_port = root.xpath('connection')[0].xpath('host')[0].text
             if host_and_port:
                 host_and_port = host_and_port.split(":")
                 self.connection['db_host'] = host_and_port[0]
@@ -242,10 +244,9 @@ class XmlLoadFile:
                 logging.error("!!! XML must include user and password tags")
                 raise NameError("Missing required user or password tag or both")
 
-            self.connection['db_management_system'] = \
-                root.xpath('connection')[0].xpath('management_system')[0].text
-            if not self.connection['db_management_system']:
-                self.connection['db_management_system'] = "mysql"
+            if root.xpath('connection')[0].xpath('management_system'):
+                self.connection['db_management_system'] = \
+                    root.xpath('connection')[0].xpath('management_system')[0].text
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in read_xml read_db_connect ***", sys.exc_info()[0])

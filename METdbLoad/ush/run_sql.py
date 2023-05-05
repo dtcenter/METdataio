@@ -44,6 +44,9 @@ class RunSql:
         """
 
         try:
+            if (not 'db_host' in connection) or (not 'db_user' in connection):
+                logging.error("XML Load file does not have enough connection tags")
+                sys.exit("*** Error when connecting to database")
 
             # Connect to the database using connection info from XML file
             self.conn = pymysql.connect(host=connection['db_host'],
