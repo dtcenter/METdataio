@@ -141,7 +141,6 @@ class WriteStatAscii:
 
         # FHO forecast, hit rate, observation rate
         if linetype == cn.FHO:
-            pass
             linetype_data: pd.DataFrame = self.process_fho(stat_data)
 
         # CNT Continuous Statistics
@@ -150,18 +149,15 @@ class WriteStatAscii:
 
         # CTC Contingency Table Counts
         elif linetype == cn.CTC:
-            pass
             linetype_data: pd.DataFrame = self.process_ctc(stat_data)
 
         # CTS Contingency Table Statistics
         elif linetype == cn.CTS:
-            pass
             linetype_data: pd.DataFrame = self.process_cts(stat_data)
 
 
         # SL1L2 Scalar Partial sums
         elif linetype == cn.SL1L2:
-            pass
             linetype_data: pd.DataFrame = self.process_sl1l2(stat_data)
 
         return linetype_data
