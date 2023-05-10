@@ -110,7 +110,8 @@ class WriteStatAscii:
 
             # Write out to the tab-separated text file
             output_file = os.path.join(parms['output_dir'], parms['output_filename'])
-            final_df: pd.DataFrame = combined_dfs.to_csv(output_file, index=None, sep='\t', mode='a')
+            _: pd.DataFrame = combined_dfs.to_csv(output_file, index=None, sep='\t',
+                                                  mode='a')
 
 
         except (RuntimeError, TypeError, NameError, KeyError):
@@ -141,7 +142,6 @@ class WriteStatAscii:
 
         # FHO forecast, hit rate, observation rate
         if linetype == cn.FHO:
-            pass
             linetype_data: pd.DataFrame = self.process_fho(stat_data)
 
         # CNT Continuous Statistics
@@ -150,18 +150,15 @@ class WriteStatAscii:
 
         # CTC Contingency Table Counts
         elif linetype == cn.CTC:
-            pass
             linetype_data: pd.DataFrame = self.process_ctc(stat_data)
 
         # CTS Contingency Table Statistics
         elif linetype == cn.CTS:
-            pass
             linetype_data: pd.DataFrame = self.process_cts(stat_data)
 
 
         # SL1L2 Scalar Partial sums
         elif linetype == cn.SL1L2:
-            pass
             linetype_data: pd.DataFrame = self.process_sl1l2(stat_data)
 
         return linetype_data
@@ -200,7 +197,7 @@ class WriteStatAscii:
 
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
-        idx: int = list(fho_df.index)
+        idx = list(fho_df.index)
         fho_df.insert(loc=0, column='Idx', value=idx)
 
         # Use pandas 'melt' to reshape the data frame from wide to long shape (i.e. collecting the f_rate, h_rate,
@@ -215,7 +212,7 @@ class WriteStatAscii:
                                               value_name='stat_value')
 
         # FHO line type doesn't have the bcl and bcu stat values; set these to NA
-        na_column: List[str] = ['NA' for na_column in range(0, linetype_data.shape[0])]
+        na_column: List[str] = ['NA' for _ in range(0, linetype_data.shape[0])]
 
         linetype_data['stat_ncl']: pd.Series = na_column
         linetype_data['stat_ncu']: pd.Series = na_column
@@ -251,7 +248,7 @@ class WriteStatAscii:
 
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
-        idx: int = list(cnt_df.index)
+        idx = list(cnt_df.index)
         cnt_df.insert(loc=0, column='Idx', value=idx)
 
         # Use the pd.wide_to_long() to collect the statistics and confidence level data into the appropriate columns.
@@ -320,7 +317,7 @@ class WriteStatAscii:
 
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
-        idx: int = list(ctc_df.index)
+        idx = list(ctc_df.index)
         ctc_df.insert(loc=0, column='Idx', value=idx)
 
         # Now apply melt to get the stat_name and stat_values from the statistics
@@ -332,7 +329,7 @@ class WriteStatAscii:
                                     value_name='stat_value').sort_values('Idx')
 
         # CTC line type doesn't have the ncl, ncu, bcl and bcu stat values set these to NA
-        na_column: List[str] = ['NA' for na_column in range(0, linetype_data.shape[0])]
+        na_column: List[str] = ['NA' for _ in range(0, linetype_data.shape[0])]
 
         linetype_data['stat_ncl']: pd.Series = na_column
         linetype_data['stat_ncu']: pd.Series = na_column
@@ -368,7 +365,7 @@ class WriteStatAscii:
 
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
-        idx: int = list(cts_df.index)
+        idx = list(cts_df.index)
         cts_df.insert(loc=0, column='Idx', value=idx)
 
         # Use the pd.wide_to_long() to collect the statistics and confidence level data into the appropriate columns.
@@ -436,7 +433,7 @@ class WriteStatAscii:
 
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
-        idx: int = list(sl1l2_df.index)
+        idx = list(sl1l2_df.index)
         sl1l2_df.insert(loc=0, column='Idx', value=idx)
 
         # Now apply melt to get the stat_name and stat_values from the statistics
@@ -448,7 +445,7 @@ class WriteStatAscii:
                                  value_name='stat_value').sort_values('Idx')
 
         # SL1L2 line type doesn't have the bcl and bcu stat values set these to NA
-        na_column: List[str] = ['NA' for na_column in range(0, reshaped.shape[0])]
+        na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
 
         reshaped['stat_ncl']: pd.Series = na_column
         reshaped['stat_ncu']: pd.Series = na_column
