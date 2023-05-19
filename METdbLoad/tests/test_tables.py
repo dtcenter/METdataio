@@ -390,7 +390,7 @@ else:
 # *** mode_obj_pair records
 q_text = 'SELECT * from mode_obj_pair ' + \
          'order by mode_header_id, mode_obj_fcst_id, ' + \
-         'mode_obj_obs_id limit ' + \
+         'mode_obj_obs_id, object_id, object_cat limit ' + \
          str(QUERY_COUNT) + ';'
 
 # show row counts

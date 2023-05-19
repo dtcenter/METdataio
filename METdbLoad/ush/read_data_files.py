@@ -312,6 +312,7 @@ class ReadDataFiles:
                         # if FCST_LEAD is NA, set it to 0
                         if not mode_file.fcst_lead.dtypes == 'int':
                             mode_file.loc[mode_file.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+                            mode_file[CN.FCST_LEAD] = mode_file[CN.FCST_LEAD].astype(int)
 
                         # initially, match line data to the index of the file names
                         mode_file[CN.FILE_ROW] = row_num
@@ -437,14 +438,18 @@ class ReadDataFiles:
 
                         # Copy forecast lead times, without trailing 0000 if they have them
                         mtd_file[CN.FCST_LEAD_HR] = \
-                            np.where(mtd_file[CN.FCST_LEAD] > 9999,
-                                     mtd_file[CN.FCST_LEAD] // 10000,
+                            np.where(mtd_file[CN.FCST_LEAD] < 25,
+                                     mtd_file[CN.FCST_LEAD] * 10000,
                                      mtd_file[CN.FCST_LEAD])
 
-                        # Calculate fcst_init = fcst_valid - fcst_lead hours
+                        mtd_file[CN.FCST_LEAD_HR] = (((mtd_file[CN.FCST_LEAD_HR] // 10000) * 3600) +
+                                                     ((mtd_file[CN.FCST_LEAD_HR] // 100 % 100) * 60) +
+                                                     (mtd_file[CN.FCST_LEAD_HR] % 100))
+
+                        # Calculate fcst_init = fcst_valid - fcst_lead hours (in seconds)
                         mtd_file.insert(5, CN.FCST_INIT, 0)
                         mtd_file[CN.FCST_INIT] = mtd_file[CN.FCST_VALID] - \
-                            pd.to_timedelta(mtd_file[CN.FCST_LEAD_HR], unit='h')
+                            pd.to_timedelta(mtd_file[CN.FCST_LEAD_HR], unit='sec')
 
                         # Where fcst_lead was set to zero for math, set it to -9999
                         if mtd_file[CN.FCST_LEAD].eq(0).any():
@@ -595,7 +600,9 @@ class ReadDataFiles:
 
                 all_stat.fcst_thresh = all_stat.fcst_thresh.astype(str)
                 all_stat.obs_thresh = all_stat.obs_thresh.astype(str)
-                all_stat['1'] = all_stat['1'].astype(float)
+                if not all_stat['1'].dtypes == 'float':
+                    all_stat.loc[all_stat['1'] == CN.NOTAV, '1'] = CN.MV_NOTAV
+                    all_stat['1'] = all_stat['1'].astype(float)
 
                 # if a fcst percentage thresh is used, it is in parens in fcst_thresh
                 if all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False).any():
@@ -1034,20 +1041,24 @@ class ReadDataFiles:
                 all_cts = pd.concat(list_cts, ignore_index=True, sort=False)
                 list_cts = []
 
-                all_cts[CN.FCST_LEAD] = all_cts[CN.FCST_LEAD].astype(int)
                 if not all_cts.fcst_lead.dtypes == 'int':
                     all_cts.loc[all_cts.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+                    all_cts[CN.FCST_LEAD] = all_cts[CN.FCST_LEAD].astype(int)
 
                 # Copy forecast lead times, without trailing 0000 if they have them
                 all_cts[CN.FCST_LEAD_HR] = \
-                    np.where(all_cts[CN.FCST_LEAD] > 9999,
-                             all_cts[CN.FCST_LEAD] // 10000,
+                    np.where(all_cts[CN.FCST_LEAD] < 25,
+                             all_cts[CN.FCST_LEAD] * 10000,
                              all_cts[CN.FCST_LEAD])
+
+                all_cts[CN.FCST_LEAD_HR] = (((all_cts[CN.FCST_LEAD_HR] // 10000) * 3600) +
+                                            ((all_cts[CN.FCST_LEAD_HR] // 100 % 100) * 60) +
+                                            (all_cts[CN.FCST_LEAD_HR] % 100))
 
                 # Calculate fcst_init = fcst_valid - fcst_lead hours
                 all_cts.insert(8, CN.FCST_INIT, CN.NOTAV)
                 all_cts[CN.FCST_INIT] = all_cts[CN.FCST_VALID] - \
-                    pd.to_timedelta(all_cts[CN.FCST_LEAD_HR], unit='h')
+                    pd.to_timedelta(all_cts[CN.FCST_LEAD_HR], unit='sec')
 
                 # line type of mode contingency table
                 all_cts[CN.LINE_TYPE_LU_ID] = 19
@@ -1060,20 +1071,24 @@ class ReadDataFiles:
                 all_obj = pd.concat(list_obj, ignore_index=True, sort=False)
                 list_obj = []
 
-                all_obj[CN.FCST_LEAD] = all_obj[CN.FCST_LEAD].astype(int)
                 if not all_obj.fcst_lead.dtypes == 'int':
                     all_obj.loc[all_obj.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+                    all_obj[CN.FCST_LEAD] = all_obj[CN.FCST_LEAD].astype(int)
 
                 # Copy forecast lead times, without trailing 0000 if they have them
                 all_obj[CN.FCST_LEAD_HR] = \
-                    np.where(all_obj[CN.FCST_LEAD] > 9999,
-                             all_obj[CN.FCST_LEAD] // 10000,
+                    np.where(all_obj[CN.FCST_LEAD] < 25,
+                             all_obj[CN.FCST_LEAD] * 10000,
                              all_obj[CN.FCST_LEAD])
+
+                all_obj[CN.FCST_LEAD_HR] = (((all_obj[CN.FCST_LEAD_HR] // 10000) * 3600) +
+                                            ((all_obj[CN.FCST_LEAD_HR] // 100 % 100) * 60) +
+                                            (all_obj[CN.FCST_LEAD_HR] % 100))
 
                 # Calculate fcst_init = fcst_valid - fcst_lead hours
                 all_obj.insert(8, CN.FCST_INIT, CN.NOTAV)
                 all_obj[CN.FCST_INIT] = all_obj[CN.FCST_VALID] - \
-                    pd.to_timedelta(all_obj[CN.FCST_LEAD_HR], unit='h')
+                    pd.to_timedelta(all_obj[CN.FCST_LEAD_HR], unit='sec')
 
                 # default to mode single
                 all_obj[CN.LINE_TYPE_LU_ID] = 17
@@ -1129,20 +1144,24 @@ class ReadDataFiles:
                                      inplace=True)
                 self.data_files.reset_index(drop=True, inplace=True)
 
-                all_stat[CN.FCST_LEAD] = all_stat[CN.FCST_LEAD].astype(int)
                 if not all_stat.fcst_lead.dtypes == 'int':
                     all_stat.loc[all_stat.fcst_lead == CN.NOTAV, CN.FCST_LEAD] = 0
+                    all_stat[CN.FCST_LEAD] = all_stat[CN.FCST_LEAD].astype(int)
 
                 # Copy forecast lead times, without trailing 0000 if they have them
                 all_stat[CN.FCST_LEAD_HR] = \
-                    np.where(all_stat[CN.FCST_LEAD] > 9999,
-                             all_stat[CN.FCST_LEAD] // 10000,
+                    np.where(all_stat[CN.FCST_LEAD] < 25,
+                             all_stat[CN.FCST_LEAD] * 10000,
                              all_stat[CN.FCST_LEAD])
 
-                # Calculate fcst_init_beg = fcst_valid_beg - fcst_lead hours
+                all_stat[CN.FCST_LEAD_HR] = (((all_stat[CN.FCST_LEAD_HR] // 10000) * 3600) +
+                                             ((all_stat[CN.FCST_LEAD_HR] // 100 % 100) * 60) +
+                                             (all_stat[CN.FCST_LEAD_HR] % 100))
+
+                # Calculate fcst_init_beg = fcst_valid_beg - fcst_lead hours (in seconds)
                 all_stat.insert(6, CN.FCST_INIT_BEG, CN.NOTAV)
                 all_stat[CN.FCST_INIT_BEG] = all_stat[CN.FCST_VALID_BEG] - \
-                    pd.to_timedelta(all_stat[CN.FCST_LEAD_HR], unit='h')
+                    pd.to_timedelta(all_stat[CN.FCST_LEAD_HR], unit='sec')
 
                 logging.debug("Shape of all_stat after transforms: %s", str(all_stat.shape))
 

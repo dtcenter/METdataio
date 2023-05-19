@@ -25,6 +25,7 @@ from datetime import datetime
 from datetime import timedelta
 import sys
 import os
+import getpass
 
 import constants as CN
 
@@ -54,6 +55,11 @@ def main():
 
     logging.info("--- *** --- Start METdbLoad --- *** ---")
     logging.info("Begin time: %s", begin_time)
+
+    try:
+        logging.info("User name is: %s",  getpass.getuser())
+    except:
+        logging.info("User name is not available")
 
     # time execution
     load_time_start = time.perf_counter()
@@ -317,9 +323,15 @@ def main():
     load_time = timedelta(seconds=load_time_end - load_time_start)
 
     logging.info("    >>> Total load time: %s", str(load_time))
-    logging.info("End time: %s\n", str(datetime.now()))
     for k in line_counts:
         logging.info("For %s Count %s", k, line_counts[k])
+
+    try:
+        logging.info("User name is: %s",  getpass.getuser())
+    except:
+        logging.info("User name is not available")
+
+    logging.info("End time: %s\n", str(datetime.now()))
     logging.info("--- *** --- End METdbLoad --- *** ---")
 
 
