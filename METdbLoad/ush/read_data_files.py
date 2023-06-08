@@ -97,6 +97,12 @@ class ReadDataFiles:
             self.data_files.drop(self.data_files[self.data_files[CN.DATA_FILE_LU_ID] ==
                                                  CN.NO_KEY].index, inplace=True)
             self.data_files.reset_index(drop=True, inplace=True)
+
+            # If no valid files to load, exit
+            if not len(self.data_files):
+                logging.warning("!!! No valid files to load")
+                sys.exit("*** No valid files to load")
+
             # Won't know database key until we interact with the database, so no keys yet
             self.data_files[CN.DATA_FILE_ID] = CN.NO_KEY
             # Store the index in a column to make later merging with stat data easier
