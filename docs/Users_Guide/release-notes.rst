@@ -9,6 +9,25 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
+METdataio Version 2.1.0-rc1 release notes (20230616)
+------------------------------------------------------
+
+  .. dropdown:: New Functionality
+
+     
+  .. dropdown:: Enhancements
+
+  .. dropdown:: Internal
+
+     * Stored schema update schema update scripts in repo (`#208 <https://github.com/dtcenter/METdataio/issues/208>`_)
+     * Partial work on STIGS and logging (`#45 <https://github.com/dtcenter/METplus-internal/issues/45>`_)
+
+  .. dropdown:: Bugfixes
+
+     * **Fixed checking for all files invalid** (`#206 <https://github.com/dtcenter/METdataio/issues/206>`_)
+
+     * **Fixed use case failure when loading data via XML** (`#204 <https://github.com/dtcenter/METdataio/issues/204>`_)
+
 METdataio Version 2.1.0-beta2 release notes (20230412)
 ------------------------------------------------------
 
@@ -27,9 +46,6 @@ METdataio Version 2.1.0-beta2 release notes (20230412)
   .. dropdown:: Bugfixes
 
      None
-
-
-
 
 
 
