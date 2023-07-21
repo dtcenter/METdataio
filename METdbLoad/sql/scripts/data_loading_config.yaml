@@ -1,0 +1,30 @@
+
+# Configuration file used to load MET ASCII data into
+# a database.
+
+dbname: mv_test
+username: mvadmin
+password: 160GiltVa0D5M
+host: localhost
+port: 3306
+
+# Location (full path and schema file) to the sql schema. Replace with the location
+# of your METdataio source code.
+schema_location: /d2/personal/mwin/METdataio_loadingDB/METdataio/METdbLoad/sql/mv_mysql.sql
+
+# Name and location of the XML specification file
+xml_specification: db_load_specification.xml
+
+# Databases are grouped, select an existing group or create a new one.
+group: Testing
+
+# Directory (full path) to where the MET data resides.
+data_dir: /scratch/mwin
+
+# Set the appropriate setting to True to indicate what type of data is
+# being loaded.
+load_stat: True
+load_mode: False
+load_mtd: False
+load_mpr: False
+load_orank: False
