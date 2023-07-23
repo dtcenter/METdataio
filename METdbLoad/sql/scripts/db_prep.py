@@ -126,7 +126,12 @@ class DatabaseLoadingInfo:
         schema_cmd = uname_pass + schema_str
         logging.debug(f'Schema command: {schema_cmd}')
 
-        # self.delete_database()
+        try:
+            self.delete_database()
+        except subprocess.CalledProcessError:
+            logging.info("Database doesn't exist. Ignoring this error.")
+            pass
+
         try:
           create_db = subprocess.check_output(['mysql', uname_pass, create_str,
                                                   self.db_name])
