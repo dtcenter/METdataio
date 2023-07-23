@@ -63,7 +63,7 @@ class DatabaseInfo:
         # Permissions
         perms_list = ['"',"GRANT INSERT, DELETE, UPDATE, INDEX, DROP ON " ,
                       self.db_name,
-                     '.* to ', "'mvuser'", "@'%'"]
+                     '.* to ', "'mvuser'", "@'%'", '"']
 
         perms_str = ''.join(perms_list)
         perms_cmd = uname_pass + perms_str
