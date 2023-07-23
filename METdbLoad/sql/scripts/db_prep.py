@@ -107,7 +107,8 @@ class DatabaseLoadingInfo:
         # Command to create the database, set up permissions, and load the schema.
         uname_pass_list = [ '-u',  self.user_name,  ' -p', self.password, ' -e ']
         uname_pass = ''.join(uname_pass_list)
-        create_str = "'create database'"
+        create_list = [ "'create database' ", self.db_name]
+        create_str = ''.join(create_list)
         create_cmd = uname_pass + create_str
 
         # Permissions
@@ -144,7 +145,8 @@ class DatabaseLoadingInfo:
         # Command to delete the database
         uname_pass_list = ['-u', self.user_name, ' -p' , self.password, ' -e ']
         uname_pass = ''.join(uname_pass_list)
-        drop_str = "'drop database'"
+        drop_list = ["'drop database' ", self.db_name ]
+        drop_str = ''.join(drop_list)
         drop_cmd = uname_pass + drop_str
         logging.debug(f'Drop database command: {drop_cmd}')
 
