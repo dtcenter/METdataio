@@ -58,6 +58,7 @@ class DatabaseInfo:
         create_list = ["'create database ", self.db_name, "'"]
         create_str = ''.join(create_list)
         create_cmd = uname_pass + create_str
+        logging.debug(f'database create string: {create_cmd}')
 
         # Permissions
         perms_list = ["GRANT INSERT, DELETE, UPDATE, INDEX, DROP ON ", self.db_name,
@@ -65,14 +66,16 @@ class DatabaseInfo:
 
         perms_str = ''.join(perms_list)
         perms_cmd = uname_pass + perms_str
+        logging.debug(f'database grant permissions string: {perms_cmd}')
 
-        logging.debug(f'database create string: {create_cmd}')
 
         # Schema
         schema_list = ['', self.db_name, ' < ', self.schema_path]
         schema_str = ''.join(schema_list)
         schema_cmd = uname_pass + schema_str
         logging.debug(f'Schema command: {schema_cmd}')
+
+
 
         try:
             self.delete_database()
