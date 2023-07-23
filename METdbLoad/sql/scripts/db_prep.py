@@ -71,7 +71,7 @@ class DatabaseInfo:
 
 
         # Schema
-        schema_list = [ "-umvadmin -p",self.password,  self.db_name, ' < ',
+        schema_list = [ "-umvadmin -p",self.password, " ", self.db_name, ' < ',
                         self.schema_path]
         schema_cmd = ''.join(schema_list)
         logging.debug(f'Schema command: {schema_cmd}')
