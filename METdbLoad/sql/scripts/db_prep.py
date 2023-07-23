@@ -61,7 +61,7 @@ class DatabaseInfo:
         logging.debug(f'database create string: {create_cmd}')
 
         # Permissions
-        perms_list = ['"'GRANT INSERT, DELETE, UPDATE, INDEX, DROP ON , self.db_name,
+        perms_list = ['"',"GRANT INSERT, DELETE, UPDATE, INDEX, DROP ON" , self.db_name,
                      '.* to ', "'",self.user_name, "'", "@'%'"]
 
         perms_str = ''.join(perms_list)
