@@ -15,7 +15,7 @@ logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 
 @dataclass
-class :
+class DatabaseInfo:
     '''
         Data class for keeping the relevant information for loading the
         METviewer database.
@@ -135,7 +135,6 @@ if __name__ == "__main__":
         db_config_info = yaml.safe_load(cf)
         db_loader = DatabaseInfo(db_config_info, config_file_dir)
         if action_requested == 'create':
-            db_loader.update_spec_file()
             db_loader.create_database()
         elif action_requested == 'delete':
             db_loader.delete_database()
