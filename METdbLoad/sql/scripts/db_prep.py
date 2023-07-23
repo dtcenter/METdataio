@@ -1,12 +1,13 @@
 '''
     Creates the METviewer database to store MET output.
 '''
+import os.path
+import subprocess
 
 import yaml
 import argparse
 from dataclasses import dataclass
 import logging
-import xml.etree.ElementTree as et
 
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
@@ -32,8 +33,9 @@ class DatabaseLoadingInfo:
     load_mtd: bool
     load_mpr: bool
     load_orank: bool
+    config_file_dir: str
 
-    def __init__(self, config_obj: dict):
+    def __init__(self, config_obj: dict, config_file_dir:str):
         '''
 
         Args:
@@ -55,6 +57,8 @@ class DatabaseLoadingInfo:
         self.load_mtd = config_obj['load_mtd']
         self.load_mpr = config_obj['load_mpr']
         self.load_orank = config_obj['load_orank']
+        self.description = config_obj['description']
+        self.config_file_dir = config_file_dir
 
 
     def update_spec_file(self):
@@ -63,12 +67,93 @@ class DatabaseLoadingInfo:
            YAML configuration file.
         '''
 
-        specification_tree = et.parse(self.xml_spec_file)
-        myroot = specification_tree.getroot()
-        host = 
-            host.txt = str(self.host_name)
+        # Assign the host with the host and port assigned in the YAML config file
+        import xml.etree.ElementTree as et
+        tree = et.parse(self.xml_spec_file)
+        root = tree.getroot()
+
+        for host in root.iter('host'):
+            host.text = self.host_name + ":" + str(self.port_number)
+
+        for dbname in root.iter('database'):
+            dbname.text = self.db_name
+
+        for user in root.iter('user'):
+            user.text = self.user_name
+
+        for password in root.iter('password'):
+            password.text = self.password
+
+        for data_folder in root.iter('folder_tmpl'):
+            data_folder.text = self.data_dir
+
+        for group in root.iter('group'):
+            group.text = self.group
+
+        for desc in root.iter('description'):
+            desc.text = self.description
+
+        tree.write(os.path.join(self.config_file_dir, 'load_met.xml'))
 
 
+
+    def create_database(self):
+        '''
+            Create the commands to create the database.
+
+        Returns: None
+
+        '''
+        # Command to create the database, set up permissions, and load the schema.
+        uname_pass_list = [ '-u',  self.user_name,  ' -p', self.password, ' -e ']
+        uname_pass = ''.join(uname_pass_list)
+        create_str = "'create database'"
+        create_cmd = uname_pass + create_str
+
+        # Permissions
+        perms_list = ["GRANT INSERT, DELETE, UPDATE, INDEX, DROP ON ", self.db_name,
+                      ".*", " to '", self.user_name, "'@'%'"]
+
+        perms_str = ''.join(perms_list)
+        perms_cmd = uname_pass + perms_str
+
+        logging.debug(f'database create string: {create_cmd}')
+
+        # Schema
+        schema_list = ['', self.db_name, ' < ', self.schema_path]
+        schema_str = ''.join(schema_list)
+        schema_cmd = uname_pass + schema_str
+        logging.debug(f'Schema command: {schema_cmd}')
+
+        # self.delete_database()
+        try:
+          create_db = subprocess.check_output(['mysql', uname_pass, create_str,
+                                                  self.db_name])
+          db_permissions = subprocess.checkoutput(['mysql', uname_pass, create_str,
+                                                  self.db_name])
+        except subprocess.CalledProcessError:
+            logging.error('Error in executing mysql commands')
+
+    def delete_database(self):
+        '''
+           Create the commands to delete a database.
+        Returns: None
+
+        '''
+
+        # Command to delete the database
+        uname_pass_list = ['-u', self.user_name, ' -p' , self.password, ' -e ']
+        uname_pass = ''.join(uname_pass_list)
+        drop_str = "'drop database'"
+        drop_cmd = uname_pass + drop_str
+        logging.debug(f'Drop database command: {drop_cmd}')
+
+        try:
+            _ = subprocess.check_output(['mysql', uname_pass, drop_str,
+                                                self.db_name])
+
+        except subprocess.CalledProcessError:
+            logging.error('Error in executing mysql commands')
 
 if __name__ == "__main__":
 
@@ -89,13 +174,16 @@ if __name__ == "__main__":
     action_requested = str(action).lower()
     logging.debug(f'Action requested: {action_requested}')
     logging.debug(f'Config file to use: {str(config_file)}')
+    config_file_dir = os.path.dirname(config_file)
+    logging.debug(f'Directory of config file: {config_file_dir}')
 
     with open(config_file, 'r') as cf:
         db_config_info = yaml.safe_load(cf)
-        db_loader = DatabaseLoadingInfo(db_config_info)
+        db_loader = DatabaseLoadingInfo(db_config_info, config_file_dir)
         if action_requested == 'create':
             db_loader.update_spec_file()
+            db_loader.create_database()
         elif action_requested == 'delete':
-            pass
+            db_loader.delete_database()
         else:
             logging.warning(f'{action_requested} is not a supported option.')

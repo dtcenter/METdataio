@@ -9,14 +9,16 @@ host: localhost
 port: 3306
 
 # Location (full path and schema file) to the sql schema. Replace with the location
-# of your METdataio source code.
-schema_location: /d2/personal/mwin/METdataio_loadingDB/METdataio/METdbLoad/sql/mv_mysql.sql
+# of your METdataio source code. PROVIDE THE FULL PATH TO THE SCHEMA FILE, NO RELATIVE PATHS OR
+# ENVIRONMENT VARIABLES.
+schema_location: /mv_mysql.sql
 
 # Name and location of the XML specification file
 xml_specification: db_load_specification.xml
 
 # Databases are grouped, select an existing group or create a new one.
 group: Testing
+description: My test database
 
 # Directory (full path) to where the MET data resides.
 data_dir: /scratch/mwin
