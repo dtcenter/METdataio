@@ -29,7 +29,7 @@ information.**
 
 .. code-block:: ini
 
-cp data_loading_config.yaml /path-to-your-dir/
+   cp data_loading_config.yaml /path-to-your-dir/
 
 Replace the *path-to-your-dir* with the actual path to where this file is to be saved.
 
