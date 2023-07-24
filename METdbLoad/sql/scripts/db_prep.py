@@ -71,8 +71,10 @@ class DatabaseInfo:
 
 
         # Schema
+        schema_full_path = os.path.join(self.schema_path,
+                                        'METdataio/METdbLoad/sql/mv_mysql.sql')
         schema_list = [ "-umvadmin -p",self.password, " ", self.db_name, ' < ',
-                        self.schema_path]
+                        schema_full_path]
         schema_cmd = ''.join(schema_list)
         logging.debug(f'Schema command: {schema_cmd}')
 
