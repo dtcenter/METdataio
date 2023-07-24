@@ -85,9 +85,9 @@ class DatabaseInfo:
             pass
 
         try:
-            create_db = subprocess.check_output(['mysql', create_cmd])
-            db_permissions = subprocess.checkoutput(['mysql', perms_cmd])
-            db_schema = subprocess.checkoutput(['mysql', schema_cmd])
+            create_db = subprocess.run(['mysql', create_cmd])
+            db_permissions = subprocess.run(['mysql', perms_cmd])
+            db_schema = subprocess.run(['mysql', schema_cmd])
         except subprocess.CalledProcessError:
             logging.error('Error in executing mysql commands')
 
@@ -107,7 +107,7 @@ class DatabaseInfo:
         logging.debug(f'Drop database command: {drop_cmd}')
 
         try:
-            _ = subprocess.check_output(['mysql', drop_cmd])
+            _ = subprocess.run(['mysql', drop_cmd])
 
         except subprocess.CalledProcessError:
             logging.error('Error in executing mysql commands')
