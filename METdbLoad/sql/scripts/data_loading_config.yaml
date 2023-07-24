@@ -14,7 +14,7 @@ port: 1234
 schema_location: /full-path-to/mv_mysql.sql
 
 # Name and location of the XML specification file
-xml_specification: db_load_specification.xml
+xml_specification: /full-path-to/db_load_specification.xml
 
 # Databases are grouped, select an existing group.
 group: Testing
