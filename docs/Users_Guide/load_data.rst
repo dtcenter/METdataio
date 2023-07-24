@@ -103,8 +103,8 @@ same directory where the YAML configuration file was copied.
 Load data
 ---------
 
-Now the MET data can be loaded in the database using the *met_db_load.py* script in the path-to/METdataio/METdbLoad/ush
-directory.  The *path-to* is the directory where the METdataio source code is saved.
+Now the MET data can be loaded in the database using the *met_db_load.py* script in the path-to-METdataio-source/METdbLoad/ush
+directory.  The *path-to-METdataio-source* is the directory where the METdataio source code is saved.
 
 .. code-block:: ini
 
