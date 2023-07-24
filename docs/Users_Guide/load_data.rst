@@ -41,48 +41,48 @@ Open the data_loading_config.yaml file:
 
 Update the database information with information relevant to the database you are using:
 
-* dbname
+  * dbname
 
-* username
+  * username
 
-* password
+  * password
 
-* host
+  * host
 
-* port
+  * port
 
 
 Update the path to the schema location, provide the full path to the *mv_sql_mysql.sql* schema file:
 
-* schema_location
+  * schema_location
 
 Provide the name and full path to the *db_load_specification.xml* template file, this will be updated
 with the settings in this YAML configuration to create a new XML specification file using these settings:
 
-* xml_specification
+  * xml_specification
 
 Provide the group and description.  The databases in METviewer are grouped, provide the name of the appropriate
 group and a brief description of the database in which the data is to be loaded:
 
-* group
+  * group
 
-* description
+  * description
 
 Provide the full path to the directory where the MET data to be loaded is saved:
 
-* data_dir
+  * data_dir
 
 Indicate which data types are to be loaded by setting the appropriate settings to True:
 
-* load_stat
+  * load_stat
 
-* load_mode
+  * load_mode
 
-* load_mtd
+  * load_mtd
 
-* load_mpr
+  * load_mpr
 
-* load_orank
+  * load_orank
 
 Generate the new XML specification file by running the following:
 
