@@ -242,11 +242,15 @@ functional sections:
     </load_val>
 
 
-Example
-_______
+Additional Loading Options
+__________________________
 
-The data to be loaded can be filtered by date and field names (i.e. by model, valid_time, vx_mask, etc.).
-The load_met.xml specification file can be further modified to accomplish this.
+The load_met.xml specification file created above loads the entire dataset specified in the data_dir setting in the
+YAML config file, data_loading_config.yaml.
+
+A subset of the data can be selected by date and field names (i.e. by model, valid_time, vx_mask, etc.).
+The load_met.xml specification file can be further modified to accomplish this by adding the date_list and
+field_name elements to the XML specification file.
 
 Here is a simple example:
 
