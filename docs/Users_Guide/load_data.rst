@@ -106,6 +106,17 @@ Load data
 Now the MET data can be loaded in the database using the *met_db_load.py* script in the path-to/METdataio/METdbLoad/ush
 directory.  The *path-to* is the directory where the METdataio source code is saved.
 
+.. code-block:: ini
+
+  cd /path-to-METdataio-source/METdataio/METdbLoad/ush
+
+  * Replace path-to-METdataio-source to the location where the METdataio source code is saved.
+
+  python met_db_load.py /path-to/load_met.xml
+
+  * Replace the path-to with the location where the load_met.xml file was saved.  This is the same directory
+    you created to save the copy of the data_loading_config.yaml file.
+
 The usage statement:
 
 .. code-block:: ini
