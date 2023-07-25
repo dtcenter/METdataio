@@ -1,8 +1,123 @@
-Load Data
-=========
+Background
+==========
 
-METdbload is used to insert MET output data into the database. The usage
-statement:
+The METdbLoad module provides support for inserting MET output data into the database.
+
+Before using the METdbLoad module, the database must exist and have the proper permissions
+(i.e. grant privileges to insert, delete, update, and index).  A schema file, *mv_mysql.sql* is available in the
+METdataio/METdbLoad/sql/ directory for importing into the database.
+
+The METdbLoad script *met_db_load.py* performs the loading of data based on settings in an XML specification file.
+
+In the METdataio/METdbLoad/sql/scripts directory, there are two configuration files:
+
+  * db_load_specification.xml
+
+  * data_loading_config.yaml
+
+The *db_load_specification.xml* is a template XML specification file, and *data_loading_config.yaml*
+is a template YAML configuration file.  The *data_loading_config.yaml* file contains
+information about the database (username, password, database name, etc.). This information is used by the
+*generate_xml_spec.py* script to generate the XML specification file which is then used to load data into the database.
+
+Generate the XML specification file
+-----------------------------------
+
+Copy the *data_loading_config.yaml* file to a secure location in your workspace, as this file will contain the username
+and password to the database. **Do not put this file where it can be read by anyone who should not have access to this
+information.**
+
+.. code-block:: ini
+
+   cp data_loading_config.yaml /path-to-your-dir/
+
+Replace the *path-to-your-dir* with the actual path to where this file is to be saved.
+
+Change directory to the location where the *data_loading_config.yaml* file was copied.
+
+Open the data_loading_config.yaml file:
+
+.. literalinclude:: ../../METdbLoad/sql/scripts/data_loading_config.yaml
+
+Update the database information with information relevant to the database you are using:
+
+  * dbname
+
+  * username
+
+  * password
+
+  * host
+
+  * port
+
+
+Update the path to the schema location, provide the full path to the *mv_sql_mysql.sql* schema file:
+
+  * schema_location
+
+Provide the name and full path to the *db_load_specification.xml* template file, this will be updated
+with the settings in this YAML configuration to create a new XML specification file using these settings:
+
+  * xml_specification
+
+Provide the group and description.  The databases in METviewer are grouped, provide the name of the appropriate
+group and a brief description of the database in which the data is to be loaded:
+
+  * group
+
+  * description
+
+Provide the full path to the directory where the MET data to be loaded is saved:
+
+  * data_dir
+
+Indicate which data types are to be loaded by setting the appropriate settings to True:
+
+  * load_stat
+
+  * load_mode
+
+  * load_mtd
+
+  * load_mpr
+
+  * load_orank
+
+Generate the new XML specification file by running the following:
+
+.. code-block:: ini
+
+   cd path-to-METdataio-source/METdataio/METdbLoad/sql/scripts
+
+   *Replace path-to-METdataio-source to the location where the METdataio source code is saved.
+
+   python generate_xml_spec.py path-to/data_loading_config.yaml
+
+   *Replace the path-to with the path to the directory you created to store the copy of the data_loading_config.yaml
+   file as specified earlier.
+
+A new XML specification file *load_met.xml*, will be generated and saved in the
+same directory where the YAML configuration file was copied.
+
+Load data
+---------
+
+Now the MET data can be loaded in the database using the *met_db_load.py* script in the path-to-METdataio-source/METdbLoad/ush
+directory.  The *path-to-METdataio-source* is the directory where the METdataio source code is saved.
+
+.. code-block:: ini
+
+  cd /path-to-METdataio-source/METdataio/METdbLoad/ush
+
+  * Replace path-to-METdataio-source to the location where the METdataio source code is saved.
+
+  python met_db_load.py /path-to/load_met.xml
+
+  * Replace the path-to with the location where the load_met.xml file was saved.  This is the same directory
+    you created to save the copy of the data_loading_config.yaml file.
+
+The usage statement:
 
 .. code-block:: ini
 
@@ -18,7 +133,7 @@ statement:
     -h, --help  show this help message and exit
     -index      Only process index, do not load data
 
-The **xmlfile** passes information about the MET output files to load
+The **xmlfile** is the XML specification file that passes information about the MET output files to load
 into the database to METdbload. It is an XML file whose top-level
 tag is <load_spec> and it contains the following elements, divided into
 functional sections:
@@ -138,8 +253,15 @@ functional sections:
     </load_val>
 
 
-Example
-_______
+Additional Loading Options
+__________________________
+
+The load_met.xml specification file created above loads the entire dataset specified in the data_dir setting in the
+YAML config file, data_loading_config.yaml.
+
+A subset of the data can be selected by date and field names (i.e. by model, valid_time, vx_mask, etc.).
+The load_met.xml specification file can be further modified to accomplish this by adding the date_list and
+field_name elements to the XML specification file.
 
 Here is a simple example:
 
@@ -213,11 +335,12 @@ _______________
 .. list-table::
 
   * -  Error:
-    -  ** ERROR: Caught class
+    -  **ERROR: Caught class
        com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException:
        Duplicate entry
        'CT07-NMM-LIN-R2-0-2005-07-15 12:00:00-2005-07-15 12:00:00-0-2005'
-       for key 2
+       for key 2**
+
   * - Solution:
     - This error is caused by trying to insert a stat_header record into
       the database when an identical one already exists. If identical
@@ -227,5 +350,10 @@ _______________
       stat_header each time a row is inserted. However, if a stat_header
       row already exists in the table with the insert information, then
       the existing record will be used instead of trying to insert a
-      dupilcate.
+      duplicate.
 
+  * -  Error:
+    - **ERROR:root: (1049, "Unknown database 'mv_test'") in run_sql Error when connecting to database**
+
+  * - Solution:
+    - This error is caused when attempting to load data into a database that does not exist.  You will need to create the database, set up the appropriate privileges as outlined above, and load the schema using the mv_mysql.sql file.

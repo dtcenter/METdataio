@@ -1,0 +1,46 @@
+METdbLoad reads MET files, and writes them to a SQL database. METdbLoad gets its information about these files from a load_spec XML file. The main program is in met_db_load.py.
+
+After the information from the XML file is read in, the list of files given is checked to see if they exist. Entries for each existing file that has not been de-selected by a tag will be written to the database. Then all the MET files are read in.
+
+MET files can contain multiple line types, so any given MET file has one or more line types. There are also multiple types of MET data files: STAT, MODE, MET, and TCST. There are also VSDB files, the pre-MET output files.
+
+METdbLoad has to be able to handle older STAT files. There are places in the code that process lines differently based on the MET version. This is easiest to handle when new fields are added to the end of an existing line type. Then old files can have default or not available values automatically added to the end.
+
+In order to make met_db_load.py run as quickly as possible, all MET files are read into Pandas data frames, and operations are done on multiple lines at a time. However, Pandas files take up memory. Therefore, only 100 files are processed at a time. This number, MAX_FILES, is set in constants.py. With MAX_FILES set to 100, between 2G and 4G of memory is needed.
+
+Information about MET line types can be found in the MET repo under data/table_files/met_header_columns*. This information has been used to create many constants in constants.py, which has lists of line types and the fields in each line type.
+
+Each line in a MET file is broken up, and part of the data is put into a header table, and part is put into a line table. Each record in a line table connects to a header table. Each header record can have many line table records.
+
+There are two types of fields - regular and variable length. Regular fields have one value. Variable length fields contain multiple values. The number of values in a variable length field can vary from line to line. VAR_LINE_TYPES and VAR_LINE_TYPES_TCST contain the names of the line types that have fields that are variable length. The values in variable length fields are stored in secondary tables. So line data PCT variable length fields are stored in line_data_pct_thresh, line data MCTC variable length fields are stored in line_data_mctc_cnt, etc. Each line data record for a variable length field has a field that says how many values are included. As two examples, MCTC has n_cat and PCT has n_thresh.
+
+In order to add a new regular field to an existing line type, as long as the new field is at the end, you just need to add an item to the list of fields for that line type in constants.py.
+
+Example:
+
+Add new field 'abc' to ECNT
+
+Find the LINE_DATA_FIELDS list for ECNT:
+
+LINE_DATA_FIELDS[ECNT] = TOT_LINE_DATA_FIELDS + \
+                         ['n_ens', 'crps', 'crpss', 'ign', 'me', 'rmse', 'spread',
+                          'me_oerr', 'rmse_oerr', 'spread_oerr', 'spread_plus_oerr',
+                          'crpscl', 'crps_emp', 'crpscl_emp', 'crpss_emp',
+                          'crps_emp_fair', 'spread_md', 'mae', 'mae_oerr',
+                          'bias_ratio', 'n_ge_obs', 'me_ge_obs',
+                          'n_lt_obs', 'me_lt_obs']
+
+After the last entry in the list 'me_lt_obs', add a comma and a space, and then the new field name in single quotes. So the last line would become:
+
+                          'n_lt_obs', 'me_lt_obs', 'abc']
+
+That's usually all that's needed. Sometimes you might need to specify that a column has a certain data type, especially if you need to do math with a number. Or, sometimes having an NA in the data can cause a problem. For that, look in read_data_files.py to find a place to make that change. Here's an example:
+
+                # Change ALL items in column OBS_LEAD to 0 if they are 'NA'
+                if not all_stat.obs_lead.dtypes == 'int':
+                    all_stat.loc[all_stat.obs_lead == CN.NOTAV, CN.OBS_LEAD] = 0
+                    all_stat[CN.OBS_LEAD] = all_stat[CN.OBS_LEAD].astype(int)
+
+One way to find everything that needs to be changed in constants.py for a new variable length record is to search in that file for the name of a variable length record, like MCTC. In addition to UC_LINE_TYPES and VAR_LINE_TYPES, an entry of the secondary table name is needed in LINE_DATA_VAR_TABLES. The non-repeating variable names are in LINE_DATA_FIELDS, and the name of the fields of the secondary record are in LINE_DATA_VAR_FIELDS. The location of the column name of the count of fields is in LINE_VAR_COUNTER, and the length of the repeat is in LINE_VAR_REPEATS.
+
+The program read_data_files.py does not contain references to the database. In order to process variable length records in the database, database access is needed. Therefore, some of the handling of variable length records is done in write_stat_sql.py and write_tcst_sql.py. There's a loop in write_stat_sql.py labeled "Write Line Data." One type of line type is processed at a time. Inside that loop is a loop that handles variable length lines one line at a time. Some variable line records have exceptions, which are handled here. As each line type is processed, any data for both regular and variable line types is written to the database.
