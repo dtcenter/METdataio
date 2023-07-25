@@ -333,28 +333,9 @@ _______________
 .. _test:
 
 .. list-table::
+   :widths: 5 15
 
-  * -  Error:
-    -  ** ERROR: Caught class
-       com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException:
-       Duplicate entry
-       'CT07-NMM-LIN-R2-0-2005-07-15 12:00:00-2005-07-15 12:00:00-0-2005'
-       for key 2
-  * - Solution:
-    - This error is caused by trying to insert a stat_header record into
-      the database when an identical one already exists. If identical
-      stat_header information is present in more than one stat file, set
-      the <stat_header_db_check> value to true. This setting will reduce
-      performance, because the stat_header table is checked for duplicate
-      stat_header each time a row is inserted. However, if a stat_header
-      row already exists in the table with the insert information, then
-      the existing record will be used instead of trying to insert a
-      dupilcate.
-
- * -  Error:
-   -  **ERROR:root: (1049, "Unknown database 'mv_test'") in run_sql ***
-         Error when connecting to database
- * - Solution:
-   - This error is caused when the database you are attempting to load data, does not
-     exist.  You will need to create the database, set up the appropriate privileges as outlined
-     above, and load the schema using the mv_mysql.sql file.
+   * - Error
+     - Solution
+   * - ERROR:Caught class com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException:Duplicate entry 'CT07-NMM-LIN-R2-0-2005-07-15 12:00:00-2005-07-15 12:00:00-0-2005' for key 2
+     - This error is caused by trying to insert a stat_header record into the database when an identical one already exists. If identical stat_header information is present in more than one stat file, set the 'stat_header_db_check' value to true. This setting will reduce performance, because the stat_header table is checked for duplicate stat_header each time a row is inserted. However, if a stat_header row already exists in the table with the insert information, then the existing record will be used instead of trying to insert a duplicate.
