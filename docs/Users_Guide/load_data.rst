@@ -356,4 +356,4 @@ _______________
     - **ERROR:root: (1049, "Unknown database 'mv_test'") in run_sql Error when connecting to database
 
   * - Solution:
-    - This error is caused when the database you are attempting to load data, does not exist.  You will need to create the database, set up the appropriate privileges as outlined above, and load the schema using the mv_mysql.sql file.
+    - This error is caused when attempting to load data into a database that does not exist.  You will need to create the database, set up the appropriate privileges as outlined above, and load the schema using the mv_mysql.sql file.
