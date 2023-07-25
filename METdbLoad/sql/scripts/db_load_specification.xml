@@ -1,0 +1,35 @@
+<load_spec>
+  <connection>
+    <management_system>mysql</management_system>
+    <host>localhost:3306</host>
+    <database>mv_integrating_fire</database>
+    <user>mvadmin</user>
+    <password>160GiltVa0D5M</password>
+  </connection>
+
+<folder_tmpl>/scratch/vdunham/</folder_tmpl>
+
+	<verbose>true</verbose>
+	<insert_size>1</insert_size>
+  <stat_header_db_check>true</stat_header_db_check>
+	<mode_header_db_check>false</mode_header_db_check>
+  <mtd_header_db_check>false</mtd_header_db_check>
+	<drop_indexes>false</drop_indexes>
+	<apply_indexes>false</apply_indexes>
+
+	<load_stat>true</load_stat>
+	<load_mode>false</load_mode>
+        <load_mtd>false</load_mtd>
+	<load_mpr>false</load_mpr>
+	<load_orank>false</load_orank>
+
+	<load_val>
+		<field name="met_tool">
+			<val>point_stat</val>
+		</field>
+	</load_val>
+
+	<group>RAL Projects</group>
+	<description>MET output generated for SOARS research.</description>
+
+</load_spec>

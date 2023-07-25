@@ -1,0 +1,32 @@
+
+# Configuration file used to load MET ASCII data into
+# a database.
+
+dbname: dummy_dbname
+username: dbuser
+password: dbpassword
+host: localhost
+port: 1234
+
+# Location (full path and schema file) to the sql schema. Replace with the location
+# of your METdataio source code. PROVIDE THE FULL PATH TO THE SCHEMA FILE, NO RELATIVE PATHS OR
+# ENVIRONMENT VARIABLES.
+schema_location: /full-path-to/mv_mysql.sql
+
+# Name and location of the XML specification file
+xml_specification: /full-path-to/db_load_specification.xml
+
+# Databases are grouped, select an existing group.
+group: Testing
+description: My test database
+
+# Directory (full path) to where the MET data resides.
+data_dir: /path-to-met-data
+
+# Set the appropriate setting to True to indicate what type of data is
+# being loaded.
+load_stat: True
+load_mode: False
+load_mtd: False
+load_mpr: False
+load_orank: False
