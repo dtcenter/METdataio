@@ -339,7 +339,7 @@ _______________
        com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException:
        Duplicate entry
        'CT07-NMM-LIN-R2-0-2005-07-15 12:00:00-2005-07-15 12:00:00-0-2005'
-       for key 2
+       for key 2**
 
   * - Solution:
     - This error is caused by trying to insert a stat_header record into
@@ -353,7 +353,7 @@ _______________
       duplicate.
 
   * -  Error:
-    - **ERROR:root: (1049, "Unknown database 'mv_test'") in run_sql Error when connecting to database
+    - **ERROR:root: (1049, "Unknown database 'mv_test'") in run_sql Error when connecting to database**
 
   * - Solution:
     - This error is caused when attempting to load data into a database that does not exist.  You will need to create the database, set up the appropriate privileges as outlined above, and load the schema using the mv_mysql.sql file.
