@@ -1,0 +1,21 @@
+#%Module######################################################################
+##
+##      METdataio
+##
+proc ModulesHelp { } {
+  puts stderr "Sets up the paths and environment variables to use the METdataio-2.1.0.
+     *** For help see the official MET webpage at http://www.dtcenter.org/met/users ***"
+}
+
+module load contrib
+module load intel/2020.2
+
+prepend-path PATH /work/noaa/ovp/miniconda/miniconda3/envs/metplus_v5.1_py3.10/bin
+prepend-path PATH /apps/contrib/MET/METdataio/METdataio-2.1.0/METreformat
+prepend-path PATH /apps/contrib/MET/METdataio/METdataio-2.1.0/METreadnc/util
+prepend-path PATH /apps/contrib/MET/METdataio/METdataio-2.1.0/METreadnc
+prepend-path PATH /apps/contrib/MET/METdataio/METdataio-2.1.0
+prepend-path PYTHONPATH /apps/contrib/MET/METdataio/METdataio-2.1.0/METreformat
+prepend-path PYTHONPATH /apps/contrib/MET/METdataio/METdataio-2.1.0/METreadnc/util
+prepend-path PYTHONPATH /apps/contrib/MET/METdataio/METdataio-2.1.0/METreadnc
+prepend-path PYTHONPATH /apps/contrib/MET/METdataio/METdataio-2.1.0
