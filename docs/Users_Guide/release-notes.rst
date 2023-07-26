@@ -22,6 +22,8 @@ METdataio Version 2.1.0 release notes (20230726)
 
      * Enhance the Release Notes by adding dropdown menus (`#193 <https://github.com/dtcenter/METdataio/issues/193>`_)
 
+     * Add documentation for loading data into database (`#213 <https://github.com/dtcenter/METplus-internal/issues/213>`_)
+
   .. dropdown:: Internal
 
      * Add 'LICENSE.md' to the METdatio repo (`#184 <https://github.com/dtcenter/METdataio/issues/184>`_)
@@ -29,6 +31,8 @@ METdataio Version 2.1.0 release notes (20230726)
      * Stored schema update schema update scripts in repo (`#208 <https://github.com/dtcenter/METdataio/issues/208>`_)
 
      * Partial work on STIGS and logging (`#45 <https://github.com/dtcenter/METplus-internal/issues/45>`_)
+
+     * Feature develop update install files (`#215 <https://github.com/dtcenter/METplus-internal/issues/215>`_) 
 
 
   .. dropdown:: Bugfixes
