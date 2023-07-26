@@ -99,10 +99,10 @@ Authors
 Many authors, listed below in alphabetical order, have contributed to the documentation of METplus.
 To cite this documentation in publications, please refer to the METdataio User's Guide :ref:`Citation Instructions<citations>`.
 
-* Hank Fisher [#NCAR]_
 * Venita Hagerty [#CIRA]_
 * Minna Win-Gildenmeister [#NCAR]_
 * Tatiana Burek [#NCAR]_
+* Hank Fisher [#NCAR]_
 
 .. rubric:: Organization
 
