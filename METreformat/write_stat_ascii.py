@@ -598,10 +598,7 @@ class WriteStatAscii:
 def main():
     '''
        Open the yaml config file specified at the command line to get output
-       directory, output filename, and location and name of the xml specification
-       file. The xml specification file contains information
-       about what MET file types to reformat and the directory of where input MET
-       output files (.stat) are located.
+       directory, output filename, and other relevant information.
 
        Then invoke necessary methods to read and process data to reformat the MET
        .stat file from wide to long format to collect statistics information into
@@ -609,20 +606,17 @@ def main():
 
     '''
 
-    # Acquire the output file name and output directory information and location of
-    # the xml specification file
+    # Acquire the output file name, output directory, and other relevant information.
     config_file: str = util.read_config_from_command_line()
     with open(config_file, 'r') as stream:
         try:
             parms: dict = yaml.load(stream, Loader=yaml.FullLoader)
+
+            # Create the output directory, just in case it doesn't already
+            # exist.
+            os.makedirs(parms['output_dir'], exist_ok=True)
         except yaml.YAMLError as exc:
             print(exc)
-
-    # Read in the XML load file. This contains information about which MET output files
-    # are to be loaded.
-    # xml_file: str = parms['xml_spec_file']
-    # xml_loadfile_obj1: XmlLoadFile = XmlLoadFile(xml_file)
-    # xml_loadfile_obj1.read_xml()
 
     # Read all of the data from the data files into a dataframe
     rdf_obj: ReadDataFiles = ReadDataFiles()
@@ -639,14 +633,9 @@ def main():
     rdf_obj.read_data(flags, load_files, line_types)
     file_df = rdf_obj.stat_data
 
-    # read in the data files, with options specified by XML flags
-    # rdf_obj.read_data(xml_loadfile_obj.flags,
-    #                   xml_loadfile_obj.load_files,
-    #                   xml_loadfile_obj.line_types)
-
     # Write stat file in ASCII format, one for each line type
     stat_lines_obj: WriteStatAscii = WriteStatAscii()
-    stat_lines_obj.write_stat_ascii(rdf_obj.stat_data, parms)
+    stat_lines_obj.write_stat_ascii(file_df, parms)
 
 
 if __name__ == "__main__":
