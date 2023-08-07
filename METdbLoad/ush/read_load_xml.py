@@ -241,7 +241,7 @@ class XmlLoadFile:
                 root.xpath('connection')[0].xpath('password')[0].text
 
             if not self.connection['db_user']:
-                logging.warning("!!! XML expecting user and password tags")
+                logging.warning("!!! XML expecting user tag")
                 raise NameError("Missing required user tag")
 
             if root.xpath('connection')[0].xpath('management_system'):
