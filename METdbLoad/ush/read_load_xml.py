@@ -244,10 +244,6 @@ class XmlLoadFile:
                 logging.warning("!!! XML expecting user and password tags")
                 raise NameError("Missing required user tag")
 
-            # For AWS users, an empty password is acceptable.  
-            if not self.connection['db_password']:
-                logging.warning("!!! XML expecting user and password tags")
-
             if root.xpath('connection')[0].xpath('management_system'):
                 self.connection['db_management_system'] = \
                     root.xpath('connection')[0].xpath('management_system')[0].text
