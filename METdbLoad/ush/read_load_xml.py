@@ -240,7 +240,7 @@ class XmlLoadFile:
             self.connection['db_password'] = \
                 root.xpath('connection')[0].xpath('password')[0].text
 
-            if ((not self.connection['db_user']):
+            if not self.connection['db_user']:
                 logging.warning("!!! XML expecting user and password tags")
                 raise NameError("Missing required user tag")
 
