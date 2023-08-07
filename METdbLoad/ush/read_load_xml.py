@@ -239,9 +239,13 @@ class XmlLoadFile:
                 root.xpath('connection')[0].xpath('user')[0].text
             self.connection['db_password'] = \
                 root.xpath('connection')[0].xpath('password')[0].text
+
+            if ((not self.connection['db_user']):
+                logging.warning("!!! XML expecting user and password tags")
+                raise NameError("Missing required user tag")
+
             # For AWS users, an empty password is acceptable.  
-            if ((not self.connection['db_user']) or
-                    (not self.connection['db_password'])):
+            if not self.connection['db_password']:
                 logging.warning("!!! XML expecting user and password tags")
 
             if root.xpath('connection')[0].xpath('management_system'):
