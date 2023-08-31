@@ -42,7 +42,7 @@ class XmlLoadFile:
         self.insert_size = 1
         self.load_note = None
         self.group = CN.DEFAULT_DATABASE_GROUP
-        self.description = "None"
+        self.description = ""
         self.xml_str = None
 
         self.flags = {}
@@ -98,8 +98,10 @@ class XmlLoadFile:
                 logging.info("Database name is: %s", self.connection['db_database'])
 
             # group and description for putting databases into groups/categories
-            if root.xpath("group") and root.xpath("description"):
+            if root.xpath("group"):
                 self.group = root.xpath("group")[0].text
+
+            if root.xpath("description"):
                 self.description = root.xpath("description")[0].text
 
             # load_note and load_xml are used to put a note in the database
