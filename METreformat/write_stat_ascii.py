@@ -210,7 +210,11 @@ class WriteStatAscii:
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
         idx = list(fho_df.index)
-        fho_df.insert(loc=0, column='Idx', value=idx)
+
+        # Work on a copy of the fho_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        fho_df_copy = fho_df.copy()
+        fho_df_copy.insert(loc=0, column='Idx', value=idx)
 
         # Use pandas 'melt' to reshape the data frame from wide to long shape (i.e. collecting the f_rate, h_rate,
         # and o_rate values and putting them under the column 'stat_value' corresponding to the 'stat_name' column
@@ -218,8 +222,8 @@ class WriteStatAscii:
 
         # columns that we don't want to change (the last three columns are the stat columns of interest,
         # we want to capture that information into the stat_name and stat_values columns)
-        columns_to_use: List[str] = fho_df.columns[0:-3].tolist()
-        fho_copy: pd.DataFrame = fho_df.copy(deep=True)
+        columns_to_use: List[str] = fho_df_copy.columns[0:-3].tolist()
+        fho_copy: pd.DataFrame = fho_df_copy.copy(deep=True)
         linetype_data: pd.DataFrame = pd.melt(fho_copy, id_vars=columns_to_use, var_name='stat_name',
                                               value_name='stat_value')
 
@@ -261,7 +265,12 @@ class WriteStatAscii:
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
         idx = list(cnt_df.index)
-        cnt_df.insert(loc=0, column='Idx', value=idx)
+
+        # Work on a copy of the cnt_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        cnt_df_copy = cnt_df.copy()
+        cnt_df_copy.insert(loc=0, column='Idx', value=idx)
+
 
         # Use the pd.wide_to_long() to collect the statistics and confidence level data into the appropriate columns.
         # Rename the <stat_group>_BCL|BCU|NCL|NCU to BCL|BCU|NCL|NCU_<stat_group> in order to
@@ -269,18 +278,20 @@ class WriteStatAscii:
 
         # Rename confidence level column header names so the BCL, BCU, NCL, and NCU are appended with the statistic name
         # (i.e. from FBAR_BCU to BCU_FBAR to be able to use the pandas wide_to_long).
-        confidence_level_columns_renamed: List[str] = self.rename_confidence_level_columns(cnt_df.columns.tolist())
-        cnt_df.columns: List[str] = confidence_level_columns_renamed
+        confidence_level_columns_renamed: List[str] = (
+            self.rename_confidence_level_columns(cnt_df_copy.columns.tolist()))
+        cnt_df_copy.columns: List[str] = confidence_level_columns_renamed
 
         # Rename the statistics columns (ie. FBAR, MAE, FSTDEV, etc. to STAT_FBAR, STAT_MAE, etc.)
-        stat_confidence_level_columns_renamed = self.rename_statistics_columns(cnt_df, cn.CNT_STATISTICS_HEADERS)
-        cnt_df.columns = stat_confidence_level_columns_renamed
+        stat_confidence_level_columns_renamed = self.rename_statistics_columns(
+            cnt_df_copy, cn.CNT_STATISTICS_HEADERS)
+        cnt_df_copy.columns = stat_confidence_level_columns_renamed
 
         # Get the name of the columns to be used for indexing, this will also preserve the ordering of columns from the
         # original data.
         indexing_columns = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
 
-        wide_to_long_df: pd.DataFrame = pd.wide_to_long(cnt_df,
+        wide_to_long_df: pd.DataFrame = pd.wide_to_long(cnt_df_copy,
                                                         stubnames=['STAT', 'NCL', 'NCU', 'BCL', 'BCU'],
                                                         i=indexing_columns,
                                                         j='stat_name',
@@ -330,13 +341,18 @@ class WriteStatAscii:
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
         idx = list(ctc_df.index)
-        ctc_df.insert(loc=0, column='Idx', value=idx)
+
+        # Work on a copy of the ctc_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        ctc_df_copy = ctc_df.copy()
+        ctc_df_copy.insert(loc=0, column='Idx', value=idx)
 
         # Now apply melt to get the stat_name and stat_values from the statistics
 
         # Columns we don't want to stack (i.e. treat these columns as a multi index)
         id_vars_list = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
-        linetype_data = ctc_df.melt(id_vars=id_vars_list, value_vars=cn.CTC_STATISTICS_HEADERS,
+        linetype_data = ctc_df_copy.melt(id_vars=id_vars_list,
+                                     value_vars=cn.CTC_STATISTICS_HEADERS,
                                     var_name='stat_name',
                                     value_name='stat_value').sort_values('Idx')
 
@@ -378,7 +394,11 @@ class WriteStatAscii:
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
         idx = list(cts_df.index)
-        cts_df.insert(loc=0, column='Idx', value=idx)
+
+        # Work on a copy of the cts_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        cts_df_copy = cts_df.copy()
+        cts_df_copy.insert(loc=0, column='Idx', value=idx)
 
         # Use the pd.wide_to_long() to collect the statistics and confidence level data into the appropriate columns.
         # Rename the <stat_group>_BCL|BCU|NCL|NCU to BCL|BCU|NCL|NCU_<stat_group> in order to
@@ -386,18 +406,20 @@ class WriteStatAscii:
 
         # Rename confidence level column header names so the BCL, BCU, NCL, and NCU are appended with the statistic name
         # (i.e. from FBAR_BCU to BCU_FBAR to be able to use the pandas wide_to_long).
-        confidence_level_columns_renamed: List[str] = self.rename_confidence_level_columns(cts_df.columns.tolist())
-        cts_df.columns: List[str] = confidence_level_columns_renamed
+        confidence_level_columns_renamed: List[str] = (
+            self.rename_confidence_level_columns(cts_df_copy.columns.tolist()))
+        cts_df_copy.columns: List[str] = confidence_level_columns_renamed
 
         # Rename the statistics columns (ie. FBAR, MAE, FSTDEV, etc. to STAT_FBAR, STAT_MAE, etc.)
-        stat_confidence_level_columns_renamed = self.rename_statistics_columns(cts_df, cn.CTS_STATS_ONLY_HEADERS)
-        cts_df.columns = stat_confidence_level_columns_renamed
+        stat_confidence_level_columns_renamed = self.rename_statistics_columns(
+            cts_df_copy, cn.CTS_STATS_ONLY_HEADERS)
+        cts_df_copy.columns = stat_confidence_level_columns_renamed
 
         # Get the name of the columns to be used for indexing, this will also preserve the ordering of columns from the
         # original data.
         indexing_columns = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
 
-        wide_to_long_df: pd.DataFrame = pd.wide_to_long(cts_df,
+        wide_to_long_df: pd.DataFrame = pd.wide_to_long(cts_df_copy,
                                                         stubnames=['STAT', 'NCL', 'NCU', 'BCL', 'BCU'],
                                                         i=indexing_columns,
                                                         j='stat_name',
@@ -446,13 +468,18 @@ class WriteStatAscii:
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
         idx = list(sl1l2_df.index)
-        sl1l2_df.insert(loc=0, column='Idx', value=idx)
+
+        # Work on a copy of thesl1l2_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        sl1l2_df_copy = sl1l2_df.copy()
+        sl1l2_df_copy.insert(loc=0, column='Idx', value=idx)
 
         # Now apply melt to get the stat_name and stat_values from the statistics
 
         # Columns we don't want to stack (i.e. treat these columns as a multi index)
         id_vars_list = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
-        reshaped = sl1l2_df.melt(id_vars=id_vars_list, value_vars=cn.SL1L2_STATISTICS_HEADERS,
+        reshaped = sl1l2_df_copy.melt(id_vars=id_vars_list,
+                                  value_vars=cn.SL1L2_STATISTICS_HEADERS,
                                  var_name='stat_name',
                                  value_name='stat_value').sort_values('Idx')
 
