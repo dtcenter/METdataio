@@ -1,13 +1,13 @@
 <load_spec>
   <connection>
     <management_system>mysql</management_system>
-    <host>localhost:3306</host>
-    <database>mv_integrating_fire</database>
-    <user>mvadmin</user>
-    <password>160GiltVa0D5M</password>
+    <host>localhost:1234</host>
+    <database>yourdbname</database>
+    <user>somedbuser</user>
+    <password>######</password>
   </connection>
 
-<folder_tmpl>/scratch/vdunham/</folder_tmpl>
+<folder_tmpl>/your/datafolder/</folder_tmpl>
 
 	<verbose>true</verbose>
 	<insert_size>1</insert_size>
