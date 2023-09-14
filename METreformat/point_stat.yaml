@@ -1,4 +1,5 @@
 output_dir: /path/to/output/directory
 output_filename: point_stat_reformatted.txt
 met_tool: point_stat
-data_dir: /path/to/data/directory
+input_data_dir: /path/to/data/directory
+

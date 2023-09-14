@@ -6,7 +6,7 @@ Contact(s):  Minna Win
 Abstract:
 History Log:  Initial version (supports CNT, CTC, CTS, and SL1L2 line types for point stat .stat file)
 Usage: Write MET stat files (.stat) to an ASCII file with additional columns of information.
-Parameters: Requires an xml specification file and yaml configuration file
+Parameters: Requires a yaml configuration file
 Input Files: transformed dataframe of MET lines
 Output Files: A text file containing reformatted data
 Copyright 2022 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
@@ -37,10 +37,10 @@ class WriteStatAscii:
     """ Class to write MET .stat files to an ASCII file
 
         Returns:
-           None. Generates an output file
+           a Pandas dataframe and creates an ascii file with reformatted data.
     """
 
-    def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict):
+    def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict) -> pd.DataFrame:
         """ write MET stat files (.stat) to an ASCII file with stat_name, stat_value,
             stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns, converting the
             original data file from wide form to long form.
@@ -552,8 +552,7 @@ class WriteStatAscii:
 def main():
     '''
        Open the yaml config file specified at the command line to get output directory, output filename,
-       and location and name of the xml specification file. The xml specification file contains information
-       about what MET file types to reformat and the directory of where input MET output files (.stat) are located.
+       and location of input files, and the MET tool used to create the input data. 
 
        Then invoke necessary methods to read and process data to reformat the MET .stat file from wide to long format to
        collect statistics information into stat_name, stat_value, stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns.
@@ -566,11 +565,9 @@ def main():
         try:
             parms: dict = yaml.load(stream, Loader=yaml.FullLoader)
             path_to_output = '"' + parms['output_dir'] + '"'
-            # os.mkdir(os.join(parms['output_dir'],['output_filename']))
             pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
         except yaml.YAMLError as exc:
             print(exc)
-
 
     # Replacing the need for an XML specification file, pass in the XMLLoadFile and
     # ReadDataFile parameters
@@ -578,23 +575,13 @@ def main():
     xml_loadfile_obj: XmlLoadFile = XmlLoadFile(None)
 
     # Retrieve all the filenames in the data_dir specified in the YAML config file
-    load_files = xml_loadfile_obj.filenames_from_template(parms['input_data_dir'], {})
-    print(f"Files that will be loaded: {load_files}")
+    load_files = xml_loadfile_obj.filenames_from_template(parms['input_data_dir'],
+                                                          {})
 
+    flags = xml_loadfile_obj.flags
+    line_types = xml_loadfile_obj.line_types
+    rdf_obj.read_data(flags, load_files, line_types)
     file_df = rdf_obj.stat_data
-
-    # Read in the XML load file. This contains information about which MET output files are to be loaded.
-    xml_file: str = parms['xml_spec_file']
-    xml_loadfile_obj: XmlLoadFile = XmlLoadFile(xml_file)
-    xml_loadfile_obj.read_xml()
-    
-    # Read all of the data from the data files into a dataframe
-    rdf_obj: ReadDataFiles = ReadDataFiles()
-    
-    # read in the data files, with options specified by XML flags
-    rdf_obj.read_data(xml_loadfile_obj.flags,
-                       xml_loadfile_obj.load_files,
-                       xml_loadfile_obj.line_types)
 
     # Write stat file in ASCII format, one for each line type
     stat_lines_obj: WriteStatAscii = WriteStatAscii()
