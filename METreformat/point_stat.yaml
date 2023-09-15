@@ -1,3 +1,5 @@
-output_dir: /path/to/output_dir
+output_dir: /path/to/output/directory
 output_filename: point_stat_reformatted.txt
-xml_spec_file: /path/to/xml_spec_file/<xml filename>.xml
+met_tool: point_stat
+input_data_dir: /path/to/data/directory
+

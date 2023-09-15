@@ -6,7 +6,7 @@ Contact(s):  Minna Win
 Abstract:
 History Log:  Initial version (supports CNT, CTC, CTS, and SL1L2 line types for point stat .stat file)
 Usage: Write MET stat files (.stat) to an ASCII file with additional columns of information.
-Parameters: Requires an xml specification file and yaml configuration file
+Parameters: Requires a yaml configuration file
 Input Files: transformed dataframe of MET lines
 Output Files: A text file containing reformatted data
 Copyright 2022 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
@@ -19,6 +19,7 @@ import sys
 import os
 import logging
 import time
+import pathlib
 from datetime import timedelta
 from typing import List, Set
 import numpy as np
@@ -36,23 +37,31 @@ class WriteStatAscii:
     """ Class to write MET .stat files to an ASCII file
 
         Returns:
-           None. Generates an output file
+           a Pandas dataframe and creates an ascii file with reformatted data.
     """
 
-    def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict):
-        """ write MET stat files (.stat) to an ASCII file with stat_name, stat_value, stat_bcl, stat_bcu,
-            stat_ncl, and stat_ncu columns, converting the original data file from wide form to long form.
+    def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict) -> pd.DataFrame:
+        """ write MET stat files (.stat) to an ASCII file with stat_name, stat_value,
+            stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns, converting the
+            original data file from wide form to long form.
 
 
             Args:
-                @param stat_data: pandas dataframe corresponding to the MET stat input file generated from the METdbLoad
-                                  file reader
-                @param parms:  The yaml configuration object (dictionary) containing the settings for output dir, output file
+                @param stat_data: pandas dataframe corresponding to the MET stat
+                input file generated from the METdbLoad file reader
+                @param parms:  The yaml configuration object (dictionary) containing
+                the settings for output dir, output file
 
-            Returns:  None, write an output ASCII file associated with the original MET .stat file with statistics
-                      information aggregated into these six columns: stat_name, stat_value, stat_ncl, stat_ncu,
-                      stat_bcl, and stat_bcu (the stat_xyz are not available in all line types,
-                      these will have values of NA)
+            Returns:
+                  combined_df: pandas dataframe with original data reformatted into
+                               'long' form.
+
+                      Additionally, write an output ASCII file associated with the
+                      original MET .stat file with statistics information aggregated
+                      into these six columns: stat_name,
+                      stat_value, stat_ncl, stat_ncu,
+                      stat_bcl, and stat_bcu (the stat_xyz are not available in all
+                      line types, these will have values of NA)
 
         """
 
@@ -114,6 +123,7 @@ class WriteStatAscii:
                                                   mode='a')
 
 
+
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_stat_ascii ***", sys.exc_info()[0])
 
@@ -123,6 +133,8 @@ class WriteStatAscii:
         logging.info("    >>> Write time Stat: %s", str(write_time))
 
         logging.debug("[--- End write_stat_data ---]")
+
+        return combined_dfs
 
     def process_by_stat_linetype(self, linetype: str, stat_data: pd.DataFrame):
         """
@@ -198,7 +210,11 @@ class WriteStatAscii:
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
         idx = list(fho_df.index)
-        fho_df.insert(loc=0, column='Idx', value=idx)
+
+        # Work on a copy of the fho_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        fho_df_copy = fho_df.copy()
+        fho_df_copy.insert(loc=0, column='Idx', value=idx)
 
         # Use pandas 'melt' to reshape the data frame from wide to long shape (i.e. collecting the f_rate, h_rate,
         # and o_rate values and putting them under the column 'stat_value' corresponding to the 'stat_name' column
@@ -206,8 +222,8 @@ class WriteStatAscii:
 
         # columns that we don't want to change (the last three columns are the stat columns of interest,
         # we want to capture that information into the stat_name and stat_values columns)
-        columns_to_use: List[str] = fho_df.columns[0:-3].tolist()
-        fho_copy: pd.DataFrame = fho_df.copy(deep=True)
+        columns_to_use: List[str] = fho_df_copy.columns[0:-3].tolist()
+        fho_copy: pd.DataFrame = fho_df_copy.copy(deep=True)
         linetype_data: pd.DataFrame = pd.melt(fho_copy, id_vars=columns_to_use, var_name='stat_name',
                                               value_name='stat_value')
 
@@ -249,7 +265,12 @@ class WriteStatAscii:
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
         idx = list(cnt_df.index)
-        cnt_df.insert(loc=0, column='Idx', value=idx)
+
+        # Work on a copy of the cnt_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        cnt_df_copy = cnt_df.copy()
+        cnt_df_copy.insert(loc=0, column='Idx', value=idx)
+
 
         # Use the pd.wide_to_long() to collect the statistics and confidence level data into the appropriate columns.
         # Rename the <stat_group>_BCL|BCU|NCL|NCU to BCL|BCU|NCL|NCU_<stat_group> in order to
@@ -257,18 +278,20 @@ class WriteStatAscii:
 
         # Rename confidence level column header names so the BCL, BCU, NCL, and NCU are appended with the statistic name
         # (i.e. from FBAR_BCU to BCU_FBAR to be able to use the pandas wide_to_long).
-        confidence_level_columns_renamed: List[str] = self.rename_confidence_level_columns(cnt_df.columns.tolist())
-        cnt_df.columns: List[str] = confidence_level_columns_renamed
+        confidence_level_columns_renamed: List[str] = (
+            self.rename_confidence_level_columns(cnt_df_copy.columns.tolist()))
+        cnt_df_copy.columns: List[str] = confidence_level_columns_renamed
 
         # Rename the statistics columns (ie. FBAR, MAE, FSTDEV, etc. to STAT_FBAR, STAT_MAE, etc.)
-        stat_confidence_level_columns_renamed = self.rename_statistics_columns(cnt_df, cn.CNT_STATISTICS_HEADERS)
-        cnt_df.columns = stat_confidence_level_columns_renamed
+        stat_confidence_level_columns_renamed = self.rename_statistics_columns(
+            cnt_df_copy, cn.CNT_STATISTICS_HEADERS)
+        cnt_df_copy.columns = stat_confidence_level_columns_renamed
 
         # Get the name of the columns to be used for indexing, this will also preserve the ordering of columns from the
         # original data.
         indexing_columns = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
 
-        wide_to_long_df: pd.DataFrame = pd.wide_to_long(cnt_df,
+        wide_to_long_df: pd.DataFrame = pd.wide_to_long(cnt_df_copy,
                                                         stubnames=['STAT', 'NCL', 'NCU', 'BCL', 'BCU'],
                                                         i=indexing_columns,
                                                         j='stat_name',
@@ -318,13 +341,18 @@ class WriteStatAscii:
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
         idx = list(ctc_df.index)
-        ctc_df.insert(loc=0, column='Idx', value=idx)
+
+        # Work on a copy of the ctc_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        ctc_df_copy = ctc_df.copy()
+        ctc_df_copy.insert(loc=0, column='Idx', value=idx)
 
         # Now apply melt to get the stat_name and stat_values from the statistics
 
         # Columns we don't want to stack (i.e. treat these columns as a multi index)
         id_vars_list = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
-        linetype_data = ctc_df.melt(id_vars=id_vars_list, value_vars=cn.CTC_STATISTICS_HEADERS,
+        linetype_data = ctc_df_copy.melt(id_vars=id_vars_list,
+                                     value_vars=cn.CTC_STATISTICS_HEADERS,
                                     var_name='stat_name',
                                     value_name='stat_value').sort_values('Idx')
 
@@ -366,7 +394,11 @@ class WriteStatAscii:
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
         idx = list(cts_df.index)
-        cts_df.insert(loc=0, column='Idx', value=idx)
+
+        # Work on a copy of the cts_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        cts_df_copy = cts_df.copy()
+        cts_df_copy.insert(loc=0, column='Idx', value=idx)
 
         # Use the pd.wide_to_long() to collect the statistics and confidence level data into the appropriate columns.
         # Rename the <stat_group>_BCL|BCU|NCL|NCU to BCL|BCU|NCL|NCU_<stat_group> in order to
@@ -374,18 +406,20 @@ class WriteStatAscii:
 
         # Rename confidence level column header names so the BCL, BCU, NCL, and NCU are appended with the statistic name
         # (i.e. from FBAR_BCU to BCU_FBAR to be able to use the pandas wide_to_long).
-        confidence_level_columns_renamed: List[str] = self.rename_confidence_level_columns(cts_df.columns.tolist())
-        cts_df.columns: List[str] = confidence_level_columns_renamed
+        confidence_level_columns_renamed: List[str] = (
+            self.rename_confidence_level_columns(cts_df_copy.columns.tolist()))
+        cts_df_copy.columns: List[str] = confidence_level_columns_renamed
 
         # Rename the statistics columns (ie. FBAR, MAE, FSTDEV, etc. to STAT_FBAR, STAT_MAE, etc.)
-        stat_confidence_level_columns_renamed = self.rename_statistics_columns(cts_df, cn.CTS_STATS_ONLY_HEADERS)
-        cts_df.columns = stat_confidence_level_columns_renamed
+        stat_confidence_level_columns_renamed = self.rename_statistics_columns(
+            cts_df_copy, cn.CTS_STATS_ONLY_HEADERS)
+        cts_df_copy.columns = stat_confidence_level_columns_renamed
 
         # Get the name of the columns to be used for indexing, this will also preserve the ordering of columns from the
         # original data.
         indexing_columns = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
 
-        wide_to_long_df: pd.DataFrame = pd.wide_to_long(cts_df,
+        wide_to_long_df: pd.DataFrame = pd.wide_to_long(cts_df_copy,
                                                         stubnames=['STAT', 'NCL', 'NCU', 'BCL', 'BCU'],
                                                         i=indexing_columns,
                                                         j='stat_name',
@@ -434,13 +468,18 @@ class WriteStatAscii:
         # Create another index column to preserve the index values from the stat_data dataframe (ie the dataframe
         # containing the original data from the MET output file).
         idx = list(sl1l2_df.index)
-        sl1l2_df.insert(loc=0, column='Idx', value=idx)
+
+        # Work on a copy of thesl1l2_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        sl1l2_df_copy = sl1l2_df.copy()
+        sl1l2_df_copy.insert(loc=0, column='Idx', value=idx)
 
         # Now apply melt to get the stat_name and stat_values from the statistics
 
         # Columns we don't want to stack (i.e. treat these columns as a multi index)
         id_vars_list = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
-        reshaped = sl1l2_df.melt(id_vars=id_vars_list, value_vars=cn.SL1L2_STATISTICS_HEADERS,
+        reshaped = sl1l2_df_copy.melt(id_vars=id_vars_list,
+                                  value_vars=cn.SL1L2_STATISTICS_HEADERS,
                                  var_name='stat_name',
                                  value_name='stat_value').sort_values('Idx')
 
@@ -513,8 +552,7 @@ class WriteStatAscii:
 def main():
     '''
        Open the yaml config file specified at the command line to get output directory, output filename,
-       and location and name of the xml specification file. The xml specification file contains information
-       about what MET file types to reformat and the directory of where input MET output files (.stat) are located.
+       and location of input files, and the MET tool used to create the input data. 
 
        Then invoke necessary methods to read and process data to reformat the MET .stat file from wide to long format to
        collect statistics information into stat_name, stat_value, stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns.
@@ -526,25 +564,28 @@ def main():
     with open(config_file, 'r') as stream:
         try:
             parms: dict = yaml.load(stream, Loader=yaml.FullLoader)
+            path_to_output = '"' + parms['output_dir'] + '"'
+            pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
         except yaml.YAMLError as exc:
             print(exc)
 
-    # Read in the XML load file. This contains information about which MET output files are to be loaded.
-    xml_file: str = parms['xml_spec_file']
-    xml_loadfile_obj: XmlLoadFile = XmlLoadFile(xml_file)
-    xml_loadfile_obj.read_xml()
-
-    # Read all of the data from the data files into a dataframe
+    # Replacing the need for an XML specification file, pass in the XMLLoadFile and
+    # ReadDataFile parameters
     rdf_obj: ReadDataFiles = ReadDataFiles()
+    xml_loadfile_obj: XmlLoadFile = XmlLoadFile(None)
 
-    # read in the data files, with options specified by XML flags
-    rdf_obj.read_data(xml_loadfile_obj.flags,
-                      xml_loadfile_obj.load_files,
-                      xml_loadfile_obj.line_types)
+    # Retrieve all the filenames in the data_dir specified in the YAML config file
+    load_files = xml_loadfile_obj.filenames_from_template(parms['input_data_dir'],
+                                                          {})
+
+    flags = xml_loadfile_obj.flags
+    line_types = xml_loadfile_obj.line_types
+    rdf_obj.read_data(flags, load_files, line_types)
+    file_df = rdf_obj.stat_data
 
     # Write stat file in ASCII format, one for each line type
     stat_lines_obj: WriteStatAscii = WriteStatAscii()
-    stat_lines_obj.write_stat_ascii(rdf_obj.stat_data, parms)
+    stat_lines_obj.write_stat_ascii(file_df, parms)
 
 
 if __name__ == "__main__":
