@@ -27,6 +27,25 @@ def setup():
     return rdf_obj
 
 
+@pytest.fixture
+def setup_mctc_mcts():
+    # Read in the XML load file. This contains information about which MET output files
+    # are to be loaded (that contain the mctc and mcts line types).
+    xml_file = './mctc_mcts.xml'
+
+    xml_loadfile_obj = XmlLoadFile(xml_file)
+    xml_loadfile_obj.read_xml()
+
+    # Read all of the data from the data files into a dataframe
+    rdf_obj = ReadDataFiles()
+
+    # read in the data files, with options specified by XML flags
+    rdf_obj.read_data(xml_loadfile_obj.flags,
+                      xml_loadfile_obj.load_files,
+                      xml_loadfile_obj.line_types)
+
+    return rdf_obj
+
 def test_point_stat_FHO_consistency(setup):
     '''
            For the data frame for the FHO line type, verify that a value in the original data
@@ -302,4 +321,62 @@ def test_point_stat_CNT_consistency(setup):
 
 
 
+def test_point_stat_MCTC_consistency(setup_mctc_mcts):
+    '''
+           For the data frame for the MCTC line type, verify that a value in the
+           original data corresponds to the value identified with the same
+           criteria in the newly reformatted dataframe.
 
+    '''
+
+    # Original data
+    stat_data = setup_mctc_mcts.stat_data
+
+    # Relevant columns for the MCTC line type
+    linetype: str = cn.MCTC
+    mctc_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_MCTC_COLS).tolist()
+
+    # Subset original dataframe to one containing only the MCTC data
+    mctc_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+                           mctc_columns_to_use]
+
+    # Add the stat columns header names for the MCTC line type
+    mctc_columns: List[str] = cn.MCTC_HEADERS
+    mctc_df.columns: List[str] = mctc_columns
+
+    # get the value of the record corresponding to line_type MCTC, total number of
+    # pairs=213840, ,
+    # fcst_lev='0,0,*,*', and fcst_thresh'>=0.0,>=0.15,>=0.310',
+    # for the N_CAT statistic.
+    total = str(213840)
+    obs_var = 'edr'
+    fcst_lev = '0,0,*,*'
+    fcst_thresh = '>=0.0,>=0.15,>=0.31'
+    expected_df:pd.DataFrame = mctc_df.loc[(mctc_df['total'] == total) &
+                                           (mctc_df['obs_var'] == obs_var) &
+                                           (mctc_df['fcst_lev'] == fcst_lev) &
+                                           (mctc_df['fcst_thresh'] == fcst_thresh)]
+    expected_row:pd.Series = expected_df.iloc[0]
+
+    wsa = WriteStatAscii()
+    reshaped_df = wsa.process_mctc(stat_data)
+    actual_df:pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) &
+                                             (reshaped_df['obs_var'] == obs_var) &
+                                           (reshaped_df['fcst_lev'] == fcst_lev) &
+                                           (reshaped_df['fcst_thresh'] == fcst_thresh)
+    ]
+    actual_row:pd.Series = actual_df.iloc[0]
+    actual_value:str = actual_row['stat_value']
+
+    actual_name:str = actual_row['stat_name']
+
+
+    # Checking for consistency between the reformatted/reshaped data
+    # and the "original" data. Make sure we correctly captured the
+    # statistic into stat_name and its corresponding value into stat_value.
+    expected_name: str = "N_CAT"
+    expected_val: str = expected_row.loc[expected_name]
+    assert expected_val == actual_value
+
+    # Check for any nan values in the dataframe
+    assert reshaped_df.isnull().values.any() == False
