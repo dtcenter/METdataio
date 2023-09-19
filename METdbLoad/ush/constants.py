@@ -291,6 +291,8 @@ FMEAN = 'fmean'
 FCST_VALID = 'fcst_valid'
 FCST_INIT = 'fcst_init'
 EC_VALUE = 'ec_value'
+FI_OJ = 'fi_oj'
+N_CAT = 'n_cat'
 
 INSTANCE_INFO = 'instance_info'
 INSTANCE_INFO_ID = 'instance_info_id'
@@ -1228,6 +1230,7 @@ NUM_STAT_CNT_COLS = 125
 NUM_STAT_CTC_COLS = 31
 NUM_STAT_SL1L2_COLS = 32
 NUM_STAT_CTS_COLS = 122
+NUM_STAT_MCTC_COLS = 29
 
 
 DESC = "desc"
@@ -1333,6 +1336,12 @@ CNT_BCU_HEADERS = ['FBAR_BCU', 'FSTDEV_BCU', 'OBAR_BCU', 'OSTDEV_BCU', 'PR_CORR_
 LC_STAT_CTC_SPECIFIC = [FY_OY, FY_ON, FN_OY, FN_ON, EC_VALUE]
 CTC_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_STAT_CTC_SPECIFIC]
 CTC_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + CTC_STATISTICS_HEADERS
+
+##### MCTC Line type ######
+LC_STAT_MCTC_SPECIFIC = [N_CAT, FI_OJ, EC_VALUE]
+MCTC_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                           LC_STAT_MCTC_SPECIFIC]
+MCTC_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + MCTC_STATISTICS_HEADERS
 
 
 #### SL1L2 Line type ####
