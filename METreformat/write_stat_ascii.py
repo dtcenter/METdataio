@@ -115,6 +115,9 @@ class WriteStatAscii:
                 elif cur_line_type == cn.CTS:
                     cts_df = self.process_by_stat_linetype(cur_line_type, stat_data)
                     all_reshaped_data_df.append(cts_df)
+                elif cur_line_type == cn.MCTS:
+                    mcts_df = self.process_by_stat_linetype(cur_line_type, stat_data)
+                    all_reshaped_data_df.append(mcts_df)
                 elif cur_line_type == cn.SL1L2:
                     sl1l2_df = self.process_by_stat_linetype(cur_line_type, stat_data)
                     all_reshaped_data_df.append(sl1l2_df)
@@ -184,6 +187,9 @@ class WriteStatAscii:
         elif linetype == cn.CTS:
             linetype_data: pd.DataFrame = self.process_cts(stat_data)
 
+        # MCTS Contingency Table Statistics
+        elif linetype == cn.MCTS:
+            linetype_data: pd.DataFrame = self.process_mcts(stat_data)
 
         # SL1L2 Scalar Partial sums
         elif linetype == cn.SL1L2:
@@ -218,7 +224,9 @@ class WriteStatAscii:
 
         # Relevant columns for the FHO line type
         linetype: str = cn.FHO
-        fho_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_FHO_COLS - 1).tolist()
+        end = cn.NUM_STAT_FHO_COLS
+        fho_columns_to_use: List[str] =\
+            np.arange(0, end).tolist()
 
         # Subset original dataframe to another dataframe consisting of only the FHO
         # line type.
@@ -286,7 +294,9 @@ class WriteStatAscii:
 
         # Relevant columns for the CNT line type
         linetype: str = cn.CNT
-        cnt_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_CNT_COLS).tolist()
+        end = cn.NUM_STAT_CNT_COLS
+        cnt_columns_to_use: List[str] =\
+            np.arange(0, end).tolist()
 
         # Subset original dataframe to one containing only the CNT data
         cnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
@@ -375,7 +385,9 @@ class WriteStatAscii:
 
         # Relevant columns for the CTC line type
         linetype: str = cn.CTC
-        ctc_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_CTC_COLS).tolist()
+        end = cn.NUM_STAT_CTC_COLS
+        ctc_columns_to_use: List[str] =\
+            np.arange(0, end).tolist()
 
         # Subset original dataframe to one containing only the CTC data
         ctc_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
@@ -437,8 +449,9 @@ class WriteStatAscii:
 
         # Relevant columns for the MCTC line type
         linetype: str = cn.MCTC
+        end = cn.NUM_STAT_MCTC_COLS + 1
         mctc_columns_to_use: List[str] =\
-            np.arange(0, cn.NUM_STAT_MCTC_COLS).tolist()
+            np.arange(0, end).tolist()
 
         # Subset original dataframe to one containing only the MCTC data
         mctc_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
@@ -482,7 +495,8 @@ class WriteStatAscii:
         """
              Reshape the data from the original MET output file (stat_data) into new
              statistics columns:
-             stat_name, stat_value specifically for the CTS line type data.
+             stat_name, stat_value specifically for the CTS (Contingency Table
+             Statistic) line type data.
 
              Arguments:
              @param stat_data: the dataframe containing all the data from the MET
@@ -498,7 +512,9 @@ class WriteStatAscii:
 
         # Relevant columns for the CTS line type
         linetype: str = cn.CTS
-        cts_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_CTS_COLS).tolist()
+        end = cn.NUM_STAT_CTS_COLS
+        cts_columns_to_use: List[str] =\
+            np.arange(0, end).tolist()
 
         # Subset original dataframe to one containing only the CTS data
         cts_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
@@ -560,12 +576,106 @@ class WriteStatAscii:
             columns={'BCL': 'stat_bcl', 'BCU': 'stat_bcu', 'NCL': 'stat_ncl',
                      'NCU': 'stat_ncu', 'STAT': 'stat_value'})
 
-        # Some statistics in the CNT line type only have confidence level confidence
+        # Some statistics in the CTS line type only have confidence level confidence
         # limits (ie. no normal confidence limits).
         # Set any nan stat_ncl and stat_ncu records to 'NA'
         linetype_data: pd.DataFrame = renamed_wide_to_long_df.fillna('NA')
 
         return linetype_data
+
+    def process_mcts(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+             Reshape the data from the original MET output file (stat_data) into new
+             statistics columns:
+             stat_name, stat_value specifically for the MCTS (Multi-
+             category Contingency Table Statistics) line type data
+             .
+
+             Arguments:
+             @param stat_data: the dataframe containing all the data from the MET
+             .stat file.
+
+             Returns:
+                 linetype_data: the reshaped pandas dataframe with statistics data
+                 reorganized into the stat_name and
+                                stat_value, stat_ncl, stat_ncu, stat_bcl,
+                                and stat_bcu columns.
+
+        """
+
+        # Relevant columns for the MCTS line type
+        linetype: str = cn.MCTS
+        end = cn.NUM_STAT_MCTS_COLS
+        mcts_columns_to_use: List[str] =\
+            np.arange(0, end).tolist()
+
+        # Subset original dataframe to one containing only the CTS data
+        mcts_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+                               mcts_columns_to_use]
+
+        # Add all the columns header names for the MCTS line type
+        mcts_columns: List[str] = cn.MCTS_SPECIFIC_HEADERS
+        mcts_df.columns: List[str] = mcts_columns
+
+        # Create another index column to preserve the index values from the stat_data
+        # dataframe (ie the dataframe
+        # containing the original data from the MET output file).
+        idx = list(mcts_df.index)
+
+        # Work on a copy of the cts_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        mcts_df_copy = mcts_df.copy()
+        mcts_df_copy.insert(loc=0, column='Idx', value=idx)
+
+        # Use the pd.wide_to_long() to collect the statistics and confidence level
+        # data into the appropriate columns.
+        # Rename the <stat_group>_BCL|BCU|NCL|NCU to BCL|BCU|NCL|NCU_<stat_group> in
+        # order to
+        # use pd.wide_to_long().
+
+        # Rename confidence level column header names so the BCL, BCU, NCL, and NCU
+        # are appended with the statistic name
+        # (i.e. from FBAR_BCU to BCU_FBAR to be able to use the pandas wide_to_long).
+        confidence_level_columns_renamed: List[str] = (
+            self.rename_confidence_level_columns(mcts_df_copy.columns.tolist()))
+        mcts_df_copy.columns: List[str] = confidence_level_columns_renamed
+
+        # Rename the statistics columns (ie. ACC, HK, HSS, etc. to STAT_ACCR,
+        # STAT_HK, etc.)
+        stat_confidence_level_columns_renamed = self.rename_statistics_columns(
+            mcts_df_copy, cn.MCTS_STATS_ONLY_HEADERS)
+        mcts_df_copy.columns = stat_confidence_level_columns_renamed
+
+        # Get the name of the columns to be used for indexing, this will also
+        # preserve the ordering of columns from the
+        # original data.
+        indexing_columns = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
+
+        wide_to_long_df: pd.DataFrame = pd.wide_to_long(mcts_df_copy,
+                                                        stubnames=['STAT', 'NCL', 'NCU',
+                                                                   'BCL', 'BCU'],
+                                                        i=indexing_columns,
+                                                        j='stat_name',
+                                                        sep='_',
+                                                        suffix='.+'
+                                                        ).sort_values('Idx')
+
+        # Rename the BCL, BCU, NCL, NCU, and STAT columns to stat_bcl, stat_bcu,
+        # stat_ncl, stat_ncu, and stat_value
+        # respectively.
+        wide_to_long_df = wide_to_long_df.reset_index()
+
+        renamed_wide_to_long_df = wide_to_long_df.rename(
+            columns={'BCL': 'stat_bcl', 'BCU': 'stat_bcu', 'NCL': 'stat_ncl',
+                     'NCU': 'stat_ncu', 'STAT': 'stat_value'})
+
+        # Some statistics in the MCTS line type only have confidence
+        # limits (such as HK, HK_BCL, HK_BCU).
+        # Set any nan stat_ncl and stat_ncu records to 'NA'
+        linetype_data: pd.DataFrame = renamed_wide_to_long_df.fillna('NA')
+
+        return linetype_data
+
 
     def process_sl1l2(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -586,7 +696,9 @@ class WriteStatAscii:
 
         # Relevant columns for the SL1L2 line type
         linetype: str = cn.SL1L2
-        sl1l2_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_SL1L2_COLS).tolist()
+        end = cn.NUM_STAT_SL1L2_COLS
+        sl1l2_columns_to_use: List[str] = (
+            np.arange(0, end).tolist())
 
         # Subset original dataframe to one containing only the Sl1L2 data
         sl1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
@@ -726,6 +838,14 @@ def main():
     line_types = xml_loadfile_obj.line_types
     rdf_obj.read_data(flags, load_files, line_types)
     file_df = rdf_obj.stat_data
+
+    # Check if the output file already exists, if so, delete it to avoid
+    # appending output from subsequent runs into the same file.
+    existing_output_file = os.path.join(parms['output_dir'], parms['output_filename'])
+    print(f"Checking if: {existing_output_file} already exists...")
+    if os.path.exists(existing_output_file):
+        print(f"Removing existing output file {existing_output_file}")
+        os.remove(existing_output_file)
 
     # Write stat file in ASCII format, one for each line type
     stat_lines_obj: WriteStatAscii = WriteStatAscii()
