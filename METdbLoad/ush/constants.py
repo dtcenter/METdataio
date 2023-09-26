@@ -1323,6 +1323,8 @@ NUM_STAT_FHO_COLS = 29
 NUM_STAT_CNT_COLS = 125
 NUM_STAT_CTC_COLS = 31
 NUM_STAT_SL1L2_COLS = 32
+NUM_STAT_SAL1L2_COLS = 32
+NUM_STAT_VL1L2_COLS = 35
 NUM_STAT_CTS_COLS = 122
 NUM_STAT_MCTC_COLS = 28
 NUM_STAT_MCTS_COLS = 45
@@ -1456,6 +1458,15 @@ LC_SL1L2_SPECIFIC = ['fbar', 'obar', 'fobar', 'ffbar', 'oobar', 'mae']
 SL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
                             LC_SL1L2_SPECIFIC]
 SL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + SL1L2_STATISTICS_HEADERS
+
+#### VL1L2 Line type ####
+
+LC_VL1L2_SPECIFIC = ['ufbar', 'vfbar', 'uobar', 'vobar', 'uvfobar', 'uvffbar',
+                     'uvoobar', 'f_speed_bar', 'o_speed_bar']
+VL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                            LC_VL1L2_SPECIFIC]
+VL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + VL1L2_STATISTICS_HEADERS
+
 
 #### CTS Line type ####
 LC_CTS_SPECIFIC = [BASER, 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
