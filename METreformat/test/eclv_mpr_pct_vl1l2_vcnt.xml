@@ -1,0 +1,14 @@
+<load_spec>
+	<folder_tmpl>./data/point_stat/eclv_mpr_pct_vl1l2_vcnt</folder_tmpl>
+	<verbose>true</verbose>
+
+	<load_val>
+		<field name="met_tool">
+			<val>grid_stat</val>
+			<val>point_stat</val>
+		</field>
+	</load_val>
+
+	<description>MET output from grid-stat including the eclv, mpr, pct, Vl1l2, and vcnt line types </description>
+
+</load_spec>
