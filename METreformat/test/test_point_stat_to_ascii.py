@@ -46,6 +46,26 @@ def setup_mctc_mcts():
 
     return rdf_obj
 
+
+@pytest.fixture
+def setup_eclv_mpr_pc_vl1l2_vcnt():
+    # Read in the XML load file. This contains information about which MET output files
+    # are to be loaded (that contain the  line types).
+    xml_file = './eclv_mpr_pct_vl1l2_vcnt.xml'
+
+    xml_loadfile_obj = XmlLoadFile(xml_file)
+    xml_loadfile_obj.read_xml()
+
+    # Read all of the data from the data files into a dataframe
+    rdf_obj = ReadDataFiles()
+
+    # read in the data files, with options specified by XML flags
+    rdf_obj.read_data(xml_loadfile_obj.flags,
+                      xml_loadfile_obj.load_files,
+                      xml_loadfile_obj.line_types)
+
+    return rdf_obj
+
 def test_point_stat_FHO_consistency(setup):
     '''
            For the data frame for the FHO line type, verify that a value in the original data
@@ -106,11 +126,11 @@ def test_point_stat_SL1L2_consistency(setup):
     # Original data
     stat_data = setup.stat_data
 
-    # Relevant columns for the CTC line type
+    # Relevant columns for the SL1L2 line type
     linetype: str = cn.SL1L2
     sl1l2_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_SL1L2_COLS).tolist()
 
-    # Subset original dataframe to one containing only the CTC data
+    # Subset original dataframe to one containing only the SL1L2 data
     sl1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, sl1l2_columns_to_use]
 
     # Add the stat columns header names for the CTC line type
@@ -147,6 +167,66 @@ def test_point_stat_SL1L2_consistency(setup):
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
 
+
+
+def test_point_stat_VSL1L2_consistency(setup_eclv_mpr_pc_vl1l2_vcnt):
+    '''
+           For the data frame for the VL1L2 line type, verify that a value in the
+           original data corresponds to the value identified with the same criteria
+           in the newly reformatted dataframe.
+
+    '''
+
+    # Original data
+    stat_data = setup_eclv_mpr_pc_vl1l2_vcnt.stat_data
+
+    # Relevant columns for the VL1L2 line type
+    linetype: str = cn.VL1L2
+    vl1l2_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_VL1L2_COLS).tolist()
+
+    # Subset original dataframe to one containing only the VL1L2 data
+    vl1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+                             vl1l2_columns_to_use]
+
+    # Add the stat columns header names for the VL1L2 line type
+    vl1l2_columns: List[str] = cn.VL1L2_HEADERS
+    vl1l2_df.columns: List[str] = vl1l2_columns
+
+    # get the value of the record corresponding to line_type Vl1L2, total number of
+    # pairs, obs_var, obs_lev, and fcst_thresh, for the MAE statistic.
+    total = str(934)
+    interp = 'DW_MEAN_SQUARE'
+    obs_level = 'Z10'
+    fcst_thresh = 'NA'
+
+    # Filter the original dataframe to a particular UFBAR row
+    expected_df:pd.DataFrame = vl1l2_df.loc[(vl1l2_df['total'] == total) &
+                                    (vl1l2_df['interp_mthd'] == interp) &
+                                    (vl1l2_df['obs_lev'] == obs_level) &
+                                    (vl1l2_df['fcst_thresh'] == fcst_thresh )]
+    expected_row:pd.Series = expected_df.iloc[0]
+    expected_name: str = "UFBAR"
+    expected_val:float = expected_row.loc[expected_name]
+
+    wsa = WriteStatAscii()
+    obs_var = 'UGRD_VGRD'
+    reshaped_df = wsa.process_vl1l2(stat_data)
+    actual_df:pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) &
+                                             (reshaped_df['interp_mthd'] == interp) &
+                                             (reshaped_df['obs_var'] == obs_var) &
+                                           (reshaped_df['obs_lev'] == obs_level) &
+                                           (reshaped_df['fcst_thresh'] == fcst_thresh) &
+                                           (reshaped_df['stat_name'] == expected_name)]
+    actual_row:pd.Series = actual_df.iloc[0]
+    actual_value:float = actual_row['stat_value']
+
+    actual_name:str = actual_row['stat_name']
+
+    # Checking for consistency between the reformatted/reshaped data and the "original" data.
+    assert expected_val == actual_value
+
+    # Check for any nan values in the dataframe
+    assert reshaped_df.isnull().values.any() == False
 
 def test_point_stat_CTC_consistency(setup):
     '''
