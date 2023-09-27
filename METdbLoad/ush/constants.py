@@ -1321,6 +1321,7 @@ CREATE_INDEXES_QUERIES = \
 
 NUM_STAT_FHO_COLS = 29
 NUM_STAT_CNT_COLS = 125
+NUM_STAT_VCNT_COLS = 88
 NUM_STAT_CTC_COLS = 31
 NUM_STAT_SL1L2_COLS = 32
 NUM_STAT_SAL1L2_COLS = 32
@@ -1340,7 +1341,7 @@ LC_COMMON_STAT_HEADER = [cur_stat_header.lower() for cur_stat_header in
                          COMMON_STAT_HEADER]
 
 #
-# POINT STAT specific
+# POINT STAT/GRID STAT linetypes, used in METreformat
 #
 
 
@@ -1439,6 +1440,105 @@ CNT_BCU_HEADERS = ['FBAR_BCU', 'FSTDEV_BCU', 'OBAR_BCU', 'OSTDEV_BCU', 'PR_CORR_
                    'E75_BCU', 'E90_BCU', 'IQR_BCU', 'MAD_BCU', 'ANOM_CORR_BCU',
                    'ME2_BCU', 'MSESS_BCU',
                    'RMSFA_BCU', 'RMSOA_BCU', 'ANOM_CORR_UNCNTR_BCU', 'SI_BCU']
+
+
+###### VCNT line type
+LC_VCNT_SPECIFIC = ['fbar', 'fbar_bcl', 'fbar_bcu',
+                   'obar', 'obar_bcl', 'obar_bcu',
+                   'fs_rms', 'fs_rms_bcl', 'fs_rms_bcu',
+                    'os_rms', 'os_rms_bcl', 'os_rms_bcu',
+                    'msve', 'msve_bcl', 'msve_bcu',
+                    'rmsve', 'rmsve_bcl', 'rmsve_bcu',
+                    'fstdev', 'fstdev_bcl', 'fstdev_bcu',
+                    'ostdev', 'ostdev_bcl', 'ostdev_bcu',
+                    'fdir', 'fdir_bcl', 'fdir_bcu',
+                    'odir', 'odir_bcl', 'odir_bcu',
+                    'fbar_speed', 'fbar_speed_bcl', 'fbar_speed_bcu'
+                    'obar_speed', 'obar_speed_bcl', 'obar_speed_bcu',
+                    'vdiff_speed', 'vdiff_speed_bcl', 'vdiff_speed_bcu',
+                    'vdiff_dir', 'vdiff_dir_bcl', 'vdiff_dir_bcu',
+                    'speed_err', 'speed_err_bcl', 'speed_err_bcu',
+                    'speed_abserr', 'speed_abserr_bcl', 'speed_abserr_bcu',
+                    'dir_err', 'dir_err_bcl', 'dir_err_bcu',
+                    'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu',
+                    'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu', 'anom_corr_bcl',
+                    'anom_corr_bcu',
+                    'anom_corr_uncntr', 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu'
+
+                ]
+VCNT_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_VCNT_SPECIFIC]
+FULL_CNT_HEADER = LC_COMMON_STAT_HEADER + ['total'] + VCNT_SPECIFIC
+LC_VCNT_STATISTICS_HEADERS =  ['fbar',
+                    'obar',
+                    'fs_rms',
+                    'os_rms',
+                    'msve',
+                    'rmsve',
+                    'fstdev',
+                    'ostdev',
+                    'fdir',
+                    'odir',
+                    'fbar_speed',
+                    'obar_speed',
+                    'vdiff_speed',
+                    'vdiff_dir',
+                    'speed_err',
+                    'speed_abserr',
+                    'dir_err',
+                    'dir_abserr',
+                    'anom_corr',
+                    'anom_corr_uncntr'
+
+                ]
+VCNT_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                          LC_VCNT_STATISTICS_HEADERS]
+LC_VCNT_BOOTSTRAP_HEADERS = ['fbar_bcl', 'fbar_bcu',
+                             'obar_bcl', 'obar_bcu',
+                             'fs_rms_bcl', 'fs_rms_bcu',
+                             'os_rms_bcl', 'os_rms_bcu',
+                             'msve_bcl', 'msve_bcu',
+                             'rmsve_bcl', 'rmsve_bcu',
+                             'fstdev_bcl', 'fstdev_bcu',
+                             'ostdev_bcl', 'ostdev_bcu',
+                             'fdir_bcl', 'fdir_bcu',
+                             'odir_bcl', 'odir_bcu',
+                             'fbar_speed_bcl', 'fbar_speed_bcu'
+                             'obar_speed_bcl', 'obar_speed_bcu',
+                             'vdiff_speed_bcl', 'vdiff_speed_bcu',
+                             'vdiff_dir_bcl', 'vdiff_dir_bcu',
+                             'speed_err_bcl', 'speed_err_bcu',
+                             'speed_abserr_bcl', 'speed_abserr_bcu',
+                             'dir_err_bcl', 'dir_err_bcu',
+                             'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu',
+                             'anom_corr_ncl', 'anom_corr_ncu', 'anom_corr_bcl',
+                             'anom_corr_bcu',
+                             'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu'
+
+                             ]
+VCNT_BOOTSTRAP_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                         LC_VCNT_BOOTSTRAP_HEADERS]
+
+# Column headers for the VCNT line type's bootstrap confidence levels
+
+VCNT_NCL_HEADERS = ['ANOM_CORR_NCL']
+
+VCNT_NCU_HEADERS = ['ANOM_CORR_NCU']
+
+VCNT_BCL_HEADERS = ['FBAR_BCL', 'OBAR_BCL','FS_RMS_BCL', 'OS_RMS_BCL',
+                    'MSVE_BCL', 'RMSVE_BCL', 'FSTDEV_BCL', 'OSTDEV_BCL',
+                    'FDIR_BCL', 'ODIR_BCL', 'FBAR_SPEED_BCL', 'OBAR_SPEED_BCL',
+                    'VDIFF_SPEED_BCL', 'VDIFF_DIR_BCL', 'SPEED_ERR_BCL',
+                    'SPEED_ABSERR_BCL', 'DIR_ERR_BCL','DIR_ABSERR_BCL',
+                    'ANOM_CORR_BCL', 'ANOM_CORR_UNCNTR_BCL']
+
+VCNT_BCU_HEADERS = ['FBAR_BCU', 'OBAR_BCU','FS_RMS_BCU', 'OS_RMS_BCU',
+                    'MSVE_BCU', 'RMSVE_BCU', 'FSTDEV_BCU', 'OSTDEV_BCU',
+                    'FDIR_BCU', 'ODIR_BCU', 'FBAR_SPEED_BCU', 'OBAR_SPEED_BCU',
+                    'VDIFF_SPEED_BCU', 'VDIFF_DIR_BCU', 'SPEED_ERR_BCU',
+                    'SPEED_ABSERR_BCU', 'DIR_ERR_BCU','DIR_ABSERR_BCU',
+                    'ANOM_CORR_BCU', 'ANOM_CORR_UNCNTR_BCU']
+
+
 
 ##### CTC Line type ######
 LC_STAT_CTC_SPECIFIC = [FY_OY, FY_ON, FN_OY, FN_ON, EC_VALUE]
