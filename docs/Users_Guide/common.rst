@@ -1,7 +1,8 @@
 .. _common:
 
+*********************
 Common XML Structures
-=====================
+*********************
 
 METdbload and the batch plotting module both use XML input files. Some XML
 structures can be used in either input file. These common structures are
