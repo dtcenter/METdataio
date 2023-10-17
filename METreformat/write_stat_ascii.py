@@ -99,31 +99,14 @@ class WriteStatAscii:
             stat_data = stat_data.fillna('NA')
 
             for idx, cur_line_type in enumerate(unique_line_types):
-                if cur_line_type == cn.FHO:
-                    fho_df: pd.DataFrame = self.process_by_stat_linetype(cur_line_type,
-                                                                         stat_data)
-                    all_reshaped_data_df.append(fho_df)
-                elif cur_line_type == cn.CNT:
-                    cnt_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    all_reshaped_data_df.append(cnt_df)
-                elif cur_line_type == cn.CTC:
-                    ctc_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    all_reshaped_data_df.append(ctc_df)
-                elif cur_line_type == cn.MCTC:
-                    mctc_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    all_reshaped_data_df.append(mctc_df)
-                elif cur_line_type == cn.CTS:
-                    cts_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    all_reshaped_data_df.append(cts_df)
-                elif cur_line_type == cn.MCTS:
-                    mcts_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    all_reshaped_data_df.append(mcts_df)
-                elif cur_line_type == cn.SL1L2:
-                    sl1l2_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    all_reshaped_data_df.append(sl1l2_df)
-                elif cur_line_type == cn.VL1L2:
-                    vl1l2_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-                    all_reshaped_data_df.append(vl1l2_df)
+                input_df = self.process_by_stat_linetype(cur_line_type, stat_data)
+
+                # Check for an unsupported linetype, which is indicated by None
+                # returned by process_by_stat_linetype
+                supported_linetypes = [cn.FHO, cn.CNT, cn.VCNT, cn.CTC, cn.MCTC,
+                                       cn.CTS, cn.MCTS, cn.SL1L2, cn.ECNT]
+                if input_df is not None and cur_line_type in supported_linetypes:
+                    all_reshaped_data_df.append(input_df)
 
             # Consolidate all the line type dataframes into one dataframe
             #
@@ -137,8 +120,6 @@ class WriteStatAscii:
             output_file = os.path.join(parms['output_dir'], parms['output_filename'])
             _: pd.DataFrame = combined_dfs.to_csv(output_file, index=None, sep='\t',
                                                   mode='a')
-
-
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_stat_ascii ***", sys.exc_info()[0])
@@ -167,7 +148,8 @@ class WriteStatAscii:
 
             @return: linetype_data The dataframe that is reshaped (from wide to
             long), now including the stat_name,
-            stat_value, stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns.
+            stat_value, stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns. If the
+            requested linetype does not exist or isn't supported, return None.
         """
 
         # FHO forecast, hit rate, observation rate
@@ -177,6 +159,10 @@ class WriteStatAscii:
         # CNT Continuous Statistics
         elif linetype == cn.CNT:
             linetype_data: pd.DataFrame = self.process_cnt(stat_data)
+
+        # VCNT Continuous Statistics
+        elif linetype == cn.VCNT:
+            linetype_data: pd.DataFrame = self.process_vcnt(stat_data)
 
         # CTC Contingency Table Counts
         elif linetype == cn.CTC:
@@ -201,6 +187,13 @@ class WriteStatAscii:
         # VL1L2 Scalar Partial sums
         elif linetype == cn.VL1L2:
             linetype_data: pd.DataFrame = self.process_vl1l2(stat_data)
+
+        # ECNT Ensemble Continuous statistics
+        elif linetype == cn.ECNT:
+            linetype_data: pd.DataFrame = self.process_ecnt(stat_data)
+
+        else:
+            return None
 
         return linetype_data
 
@@ -348,6 +341,98 @@ class WriteStatAscii:
         indexing_columns = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
 
         wide_to_long_df: pd.DataFrame = pd.wide_to_long(cnt_df_copy,
+                                                        stubnames=['STAT', 'NCL', 'NCU',
+                                                                   'BCL', 'BCU'],
+                                                        i=indexing_columns,
+                                                        j='stat_name',
+                                                        sep='_',
+                                                        suffix='.+'
+                                                        ).sort_values('Idx')
+
+        # Rename the BCL, BCU, NCL, NCU, and STAT columns to stat_bcl, stat_bcu,
+        # stat_ncl, stat_ncu, and stat_value
+        # respectively.
+        wide_to_long_df = wide_to_long_df.reset_index()
+
+        renamed_wide_to_long_df: pd.DataFrame = wide_to_long_df.rename(
+            columns={'BCL': 'stat_bcl', 'BCU': 'stat_bcu', 'NCL': 'stat_ncl',
+                     'NCU': 'stat_ncu', 'STAT': 'stat_value'})
+
+        # Some statistics in the CNT line type only have confidence level confidence
+        # limits (ie. no normal confidence limits).
+        # Set any nan stat_ncl and stat_ncu records to 'NA'
+        linetype_data: pd.DataFrame = renamed_wide_to_long_df.fillna('NA')
+
+        return linetype_data
+
+    def process_vcnt(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+           Reshape the data from the original MET output file (stat_data) into new
+           statistics columns:
+           stat_name, stat_value, stat_ncl, stat_ncu, stat_bcl, and stat_bcu
+           specifically for the VCNT line type data.
+
+           Arguments:
+           @param stat_data: the dataframe containing all the data from the MET .stat
+           file.
+
+           Returns:
+           linetype_data: the reshaped pandas dataframe with statistics and
+           confidence level data reorganized into the
+                          stat_name, stat_value, stat_ncl, stat_ncu, stat_bcl,
+                          and stat_bcu columns.
+
+        """
+
+        # Relevant columns for the VCNT line type
+        linetype: str = cn.VCNT
+        end = cn.NUM_STAT_VCNT_COLS
+        vcnt_columns_to_use: List[str] = \
+            np.arange(0, end).tolist()
+
+        # Subset original dataframe to one containing only the VCNT data
+        vcnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+                               vcnt_columns_to_use]
+
+        # Add the stat columns for the CNT line type
+        vcnt_columns: List[str] = cn.FULL_VCNT_HEADER
+        vcnt_df.columns: List[str] = vcnt_columns
+
+        # Create another index column to preserve the index values from the stat_data
+        # dataframe (ie the dataframe
+        # containing the original data from the MET output file).
+        idx = list(vcnt_df.index)
+
+        # Work on a copy of the cnt_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        vcnt_df_copy = vcnt_df.copy()
+        vcnt_df_copy.insert(loc=0, column='Idx', value=idx)
+
+        # Use the pd.wide_to_long() to collect the statistics and confidence level
+        # data into the appropriate columns.
+        # Rename the <stat_group>_BCL|BCU|NCL|NCU to BCL|BCU|NCL|NCU_<stat_group> in
+        # order to
+        # use pd.wide_to_long().
+
+        # Rename confidence level column header names so the BCL, BCU, NCL, and NCU
+        # are appended with the statistic name
+        # (i.e. from FBAR_BCU to BCU_FBAR to be able to use the pandas wide_to_long).
+        confidence_level_columns_renamed: List[str] = (
+            self.rename_confidence_level_columns(vcnt_df_copy.columns.tolist()))
+        vcnt_df_copy.columns: List[str] = confidence_level_columns_renamed
+
+        # Rename the statistics columns (ie. FBAR, MAE, FSTDEV, etc. to STAT_FBAR,
+        # STAT_MAE, etc.)
+        stat_confidence_level_columns_renamed = self.rename_statistics_columns(
+            vcnt_df_copy, cn.VCNT_STATISTICS_HEADERS)
+        vcnt_df_copy.columns = stat_confidence_level_columns_renamed
+
+        # Get the name of the columns to be used for indexing, this will also
+        # preserve the ordering of columns from the
+        # original data.
+        indexing_columns = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
+
+        wide_to_long_df: pd.DataFrame = pd.wide_to_long(vcnt_df_copy,
                                                         stubnames=['STAT', 'NCL', 'NCU',
                                                                    'BCL', 'BCU'],
                                                         i=indexing_columns,
@@ -762,7 +847,7 @@ class WriteStatAscii:
 
         """
 
-        # Relevant columns for the SL1L2 line type
+        # Relevant columns for the VL1L2 line type
         linetype: str = cn.VL1L2
         end = cn.NUM_STAT_VL1L2_COLS
         vl1l2_columns_to_use: List[str] = (
@@ -796,6 +881,69 @@ class WriteStatAscii:
                                       value_name='stat_value').sort_values('Idx')
 
         # VL1L2 line type doesn't have the bcl and bcu stat values set these to NA
+        na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
+
+        reshaped['stat_ncl']: pd.Series = na_column
+        reshaped['stat_ncu']: pd.Series = na_column
+        reshaped['stat_bcl']: pd.Series = na_column
+        reshaped['stat_bcu']: pd.Series = na_column
+
+        return reshaped
+
+
+
+    def process_ecnt(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+             Reshape the data from the original MET output file (stat_data) into new
+             statistics columns:
+             stat_name, stat_value specifically for the VL1L2 line type data.
+
+             Arguments:
+             @param stat_data: the dataframe containing all the data from the MET
+             .stat file.
+
+             Returns:
+                 linetype_data: the reshaped pandas dataframe with statistics data
+                 reorganized into the stat_name and
+                                stat_value columns.
+
+        """
+
+        # Relevant columns for the ECNT line type
+        linetype: str = cn.ECNT
+        end = cn.NUM_STAT_ECNT_COLS
+        ecnt_columns_to_use: List[str] = (
+            np.arange(0, end).tolist())
+
+        # Subset original dataframe to one containing only the ECNT data
+        ecnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+                                ecnt_columns_to_use]
+
+        # Add the stat columns header names for the ECNT line type
+        ecnt_columns: List[str] = cn.ECNT_HEADERS
+        ecnt_df.columns: List[str] = ecnt_columns
+
+        # Create another index column to preserve the index values from the stat_data
+        # dataframe (ie the dataframe
+        # containing the original data from the MET output file).
+        idx = list(ecnt_df.index)
+
+        # Work on a copy of the ecnt_df dataframe to avoid a possible
+        # PerformanceWarning
+        # message due to a fragmented dataframe.
+        ecnt_df_copy = ecnt_df.copy()
+        ecnt_df_copy.insert(loc=0, column='Idx', value=idx)
+
+        # Now apply melt to get the stat_name and stat_values from the statistics
+
+        # Columns we don't want to stack (i.e. treat these columns as a multi index)
+        id_vars_list = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
+        reshaped = ecnt_df_copy.melt(id_vars=id_vars_list,
+                                      value_vars=cn.ECNT_STATISTICS_HEADERS,
+                                      var_name='stat_name',
+                                      value_name='stat_value').sort_values('Idx')
+
+        # ECNT line type doesn't have the bcl and bcu stat values set these to NA
         na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
 
         reshaped['stat_ncl']: pd.Series = na_column
