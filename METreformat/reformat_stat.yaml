@@ -1,0 +1,4 @@
+output_dir: /Volumes/d1/minnawin/feature_234_rrfs_linetypes/METdataio/METreformat/output
+output_filename: ensemble_stat_reformatted_ecnt.txt
+met_tool: ensemble_stat
+input_data_dir: /Volumes/d1/minnawin/Data/RRFS/EnsembleStat
