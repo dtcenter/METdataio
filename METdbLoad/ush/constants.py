@@ -1321,7 +1321,8 @@ CREATE_INDEXES_QUERIES = \
 
 NUM_STAT_FHO_COLS = 29
 NUM_STAT_CNT_COLS = 125
-NUM_STAT_VCNT_COLS = 88
+NUM_STAT_ECNT_COLS = 50
+NUM_STAT_VCNT_COLS = 87
 NUM_STAT_CTC_COLS = 31
 NUM_STAT_SL1L2_COLS = 32
 NUM_STAT_SAL1L2_COLS = 32
@@ -1341,7 +1342,7 @@ LC_COMMON_STAT_HEADER = [cur_stat_header.lower() for cur_stat_header in
                          COMMON_STAT_HEADER]
 
 #
-# POINT STAT/GRID STAT linetypes, used in METreformat
+# POINT STAT/GRID STAT/ ENSEMBLE STAT linetypes, used in METreformat
 #
 
 
@@ -1441,6 +1442,19 @@ CNT_BCU_HEADERS = ['FBAR_BCU', 'FSTDEV_BCU', 'OBAR_BCU', 'OSTDEV_BCU', 'PR_CORR_
                    'ME2_BCU', 'MSESS_BCU',
                    'RMSFA_BCU', 'RMSOA_BCU', 'ANOM_CORR_UNCNTR_BCU', 'SI_BCU']
 
+# Column headers for the ECNT line type
+
+LC_ECNT_SPECIFIC = ['n_ens', 'crps', 'crpss', 'ign', 'me', 'rmse', 'spread',
+                          'me_oerr', 'rmse_oerr', 'spread_oerr', 'spread_plus_oerr',
+                          'crpscl', 'crps_emp', 'crpscl_emp', 'crpss_emp',
+                          'crps_emp_fair', 'spread_md', 'mae', 'mae_oerr',
+                          'bias_ratio', 'n_ge_obs', 'me_ge_obs',
+                          'n_lt_obs', 'me_lt_obs']
+ECNT_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                         LC_ECNT_SPECIFIC]
+ECNT_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + ECNT_STATISTICS_HEADERS
+
+
 
 ###### VCNT line type
 LC_VCNT_SPECIFIC = ['fbar', 'fbar_bcl', 'fbar_bcu',
@@ -1467,7 +1481,7 @@ LC_VCNT_SPECIFIC = ['fbar', 'fbar_bcl', 'fbar_bcu',
 
                 ]
 VCNT_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_VCNT_SPECIFIC]
-FULL_CNT_HEADER = LC_COMMON_STAT_HEADER + ['total'] + VCNT_SPECIFIC
+FULL_VCNT_HEADER = LC_COMMON_STAT_HEADER + ['total'] + VCNT_SPECIFIC
 LC_VCNT_STATISTICS_HEADERS =  ['fbar',
                     'obar',
                     'fs_rms',
