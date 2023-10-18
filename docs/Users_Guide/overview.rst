@@ -2,7 +2,7 @@
 Overview
 ********
 
-Purpose and organization of the User's Guide
+Purpose and Organization of the User's Guide
 ============================================
 
 The goal of this User's Guide is to provide basic information for users of the
@@ -59,7 +59,7 @@ in place to incorporate many new capabilities and options in future releases
 of METdataio. Additionally, updates to accommodate new features of the MET
 software are often required.
 
-Code support
+Code Support
 ============
 
 Support for METdataio is provided through the
