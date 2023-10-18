@@ -640,5 +640,15 @@ def test_ensemble_stat_ecnt_consistency(setup_ens_stat_ecnt):
     # "original" data.
     assert expected_val == actual_value
 
-    # Check for any nan values in the dataframe
-    # assert reshaped_df.isnull().values.any() == False
+    # Check for any all expected values in the stat_name column
+    ecnt_stats = cn.ECNT_STATISTICS_HEADERS
+    num_ecnt_headers = len(ecnt_stats)
+    num_matches = 0
+    stat_name_col: pd.Series = reshaped_df['stat_name'].unique()
+    for stat in stat_name_col:
+        if stat in ecnt_stats:
+            num_matches += 1
+
+    assert num_matches == num_ecnt_headers
+
+    # Check for some expected values in the reformatted dataframe
