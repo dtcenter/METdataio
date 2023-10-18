@@ -651,4 +651,11 @@ def test_ensemble_stat_ecnt_consistency(setup_ens_stat_ecnt):
 
     assert num_matches == num_ecnt_headers
 
-    # Check for some expected values in the reformatted dataframe
+    # Check for some expected values in the reformatted dataframe for the
+    # row where VX_MASK = FULL and TOTAL=1125
+    expected_rmse = 12.52909
+    actual_rmse_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['stat_name'] == 'RMSE') &
+                                  (reshaped_df['vx_mask'] == 'FULL') &
+                                  (reshaped_df['total'] == '1125')]
+    print(f"RMSE from reformatted: {actual_rmse_df} of type {type(actual_rmse_df)}")
+    assert str(actual_rmse_df.iloc[0].stat_value) == str(expected_rmse)
