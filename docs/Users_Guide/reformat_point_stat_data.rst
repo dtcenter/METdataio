@@ -1,9 +1,10 @@
+****************************
 Reformat MET Point Stat Data
-=============================
+****************************
 
 
 Description
-___________
+===========
 
 
 The *METreformat* module is used to reformat MET point_stat .stat files into a format that can be read by
@@ -52,7 +53,7 @@ These linetypes are produced by the MET point-stat and grid-stat tools.
 *Other line types will be supported in the future.*.
 
 Required Components
-___________________
+===================
 
 Some METdbLoad modules are used to find and collect data from the individual .stat files into
 one data structure.
@@ -63,7 +64,7 @@ The YAML configuration file is used to indicate the name and
 location of the output file, the location of the input data, and the MET tool used to generate the data.
 
 Example
-_______
+=======
 
 - set up a base directory, where the METdataio source code is located
 
@@ -112,5 +113,3 @@ _______
    python $BASE_DIR/METreformat/write_stat_ascii.py $WORKING_DIR/point_stat.yaml
 
 - A text file will be created in the output directory with the file name as specified in the yaml file.
-
-
