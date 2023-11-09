@@ -64,5 +64,5 @@ jobs:
           echo "PYTHONPATH is $PYTHONPATH"
           cd $GITHUB_WORKSPACE/METreformat
           cd test
-          pytest test_point_stat_to_ascii.py
+          pytest test_reformatting.py
           echo "Finished unit tests"
