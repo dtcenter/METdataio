@@ -9,6 +9,23 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
+METdataio Version 3.0.0 Release Notes (20231114)
+------------------------------------------------
+
+
+  .. dropdown:: New Functionality
+
+
+  .. dropdown:: Enhancements
+     * **Make Headers consistent across all repos** (`#238 <https://github.com/dtcenter/METdataio/issues/238>`_)
+
+
+  .. dropdown:: Internal
+
+
+  .. dropdown:: Bugfixes
+
+
 METdataio Version 3.0.0 Release Notes (20230915)
 ------------------------------------------------
 
