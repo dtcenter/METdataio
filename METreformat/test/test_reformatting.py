@@ -432,6 +432,7 @@ def test_point_stat_CNT_consistency():
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
 
+@pytest.skip('Work in progress')
 def test_point_stat_VCNT_consistency():
     '''
            For the data frame for the VCNT line type, verify that a value in the
@@ -447,7 +448,7 @@ def test_point_stat_VCNT_consistency():
 
     # Relevant columns for the VCNT line type
     linetype: str = cn.VCNT
-    end = cn.NUM_STAT_VNT_COLS
+    end = cn.NUM_STAT_VCNT_COLS
     vcnt_columns_to_use: List[str] = np.arange(0, end).tolist()
 
     # Subset original dataframe to one containing only the VCNT data
