@@ -35,18 +35,57 @@ from METdbLoad.ush.read_load_xml import XmlLoadFile
 from METdbLoad.ush.read_data_files import ReadDataFiles
 import util
 
+logger = logging.getLogger(__name__)
 
 class WriteStatAscii:
-    """ Class to write MET .stat files to an ASCII file
+    """ Class to write MET .stat files to an ASCII file that contains the reformatted input data
 
         Returns:
            a Pandas dataframe and creates an ascii file with reformatted data.
     """
 
+    def __init__(self, parms):
+
+        # Set up logging
+        loglevel_setting = str(parms['log_level']).upper()
+        log_levels = {'DEBUG': logging.DEBUG, 'INFO': logging.INFO,
+                      'WARNING': logging.WARNING, 'ERROR': logging.ERROR,
+                      'CRITICAL': logging.CRITICAL}
+        log_level = log_levels[loglevel_setting]
+        log_directory = parms['log_directory']
+        # Create log directory if it doesn't already exist.
+        if not os.path.exists(log_directory):
+            os.mkdir(parms['log_directory'])
+
+        log_filename = parms['log_filename']
+        full_log_filename = os.path.join(log_directory, log_filename)
+        logger.setLevel(log_level)
+
+        if log_filename.lower() == 'stdout':
+            logging.basicConfig(level=log_level,
+                                format='%(asctime)s||User:%('
+                                       'user)s||%(funcName)s|| [%(levelname)s]: %('
+                                       'message)s',
+                                datefmt='%Y-%m-%d %H:%M:%S',
+                                stream=sys.stdout)
+        else:
+            logging.basicConfig(level=log_level,
+                                format=' %(asctime)s || %(module)s || User:%(user)s || %(levelname)s : '
+                                       '%(message)s',
+                                datefmt='%Y-%m-%d %H:%M:%S',
+                                filename = full_log_filename,
+                                filemode = 'w')
+
+
+    # def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict, logger) -> pd.DataFrame:
     def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict) -> pd.DataFrame:
-        """ write MET stat files (.stat) to an ASCII file with stat_name, stat_value,
+        """ For line types: FHO, CTC, CTS, SL1L2, ECNT, MCTS, and VCNT reformat the MET stat files (.stat) to another
+            ASCII file with stat_name, stat_value,
             stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns, converting the
             original data file from wide form to long form.
+
+            For line types such as PCT: specific reformatting is required, based on the type of plot that is utilizing
+            that data.
 
 
             Args:
@@ -56,8 +95,9 @@ class WriteStatAscii:
                 the settings for output dir, output file
 
             Returns:
-                  combined_df: pandas dataframe with original data reformatted into
-                               'long' form.
+                  reformatted_df: pandas dataframe with original data reformatted into
+                               'long' form, or the form required for specific plot types (e.g.
+                               histograms, ROC, etc.)
 
                       Additionally, write an output ASCII file associated with the
                       original MET .stat file with statistics information aggregated
@@ -68,11 +108,29 @@ class WriteStatAscii:
 
         """
 
-        logging.debug("[--- Start write_stat_data ---]")
-
         write_time_start: float = time.perf_counter()
 
         try:
+
+            # -----------------------------------
+            # Subset data to requested line type
+            # ----------------------------------
+            supported_linetypes = [cn.FHO, cn.CNT, cn.VCNT, cn.CTC,
+                                   cn.CTS, cn.MCTS, cn.SL1L2, cn.ECNT]
+
+            # Different formats based on the line types. Most METplotpy plots accept the long format where
+            # all stats are under the stat_name and stat_value columns and the confidence limits under the
+            # stat_bcl/bcu, stat_ncl/ncu columns.  Other plots, like the histogram plots
+            wide_to_long_format = [cn.FHO, cn.CNT, cn.VCNT, cn.CTC, cn.CTS, cn.MCTS, cn.SL1L2, cn.ECNT]
+            roc_format = [cn.PCT]
+            hist_format = [cn.RHIST, cn.PHIST, cn.RELP]
+            working_df = stat_data.copy(deep=True)
+            linetype_requested = parms['line_type']
+            if linetype_requested in supported_linetypes:
+                working_df = working_df.loc[working_df['line_type'] == linetype_requested]
+            else:
+                logging.ERROR("Requested line type is currently not supported for reformatting")
+                raise ValueError("Requested line type ", linetype_requested,  " is currently not supported for reformatting")
 
             # --------------------
             # Write Stat Headers
@@ -80,58 +138,43 @@ class WriteStatAscii:
 
             # Create a generic set of headers, the common headers for all stat files
             # (columns 1-14, then create headers for the maximum number of allowable
-            # MET stat headers). The FCST_INIT_BEG header is added in after the
-            # FCST_VALID_END
-            # column, so there is one additional column to the common header.
-            line_types: List[str] = list(stat_data['line_type'])
-            unique_line_types: Set[str] = set(line_types)
+            # MET stat headers, for line types where this is known).
+            # The FCST_INIT_BEG header is added in after the FCST_VALID_END
+            # column, resulting in one additional column to the common header.
+
 
             # ------------------------------
             # Extract statistics information
             # ------------------------------
-            # For each line type, extract the statistics information and save it in a
-            # list of dataframes which will
-            # be appended together.
-            all_reshaped_data_df: List[pd.DataFrame] = []
+            # Based on the line type, extract the statistics information and save it in a
+            # datafram.
 
             # Replace any nan records with 'NA'.  These nan values were set by the
             # METdbLoad read_data_files module.
-            stat_data = stat_data.fillna('NA')
-
-            for idx, cur_line_type in enumerate(unique_line_types):
-                input_df = self.process_by_stat_linetype(cur_line_type, stat_data)
-
-                # Check for an unsupported linetype, which is indicated by None
-                # returned by process_by_stat_linetype
-                supported_linetypes = [cn.FHO, cn.CNT, cn.VCNT, cn.CTC, cn.MCTC,
-                                       cn.CTS, cn.MCTS, cn.SL1L2, cn.ECNT]
-                if input_df is not None and cur_line_type in supported_linetypes:
-                    all_reshaped_data_df.append(input_df)
-
-            # Consolidate all the line type dataframes into one dataframe
-            #
-            for idx, dfs in enumerate(all_reshaped_data_df):
-                if idx == 0:
-                    combined_dfs: pd.DataFrame = all_reshaped_data_df[0].copy(deep=True)
-                elif idx != 0:
-                    combined_dfs: pd.DataFrame = pd.concat([combined_dfs, dfs])
+            # stat_data = stat_data.fillna('NA')
+            working_df = working_df.fillna('NA')
+            begin_reformat = time.perf_counter()
+            reformatted_df = self.process_by_stat_linetype(linetype_requested, stat_data)
+            end_reformat = time.perf_counter()
+            reformat_time = end_reformat - begin_reformat
+            msg = 'Reformatting took: ' + str(reformat_time) + ' seconds'
+            logger.info(msg)
 
             # Write out to the tab-separated text file
             output_file = os.path.join(parms['output_dir'], parms['output_filename'])
-            _: pd.DataFrame = combined_dfs.to_csv(output_file, index=None, sep='\t',
+            _: pd.DataFrame = reformatted_df.to_csv(output_file, index=None, sep='\t',
                                                   mode='a')
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_stat_ascii ***", sys.exc_info()[0])
 
         write_time_end: float = time.perf_counter()
-        write_time: timedelta = timedelta(seconds=write_time_end - write_time_start)
+        write_time = write_time_end - write_time_start
 
-        logging.info("    >>> Write time Stat: %s", str(write_time))
+        logger.info("Total time to reformat and write ASCII: %s seconds", str(write_time))
+        logger.debug("End write_stat_data ")
 
-        logging.debug("[--- End write_stat_data ---]")
-
-        return combined_dfs
+        return reformatted_df
 
     def process_by_stat_linetype(self, linetype: str, stat_data: pd.DataFrame):
         """
@@ -168,10 +211,6 @@ class WriteStatAscii:
         elif linetype == cn.CTC:
             linetype_data: pd.DataFrame = self.process_ctc(stat_data)
 
-        # MCTC Contingency Table Counts
-        elif linetype == cn.MCTC:
-            linetype_data: pd.DataFrame = self.process_mctc(stat_data)
-
         # CTS Contingency Table Statistics
         elif linetype == cn.CTS:
             linetype_data: pd.DataFrame = self.process_cts(stat_data)
@@ -192,10 +231,71 @@ class WriteStatAscii:
         elif linetype == cn.ECNT:
             linetype_data: pd.DataFrame = self.process_ecnt(stat_data)
 
+        # PCT
+        elif linetype == cn.PCT:
+            linetype_data: pd.DataFrame = self.process_pct(stat_data)
+
         else:
             return None
 
         return linetype_data
+
+    def process_pct(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+            Retrieve the PCT linetype data (Contingency count for probabilistic data) and reshape it
+            (wide to long format) to enable METplotpy to ingest the data and generate plots.
+            Take into account that this linetype consists of a variable number
+            of fields/columns that appear after the N_THRESH column (i.e. THRESH_i, OY_i, ON_i).
+
+            Arguments:
+            @param stat_data: Input data from MET .stat output represented as a dataframe.
+
+            Returns:
+            linetype_data: the input dataframe reformatted into long format
+
+        """
+        linetype: str = cn.PCT
+
+        # Before reformatting, first label all the columns in the input (raw) stat file.
+        # Create header labels using the variable names
+
+        # Determine how many columns are between the TOTAL column and the fields/columns of variable
+        # number.
+        num_lines_after_total_col:str = cn.LINE_VAR_COUNTER[linetype]
+        # Number of columns after the i_value column (i.e. THRESH_i, RANK_i, BIN_i, etc.)
+        num_repeating_col_labels: int = int(cn.LINE_VAR_REPEATS[linetype])
+        pct_row:pd.Series = stat_data.loc[cn.NUM_STAT_PCT_COLS + int(num_lines_after_total_col)]
+
+        # Subtract the thresh_n, this does not have an oy and on value associated with it.
+        num_thresh: int = int(pct_row.loc[num_lines_after_total_col] - 1)
+        print(f"{num_thresh} thresholds")
+
+        # Determine the total number of variable columns in this dataframe.
+        # The total number of variable columns = number of threshold values * num_repeating_col_labels + the thresh_n column
+        total_number_variable_columns = num_thresh  * num_repeating_col_labels + 1
+        print(f"{total_number_variable_columns} total number of columns for PCT linetype")
+
+        # Create the column labels (header names) for the variable columns/fields/variables
+        all_pct_headers = cn.LC_COMMON_STAT_HEADER + ['total'] + ['n_thresh']
+        for idx in range(1, num_thresh+1):
+            for column in cn.LC_PCT_VARIABLE_HEADERS:
+
+                column_label = "{label}_{i}".format(label=column, i=idx)
+                all_pct_headers.append(column_label)
+                print(f"variable header base name: {column_label}")
+        # Add the last column
+        last_column = "{label}_{i}".format(label='thresh', i=num_thresh+1)
+        all_pct_headers.append(last_column)
+
+        print(f"{all_pct_headers}")
+
+        # Replace the headers in the input dataframe, work on a copy of the input dataframe.
+        working_df = stat_data.copy(deep=True)
+        working_df.columns = all_pct_headers
+
+
+        return working_df
+
 
     def process_fho(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -233,7 +333,7 @@ class WriteStatAscii:
         fho_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
                                fho_columns_to_use]
 
-        # Add the stat columns header names for the CTC line type
+        # Add the stat columns header names for the FHO line type
         fho_columns: List[str] = cn.FHO_FULL_HEADER
         fho_df.columns: List[str] = fho_columns
 
@@ -519,69 +619,74 @@ class WriteStatAscii:
 
         return linetype_data
 
-    def process_mctc(self, stat_data: pd.DataFrame) -> pd.DataFrame:
-        """
-             Reshape the data from the original MET output file (stat_data)
-             into new statistics columns:
-             stat_name, stat_value specifically for the MCTC (multi-category
-             contingency table counts) line type
-             data.
-
-             Arguments:
-             @param stat_data: the dataframe containing all the data from the MET .stat
-                               file.
-
-             Returns:
-                 linetype_data: the reshaped pandas dataframe with statistics data
-                                reorganized into the stat_name and
-                                stat_value, stat_ncl, stat_ncu, stat_bcl,
-                                and stat_bcu columns.
-
-        """
-
-        # Relevant columns for the MCTC line type
-        linetype: str = cn.MCTC
-        end = cn.NUM_STAT_MCTC_COLS + 1
-        mctc_columns_to_use: List[str] =\
-            np.arange(0, end).tolist()
-
-        # Subset original dataframe to one containing only the MCTC data
-        mctc_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                               mctc_columns_to_use]
-
-        # Add the stat columns header names for the CTC line type
-        mctc_columns: List[str] = cn.MCTC_HEADERS
-        mctc_df.columns: List[str] = mctc_columns
-
-        # Create another index column to preserve the index values from the stat_data
-        # dataframe (ie the dataframe
-        # containing the original data from the MET output file).
-        idx = list(mctc_df.index)
-
-        # Work on a copy of the mctc_df dataframe to avoid a possible PerformanceWarning
-        # message due to a fragmented dataframe.
-        mctc_df_copy = mctc_df.copy()
-        mctc_df_copy.insert(loc=0, column='Idx', value=idx)
-
-        # Now apply melt to get the stat_name and stat_values from the statistics
-
-        # Columns we don't want to stack (i.e. treat these columns as a multi index)
-        id_vars_list = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
-        linetype_data = mctc_df_copy.melt(id_vars=id_vars_list,
-                                         value_vars=cn.MCTC_STATISTICS_HEADERS,
-                                         var_name='stat_name',
-                                         value_name='stat_value').sort_values('Idx')
-
-        # MCTC line type doesn't have the ncl, ncu, bcl and bcu stat values set these
-        # to NA
-        na_column: List[str] = ['NA' for _ in range(0, linetype_data.shape[0])]
-
-        linetype_data['stat_ncl']: pd.Series = na_column
-        linetype_data['stat_ncu']: pd.Series = na_column
-        linetype_data['stat_bcl']: pd.Series = na_column
-        linetype_data['stat_bcu']: pd.Series = na_column
-
-        return linetype_data
+    # def process_mctc(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+    #     """
+    #          Reshape the data from the original MET output file (stat_data)
+    #          into new statistics columns:
+    #          stat_name, stat_value specifically for the MCTC (multi-category
+    #          contingency table counts) line type
+    #          data.
+    #
+    #          Arguments:
+    #          @param stat_data: the dataframe containing all the data from the MET .stat
+    #                            file.
+    #
+    #          Returns:
+    #              linetype_data: the reshaped pandas dataframe with statistics data
+    #                             reorganized into the stat_name and
+    #                             stat_value, stat_ncl, stat_ncu, stat_bcl,
+    #                             and stat_bcu columns.
+    #
+    #     """
+    #     # !!!!!!!!
+    #     # TODO
+    #     #  Need to correctly implement this to support the variable number or
+    #     #  Fi_Oj columns
+    #     # !!!!!!!!
+    #
+    #     # Relevant columns for the MCTC line type
+    #     linetype: str = cn.MCTC
+    #     end = cn.NUM_STAT_MCTC_COLS + 1
+    #     mctc_columns_to_use: List[str] =\
+    #         np.arange(0, end).tolist()
+    #
+    #     # Subset original dataframe to one containing only the MCTC data
+    #     mctc_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+    #                            mctc_columns_to_use]
+    #
+    #     # Add the stat columns header names for the MCTC line type
+    #     mctc_columns: List[str] = cn.MCTC_HEADERS
+    #     mctc_df.columns: List[str] = mctc_columns
+    #
+    #     # Create another index column to preserve the index values from the stat_data
+    #     # dataframe (ie the dataframe
+    #     # containing the original data from the MET output file).
+    #     idx = list(mctc_df.index)
+    #
+    #     # Work on a copy of the mctc_df dataframe to avoid a possible PerformanceWarning
+    #     # message due to a fragmented dataframe.
+    #     mctc_df_copy = mctc_df.copy()
+    #     mctc_df_copy.insert(loc=0, column='Idx', value=idx)
+    #
+    #     # Now apply melt to get the stat_name and stat_values from the statistics
+    #
+    #     # Columns we don't want to stack (i.e. treat these columns as a multi index)
+    #     id_vars_list = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
+    #     linetype_data = mctc_df_copy.melt(id_vars=id_vars_list,
+    #                                      value_vars=cn.MCTC_STATISTICS_HEADERS,
+    #                                      var_name='stat_name',
+    #                                      value_name='stat_value').sort_values('Idx')
+    #
+    #     # MCTC line type doesn't have the ncl, ncu, bcl and bcu stat values set these
+    #     # to NA
+    #     na_column: List[str] = ['NA' for _ in range(0, linetype_data.shape[0])]
+    #
+    #     linetype_data['stat_ncl']: pd.Series = na_column
+    #     linetype_data['stat_ncu']: pd.Series = na_column
+    #     linetype_data['stat_bcl']: pd.Series = na_column
+    #     linetype_data['stat_bcu']: pd.Series = na_column
+    #
+    #     return linetype_data
 
     def process_cts(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -1036,10 +1141,11 @@ def main():
     with open(config_file, 'r') as stream:
         try:
             parms: dict = yaml.load(stream, Loader=yaml.FullLoader)
-            path_to_output = '"' + parms['output_dir'] + '"'
             pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
         except yaml.YAMLError as exc:
             print(exc)
+
+
 
     # Replacing the need for an XML specification file, pass in the XMLLoadFile and
     # ReadDataFile parameters
@@ -1047,26 +1153,33 @@ def main():
     xml_loadfile_obj: XmlLoadFile = XmlLoadFile(None)
 
     # Retrieve all the filenames in the data_dir specified in the YAML config file
+    beg_load = time.perf_counter()
     load_files = xml_loadfile_obj.filenames_from_template(parms['input_data_dir'],
                                                           {})
 
     flags = xml_loadfile_obj.flags
     line_types = xml_loadfile_obj.line_types
+    beg_read_data = time.perf_counter()
     rdf_obj.read_data(flags, load_files, line_types)
+    end_read_data = time.perf_counter()
+    time_to_read = end_read_data - beg_read_data
+    logger.info("Time to read input .stat data files using METdbLoad: {time_to_read}" )
     file_df = rdf_obj.stat_data
 
     # Check if the output file already exists, if so, delete it to avoid
     # appending output from subsequent runs into the same file.
     existing_output_file = os.path.join(parms['output_dir'], parms['output_filename'])
-    print(f"Checking if: {existing_output_file} already exists...")
+    logger.info("Checking if {existing_output_file}  already exists")
     if os.path.exists(existing_output_file):
-        print(f"Removing existing output file {existing_output_file}")
+        logger.info("Removing existing output file {existing_output_file}")
         os.remove(existing_output_file)
 
-    # Write stat file in ASCII format, one for each line type
-    stat_lines_obj: WriteStatAscii = WriteStatAscii()
+    # Write stat file in ASCII format
+    stat_lines_obj: WriteStatAscii = WriteStatAscii(parms)
+    # stat_lines_obj.write_stat_ascii(file_df, parms, logger)
     stat_lines_obj.write_stat_ascii(file_df, parms)
 
 
 if __name__ == "__main__":
+
     main()
