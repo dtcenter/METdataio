@@ -1,4 +1,7 @@
 import pytest
+import pathlib
+import os
+import yaml
 from typing import List
 import numpy as np
 import pandas as pd
@@ -7,87 +10,58 @@ import METdataio.METdbLoad.ush.constants as cn
 from METdataio.METdbLoad.ush.read_data_files import ReadDataFiles
 from METdataio.METreformat.write_stat_ascii import WriteStatAscii
 
+def read_input(config_file):
+    """
+       Read in the input .stat data file, return a data frame representation of all the data in the specified
+       input data directory.
 
-@pytest.fixture
-def setup():
-    # Read in the XML load file. This contains information about which MET output
-    # files are to be loaded.
-    xml_file = './point_stat.xml'
+    :param input_data_dir: The full path of the directory where the input data is located.
+    :return: file_df, the dataframe representation of the input data
+    """
 
-    xml_loadfile_obj = XmlLoadFile(xml_file)
-    xml_loadfile_obj.read_xml()
+    with open(config_file, 'r') as stream:
+        try:
+            parms: dict = yaml.load(stream, Loader=yaml.FullLoader)
+            pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
+        except yaml.YAMLError as exc:
+            print(exc)
 
-    # Read all of the data from the data files into a dataframe
-    rdf_obj = ReadDataFiles()
+    input_data_filename = parms['input_data_dir']
+    input_data = os.path.join(os.path.dirname(__file__), input_data_filename)
 
-    # read in the data files, with options specified by XML flags
-    rdf_obj.read_data(xml_loadfile_obj.flags,
-                      xml_loadfile_obj.load_files,
-                      xml_loadfile_obj.line_types)
+    # Replacing the need for an XML specification file, pass in the XMLLoadFile and
+    # ReadDataFile parameters
+    rdf_obj: ReadDataFiles = ReadDataFiles()
+    xml_loadfile_obj: XmlLoadFile = XmlLoadFile(None)
 
-    return rdf_obj
+    # Retrieve all the filenames in the data_dir specified in the YAML config file
+    load_files = xml_loadfile_obj.filenames_from_template(input_data, {})
 
+    flags = xml_loadfile_obj.flags
+    line_types = xml_loadfile_obj.line_types
+    rdf_obj.read_data(flags, load_files, line_types)
+    file_df = rdf_obj.stat_data
 
-@pytest.fixture
-def setup_mctc_mcts():
-    # Read in the XML load file. This contains information about which MET output files
-    # are to be loaded (that contain the mctc and mcts line types).
-    xml_file = './mctc_mcts.xml'
+    # Check if the output file already exists, if so, delete it to avoid
+    # appending output from subsequent runs into the same file.
+    existing_output_file = os.path.join(parms['output_dir'], parms['output_filename'])
+    if os.path.exists(existing_output_file):
+        os.remove(existing_output_file)
 
-    xml_loadfile_obj = XmlLoadFile(xml_file)
-    xml_loadfile_obj.read_xml()
+    return file_df, parms
 
-    # Read all of the data from the data files into a dataframe
-    rdf_obj = ReadDataFiles()
+def setup_test(yaml_file):
+    """
+       Read in the YAML config settings, then generate the input data as a data frame and perform reformatting.
 
-    # read in the data files, with options specified by XML flags
-    rdf_obj.read_data(xml_loadfile_obj.flags,
-                      xml_loadfile_obj.load_files,
-                      xml_loadfile_obj.line_types)
+    """
 
-    return rdf_obj
+    cwd = os.path.dirname(__file__)
+    full_yaml_file = os.path.join(cwd, yaml_file)
+    file_df, config = read_input(full_yaml_file)
 
-
-@pytest.fixture
-def setup_eclv_mpr_pc_vl1l2_vcnt():
-    # Read in the XML load file. This contains information about which MET output files
-    # are to be loaded (that contain the  line types).
-    xml_file = './eclv_mpr_pct_vl1l2_vcnt.xml'
-
-    xml_loadfile_obj = XmlLoadFile(xml_file)
-    xml_loadfile_obj.read_xml()
-
-    # Read all of the data from the data files into a dataframe
-    rdf_obj = ReadDataFiles()
-
-    # read in the data files, with options specified by XML flags
-    rdf_obj.read_data(xml_loadfile_obj.flags,
-                      xml_loadfile_obj.load_files,
-                      xml_loadfile_obj.line_types)
-
-    return rdf_obj
-
-
-@pytest.fixture
-def setup_ens_stat_ecnt():
-    # Read in the XML load file. This contains information about which MET output files
-    # are to be loaded (that contain the  line types).
-    xml_file = './ens_stat_ecnt.xml'
-
-    xml_loadfile_obj = XmlLoadFile(xml_file)
-    xml_loadfile_obj.read_xml()
-
-    # Read all of the data from the data files into a dataframe
-    rdf_obj = ReadDataFiles()
-
-    # read in the data files, with options specified by XML flags
-    rdf_obj.read_data(xml_loadfile_obj.flags,
-                      xml_loadfile_obj.load_files,
-                      xml_loadfile_obj.line_types)
-
-    return rdf_obj
-
-def test_point_stat_FHO_consistency(setup):
+    return file_df, config
+def test_point_stat_FHO_consistency():
     '''
            For the data frame for the FHO line type, verify that a value in the
            original data
@@ -98,7 +72,7 @@ def test_point_stat_FHO_consistency(setup):
     '''
 
     # Subset the input dataframe to include only the FHO linetype
-    stat_data = setup.stat_data
+    stat_data, parms= setup_test("FHO.yaml")
     end = cn.NUM_STAT_FHO_COLS
     fho_columns_to_use = np.arange(0, end).tolist()
     linetype = cn.FHO
@@ -122,7 +96,7 @@ def test_point_stat_FHO_consistency(setup):
     expected_name: str = "F_RATE"
     expected_val: float = expected_row.loc[expected_name]
 
-    wsa = WriteStatAscii()
+    wsa = WriteStatAscii(parms)
     reshaped_df = wsa.process_fho(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
@@ -141,7 +115,7 @@ def test_point_stat_FHO_consistency(setup):
 
 
 # @pytest.mark.skip()
-def test_point_stat_SL1L2_consistency(setup):
+def test_point_stat_SL1L2_consistency():
     '''
            For the data frame for the SL1L2 line type, verify that a value in the
            original data
@@ -152,7 +126,7 @@ def test_point_stat_SL1L2_consistency(setup):
     '''
 
     # Original data
-    stat_data = setup.stat_data
+    stat_data, parms = setup_test('SL1L2.yaml')
 
     # Relevant columns for the SL1L2 line type
     linetype: str = cn.SL1L2
@@ -181,7 +155,7 @@ def test_point_stat_SL1L2_consistency(setup):
     expected_name: str = "MAE"
     expected_val: float = expected_row.loc[expected_name]
 
-    wsa = WriteStatAscii()
+    wsa = WriteStatAscii(parms)
     reshaped_df = wsa.process_sl1l2(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
@@ -201,7 +175,7 @@ def test_point_stat_SL1L2_consistency(setup):
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_point_stat_VSL1L2_consistency(setup_eclv_mpr_pc_vl1l2_vcnt):
+def test_point_stat_VL1L2_consistency():
     '''
            For the data frame for the VL1L2 line type, verify that a value in the
            original data corresponds to the value identified with the same criteria
@@ -210,7 +184,7 @@ def test_point_stat_VSL1L2_consistency(setup_eclv_mpr_pc_vl1l2_vcnt):
     '''
 
     # Original data
-    stat_data = setup_eclv_mpr_pc_vl1l2_vcnt.stat_data
+    stat_data, parms = setup_test('VL1L2.yaml')
 
     # Relevant columns for the VL1L2 line type
     linetype: str = cn.VL1L2
@@ -240,7 +214,7 @@ def test_point_stat_VSL1L2_consistency(setup_eclv_mpr_pc_vl1l2_vcnt):
     expected_name: str = "UFBAR"
     expected_val: float = expected_row.loc[expected_name]
 
-    wsa = WriteStatAscii()
+    wsa = WriteStatAscii(parms)
     obs_var = 'UGRD_VGRD'
     reshaped_df = wsa.process_vl1l2(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) &
@@ -264,7 +238,7 @@ def test_point_stat_VSL1L2_consistency(setup_eclv_mpr_pc_vl1l2_vcnt):
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_point_stat_CTC_consistency(setup):
+def test_point_stat_CTC_consistency():
     '''
            For the data frame for the CTC line type, verify that a value in the
            original data
@@ -275,7 +249,7 @@ def test_point_stat_CTC_consistency(setup):
     '''
 
     # Original data
-    stat_data = setup.stat_data
+    stat_data, parms = setup_test('CTC.yaml')
 
     # Relevant columns for the CTC line type
     linetype: str = cn.CTC
@@ -305,7 +279,7 @@ def test_point_stat_CTC_consistency(setup):
     expected_name: str = "FN_ON"
     expected_val: float = expected_row.loc[expected_name]
 
-    wsa = WriteStatAscii()
+    wsa = WriteStatAscii(parms)
     reshaped_df = wsa.process_ctc(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
@@ -325,7 +299,7 @@ def test_point_stat_CTC_consistency(setup):
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_point_stat_CTS_consistency(setup):
+def test_point_stat_CTS_consistency():
     '''
            For the data frame for the CTS line type, verify that a value in the
            original data
@@ -336,7 +310,7 @@ def test_point_stat_CTS_consistency(setup):
     '''
 
     # Original data
-    stat_data = setup.stat_data
+    stat_data, parms = setup_test('CTS.yaml')
 
     # Relevant columns for the CTS line type
     linetype: str = cn.CTS
@@ -370,7 +344,7 @@ def test_point_stat_CTS_consistency(setup):
     expected_ncl: float = expected_row.loc[expected_ncl]
     expected_ncu: float = expected_row.loc[expected_ncu]
 
-    wsa = WriteStatAscii()
+    wsa = WriteStatAscii(parms)
     reshaped_df = wsa.process_cts(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
@@ -392,7 +366,7 @@ def test_point_stat_CTS_consistency(setup):
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_point_stat_CNT_consistency(setup):
+def test_point_stat_CNT_consistency():
     '''
            For the data frame for the CNT line type, verify that a value in the
            original data
@@ -403,7 +377,7 @@ def test_point_stat_CNT_consistency(setup):
     '''
 
     # Original data
-    stat_data = setup.stat_data
+    stat_data, parms = setup_test('CNT.yaml')
 
     # Relevant columns for the CNT line type
     linetype: str = cn.CNT
@@ -437,7 +411,7 @@ def test_point_stat_CNT_consistency(setup):
     expected_ncl: float = expected_row.loc[expected_ncl]
     expected_ncu: float = expected_row.loc[expected_ncu]
 
-    wsa = WriteStatAscii()
+    wsa = WriteStatAscii(parms)
     reshaped_df = wsa.process_cnt(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
@@ -459,69 +433,8 @@ def test_point_stat_CNT_consistency(setup):
     assert reshaped_df.isnull().values.any() == False
 
 
-@pytest.mark.skip()
-def test_point_stat_MCTC_consistency(setup_mctc_mcts):
-    '''
-           For the data frame for the MCTC line type, verify that a value in the
-           original data corresponds to the value identified with the same
-           criteria in the newly reformatted dataframe.
 
-    '''
-
-    # Original data
-    stat_data = setup_mctc_mcts.stat_data
-
-    # Relevant columns for the MCTC line type
-    linetype: str = cn.MCTC
-    mctc_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_MCTC_COLS).tolist()
-
-    # Subset original dataframe to one containing only the MCTC data
-    mctc_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                            mctc_columns_to_use]
-
-    # Add the stat columns header names for the MCTC line type
-    mctc_columns: List[str] = cn.MCTC_HEADERS
-    mctc_df.columns: List[str] = mctc_columns
-
-    # get the value of the record corresponding to line_type MCTC, total number of
-    # pairs=213840, ,
-    # fcst_lev='0,0,*,*', and fcst_thresh'>=0.0,>=0.15,>=0.310',
-    # for the N_CAT statistic.
-    total = str(213840)
-    obs_var = 'edr'
-    fcst_lev = '0,0,*,*'
-    fcst_thresh = '>=0.0,>=0.15,>=0.31'
-    expected_df: pd.DataFrame = mctc_df.loc[(mctc_df['total'] == total) &
-                                            (mctc_df['obs_var'] == obs_var) &
-                                            (mctc_df['fcst_lev'] == fcst_lev) &
-                                            (mctc_df['fcst_thresh'] == fcst_thresh)]
-    expected_row: pd.Series = expected_df.iloc[0]
-
-    wsa = WriteStatAscii()
-    reshaped_df = wsa.process_mctc(stat_data)
-    actual_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) &
-                                              (reshaped_df['obs_var'] == obs_var) &
-                                              (reshaped_df['fcst_lev'] == fcst_lev) &
-                                              (reshaped_df[
-                                                   'fcst_thresh'] == fcst_thresh)
-                                              ]
-    actual_row: pd.Series = actual_df.iloc[0]
-    actual_value: str = actual_row['stat_value']
-
-    actual_name: str = actual_row['stat_name']
-
-    # Checking for consistency between the reformatted/reshaped data
-    # and the "original" data. Make sure we correctly captured the
-    # statistic into stat_name and its corresponding value into stat_value.
-    expected_name: str = "N_CAT"
-    expected_val: str = expected_row.loc[expected_name]
-    assert expected_val == actual_value
-
-    # Check for any nan values in the dataframe
-    assert reshaped_df.isnull().values.any() == False
-
-
-def test_point_stat_MCTS_consistency(setup_mctc_mcts):
+def test_point_stat_MCTS_consistency():
     '''
            For the data frame for the MCTS line type, verify that a value in the
            original data corresponds to the value identified with the same criteria
@@ -530,7 +443,7 @@ def test_point_stat_MCTS_consistency(setup_mctc_mcts):
     '''
 
     # Original data
-    stat_data = setup_mctc_mcts.stat_data
+    stat_data, parms = setup_test('./MCTS.yaml')
 
     # Relevant columns for the MCTS line type
     linetype: str = cn.MCTS
@@ -564,7 +477,7 @@ def test_point_stat_MCTS_consistency(setup_mctc_mcts):
     expected_ncl: float = expected_row.loc[expected_ncl]
     expected_ncu: float = expected_row.loc[expected_ncu]
 
-    wsa = WriteStatAscii()
+    wsa = WriteStatAscii(parms)
     reshaped_df = wsa.process_mcts(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
@@ -586,7 +499,7 @@ def test_point_stat_MCTS_consistency(setup_mctc_mcts):
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_ensemble_stat_ecnt_consistency(setup_ens_stat_ecnt):
+def test_ensemble_stat_ecnt_consistency():
     '''
            For the data frame for the ECNT line type, verify that a value in the
            original data corresponds to the value identified with the same criteria
@@ -595,7 +508,7 @@ def test_ensemble_stat_ecnt_consistency(setup_ens_stat_ecnt):
     '''
 
     # Original data
-    stat_data = setup_ens_stat_ecnt.stat_data
+    stat_data, config = setup_test('reformat_ecnt.yaml')
 
     # Relevant columns for the ECNT line type
     linetype: str = cn.ECNT
@@ -624,7 +537,7 @@ def test_ensemble_stat_ecnt_consistency(setup_ens_stat_ecnt):
     expected_name: str = "ME"
     expected_val: float = expected_row.loc[expected_name]
 
-    wsa = WriteStatAscii()
+    wsa = WriteStatAscii(config)
     reshaped_df = wsa.process_ecnt(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
