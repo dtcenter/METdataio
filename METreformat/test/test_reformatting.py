@@ -432,6 +432,71 @@ def test_point_stat_CNT_consistency():
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
 
+def test_point_stat_VCNT_consistency():
+    '''
+           For the data frame for the VCNT line type, verify that a value in the
+           original data
+           corresponds to the value identified with the same criteria in the newly
+           reformatted
+           dataframe.
+
+    '''
+
+    # Original data
+    stat_data, parms = setup_test('VCNT.yaml')
+
+    # Relevant columns for the VCNT line type
+    linetype: str = cn.VCNT
+    end = cn.NUM_STAT_VNT_COLS
+    vcnt_columns_to_use: List[str] = np.arange(0, end).tolist()
+
+    # Subset original dataframe to one containing only the VCNT data
+    vcnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+                           vcnt_columns_to_use]
+
+    # Add the stat columns for the CNT line type
+    vcnt_columns: List[str] = cn.FULL_VCNT_HEADER
+    vcnt_df.columns: List[str] = vcnt_columns
+
+    # get the value of the record corresponding to line_type CNT, total number of
+    # pairs, obs_var,
+    # obs_lev, and fcst_thresh, for the ME statistic.
+    total = str(4028)
+    obs_var = 'TMP'
+    obs_level = 'Z2'
+    fcst_thresh = 'NA'
+    expected_df: pd.DataFrame = vcnt_df.loc[
+        (vcnt_df['total'] == total) & (vcnt_df['obs_var'] == obs_var) &
+        (vcnt_df['obs_lev'] == obs_level) &
+        (vcnt_df['fcst_thresh'] == fcst_thresh)]
+    expected_row: pd.Series = expected_df.iloc[0]
+    expected_name: str = "ME"
+    expected_ncu: str = "ME_NCU"
+    expected_ncl: str = "ME_NCL"
+    expected_val: float = expected_row.loc[expected_name]
+    expected_ncl: float = expected_row.loc[expected_ncl]
+    expected_ncu: float = expected_row.loc[expected_ncu]
+
+    wsa = WriteStatAscii(parms)
+    reshaped_df = wsa.process_cnt(stat_data)
+    actual_df: pd.DataFrame = reshaped_df.loc[
+        (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
+        (reshaped_df['obs_lev'] == obs_level) &
+        (reshaped_df['fcst_thresh'] == fcst_thresh) &
+        (reshaped_df['stat_name'] == expected_name)]
+    actual_row: pd.Series = actual_df.iloc[0]
+    actual_value: float = actual_row['stat_value']
+    actual_ncl: float = actual_row['stat_ncl']
+    actual_ncu: float = actual_row['stat_ncu']
+
+    # Checking for consistency between the reformatted/reshaped data and the
+    # "original" data.
+    assert expected_val == actual_value
+    assert expected_ncl == actual_ncl
+    assert expected_ncu == actual_ncu
+
+    # Check for any nan values in the dataframe
+    assert reshaped_df.isnull().values.any() == False
 
 
 def test_point_stat_MCTS_consistency():
@@ -508,7 +573,7 @@ def test_ensemble_stat_ecnt_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test('reformat_ecnt.yaml')
+    stat_data, config = setup_test('ECNT.yaml')
 
     # Relevant columns for the ECNT line type
     linetype: str = cn.ECNT
