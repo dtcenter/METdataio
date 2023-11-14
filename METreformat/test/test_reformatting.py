@@ -432,7 +432,7 @@ def test_point_stat_CNT_consistency():
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
 
-@pytest.skip('Work in progress')
+@pytest.mark.skip('Work in progress')
 def test_point_stat_VCNT_consistency():
     '''
            For the data frame for the VCNT line type, verify that a value in the
