@@ -455,46 +455,36 @@ def test_point_stat_VCNT_consistency():
     vcnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
                            vcnt_columns_to_use]
 
-    # Add the stat columns for the CNT line type
+    # Add the stat columns for the VCNT line type
     vcnt_columns: List[str] = cn.FULL_VCNT_HEADER
     vcnt_df.columns: List[str] = vcnt_columns
 
-    # get the value of the record corresponding to line_type CNT, total number of
-    # pairs, obs_var,
+    # get the value of the record corresponding to line_type VCNT, total number, obs_var,
     # obs_lev, and fcst_thresh, for the ME statistic.
-    total = str(4028)
-    obs_var = 'TMP'
-    obs_level = 'Z2'
+    total = str(934)
+    obs_var = 'UGRD_VGRD'
+    obs_level = 'Z10'
     fcst_thresh = 'NA'
     expected_df: pd.DataFrame = vcnt_df.loc[
         (vcnt_df['total'] == total) & (vcnt_df['obs_var'] == obs_var) &
         (vcnt_df['obs_lev'] == obs_level) &
         (vcnt_df['fcst_thresh'] == fcst_thresh)]
     expected_row: pd.Series = expected_df.iloc[0]
-    expected_name: str = "ME"
-    expected_ncu: str = "ME_NCU"
-    expected_ncl: str = "ME_NCL"
-    expected_val: float = expected_row.loc[expected_name]
-    expected_ncl: float = expected_row.loc[expected_ncl]
-    expected_ncu: float = expected_row.loc[expected_ncu]
-
+    expected_name: str = "VCNT"
     wsa = WriteStatAscii(parms)
     reshaped_df = wsa.process_cnt(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
         (reshaped_df['obs_lev'] == obs_level) &
-        (reshaped_df['fcst_thresh'] == fcst_thresh) &
-        (reshaped_df['stat_name'] == expected_name)]
+        (reshaped_df['fcst_thresh'] == fcst_thresh)]
     actual_row: pd.Series = actual_df.iloc[0]
     actual_value: float = actual_row['stat_value']
-    actual_ncl: float = actual_row['stat_ncl']
-    actual_ncu: float = actual_row['stat_ncu']
+    expected_val: float = expected_row.loc[expected_name]
 
     # Checking for consistency between the reformatted/reshaped data and the
     # "original" data.
     assert expected_val == actual_value
-    assert expected_ncl == actual_ncl
-    assert expected_ncu == actual_ncu
+
 
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
@@ -594,20 +584,29 @@ def test_ensemble_stat_ecnt_consistency():
     total = str(1125)
     obs_var = 'APCP_24'
     obs_level = 'A24'
+    obs_lead = 0
     fcst_thresh = 'NA'
+    vx_mask = 'FULL'
+    interp_mthd = 'NEAREST'
     expected_df: pd.DataFrame = ecnt_df.loc[(ecnt_df['total'] == total) & (ecnt_df[
                                                              'obs_var'] == obs_var) &
                                             (ecnt_df['obs_lev'] == obs_level) &
-                                            (ecnt_df['fcst_thresh'] == fcst_thresh)]
+                                            (ecnt_df['obs_lead'] == obs_lead)  &
+                                            (ecnt_df['vx_mask'] == vx_mask) &
+                                            (ecnt_df['interp_mthd'] == interp_mthd)]
     expected_row: pd.Series = expected_df.iloc[0]
     expected_name: str = "ME"
     expected_val: float = expected_row.loc[expected_name]
+    me_val = float(0.97455)
+    assert me_val == float(expected_val)
 
     wsa = WriteStatAscii(config)
     reshaped_df = wsa.process_ecnt(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
         (reshaped_df['obs_lev'] == obs_level) &
+        (reshaped_df['obs_lead'] == obs_lead) &
+        (reshaped_df['vx_mask'] == vx_mask) &
         (reshaped_df['fcst_thresh'] == fcst_thresh) &
         (reshaped_df['stat_name'] == expected_name)]
     actual_row: pd.Series = actual_df.iloc[0]

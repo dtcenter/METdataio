@@ -1,7 +1,6 @@
 output_dir: ../output
-output_filename: grid_stat_ecnt.data
+output_filename: ensemble_stat_ecnt.data
 line_type: ECNT
-#input_data_dir: /Users/minnawin/Data/RRFS/ECNT_from_Michelle/2022050500/metprd/ensemble_stat_cmn
 input_data_dir: ./data/ensemble_stat
 # Set to log_filename to STDOUT if no log file is to be saved
 log_directory: ./output
