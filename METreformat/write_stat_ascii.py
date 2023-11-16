@@ -54,10 +54,10 @@ class WriteStatAscii:
         log_level = log_levels[loglevel_setting]
         log_directory = parms['log_directory']
         # Create log directory if it doesn't already exist.
-        if not os.path.exists(log_directory):
+        log_filename = (str(parms['log_filename'])).upper()
+        if not os.path.exists(log_directory) and log_filename != 'STDOUT':
             os.mkdir(parms['log_directory'])
 
-        log_filename = parms['log_filename']
         full_log_filename = os.path.join(log_directory, log_filename)
         logger.setLevel(log_level)
 
@@ -1144,8 +1144,6 @@ def main():
             pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
         except yaml.YAMLError as exc:
             print(exc)
-
-
 
     # Replacing the need for an XML specification file, pass in the XMLLoadFile and
     # ReadDataFile parameters
