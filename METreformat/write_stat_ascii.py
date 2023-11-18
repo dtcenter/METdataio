@@ -116,15 +116,20 @@ class WriteStatAscii:
             # Subset data to requested line type
             # ----------------------------------
             supported_linetypes = [cn.FHO, cn.CNT, cn.VCNT, cn.CTC,
-                                   cn.CTS, cn.MCTS, cn.SL1L2, cn.ECNT]
+                                   cn.CTS, cn.MCTS, cn.SL1L2, cn.ECNT, cn.PCT]
 
             # Different formats based on the line types. Most METplotpy plots accept the long format where
             # all stats are under the stat_name and stat_value columns and the confidence limits under the
-            # stat_bcl/bcu, stat_ncl/ncu columns.  Other plots, like the histogram plots
+            # stat_bcl/bcu, stat_ncl/ncu columns.  Other plots, like the histogram plots (rank, relative, probability)
+            # and ROC diagrams require specific formatting.
+
+            # ToDo Determine if we need to separate the linetypes based on formatting
             wide_to_long_format = [cn.FHO, cn.CNT, cn.VCNT, cn.CTC, cn.CTS, cn.MCTS, cn.SL1L2, cn.ECNT]
             roc_format = [cn.PCT]
             hist_format = [cn.RHIST, cn.PHIST, cn.RELP]
+
             working_df = stat_data.copy(deep=True)
+            stat_data.to_csv('/Users/minnawin/RRFS/feature_234_RRFS_linetypes/METdataio/METreformat/output/pct_prc_pjc_pstd_raw.csv')
             linetype_requested = parms['line_type']
             if linetype_requested in supported_linetypes:
                 working_df = working_df.loc[working_df['line_type'] == linetype_requested]
@@ -153,8 +158,9 @@ class WriteStatAscii:
             # METdbLoad read_data_files module.
             # stat_data = stat_data.fillna('NA')
             working_df = working_df.fillna('NA')
+            working_df.to_csv('/Users/minnawin/RRFS/feature_234_rrfs_linetypes/METdataio/METreformat/output/raw_cnt_only.csv')
             begin_reformat = time.perf_counter()
-            reformatted_df = self.process_by_stat_linetype(linetype_requested, stat_data)
+            reformatted_df = self.process_by_stat_linetype(linetype_requested, working_df)
             end_reformat = time.perf_counter()
             reformat_time = end_reformat - begin_reformat
             msg = 'Reformatting took: ' + str(reformat_time) + ' seconds'
@@ -184,7 +190,8 @@ class WriteStatAscii:
 
         Args:
             @param linetype: The linetype of interest (i.e. CNT, CTS, FHO, etc.)
-            @param stat_data: The original MET data read in from the .stat file.
+            @param stat_data: The original MET data read in from the .stat file, containing only the requested linetype
+                              rows.
             Empty columns from the original .stat
                               file are named with the string representation of the
                               numbers 1-n.
@@ -256,42 +263,58 @@ class WriteStatAscii:
         """
         linetype: str = cn.PCT
 
-        # Before reformatting, first label all the columns in the input (raw) stat file.
-        # Create header labels using the variable names
 
         # Determine how many columns are between the TOTAL column and the fields/columns of variable
-        # number.
-        num_lines_after_total_col:str = cn.LINE_VAR_COUNTER[linetype]
-        # Number of columns after the i_value column (i.e. THRESH_i, RANK_i, BIN_i, etc.)
+        # number (i.e. THRESH_i, OY_i, ON_i).
+        name_of_col_after_total:str = cn.LINE_VAR_COUNTER[linetype]
+
+        # Number of columns after the N_THRESH column (i.e. THRESH_i, RANK_i, BIN_i, etc.)
         num_repeating_col_labels: int = int(cn.LINE_VAR_REPEATS[linetype])
-        pct_row:pd.Series = stat_data.loc[cn.NUM_STAT_PCT_COLS + int(num_lines_after_total_col)]
 
-        # Subtract the thresh_n, this does not have an oy and on value associated with it.
-        num_thresh: int = int(pct_row.loc[num_lines_after_total_col] - 1)
-        print(f"{num_thresh} thresholds")
+        #  Retrieve the value for N_THRESH, the number of thresholds
+        num_thresh:int = int(stat_data.iloc[0][cn.NUM_STATIC_PCT_COLS])
 
-        # Determine the total number of variable columns in this dataframe.
-        # The total number of variable columns = number of threshold values * num_repeating_col_labels + the thresh_n column
-        total_number_variable_columns = num_thresh  * num_repeating_col_labels + 1
-        print(f"{total_number_variable_columns} total number of columns for PCT linetype")
+        # Add 1 for THRESH_N, the last threshold value column
+        total_number_variable_columns = num_thresh * num_repeating_col_labels + 1
+        print(f"{total_number_variable_columns} total number of PCT-specific columns ")
 
-        # Create the column labels (header names) for the variable columns/fields/variables
-        all_pct_headers = cn.LC_COMMON_STAT_HEADER + ['total'] + ['n_thresh']
-        for idx in range(1, num_thresh+1):
+        # Add 1 for the TOTAL column to get the total number of columns for this data
+        total_number_relevant_columns = cn.NUM_STATIC_PCT_COLS + total_number_variable_columns + 1
+
+        # Get a list of names of the columns that correspond to the PCT linetype for this data
+        all_columns = stat_data.columns
+        only_relevant_columns = stat_data.columns.tolist()[0:total_number_relevant_columns]
+
+        # Subset the input dataframe to include only the PCT columns and label the remaining
+        # unlabelled (numbered) columns/headers.
+        filtered_df = stat_data[only_relevant_columns]
+        headers = filtered_df.columns
+        working_df = filtered_df.copy(deep=True)
+
+        # Replace the numbered labels with the TOTAL and N_THRESH labels
+        working_df.rename(columns={'0':'total', cn.LINE_VAR_COUNTER[cn.PCT]:'n_thresh'}, inplace=True)
+
+        # Relabel the remaining numbered column headers
+        last_column_name = len(working_df.columns) - cn.NUM_STATIC_PCT_COLS
+
+        # The THRESH_n column is the last column
+        thresh_n_col_name = 'thresh_' + str(num_thresh + 1)
+        working_df.rename(columns={str(last_column_name):thresh_n_col_name}, inplace=True)
+
+        # Relabel the repeating columns (THRESH_i, OY_i, ON_i)
+        idx = 1
+        column_name_value = int(cn.LINE_VAR_COUNTER[cn.PCT]) + 1
+        for i in range(int(cn.LINE_VAR_COUNTER[cn.PCT]), int(num_thresh) +1):
             for column in cn.LC_PCT_VARIABLE_HEADERS:
+                column_name = str(column_name_value)
+                column_label = "{label}_{idx}".format(label=column, idx=i)
+                working_df.rename(columns={column_name:column_label}, inplace=True)
+                column_name_value += 1
 
-                column_label = "{label}_{i}".format(label=column, i=idx)
-                all_pct_headers.append(column_label)
-                print(f"variable header base name: {column_label}")
-        # Add the last column
-        last_column = "{label}_{i}".format(label='thresh', i=num_thresh+1)
-        all_pct_headers.append(last_column)
+        # Now reformat the columns so all thresh_1, thresh_2, ..., etc values go under the thresh_i column,
+        # the oy_1, oy_2, ..., etc. values go under the oy_i column, and the on_1, on_2, ...,etc. values
+        # go under the on_i column.  The nth threshold goes under the i_value column (ie threshold 1,..., n).
 
-        print(f"{all_pct_headers}")
-
-        # Replace the headers in the input dataframe, work on a copy of the input dataframe.
-        working_df = stat_data.copy(deep=True)
-        working_df.columns = all_pct_headers
 
 
         return working_df
