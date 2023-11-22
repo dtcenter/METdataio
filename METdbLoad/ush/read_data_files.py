@@ -1308,7 +1308,7 @@ class ReadDataFiles:
             stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None,
                                     skipinitialspace=True)
         except (pd.errors.EmptyDataError):
-            logging.warning("!!! Stat file  {filename} has no data after headers")
+            logging.warning("!!! Stat file "+ filename + " has no data after headers")
             return stat_file
 
         stat_file = stat_file.iloc[:, 0]
