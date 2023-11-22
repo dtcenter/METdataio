@@ -1330,6 +1330,13 @@ NUM_STAT_VL1L2_COLS = 35
 NUM_STAT_CTS_COLS = 122
 NUM_STAT_MCTC_COLS = 28
 NUM_STAT_MCTS_COLS = 45
+# Number of columns BEFORE the "variable" fields (i.e. VERSION, MODEL, ..., LINETYPE), including the
+# FCST_INIT_BEG column but not including TOTAL.
+# For PCT the "variable" fields are N_THRESH, THRESH_i, OY_i, ON_i,..., THRESH_N, where the
+# number of THRESH_i, OY_i, and ON_i depend on the number of thresholds specified by the
+# N_THRESH value.
+NUM_STATIC_PCT_COLS = 26
+
 
 DESC = "desc"
 COMMON_STAT_HEADER = [VERSION, MODEL, DESC, FCST_LEAD, FCST_VALID_BEG, FCST_VALID_END,
@@ -1623,3 +1630,10 @@ MCTS_STATS_ONLY = [N_CAT, 'acc', 'hk', 'hss', 'ger', 'hss_ec', EC_VALUE]
 MCTS_STATS_ONLY_HEADERS = [cur_stat_header.upper() for cur_stat_header in
                            MCTS_STATS_ONLY]
 MCTS_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + MCTS_STATS_ONLY_HEADERS
+
+
+#### PCT line type ####
+LC_PCT_VARIABLE_HEADERS = ['thresh','oy', 'on']
+
+
+
