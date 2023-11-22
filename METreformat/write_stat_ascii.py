@@ -17,7 +17,7 @@ NOAA/OAR/ESRL/GSD
 
 # pylint:disable=no-member
 # constants exist in constants.py
-
+import gc
 import sys
 import os
 import logging
@@ -123,13 +123,7 @@ class WriteStatAscii:
             # stat_bcl/bcu, stat_ncl/ncu columns.  Other plots, like the histogram plots (rank, relative, probability)
             # and ROC diagrams require specific formatting.
 
-            # ToDo Determine if we need to separate the linetypes based on formatting
-            wide_to_long_format = [cn.FHO, cn.CNT, cn.VCNT, cn.CTC, cn.CTS, cn.MCTS, cn.SL1L2, cn.ECNT]
-            roc_format = [cn.PCT]
-            hist_format = [cn.RHIST, cn.PHIST, cn.RELP]
-
             working_df = stat_data.copy(deep=True)
-            stat_data.to_csv('/Users/minnawin/RRFS/feature_234_RRFS_linetypes/METdataio/METreformat/output/pct_prc_pjc_pstd_raw.csv')
             linetype_requested = parms['line_type']
             if linetype_requested in supported_linetypes:
                 working_df = working_df.loc[working_df['line_type'] == linetype_requested]
@@ -158,7 +152,6 @@ class WriteStatAscii:
             # METdbLoad read_data_files module.
             # stat_data = stat_data.fillna('NA')
             working_df = working_df.fillna('NA')
-            working_df.to_csv('/Users/minnawin/RRFS/feature_234_rrfs_linetypes/METdataio/METreformat/output/raw_cnt_only.csv')
             begin_reformat = time.perf_counter()
             reformatted_df = self.process_by_stat_linetype(linetype_requested, working_df)
             end_reformat = time.perf_counter()
@@ -250,8 +243,8 @@ class WriteStatAscii:
     def process_pct(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
             Retrieve the PCT linetype data (Contingency count for probabilistic data) and reshape it
-            (wide to long format) to enable METplotpy to ingest the data and generate plots.
-            Take into account that this linetype consists of a variable number
+            (wide to long format) to enable METplotpy to ingest the data and generate ROC diagram plots.
+            Take into account that this line type consists of a variable number
             of fields/columns that appear after the N_THRESH column (i.e. THRESH_i, OY_i, ON_i).
 
             Arguments:
@@ -261,12 +254,9 @@ class WriteStatAscii:
             linetype_data: the input dataframe reformatted into long format
 
         """
+
+        # Determine the columns for this line type
         linetype: str = cn.PCT
-
-
-        # Determine how many columns are between the TOTAL column and the fields/columns of variable
-        # number (i.e. THRESH_i, OY_i, ON_i).
-        name_of_col_after_total:str = cn.LINE_VAR_COUNTER[linetype]
 
         # Number of columns after the N_THRESH column (i.e. THRESH_i, RANK_i, BIN_i, etc.)
         num_repeating_col_labels: int = int(cn.LINE_VAR_REPEATS[linetype])
@@ -276,22 +266,38 @@ class WriteStatAscii:
 
         # Add 1 for THRESH_N, the last threshold value column
         total_number_variable_columns = num_thresh * num_repeating_col_labels + 1
-        print(f"{total_number_variable_columns} total number of PCT-specific columns ")
 
-        # Add 1 for the TOTAL column to get the total number of columns for this data
+        # Add 1 for the TOTAL column to get the total number of columns for this line type
         total_number_relevant_columns = cn.NUM_STATIC_PCT_COLS + total_number_variable_columns + 1
 
-        # Get a list of names of the columns that correspond to the PCT linetype for this data
-        all_columns = stat_data.columns
-        only_relevant_columns = stat_data.columns.tolist()[0:total_number_relevant_columns]
-
+        #
         # Subset the input dataframe to include only the PCT columns and label the remaining
-        # unlabelled (numbered) columns/headers.
-        filtered_df = stat_data[only_relevant_columns]
+        # "unlabelled" (i.e. labelled with numbers after data is read in by METdbLoad)
+        # columns/headers.
+        #
+
+        # Subset the dataframe to only the PCT line type rows
+        # stat_data_copy: pd.DataFrame = stat_data.copy(deep=True)
+        # Do not assume that the input data contains only the PCT lines.
+        stat_data_copy = stat_data.loc[stat_data['line_type'] == cn.PCT]
+
+        # Get a list of names of the columns that correspond to the PCT linetype for this data
+        only_relevant_columns = stat_data_copy.columns.tolist()[0:total_number_relevant_columns]
+
+        filtered_df = stat_data_copy[only_relevant_columns]
         headers = filtered_df.columns
+
+        # Identify the common headers to be used in indexing the dataframe.
+        common_list = headers[0:cn.NUM_STATIC_PCT_COLS].to_list()
+        common_list[cn.NUM_STATIC_PCT_COLS - 1] = 'total'
+
         working_df = filtered_df.copy(deep=True)
 
-        # Replace the numbered labels with the TOTAL and N_THRESH labels
+        # Remove the stat_data_copy dataframe, it is no longer needed.
+        del stat_data_copy
+        gc.collect()
+
+        # Replace the first two numbered labels (following the LINETYPE column) with the TOTAL and N_THRESH labels
         working_df.rename(columns={'0':'total', cn.LINE_VAR_COUNTER[cn.PCT]:'n_thresh'}, inplace=True)
 
         # Relabel the remaining numbered column headers
@@ -302,22 +308,122 @@ class WriteStatAscii:
         working_df.rename(columns={str(last_column_name):thresh_n_col_name}, inplace=True)
 
         # Relabel the repeating columns (THRESH_i, OY_i, ON_i)
-        idx = 1
+        # column names are numbered '1','2','3',...,etc. Give them descriptive labels: thresh_1, oy_1, on_1, etc.
+        ith_value_label = []
         column_name_value = int(cn.LINE_VAR_COUNTER[cn.PCT]) + 1
-        for i in range(int(cn.LINE_VAR_COUNTER[cn.PCT]), int(num_thresh) +1):
+
+        for i in range(int(cn.LINE_VAR_COUNTER[cn.PCT]), int(num_thresh) + 1):
             for column in cn.LC_PCT_VARIABLE_HEADERS:
                 column_name = str(column_name_value)
                 column_label = "{label}_{idx}".format(label=column, idx=i)
                 working_df.rename(columns={column_name:column_label}, inplace=True)
                 column_name_value += 1
 
+            # Add a list used to facilitate creating the value_i column when reformatting.
+            ith_value_label.append("{label}_{idx}".format(label="value", idx=i))
+
+        # Create a dataframe consisting only of the value_1, ..., value_n values and their corresponding index values
+        # and concat to the working_df.
+        num_rows = working_df.shape[0]
+
+        # Create a dictionary of values corresponding to each value_1, value_2, etc 'key'
+        value_i_dict = {}
+
+        # Create a dataframe with the same number of rows
+        # as the working_df dataframe to enable concatenation.
+
+        for label in ith_value_label:
+            values_list = []
+            match = re.match(r'(value_)(\d+)', label)
+            ith_value = int(match.group(2))
+
+            for i in range(1, num_rows + 1):
+                values_list.append(ith_value)
+
+            value_i_dict[label] = values_list
+
+        # Create the dataframe of the value_i values.
+        value_df = pd.DataFrame.from_dict(value_i_dict)
+
+        # Reindex working_df to match the value_df index. This ensures correct concatenation of
+        # the working_df with the value_df
+        working_df_reindexed = working_df.reset_index(drop=False)
+        working_df_reindexed = pd.concat([working_df_reindexed, value_df], axis=1)
+
+        # Clean up working_df dataframe, it is no longer needed
+        del working_df
+        del value_df
+        gc.collect()
+
         # Now reformat the columns so all thresh_1, thresh_2, ..., etc values go under the thresh_i column,
         # the oy_1, oy_2, ..., etc. values go under the oy_i column, and the on_1, on_2, ...,etc. values
-        # go under the on_i column.  The nth threshold goes under the i_value column (ie threshold 1,..., n).
+        # go under the on_i column.  The corresponding threshold level/number/index for the thresh_i, oy_i and on_i
+        # columns goes under the i_value column (ie threshold 1,..., n).
 
+        # Work on a copy of the working_df to avoid working on a fragmented dataframe (i.e. avoid the
+        # PerformanceWarning).
+        working_copy_df = working_df_reindexed.copy(deep=True)
 
+        # Clean up
+        del working_df_reindexed
+        gc.collect()
 
-        return working_df
+        thresh_cols = []
+        oy_cols = []
+        on_cols = []
+        i_value = []
+        working_headers = working_copy_df.columns.to_list()
+        remaining_columns = working_headers[cn.NUM_STATIC_PCT_COLS:]
+        for cur in remaining_columns:
+            match_thresh = re.match(r'(thresh_)(\d+)', cur)
+            match_oy = re.match(r'(oy_)(\d+)', cur)
+            match_on = re.match(r'(on_)(\d+)', cur)
+            match_val = re.match(r'(value_)(\d+)', cur)
+            if match_thresh:
+                thresh_cols.append(cur)
+            elif match_oy:
+                oy_cols.append(cur)
+            elif match_on:
+                on_cols.append(cur)
+            elif match_val:
+                i_value.append(cur)
+
+        # The last threshold value, thresh_n isn't used, remove it from the list
+        thresh_cols = thresh_cols[:-1]
+
+        # Now apply melt to get the thresh_i, oy_i, on_i columns, and i_value column
+        # include the n_thresh column for indexing.
+        common_list.append('n_thresh')
+        df_thresh  = working_copy_df.melt(id_vars=common_list, value_vars=thresh_cols, var_name='thresh', value_name='thresh_i')
+        df_oy = working_copy_df.melt(id_vars=common_list, value_vars=oy_cols, var_name='oy', value_name='oy_i')
+        df_on = working_copy_df.melt(id_vars=common_list, value_vars=on_cols, var_name='on', value_name='on_i')
+        df_values = working_copy_df.melt(id_vars=common_list, value_vars=i_value, var_name='values', value_name='i_value')
+
+        # Drop the unused var_names in the melted dataframes
+        df_thresh.drop('thresh', axis=1, inplace=True)
+        df_oy.drop('oy', axis=1, inplace=True)
+        df_on.drop('on', axis=1, inplace=True)
+        df_values.drop('values', axis=1, inplace=True)
+
+        # Reindex to use the common columns before concatenating the melted dataframes to avoid duplication of
+        # common columns.
+        df_thresh_reindex = df_thresh.set_index(common_list, drop=True, append=False, inplace=False)
+        df_oy_reindex = df_oy.set_index(common_list, drop=True, append=False, inplace=False)
+        df_on_reindex = df_on.set_index(common_list, drop=True, append=False, inplace=False)
+        df_values_reindex = df_values.set_index(common_list, drop=True, append=False, inplace=False)
+        reformatted_df = pd.concat([df_thresh_reindex, df_oy_reindex, df_on_reindex, df_values_reindex], axis=1)
+
+        # clean up
+        del working_copy_df
+        gc.collect()
+
+        # reset the index so all columns are same level
+        reformatted_df = reformatted_df.reset_index(drop=False)
+
+        # Convert the n_thresh values to integers
+        reformatted_df = reformatted_df.astype({"n_thresh":np.int16})
+
+        return reformatted_df
 
 
     def process_fho(self, stat_data: pd.DataFrame) -> pd.DataFrame:
@@ -327,7 +433,7 @@ class WriteStatAscii:
              stat_name, stat_value, stat_bcl, stat_bcu, stat_ncu, and stat_ncl
 
              Arguments:
-             @param stat_data: The dataframe containing all the original data from
+             @param stat_data: The dataframe containing the data from
              the MET .stat file.
 
              Returns:
@@ -404,7 +510,7 @@ class WriteStatAscii:
            specifically for the CNT line type data.
 
            Arguments:
-           @param stat_data: the dataframe containing all the data from the MET .stat
+           @param stat_data: the dataframe containing data from the MET .stat
            file.
 
            Returns:
@@ -496,7 +602,7 @@ class WriteStatAscii:
            specifically for the VCNT line type data.
 
            Arguments:
-           @param stat_data: the dataframe containing all the data from the MET .stat
+           @param stat_data: the dataframe containing all the VCNT data from the MET .stat
            file.
 
            Returns:
@@ -642,74 +748,6 @@ class WriteStatAscii:
 
         return linetype_data
 
-    # def process_mctc(self, stat_data: pd.DataFrame) -> pd.DataFrame:
-    #     """
-    #          Reshape the data from the original MET output file (stat_data)
-    #          into new statistics columns:
-    #          stat_name, stat_value specifically for the MCTC (multi-category
-    #          contingency table counts) line type
-    #          data.
-    #
-    #          Arguments:
-    #          @param stat_data: the dataframe containing all the data from the MET .stat
-    #                            file.
-    #
-    #          Returns:
-    #              linetype_data: the reshaped pandas dataframe with statistics data
-    #                             reorganized into the stat_name and
-    #                             stat_value, stat_ncl, stat_ncu, stat_bcl,
-    #                             and stat_bcu columns.
-    #
-    #     """
-    #     # !!!!!!!!
-    #     # TODO
-    #     #  Need to correctly implement this to support the variable number or
-    #     #  Fi_Oj columns
-    #     # !!!!!!!!
-    #
-    #     # Relevant columns for the MCTC line type
-    #     linetype: str = cn.MCTC
-    #     end = cn.NUM_STAT_MCTC_COLS + 1
-    #     mctc_columns_to_use: List[str] =\
-    #         np.arange(0, end).tolist()
-    #
-    #     # Subset original dataframe to one containing only the MCTC data
-    #     mctc_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-    #                            mctc_columns_to_use]
-    #
-    #     # Add the stat columns header names for the MCTC line type
-    #     mctc_columns: List[str] = cn.MCTC_HEADERS
-    #     mctc_df.columns: List[str] = mctc_columns
-    #
-    #     # Create another index column to preserve the index values from the stat_data
-    #     # dataframe (ie the dataframe
-    #     # containing the original data from the MET output file).
-    #     idx = list(mctc_df.index)
-    #
-    #     # Work on a copy of the mctc_df dataframe to avoid a possible PerformanceWarning
-    #     # message due to a fragmented dataframe.
-    #     mctc_df_copy = mctc_df.copy()
-    #     mctc_df_copy.insert(loc=0, column='Idx', value=idx)
-    #
-    #     # Now apply melt to get the stat_name and stat_values from the statistics
-    #
-    #     # Columns we don't want to stack (i.e. treat these columns as a multi index)
-    #     id_vars_list = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
-    #     linetype_data = mctc_df_copy.melt(id_vars=id_vars_list,
-    #                                      value_vars=cn.MCTC_STATISTICS_HEADERS,
-    #                                      var_name='stat_name',
-    #                                      value_name='stat_value').sort_values('Idx')
-    #
-    #     # MCTC line type doesn't have the ncl, ncu, bcl and bcu stat values set these
-    #     # to NA
-    #     na_column: List[str] = ['NA' for _ in range(0, linetype_data.shape[0])]
-    #
-    #     linetype_data['stat_ncl']: pd.Series = na_column
-    #     linetype_data['stat_ncu']: pd.Series = na_column
-    #     linetype_data['stat_bcl']: pd.Series = na_column
-    #     linetype_data['stat_bcu']: pd.Series = na_column
-    #
-    #     return linetype_data
 
     def process_cts(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -1168,6 +1206,12 @@ def main():
         except yaml.YAMLError as exc:
             print(exc)
 
+    # Check that the config file has all the necessary settings and values
+    config_file_ok = config_file_complete(parms)
+    if not config_file_ok:
+        raise ValueError("Configuration file is missing one or more required settings and/or values.")
+        sys.exit(1)
+
     # Replacing the need for an XML specification file, pass in the XMLLoadFile and
     # ReadDataFile parameters
     rdf_obj: ReadDataFiles = ReadDataFiles()
@@ -1199,6 +1243,40 @@ def main():
     stat_lines_obj: WriteStatAscii = WriteStatAscii(parms)
     # stat_lines_obj.write_stat_ascii(file_df, parms, logger)
     stat_lines_obj.write_stat_ascii(file_df, parms)
+
+def config_file_complete(parms):
+    '''
+        Determines if the config file contains all the necessary fields.
+
+        Input:
+            parms:  The config file
+        Returns:
+            True if all expected settings are found, False otherwise.
+    '''
+
+    # Check for log direcotry, log filename, log level, line type, output_dir, output_filename, input_data_dir
+    expected_settings = ['output_dir', 'output_filename', 'input_data_dir', 'log_directory', 'log_filename', 'log_level',
+                         'line_type']
+    actual_keys = []
+    for k,v in parms.items():
+        actual_keys.append(k)
+        if v is None:
+            msg = "ERROR: Missing the value for the " + k + " setting."
+            logger.error(msg)
+            return False
+
+    for expected in expected_settings:
+        if expected not in actual_keys:
+            msg = "ERROR: The " + expected + " setting is missing in the YAML config file"
+            logger.error(msg)
+            return False
+
+
+
+
+
+    return True
+
 
 
 if __name__ == "__main__":
