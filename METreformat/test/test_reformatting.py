@@ -2,6 +2,7 @@ import pytest
 import pathlib
 import os
 import yaml
+from collections import namedtuple
 from typing import List
 import numpy as np
 import pandas as pd
@@ -637,3 +638,69 @@ def test_ensemble_stat_ecnt_consistency():
                                   (reshaped_df['total'] == '1125')]
     print(f"RMSE from reformatted: {actual_rmse_df} of type {type(actual_rmse_df)}")
     assert str(actual_rmse_df.iloc[0].stat_value) == str(expected_rmse)
+
+
+def test_pct_consistency():
+    '''
+
+    :return: None
+    '''
+
+    # Original data
+    stat_data, config = setup_test('PCT_ROC.yaml')
+
+    # Relevant columns for the PCT line type
+    linetype: str = cn.PCT
+
+    wsa = WriteStatAscii(config)
+    reshaped_df = wsa.process_pct(stat_data)
+
+    # Verify that the following values are found for the rows with these columns + values:
+    # fcst_thresh ==0.10000
+    # obs_thresh>=288
+    # total=4307
+    # fcst_lead 110000
+    # fcst_lev=Z2
+    ExpectedValues = namedtuple('ExpectedValues', 'thresh, oy, on, i_value')
+    thresh = [0, 0.1, 0.2, 0.9]
+    oy_i = [17, 7, 17, 1071]
+    on_i = [2831, 71, 30, 24]
+    i_value = [1, 2, 3, 10]
+    expected_values = []
+    zipped = zip(thresh, oy_i, on_i, i_value)
+    zipped_list = list(zipped)
+    for cur in zipped_list:
+        expected_values.append(ExpectedValues(*cur))
+
+    # Values from reformatting
+    subset = reshaped_df.loc[(reshaped_df['fcst_thresh'] == '==0.10000') & (reshaped_df['obs_thresh'] == '>=288') &
+                    (reshaped_df['total'] == '4307') & (reshaped_df['fcst_lev'] == 'Z2') &
+                    (reshaped_df['fcst_lead'] == 110000) & (reshaped_df['obs_var'] == 'DPT')]
+
+    values = [1, 2, 3, 10]
+    for idx, val in enumerate(values):
+        subset_by_value:pd.DataFrame = subset.loc[subset['i_value']== val]
+        cur_thresh = list(subset_by_value['thresh_i'])[0]
+        cur_oy = list(subset_by_value['oy_i'])[0]
+        cur_on = list(subset_by_value['on_i'])[0]
+        cur_val = list(subset_by_value['i_value'])[0]
+        expected_thresh = expected_values[idx].thresh
+        expected_oy = expected_values[idx].oy
+        expected_on = expected_values[idx].on
+        expected_val = expected_values[idx].i_value
+
+        assert str(expected_thresh) == cur_thresh
+        assert str(expected_oy) == cur_oy
+        assert str(expected_on) == cur_on
+        assert expected_val == cur_val
+
+
+
+
+
+
+
+
+
+
+
