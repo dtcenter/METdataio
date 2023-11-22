@@ -7,8 +7,10 @@ Description
 ===========
 
 
-The *METreformat* module is used to reformat MET point_stat .stat files into a format that can be read by
-METplotpy.  The reformatted data contains additional columns:
+The *METreformat* module is used to reformat MET .stat files (from the point_stat, grid_stat, or ensemble_stat tools)
+into a format that can be read by METplotpy.  The reformatted data contains additional columns, based on the type of
+plot.  For line, bar, box, contour, performance diagram, revision box, revision series, and taylor diagram plots,
+the .stat data contains additional columns:
 
 Two columns for statistics
 
@@ -39,10 +41,9 @@ labelled columns.  For example, in the PCT linetype, there are THRESH_i, THRESH_
 ON_i columns which need to be explicitly labelled (i.e. OY_1, OY_2, ,,,. OY_m, where m is the THRESH_ith
 value).
 
-These columns are needed for the *METplotpy* plots that are
-used by METviewer and for generating METplotpy plots from the command line.
+Other plot types require other special columns.
 
-The following MET line types* can be reformatted:
+Currenty, following MET line types* can be reformatted:
 
 - FHO
 
@@ -58,20 +59,23 @@ The following MET line types* can be reformatted:
 
 - MCTS
 
+- PCT (for ROC)
+
 
 These linetypes are produced by the MET point-stat, grid-stat, and ensemble_stat tools.
-*Other line types will be supported in the future.*.
+*Additional line types will be supported in the future.*.
 
 Required Components
 ===================
 
 Some METdbLoad modules are used to find and collect data from the individual .stat files into
-one data structure.
+one data structure.  The input .stat files must all reside under one directory, the path to the
+data is specified in a YAML configuration file.
 
-A YAML configuration file is required:
 
 The YAML configuration file is used to indicate the name and
-location of the output file, the location of the input data, and the MET tool used to generate the data.
+location of the output file, the location of the input data, logging information (filename, log level),
+and the linetype to read in and reformat.
 
 Example
 =======
@@ -122,6 +126,8 @@ Example
 
 .. code-block:: ini
 
-   python $BASE_DIR/METreformat/write_stat_ascii.py $WORKING_DIR/point_stat.yaml
+   python $BASE_DIR/METreformat/write_stat_ascii.py $WORKING_DIR/*line_type*_stat.yaml
+
+   replace *line_type* with the line type to reformat.
 
 - A text file will be created in the output directory with the file name as specified in the yaml file.
