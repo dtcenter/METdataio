@@ -7,5 +7,5 @@ log_directory: /path/to/log-dir
 log_filename: stdout
 # most verbose is info, less verbose is error
 log_level: info
-# Currently support FHO, CTC, CTS, CNT, SL1L2, PCT, MCTS, ECNT line types
+# Currently support FHO, CTC, CTS, CNT, SL1L2, PCT, MCTC, VCNT, ECNT line types
 line_type: PCT
