@@ -116,7 +116,8 @@ class WriteStatAscii:
             # Subset data to requested line type
             # ----------------------------------
             supported_linetypes = [cn.FHO, cn.CNT, cn.VCNT, cn.CTC,
-                                   cn.CTS, cn.MCTS, cn.SL1L2, cn.ECNT, cn.PCT]
+                                   cn.CTS, cn.MCTS, cn.SL1L2, cn.ECNT, cn.PCT,
+                                   cn.RHIST]
 
             # Different formats based on the line types. Most METplotpy plots accept the long format where
             # all stats are under the stat_name and stat_value columns and the confidence limits under the
@@ -235,6 +236,10 @@ class WriteStatAscii:
         elif linetype == cn.PCT:
             linetype_data: pd.DataFrame = self.process_pct(stat_data)
 
+        # RHIST (ranked histogram)
+        elif linetype == cn.RHIST:
+            linetype_data: pd.DataFrame = self.process_rhist(stat_data)
+
         else:
             return None
 
@@ -258,17 +263,6 @@ class WriteStatAscii:
         # Determine the columns for this line type
         linetype: str = cn.PCT
 
-        # Number of columns after the N_THRESH column (i.e. THRESH_i, RANK_i, BIN_i, etc.)
-        num_repeating_col_labels: int = int(cn.LINE_VAR_REPEATS[linetype])
-
-        #  Retrieve the value for N_THRESH, the number of thresholds
-        num_thresh:int = int(stat_data.iloc[0][cn.NUM_STATIC_PCT_COLS])
-
-        # Add 1 for THRESH_N, the last threshold value column
-        total_number_variable_columns = num_thresh * num_repeating_col_labels + 1
-
-        # Add 1 for the TOTAL column to get the total number of columns for this line type
-        total_number_relevant_columns = cn.NUM_STATIC_PCT_COLS + total_number_variable_columns + 1
 
         #
         # Subset the input dataframe to include only the PCT columns and label the remaining
@@ -280,6 +274,18 @@ class WriteStatAscii:
         # stat_data_copy: pd.DataFrame = stat_data.copy(deep=True)
         # Do not assume that the input data contains only the PCT lines.
         stat_data_copy = stat_data.loc[stat_data['line_type'] == cn.PCT]
+
+        # Number of columns after the N_THRESH column (i.e. THRESH_i, RANK_i, BIN_i, etc.)
+        num_repeating_col_labels: int = int(cn.LINE_VAR_REPEATS[linetype])
+
+        #  Retrieve the value for N_THRESH, the number of thresholds
+        num_thresh: int = int(stat_data_copy.iloc[0][cn.NUM_STATIC_PCT_COLS])
+
+        # Add 1 for THRESH_N, the last threshold value column
+        total_number_variable_columns = num_thresh * num_repeating_col_labels + 1
+
+        # Add 1 for the TOTAL column to get the total number of columns for this line type
+        total_number_relevant_columns = cn.NUM_STATIC_PCT_COLS + total_number_variable_columns + 1
 
         # Get a list of names of the columns that correspond to the PCT linetype for this data
         only_relevant_columns = stat_data_copy.columns.tolist()[0:total_number_relevant_columns]
@@ -422,6 +428,169 @@ class WriteStatAscii:
 
         # Convert the n_thresh values to integers
         reformatted_df = reformatted_df.astype({"n_thresh":np.int16})
+
+        return reformatted_df
+
+    def process_rhist(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+            Retrieve the RHIST linetype data (Ranked histogram, from the MET ensemble-stat tool) and reshape it
+            (wide to long format) to enable METplotpy to ingest the data and generate ranked histogram plots.
+            Take into account that this line type consists of a variable number
+            of RANK_i columns that appear after the N_RANK column (i.e. RANK_1, RANK_2,..., RANK_n where n= the number
+            of possible ranks).
+
+            Arguments:
+            @param stat_data: Input data from MET .stat output represented as a dataframe.
+
+            Returns:
+            linetype_data: the input dataframe reformatted into long format
+
+        """
+
+        # Determine the columns for this line type
+        linetype: str = cn.RHIST
+
+
+        #
+        # Subset the input dataframe to include only the RHIST columns and label the remaining
+        # "unlabelled" (i.e. labelled with numbers after data is read in by METdbLoad)
+        # columns/headers.
+        #
+
+        # Subset the dataframe to only the RHIST line type rows
+        # stat_data_copy: pd.DataFrame = stat_data.copy(deep=True)
+        # Do not assume that the input data contains only the RHIST lines.
+        stat_data_copy = stat_data.loc[stat_data['line_type'] == cn.RHIST]
+
+        # Number of columns after the N_RANK column (RANK_1, ..., RANK_n)
+        num_repeating_col_labels: int = int(cn.LINE_VAR_REPEATS[linetype])
+
+        #  Retrieve the value for N_RANK, the number of possible ranks
+        num_rank:int = int(stat_data_copy.iloc[0][cn.NUM_STATIC_RHIST_COLS])
+
+        # Add 1 for the TOTAL column to get the total number of columns for this line type
+        total_number_relevant_columns = cn.NUM_STATIC_RHIST_COLS + num_rank * num_repeating_col_labels + 1
+
+        # Get a list of names of the columns that correspond to the RHIST linetype for this data
+        only_relevant_columns = stat_data_copy.columns.tolist()[0:total_number_relevant_columns]
+
+        filtered_df = stat_data_copy[only_relevant_columns]
+        headers = filtered_df.columns
+
+        # Identify the common headers to be used in indexing the dataframe.
+        common_list = headers[0:cn.NUM_STATIC_RHIST_COLS].to_list()
+        common_list[cn.NUM_STATIC_RHIST_COLS - 1] = 'total'
+
+        working_df = filtered_df.copy(deep=True)
+
+        # Remove the stat_data_copy dataframe, it is no longer needed.
+        del stat_data_copy
+        gc.collect()
+
+        # Replace the first two numbered labels (following the LINETYPE column) with the TOTAL and N_RANK labels
+        working_df.rename(columns={'0':'total', cn.LINE_VAR_COUNTER[cn.RHIST]:'n_rank'}, inplace=True)
+
+        # Relabel the remaining numbered column headers
+        last_column_name = len(working_df.columns) - cn.NUM_STATIC_RHIST_COLS
+
+        # Relabel the repeating columns (RANK_1, ..., RANK_n)
+        # column names are numbered '1','2','3',...,etc. by METdbLoad.
+        # Give them descriptive labels: rank_1, rank_2, etc.
+        ith_value_label = []
+        column_name_value = int(cn.LINE_VAR_COUNTER[cn.RHIST]) + 1
+
+        for i in range(int(cn.LINE_VAR_COUNTER[cn.RHIST]), int(num_rank) + 1):
+            for column in cn.LC_RHIST_VARIABLE_HEADERS:
+                column_name = str(column_name_value)
+                column_label = "{label}_{idx}".format(label=column, idx=i)
+                working_df.rename(columns={column_name:column_label}, inplace=True)
+                column_name_value += 1
+
+            # Add a list used to facilitate creating the value_i column when reformatting.
+            ith_value_label.append("{label}_{idx}".format(label="value", idx=i))
+
+        # Create a dataframe consisting only of the value_1, ..., value_n values and their corresponding index values
+        # and concat to the working_df.
+        num_rows = working_df.shape[0]
+
+        # Create a dictionary of values corresponding to each value_1, value_2, etc. 'key'
+        value_i_dict = {}
+
+        # Create a dataframe with the same number of rows
+        # as the working_df dataframe to enable concatenation.
+
+        for label in ith_value_label:
+            values_list = []
+            match = re.match(r'(value_)(\d+)', label)
+            ith_value = int(match.group(2))
+
+            for i in range(1, num_rows + 1):
+                values_list.append(ith_value)
+
+            value_i_dict[label] = values_list
+
+        # Create the dataframe of the value_i values.
+        value_df = pd.DataFrame.from_dict(value_i_dict)
+
+        # Reindex working_df to match the value_df index. This ensures correct concatenation of
+        # the working_df with the value_df
+        working_df_reindexed = working_df.reset_index(drop=False)
+        working_df_reindexed = pd.concat([working_df_reindexed, value_df], axis=1)
+
+        # Clean up working_df dataframe, it is no longer needed
+        del working_df
+        del value_df
+        gc.collect()
+
+        # Now reformat the columns so all rank_1, rank_2, ..., etc values go under the rank_i column,
+        # The corresponding rank level/number/index for the rank_i
+        # columns goes under the i_value column
+
+        # Work on a copy of the working_df to avoid working on a fragmented dataframe (i.e. avoid the
+        # PerformanceWarning).
+        working_copy_df = working_df_reindexed.copy(deep=True)
+
+        # Clean up
+        del working_df_reindexed
+        gc.collect()
+
+        rank_cols = []
+        i_value = []
+        working_headers = working_copy_df.columns.to_list()
+        remaining_columns = working_headers[cn.NUM_STATIC_RHIST_COLS:]
+        for cur in remaining_columns:
+            match_rank = re.match(r'(rank_)(\d+)', cur)
+            match_val = re.match(r'(value_)(\d+)', cur)
+            if match_rank:
+                rank_cols.append(cur)
+            elif match_val:
+                i_value.append(cur)
+
+        # Now apply melt to get the rank_i and i_value columns
+        # include the n_rank column for indexing.
+        common_list.append('n_rank')
+        df_rank  = working_copy_df.melt(id_vars=common_list, value_vars=rank_cols, var_name='rank', value_name='rank_i')
+        df_values = working_copy_df.melt(id_vars=common_list, value_vars=i_value, var_name='values', value_name='i_value')
+
+        # Drop the unused var_names in the melted dataframes
+        df_rank.drop('rank', axis=1, inplace=True)
+        df_values.drop('values', axis=1, inplace=True)
+
+        # Reindex to use the common columns before concatenating the melted dataframes to avoid duplication of
+        # common columns.
+        df_rank_reindex = df_rank.set_index(common_list, drop=True, append=False, inplace=False)
+        df_values_reindex = df_values.set_index(common_list, drop=True, append=False, inplace=False)
+        reformatted_df = pd.concat([df_rank_reindex, df_values_reindex], axis=1)
+
+        # clean up
+        del working_copy_df
+        gc.collect()
+
+        # reset the index so all columns are same level
+        reformatted_df = reformatted_df.reset_index(drop=False)
+
+        # Convert the n_rank values to integers
+        reformatted_df = reformatted_df.astype({"n_rank":np.int16})
 
         return reformatted_df
 
