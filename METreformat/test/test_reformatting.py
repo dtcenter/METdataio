@@ -695,6 +695,66 @@ def test_pct_consistency():
         assert expected_val == cur_val
 
 
+def test_rhist_consistency():
+    '''
+
+      Verify that values match what is expected in the reformatted output.
+
+    :return:  None
+    '''
+
+
+    # Original data
+    stat_data, config = setup_test('RHIST.yaml')
+
+   # Relevant columns for the RHIST line type
+    linetype: str = cn.RHIST
+
+    wsa = WriteStatAscii(config)
+    reshaped_df = wsa.process_rhist(stat_data)
+
+    # Verify that the following values are found for the rows with these columns + values (corresponding to the
+    # last row of data in the raw RHIST input dataframe):
+    fcst_lead=280000
+    obs_var='DPT'
+    obtype='ADPSFC'
+    model='RRFS_GEFS_GF.SPP.SPPT'
+    fcst_var='DPT'
+    total= '4089'
+    fcst_lev='Z2'
+    obs_lev='Z2'
+
+    ExpectedValues = namedtuple('ExpectedValues', 'rank, i_value')
+    rank_i = [955, 460, 389, 220]
+    i_value = [1, 2, 3, 11]
+    expected_values = []
+    zipped = zip(rank_i, i_value)
+    zipped_list = list(zipped)
+    for cur in zipped_list:
+        expected_values.append(ExpectedValues(*cur))
+
+    # Values from reformatted stat file
+    subset = reshaped_df.loc[(reshaped_df['fcst_lead'] == fcst_lead) & (reshaped_df['obs_var'] == obs_var) &
+                    (reshaped_df['total'] == total) & (reshaped_df['fcst_lev'] == fcst_lev) &
+                    (reshaped_df['fcst_lead'] == fcst_lead) & (reshaped_df['obs_var'] == obs_var) &
+                    (reshaped_df['model'] == model) & (reshaped_df['obtype'] == obtype) &
+                    (reshaped_df['fcst_var'] == fcst_var) & (reshaped_df['obs_lev'] == obs_lev)]
+
+    # Check that our subsetted dataframe isn't an empty data frame and it contains n_rank rows
+    num_ranks = reshaped_df['n_rank'][0]
+    assert reshaped_df.shape[0] > 1
+    assert subset.shape[0] == num_ranks
+
+    values = [1, 2, 3, 11]
+    for idx, val in enumerate(values):
+        subset_by_value:pd.DataFrame = subset.loc[subset['i_value']== val]
+        cur_rank = list(subset_by_value['rank_i'])[0]
+        cur_val = list(subset_by_value['i_value'])[0]
+        expected_rank = expected_values[idx].rank
+        expected_val = expected_values[idx].i_value
+
+        assert str(expected_rank) == cur_rank
+        assert expected_val == cur_val
 
 
 
