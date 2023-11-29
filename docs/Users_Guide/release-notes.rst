@@ -10,7 +10,7 @@ METdataio Release Notes
 =======================
 
 METdataio Version 3.0.0 Beta 2 Release Notes (20231114)
-------------------------------------------------
+-------------------------------------------------------
 
 
   .. dropdown:: New Functionality
@@ -28,7 +28,7 @@ METdataio Version 3.0.0 Beta 2 Release Notes (20231114)
 
 
 METdataio Version 3.0.0 Beta 1 Release Notes (20230915)
-------------------------------------------------
+-------------------------------------------------------
 
 
   .. dropdown:: New Functionality
