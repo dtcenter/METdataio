@@ -18,7 +18,7 @@ METdataio Version 3.0.0 Release Notes (20231114)
 
   .. dropdown:: Enhancements
 
-     * **Make Headers consistent across all repos** (`#238 <https://github.com/dtcenter/METdataio/issues/238>`_)
+     * Make Headers consistent across all repos (`#238 <https://github.com/dtcenter/METdataio/issues/238>`_)
 
 
   .. dropdown:: Internal
