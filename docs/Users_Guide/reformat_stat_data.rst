@@ -179,6 +179,8 @@ Refer to the following details for each of the mandatory settings in the configu
   **output_filename**
     * The name of the output file
     * **NOTE**: save with .data extension if this is to be used for plotting using METplotpy
+    * If reformatting is run successively without removing an existing output file of the same name, the existing file
+      will be overwritten.
 
   **log_filename**
     * The name of the log file
@@ -265,6 +267,5 @@ Generate the reformatted file:
 .. code-block:: ini
 
    python $BASE_DIR/METreformat/write_stat_ascii.py $WORKING_DIR/*line_type*_stat.yaml
-
 
 - A text file will be created in the output directory with the file name that was specified in the yaml file.
