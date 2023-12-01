@@ -23,7 +23,6 @@ import os
 import logging
 import time
 import pathlib
-from datetime import timedelta
 from typing import List, Set
 import numpy as np
 import pandas as pd
@@ -125,7 +124,7 @@ class WriteStatAscii:
             # and ROC diagrams require specific formatting.
 
             working_df = stat_data.copy(deep=True)
-            linetype_requested = parms['line_type']
+            linetype_requested = str( parms['line_type']).upper()
             if linetype_requested in supported_linetypes:
                 working_df = working_df.loc[working_df['line_type'] == linetype_requested]
             else:
@@ -1423,7 +1422,7 @@ def config_file_complete(parms):
             True if all expected settings are found, False otherwise.
     '''
 
-    # Check for log direcotry, log filename, log level, line type, output_dir, output_filename, input_data_dir
+    # Check for log directory, log filename, log level, line type, output_dir, output_filename, input_data_dir
     expected_settings = ['output_dir', 'output_filename', 'input_data_dir', 'log_directory', 'log_filename', 'log_level',
                          'line_type']
     actual_keys = []
