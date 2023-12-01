@@ -170,13 +170,7 @@ Refer to the following details for each of the mandatory settings in the configu
 
 
 ####To Do Drop-down goes here####
-name of pull-down: Definition of Configuration Settings
- - input_data_dir
- - output_dir
- - output_filename
- - log_directory
- - log_filename
- - line_type
+
 
 
 
