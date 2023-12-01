@@ -75,7 +75,7 @@ Foundation (NSF).
    installation
    common
    load_data
-   reformat_point_stat_data
+   reformat_stat_data
 
 Indices and tables
 ==================
