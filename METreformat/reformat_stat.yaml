@@ -1,11 +1,15 @@
 # Configuration settings for reformatting MET .stat output to format for METplotpy
 output_dir: /path/to/output-dir
-output_filename: reformatted_output.txt
+output_filename: reformatted_output.data
+
 input_data_dir: /path/to/input-dir
+
 # Set to log_filename to STDOUT/stdout if no log file is to be saved
 log_directory: /path/to/log-dir
 log_filename: stdout
+
 # most verbose is info, less verbose is error
 log_level: info
-# Currently support FHO, CTC, CTS, CNT, SL1L2, PCT, MCTC, VCNT, ECNT line types
+
+# Currently support FHO, CTC, CTS, CNT, SL1L2, VL1L2, PCT, MCTC, VCNT, ECNT, and RHIST line types
 line_type: PCT
