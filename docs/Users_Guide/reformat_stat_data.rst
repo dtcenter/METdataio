@@ -195,6 +195,7 @@ Refer to the following details for each of the mandatory settings in the configu
   **line_type**
     * The line type to be reformatted
     * Currently supported line types are:
+
       * FHO
       * CNT
       * CTC
