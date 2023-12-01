@@ -167,9 +167,45 @@ Edit the reformat_stat.yaml config file:
 
 Refer to the following details for each of the mandatory settings in the configuration file.
 
+.. dropdown:: Definition of Mandatory Config Settings
 
+  **input_data_dir**
 
-####To Do Drop-down goes here####
+    * The full path (no environment variables) to the directory that contains all the input .stat files from the MET point-stat, grid-stat, or ensemble-stat tool
+    * If data is distributed among numerous directories, they will need to be consolidated into one directory
+    
+
+  **output_dir**
+    * The full path (no environment variables) to the directory where the reformatted file will be saved
+
+  **output_filename**
+  the name of the output file
+  NOTE: save with .data extension if this is to be used for plotting using METplotpy
+
+  **log_filename**
+  The name of the log file
+  Set to STDOUT or stdout (case insensitive) if no log file is to be saved
+
+  **log_dir**
+  The full path to the directory (no environment variables) where the log file is to be saved
+  log_level
+  The verbosity of the logging: INFO, DEBUG, WARNING, ERROR
+  INFO is the most verbose, ERROR is least verbose
+
+  **line_type**
+  The line type to be reformatted
+  Currently supported line types are:
+  FHO
+  CNT
+  CTC
+  CTS
+  SL1L2
+  VL1L2
+  ECNT
+  MCTS
+  VCNT
+  RHIST
+  PCT
 
 
 
