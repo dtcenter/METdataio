@@ -53,11 +53,11 @@ class ReadNetCDF:
             Returns: pandas dataframe
         """
         
-        df = pd.DataFrame()
+        pd_list = []
         for file in load_files:
             file_data = xr.open_dataset(file)
-            df = df.append(file_data.to_dataframe().reset_index(), sort=False)
-
+            pd_list.append(file_data.to_dataframe().reset_index())
+        df = pd.concat(pd_list)
         return df
 
     def read_into_xarray(self, load_files):
