@@ -56,7 +56,7 @@ class ReadNetCDF:
         df = pd.DataFrame()
         for file in load_files:
             file_data = xr.open_dataset(file)
-            df = df.append(file_data.to_dataframe(), sort=False)
+            df = df.append(file_data.to_dataframe().reset_index(), sort=False)
 
         return df
 
