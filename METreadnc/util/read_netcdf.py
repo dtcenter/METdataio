@@ -70,7 +70,6 @@ class ReadNetCDF:
             file_data = xr.open_dataset(file)
             self.xarray_data.append(file_data)
 
-        print(self.xarray_data)
         return self.xarray_data
 
 
