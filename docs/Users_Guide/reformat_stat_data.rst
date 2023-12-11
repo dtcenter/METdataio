@@ -57,11 +57,11 @@ Four columns for confidence levels (normal and bootstrap)
 
 - stat_ncl
 
-   - lower level normal confidence limit
+    - lower level normal confidence limit
 
 - stat_ncu
 
-  - upper level normal confidence limit
+    - upper level normal confidence limit
 
 
 The corresponding line types for the above plots are as follows:
