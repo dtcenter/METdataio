@@ -10,6 +10,7 @@ Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 
 import sys
 import os
+import argparse
 import pandas as pd
 import xarray as xr
 import yaml
@@ -48,50 +49,72 @@ class ReadNetCDF:
         return files
 
 
-    def read_into_pandas(self, load_files):
-        """ Read in data files as given in yaml config.
+    def read_into_pandas(self, load_files) -> pd.DataFrame:
+        """ Read in data files as a list specified in yaml config or
+            invoke directly with input provided as a list, tuple, or a single file.
+
+            Args:
+                load_files: File or a list or tuple of files to read and convert to pandas.
+
             Returns: pandas dataframe
         """
-        
-        pd_list = []
-        for file in load_files:
-            file_data = xr.open_dataset(file)
-            pd_list.append(file_data.to_dataframe().reset_index())
-        df = pd.concat(pd_list)
+
+        if isinstance(load_files, list) or isinstance(load_files, tuple):
+            pd_list = []
+            for file in load_files:
+                file_data = xr.open_dataset(file)
+                pd_list.append(file_data.to_dataframe().reset_index())
+            df = pd.concat(pd_list)
+        elif isinstance(load_files, str):
+            # single file specified
+            file_data = xr.open_dataset(load_files)
+            df =  file_data.to_dataframe().reset_index()
         return df
 
-    def read_into_xarray(self, load_files):
-        """ Read in data files as given in yaml config.
+    def read_into_xarray(self, load_files) -> list:
+        """ Read in data files as a list as specified in a yaml config or if invoking
+            directly, accept list, tuple, or single file name.
             Returns: a list of xarry DataSets
         """
-        
-        df = pd.DataFrame()
-        for file in load_files:
-            file_data = xr.open_dataset(file)
+
+        if isinstance(load_files, list) or isinstance(load_files, tuple):
+            for file in load_files:
+                # open a list or tuple of files
+                file_data = xr.open_dataset(file)
+                self.xarray_data.append(file_data)
+        elif isinstance(load_files, str):
+            # single file specified
+            file_data = xr.open_dataset(load_files)
             self.xarray_data.append(file_data)
+        else:
+            raise ValueError('Input file(s) not recognized. Files must be specified as a single filename, list of '
+                             'filenames, or a tuple of filenames.')
 
         return self.xarray_data
 
 
 def main():
     """
-    Reads in a default config file that contains a list of netcdf files to be loaded into an xarray
-    and/or a pandas DataFrame
+    Reads in a YAML config file that contains a list of netcdf files to be loaded into a
+    list of xarray Datasets and/or a pandas DataFrame
     """
 
     file_reader = ReadNetCDF()
 
-    #The advantage of using YAML is that you can use environment variables to
-    #reference a path to the file
-    yaml_config_file = "read_netcdf.yaml"
-    load_files = file_reader.readYAMLConfig(yaml_config_file)
+    # Reading in the configuration file
+    parser = argparse.ArgumentParser(description='Read in config file')
+    parser.add_argument('Path', metavar='yaml_config_file', type=str,
+                         help='the full path to the YAML config file')
+    args = parser.parse_args()
+    specified_config_file = args.Path
+    load_files = file_reader.readYAMLConfig(specified_config_file)
 
     #Pandas dataframes are much larger than xarrays
     #The read_into_pandas should be commented out if you are testing this
-    #On very large files
+    #on very large files
     netcdf_data_frame = file_reader.read_into_pandas(load_files)
+
     netcdf_data_set = file_reader.read_into_xarray(load_files)
-    print(netcdf_data_set)
 
 
 if __name__ == "__main__":
