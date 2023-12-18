@@ -41,6 +41,12 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Retrieve METcalcpy repository develop branch
+      run: |
+         /usr/bin/git clone https://github.com/dtcenter/METcalcpy
+         cd METcalcpy
+         /usr/bin/git checkout develop
+         python -m pip install -e .
          
 
     - name: Install dependencies
