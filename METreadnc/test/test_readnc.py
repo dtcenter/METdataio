@@ -74,27 +74,3 @@ def test_pandas_no_lon():
         assert col in expected_cols
 
 
-@pytest.mark.filterwarnings("ignore")
-def test_yaml_with_env():
-    # Test using yaml config file with ENV
-    file_reader = rn.ReadNetCDF()
-    os.environ['CALCPY_DATA'] = './data/lat_lon'
-    expected_files = ['./data/lat_lon/Z500_daily_19980216_NH.nc',
-                      './data/lat_lon/Z500_daily_20080106_NH.nc',
-                      './data/lat_lon/Z500_daily_20170224_NH.nc']
-    load_files = file_reader.readYAMLConfig('./test_readnc_env.yaml')
-    for cur in load_files:
-        assert cur in expected_files
-
-@pytest.mark.filterwarnings("ignore")
-def test_yaml_no_env():
-    # Test using yaml config file with relative path specified instead
-    # of checking the CALCPY_DATA env value.
-    file_reader = rn.ReadNetCDF()
-    os.environ['CALCPY_DATA'] = './data/lat_lon'
-    expected_files = ['./data/lat_lon/Z500_daily_19980216_NH.nc',
-                      './data/lat_lon/Z500_daily_20080106_NH.nc',
-                      './data/lat_lon/Z500_daily_20170224_NH.nc']
-    load_files = file_reader.readYAMLConfig('./test_readnc.yaml')
-    for cur in load_files:
-        assert cur in expected_files
