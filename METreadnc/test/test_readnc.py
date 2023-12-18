@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import xarray
 
-from METdataio.METreadnc.util import read_netcdf as rn
+from METreadnc.util import read_netcdf as rn
 
 
 def test_xarray_one_file():
