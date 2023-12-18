@@ -8,7 +8,7 @@ Description
 
 
 The *METreadnc* module is used to read netCDF input files and create a list of
-Xarray Datasets or a pandas dataframe.
+Xarray Datasets or a Pandas dataframe.
 
 Requirements
 ============
