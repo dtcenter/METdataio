@@ -65,4 +65,6 @@ jobs:
           cd $GITHUB_WORKSPACE/METreformat
           cd test
           pytest test_point_stat_to_ascii.py
+          cd $GITHUB_WORKSPACE/METreadnc
+          pytest test_readnc.py
           echo "Finished unit tests"
