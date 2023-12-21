@@ -1,0 +1,8 @@
+output_dir: ../output
+output_filename: mcts_reformatted.data
+line_type: MCTS
+input_data_dir: ./data/grid_stat/mctc_mcts
+# Set to log_filename to STDOUT if no log file is to be saved
+log_directory: ./output
+log_filename: stdout
+log_level: ERROR
