@@ -1,0 +1,14 @@
+<load_spec>
+	<folder_tmpl>./data/ensemble_stat/</folder_tmpl>
+	<verbose>true</verbose>
+
+	<load_val>
+		<field name="met_tool">
+			<val>grid_stat</val>
+			<val>point_stat</val>
+		</field>
+	</load_val>
+
+	<description>MET output from ensemble stat including the ecnt, rhist, phist, relp, ssvar, and orank line types </description>
+
+</load_spec>
