@@ -72,7 +72,7 @@ jobs:
           cd $GITHUB_WORKSPACE/METreformat
           cd test
 
-          pytest test_point_stat_to_ascii.py
+          pytest test_reformatting.py
           cd $GITHUB_WORKSPACE/METreadnc
           cd test
           pytest test_readnc.py
