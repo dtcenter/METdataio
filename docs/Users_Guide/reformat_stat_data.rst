@@ -1,6 +1,6 @@
-****************************
-Reformat MET Point Stat Data
-****************************
+***********************
+Reformat MET Stat Data
+***********************
 
 
 Description
