@@ -348,9 +348,7 @@ class ReadDataFiles:
                             logging.warning("!!! TCST file %s is empty", filename)
                             continue
 
-                        # File has headers but not data
-                        if not len(tcst_file):
-                            continue
+
 
                         # Add a DESC column if the data file does not have one
                         if not file_hdr.iloc[0].str.contains(CN.UC_DESC).any():
@@ -363,9 +361,10 @@ class ReadDataFiles:
                         else:
                             hdr_names = CN.LONG_HEADER_TCST + CN.COL_NUMS
                             tcst_file = self.read_tcst(filename, hdr_names)
-                            # File has headers but not data
-                            if not len(tcst_file):
-                                continue
+
+                        # File has headers but not data
+                        if not len(tcst_file):
+                            continue
 
                         # add line numbers and count the header line, for tcst files
                         tcst_file[CN.LINE_NUM] = tcst_file.index + 2
