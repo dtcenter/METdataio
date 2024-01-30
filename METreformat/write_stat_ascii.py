@@ -148,12 +148,16 @@ class WriteStatAscii:
             # Based on the line type, extract the statistics information and save it in a
             # datafram.
 
+            # Setting to indicate whether .stat files were processed with MET stat-analysis (True)
+            # or directly from the MET point-stat, grid-stat, or ensemble-stat tool (False)
+            is_aggregated = parms['input_stats_aggregated']
             # Replace any nan records with 'NA'.  These nan values were set by the
             # METdbLoad read_data_files module.
             # stat_data = stat_data.fillna('NA')
             working_df = working_df.fillna('NA')
             begin_reformat = time.perf_counter()
-            reformatted_df = self.process_by_stat_linetype(linetype_requested, working_df)
+
+            reformatted_df = self.process_by_stat_linetype(linetype_requested, working_df, is_aggregated)
             end_reformat = time.perf_counter()
             reformat_time = end_reformat - begin_reformat
             msg = 'Reformatting took: ' + str(reformat_time) + ' seconds'
@@ -175,7 +179,7 @@ class WriteStatAscii:
 
         return reformatted_df
 
-    def process_by_stat_linetype(self, linetype: str, stat_data: pd.DataFrame):
+    def process_by_stat_linetype(self, linetype: str, stat_data: pd.DataFrame, is_aggregated=True):
         """
            For a given linetype, extract the relevant statistics information into the
            stat_name, stat_value columns,
@@ -188,28 +192,48 @@ class WriteStatAscii:
             Empty columns from the original .stat
                               file are named with the string representation of the
                               numbers 1-n.
+            @param is_aggregated: Default=True.
+                                  Boolean to indicate whether input .stat files already have aggregated statistics
+                                  computed (i.e. output from MET stat-analysis tool). True if MET stat-analysis was used,
+                                  False if .stat files are directly from MET point-stat, grid-stat, or
+                                  ensemble-stat tool.
 
             @return: linetype_data The dataframe that is reshaped (from wide to
             long), now including the stat_name,
             stat_value, stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns. If the
             requested linetype does not exist or isn't supported, return None.
+
+            Or, if data requires aggregation via METcalcpy agg_stat.py, then the input will need to
+            reformatted with columns corresponding to the linetype's statistics names.
         """
 
         # FHO forecast, hit rate, observation rate
         if linetype == cn.FHO:
-            linetype_data: pd.DataFrame = self.process_fho(stat_data)
+            if is_aggregated:
+                linetype_data: pd.DataFrame = self.process_fho(stat_data)
+            else:
+                raise NotImplementedError("Reformatting FHO for METcalcpy agg_stat not yet implemented. ")
 
         # CNT Continuous Statistics
         elif linetype == cn.CNT:
-            linetype_data: pd.DataFrame = self.process_cnt(stat_data)
+            if is_aggregated:
+                linetype_data: pd.DataFrame = self.process_cnt(stat_data)
+            else:
+                raise NotImplementedError("Reformatting CNT for METcalcpy agg_stat not yet implemented. ")
 
         # VCNT Continuous Statistics
         elif linetype == cn.VCNT:
-            linetype_data: pd.DataFrame = self.process_vcnt(stat_data)
+            if is_aggregated:
+                linetype_data: pd.DataFrame = self.process_vcnt(stat_data)
+            else:
+                raise NotImplementedError("Reformatting VCNT for METcalcpy agg_stat not yet implemented. ")
 
         # CTC Contingency Table Counts
         elif linetype == cn.CTC:
-            linetype_data: pd.DataFrame = self.process_ctc(stat_data)
+            if is_aggregated:
+                linetype_data: pd.DataFrame = self.process_ctc(stat_data)
+            else:
+                raise NotImplementedError("Reformatting CTC for METcalcpy agg_stat not yet implemented. ")
 
         # CTS Contingency Table Statistics
         elif linetype == cn.CTS:
@@ -217,28 +241,45 @@ class WriteStatAscii:
 
         # MCTS Contingency Table Statistics
         elif linetype == cn.MCTS:
-            linetype_data: pd.DataFrame = self.process_mcts(stat_data)
+            if is_aggregated:
+                linetype_data: pd.DataFrame = self.process_mcts(stat_data)
+            else:
+                raise NotImplementedError("Reformatting MCTS for METcalcpy agg_stat not yet implemented. ")
 
         # SL1L2 Scalar Partial sums
         elif linetype == cn.SL1L2:
-            linetype_data: pd.DataFrame = self.process_sl1l2(stat_data)
+            if is_aggregated:
+                linetype_data: pd.DataFrame = self.process_sl1l2(stat_data)
+            else:
+                raise NotImplementedError("Reformatting SL1L2 for METcalcpy agg_stat not yet implemented. ")
 
         # VL1L2 Scalar Partial sums
         elif linetype == cn.VL1L2:
-            linetype_data: pd.DataFrame = self.process_vl1l2(stat_data)
+            if is_aggregated:
+                linetype_data: pd.DataFrame = self.process_vl1l2(stat_data)
+            else:
+                raise NotImplementedError("Reformatting VL1L2 for METcalcpy agg_stat not yet implemented. ")
 
         # ECNT Ensemble Continuous statistics
         elif linetype == cn.ECNT:
-            linetype_data: pd.DataFrame = self.process_ecnt(stat_data)
+            if is_aggregated:
+                linetype_data: pd.DataFrame = self.process_ecnt(stat_data)
+            else:
+                linetype_data: pd.DataFrame = self.process_ecnt_for_agg(stat_data)
 
         # PCT
         elif linetype == cn.PCT:
-            linetype_data: pd.DataFrame = self.process_pct(stat_data)
+            if is_aggregated:
+                linetype_data: pd.DataFrame = self.process_pct(stat_data)
+            else:
+                raise NotImplementedError("Reformatting PCT for METcalcpy agg_stat not yet implemented. ")
 
         # RHIST (ranked histogram)
         elif linetype == cn.RHIST:
-            linetype_data: pd.DataFrame = self.process_rhist(stat_data)
-
+            if is_aggregated:
+                linetype_data: pd.DataFrame = self.process_rhist(stat_data)
+            else:
+                raise NotImplementedError("Reformatting RHIST for METcalcpy agg_stat not yet implemented. ")
         else:
             return None
 
@@ -1230,7 +1271,7 @@ class WriteStatAscii:
         """
              Reshape the data from the original MET output file (stat_data) into new
              statistics columns:
-             stat_name, stat_value specifically for the VL1L2 line type data.
+             stat_name, stat_value specifically for the ECNT line type data.
 
              Arguments:
              @param stat_data: the dataframe containing all the data from the MET
@@ -1286,6 +1327,56 @@ class WriteStatAscii:
         reshaped['stat_bcu']: pd.Series = na_column
 
         return reshaped
+
+
+    def process_ecnt_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+             Reformatting for using METcalcpy agg_stat. For input data that does NOT
+             have aggregation statistics and confidence values calculated from the
+             MET ensemble-stat tool.
+
+             Reformat the data from the original MET output file (stat_data) into
+             statistics columns corresponding to the statistics name for the MET ECNT
+             linetype, as defined in constants.py in the METdbLoad module:
+
+                 'n_ens', 'crps', 'crpss', 'ign', 'me', 'rmse', 'spread',
+                 'me_oerr', 'rmse_oerr', 'spread_oerr', 'spread_plus_oerr',
+                 'crpscl', 'crps_emp', 'crpscl_emp', 'crpss_emp',
+                 'crps_emp_fair', 'spread_md', 'mae', 'mae_oerr',
+                 'bias_ratio', 'n_ge_obs', 'me_ge_obs',
+                 'n_lt_obs', 'me_lt_obs'
+
+             This format is *required* for using the METcalcpy agg_stat.py module to calculate aggregation
+             statistics.
+
+             Arguments:
+             @param stat_data: the dataframe containing all the data from the MET
+             .stat file.
+
+             Returns:
+                 linetype_data: the reformatted pandas dataframe with statistics data
+                 reorganized into columns based on the individual ECNT statistic names.
+
+        """
+
+        # Relevant columns for the ECNT line type
+        linetype: str = cn.ECNT
+        end = cn.NUM_STAT_ECNT_COLS
+        ecnt_columns_to_use: List[str] = (
+            np.arange(0, end).tolist())
+
+        # Subset original dataframe to one containing only the ECNT data
+        ecnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+                                ecnt_columns_to_use]
+
+        # Replace the column numbers with the name of the corresponding statistic as specified in MET
+        # User's Guide for the ECNT linetype in the ensemble stat table.
+        all_headers = cn.ECNT_HEADERS
+        all_headers_lc = [cur_hdr.lower() for cur_hdr in all_headers]
+        ecnt_df.columns = all_headers_lc
+
+        return ecnt_df
+
 
     def rename_confidence_level_columns(self, confidence_level_columns: List[str]) -> \
     List[str]:
@@ -1423,8 +1514,8 @@ def config_file_complete(parms):
     '''
 
     # Check for log directory, log filename, log level, line type, output_dir, output_filename, input_data_dir
-    expected_settings = ['output_dir', 'output_filename', 'input_data_dir', 'log_directory', 'log_filename', 'log_level',
-                         'line_type']
+    expected_settings = ['input_stats_aggregated', 'output_dir', 'output_filename', 'input_data_dir',
+                         'log_directory', 'log_filename', 'log_level', 'line_type']
     actual_keys = []
     for k,v in parms.items():
         actual_keys.append(k)
