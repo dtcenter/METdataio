@@ -76,7 +76,6 @@ class WriteStatAscii:
                                 filemode = 'w')
 
 
-    # def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict, logger) -> pd.DataFrame:
     def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict) -> pd.DataFrame:
         """ For line types: FHO, CTC, CTS, SL1L2, ECNT, MCTS, and VCNT reformat the MET stat files (.stat) to another
             ASCII file with stat_name, stat_value,
@@ -146,11 +145,12 @@ class WriteStatAscii:
             # Extract statistics information
             # ------------------------------
             # Based on the line type, extract the statistics information and save it in a
-            # datafram.
+            # dataframe.
 
             # Setting to indicate whether .stat files were processed with MET stat-analysis (True)
             # or directly from the MET point-stat, grid-stat, or ensemble-stat tool (False)
             is_aggregated = parms['input_stats_aggregated']
+            
             # Replace any nan records with 'NA'.  These nan values were set by the
             # METdbLoad read_data_files module.
             # stat_data = stat_data.fillna('NA')
@@ -181,9 +181,13 @@ class WriteStatAscii:
 
     def process_by_stat_linetype(self, linetype: str, stat_data: pd.DataFrame, is_aggregated=True):
         """
-           For a given linetype, extract the relevant statistics information into the
-           stat_name, stat_value columns,
-           along with the original data in the all_vars dataframe.
+        
+           For MET .stat output, extract the relevant statistics information into the
+           necessary format based on whether the data is already aggregated (via MET stat-analysis) or
+           if the data is un-aggregated and requires the METcalcpy agg_stat module for performing the aggregation
+           statistics calculations.  **NOTE** Support for reformatting into agg_stat's required input format is currently
+           available for the *ECNT* linetype.  This support will be extended to the other supported linetypes. 
+           
 
         Args:
             @param linetype: The linetype of interest (i.e. CNT, CTS, FHO, etc.)
@@ -198,13 +202,16 @@ class WriteStatAscii:
                                   False if .stat files are directly from MET point-stat, grid-stat, or
                                   ensemble-stat tool.
 
-            @return: linetype_data The dataframe that is reshaped (from wide to
-            long), now including the stat_name,
-            stat_value, stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns. If the
-            requested linetype does not exist or isn't supported, return None.
+            @return: linetype_data 
 
-            Or, if data requires aggregation via METcalcpy agg_stat.py, then the input will need to
-            reformatted with columns corresponding to the linetype's statistics names.
+            If input .stat data is aggregated (via MET stat-analysis):
+                The dataframe that is reshaped (from wide to
+                long), now including the stat_name,
+                stat_value, stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns. If the
+                requested linetype does not exist or isn't supported, return None.
+            otherwise (.stat data NOT aggregated-.stat files direct output from MET point-stat, grid-stat, or ensemble-stat)
+                Or, if data requires aggregation via METcalcpy agg_stat.py, then the input will be
+                reformatted with columns corresponding to the linetype's statistics names.
         """
 
         # FHO forecast, hit rate, observation rate
