@@ -153,7 +153,6 @@ class WriteStatAscii:
             
             # Replace any nan records with 'NA'.  These nan values were set by the
             # METdbLoad read_data_files module.
-            # stat_data = stat_data.fillna('NA')
             working_df = working_df.fillna('NA')
             begin_reformat = time.perf_counter()
 
