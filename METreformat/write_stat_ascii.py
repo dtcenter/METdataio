@@ -156,7 +156,12 @@ class WriteStatAscii:
             working_df = working_df.fillna('NA')
             begin_reformat = time.perf_counter()
 
-            reformatted_df = self.process_by_stat_linetype(linetype_requested, working_df, is_aggregated)
+            try:
+                reformatted_df = self.process_by_stat_linetype(linetype_requested, working_df, is_aggregated)
+            except NotImplementedError:
+                sys.exit('NotImplementedError')
+
+
             end_reformat = time.perf_counter()
             reformat_time = end_reformat - begin_reformat
             msg = 'Reformatting took: ' + str(reformat_time) + ' seconds'
@@ -167,7 +172,7 @@ class WriteStatAscii:
             _: pd.DataFrame = reformatted_df.to_csv(output_file, index=None, sep='\t',
                                                   mode='a')
 
-        except (RuntimeError, TypeError, NameError, KeyError):
+        except (RuntimeError, TypeError, NameError, KeyError, NotImplementedError):
             logging.error("*** %s in write_stat_ascii ***", sys.exc_info()[0])
 
         write_time_end: float = time.perf_counter()
@@ -218,53 +223,56 @@ class WriteStatAscii:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_fho(stat_data)
             else:
-                raise NotImplementedError("Reformatting FHO for METcalcpy agg_stat not yet implemented. ")
+                linetype_data: pd.DataFrame = self.process_fho_for_agg(stat_data)
 
         # CNT Continuous Statistics
         elif linetype == cn.CNT:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_cnt(stat_data)
             else:
-                raise NotImplementedError("Reformatting CNT for METcalcpy agg_stat not yet implemented. ")
+                linetype_data: pd.DataFrame = self.process_cnt_for_agg(stat_data)
 
         # VCNT Continuous Statistics
         elif linetype == cn.VCNT:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_vcnt(stat_data)
             else:
-                raise NotImplementedError("Reformatting VCNT for METcalcpy agg_stat not yet implemented. ")
+                linetype_data: pd.DataFrame = self.process_vcnt_for_agg(stat_data)
 
         # CTC Contingency Table Counts
         elif linetype == cn.CTC:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_ctc(stat_data)
             else:
-                raise NotImplementedError("Reformatting CTC for METcalcpy agg_stat not yet implemented. ")
+                linetype_data: pd.DataFrame = self.process_ctc_for_agg(stat_data)
 
         # CTS Contingency Table Statistics
         elif linetype == cn.CTS:
-            linetype_data: pd.DataFrame = self.process_cts(stat_data)
+            if is_aggregated:
+                linetype_data: pd.DataFrame = self.process_cts(stat_data)
+            else:
+                linetype_data: pd.DataFrame = self.process_cts_for_agg(stat_data)
 
         # MCTS Contingency Table Statistics
         elif linetype == cn.MCTS:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_mcts(stat_data)
             else:
-                raise NotImplementedError("Reformatting MCTS for METcalcpy agg_stat not yet implemented. ")
+                linetype_data: pd.DataFrame = self.process_mcts_for_agg(stat_data)
 
         # SL1L2 Scalar Partial sums
         elif linetype == cn.SL1L2:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_sl1l2(stat_data)
             else:
-                raise NotImplementedError("Reformatting SL1L2 for METcalcpy agg_stat not yet implemented. ")
+                linetype_data: pd.DataFrame = self.process_sl1l2_for_agg(stat_data)
 
         # VL1L2 Scalar Partial sums
         elif linetype == cn.VL1L2:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_vl1l2(stat_data)
             else:
-                raise NotImplementedError("Reformatting VL1L2 for METcalcpy agg_stat not yet implemented. ")
+                linetype_data: pd.DataFrame = self.process_vl1l2_for_agg(stat_data)
 
         # ECNT Ensemble Continuous statistics
         elif linetype == cn.ECNT:
@@ -278,14 +286,14 @@ class WriteStatAscii:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_pct(stat_data)
             else:
-                raise NotImplementedError("Reformatting PCT for METcalcpy agg_stat not yet implemented. ")
+                linetype_data: pd.DataFrame = self.process_pct_for_agg(stat_data)
 
         # RHIST (ranked histogram)
         elif linetype == cn.RHIST:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_rhist(stat_data)
             else:
-                raise NotImplementedError("Reformatting RHIST for METcalcpy agg_stat not yet implemented. ")
+                linetype_data: pd.DataFrame = self.process_rhist_for_agg(stat_data)
         else:
             return None
 
@@ -477,6 +485,9 @@ class WriteStatAscii:
 
         return reformatted_df
 
+    def process_pct_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        raise NotImplementedError
+
     def process_rhist(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
             Retrieve the RHIST linetype data (Ranked histogram, from the MET ensemble-stat tool) and reshape it
@@ -640,6 +651,9 @@ class WriteStatAscii:
 
         return reformatted_df
 
+    def process_rhist_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+
+        raise NotImplementedError
 
     def process_fho(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -716,6 +730,10 @@ class WriteStatAscii:
         linetype_data['stat_bcu']: pd.Series = na_column
 
         return linetype_data
+
+    def process_fho_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+
+        raise NotImplementedError
 
     def process_cnt(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -809,6 +827,10 @@ class WriteStatAscii:
 
         return linetype_data
 
+    def process_cnt_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+
+        raise NotImplementedError
+
     def process_vcnt(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
            Reshape the data from the original MET output file (stat_data) into new
@@ -901,6 +923,10 @@ class WriteStatAscii:
 
         return linetype_data
 
+    def process_vcnt_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+
+        raise NotImplementedError
+
     def process_ctc(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
              Reshape the data from the original MET output file (stat_data) into new
@@ -962,6 +988,10 @@ class WriteStatAscii:
         linetype_data['stat_bcu']: pd.Series = na_column
 
         return linetype_data
+
+    def process_ctc_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+
+        raise NotImplementedError
 
 
     def process_cts(self, stat_data: pd.DataFrame) -> pd.DataFrame:
@@ -1056,6 +1086,11 @@ class WriteStatAscii:
 
         return linetype_data
 
+    def process_cts_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+
+        raise NotImplementedError
+
+
     def process_mcts(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
              Reshape the data from the original MET output file (stat_data) into new
@@ -1149,6 +1184,9 @@ class WriteStatAscii:
 
         return linetype_data
 
+    def process_mcts_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+
+        raise NotImplementedError
 
     def process_sl1l2(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -1209,6 +1247,10 @@ class WriteStatAscii:
         reshaped['stat_bcu']: pd.Series = na_column
 
         return reshaped
+
+    def process_sl1l2_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+
+        raise NotImplementedError
 
 
     def process_vl1l2(self, stat_data: pd.DataFrame) -> pd.DataFrame:
@@ -1271,7 +1313,9 @@ class WriteStatAscii:
 
         return reshaped
 
+    def process_vl1l2_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
 
+       raise NotImplementedError
 
     def process_ecnt(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """

@@ -1,3 +1,4 @@
+input_stats_aggregated: True
 output_dir: ../output
 output_filename: vl1l2_reformatted.data
 line_type: VL1L2

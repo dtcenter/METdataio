@@ -757,10 +757,63 @@ def test_rhist_consistency():
         assert expected_val == cur_val
 
 
+def test_ecnt_reformat_for_agg():
+    '''
+
+         Verify that values match what is expected in the reformatted output.
+
+       :return:  None
+       '''
+
+    # Original reformatted data
+    stat_data, config = setup_test('ECNT_for_agg.yaml')
+
+    wsa = WriteStatAscii(config)
+    reformatted_df = wsa.process_ecnt_for_agg(stat_data)
+
+    ExpectedValues = namedtuple('ExpectedValues', 'total, n_ens, crps')
+
+    total_vals = [1125, 503]
+    n_ens_vals = [6.0, 6.0]
+    crps_vals = [8.21904, 0.1367]
+    expected_values = []
+    zipped = zip(total_vals, n_ens_vals, crps_vals)
+    zipped_list = list(zipped)
+    for cur in zipped_list:
+        expected_values.append(ExpectedValues(*cur))
+
+    ref1:pd.Series = reformatted_df.loc[reformatted_df['total'] == str(expected_values[0].total)]
+    ref2:pd.Series = reformatted_df.loc[reformatted_df['total'] == str(expected_values[1].total)]
+
+    # Verify that we still have a row of ECNT linetype data with the original total values of 1125 and 503
+    if ref1 is not None and ref2 is not None :
+        # There are rows of data corresponding to the requested total values
+        assert True
+    else:
+        assert False
+
+    # Verify that the values for crps and n_ens are consistent with the original input data.
+    assert float(ref1['crps'].iloc[0]) == expected_values[0].crps
+    assert float(ref2['crps'].iloc[0]) == expected_values[1].crps
+    assert ref1['n_ens'].iloc[0] == expected_values[0].n_ens
+    assert ref2['n_ens'].iloc[0] == expected_values[1].n_ens
 
 
+def test_fho_reformat_for_agg():
+    '''
+       Verify that the NotImplementedError is raised when attempting
+       to invoke the process_fho_for_agg() within write_stat_ascii.
 
+    :return:
+    '''
 
+    stat_data, parms = setup_test("FHO_for_agg.yaml")
+    wsa = WriteStatAscii(parms)
 
+    # Expect error when invoking the process_fho_for_agg directly
+    with pytest.raises(NotImplementedError):
+        reshaped_df = wsa.process_fho_for_agg(stat_data)
 
-
+    # Expect SystemExit within the process_by_stat_line_type when a NotImplementedError is caught
+    with pytest.raises(SystemExit):
+        wsa.write_stat_ascii(stat_data, parms)

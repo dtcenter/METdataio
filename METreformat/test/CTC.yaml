@@ -1,3 +1,4 @@
+input_stats_aggregated: True
 output_dir: ../output
 output_filename: ctc_reformatted.data
 line_type: CTC
