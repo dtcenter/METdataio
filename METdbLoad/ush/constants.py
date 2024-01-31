@@ -100,11 +100,14 @@ MCTC = "MCTC"  # Multi-category Contingency Table Counts
 MCTS = "MCTS"  # Multi-category Contingency Table Statistics
 CNT = "CNT"  # Continuous Statistics
 SL1L2 = "SL1L2"  # Scalar L1L2 Partial Sums
-SAL1L2 = "SAL1L2"  # Scalar Anomaly L1L2 Partial Sums when climatological data is supplied
+SAL1L2 = "SAL1L2"  # Scalar Anomaly L1L2 Partial Sums when climatological data is
+# supplied
 VL1L2 = "VL1L2"  # Vector L1L2 Partial Sums
-VAL1L2 = "VAL1L2"  # Vector Anomaly L1L2 Partial Sums when climatological data is supplied
+VAL1L2 = "VAL1L2"  # Vector Anomaly L1L2 Partial Sums when climatological data is
+# supplied
 PCT = "PCT"  # Contingency Table Counts for Probabilistic Forecasts
-PSTD = "PSTD"  # Contingency Table Stats for Probabilistic Forecasts with Dichotomous outcomes
+PSTD = "PSTD"  # Contingency Table Stats for Probabilistic Forecasts with Dichotomous
+# outcomes
 PJC = "PJC"  # Joint and Conditional Factorization for Probabilistic Forecasts
 PRC = "PRC"  # Receiver Operating Characteristic for Probabilistic Forecasts
 ECLV = "ECLV"  # Economic Cost/Loss Value derived from CTC and PCT lines
@@ -241,7 +244,6 @@ MID_HEADER = LONG_HEADER[0:10] + LONG_HEADER[11:13] + LONG_HEADER[14:]
 SHORT_HEADER = MID_HEADER[0:2] + MID_HEADER[3:]
 SHORT_HEADER_TCST = LONG_HEADER_TCST[0:3] + LONG_HEADER_TCST[4:]
 
-
 STAT_HEADER_KEYS = [VERSION, MODEL, DESCR, FCST_VAR, FCST_UNITS, FCST_LEV,
                     OBS_VAR, OBS_UNITS, OBS_LEV, OBTYPE, VX_MASK,
                     INTERP_MTHD, INTERP_PNTS, FCST_THRESH, OBS_THRESH]
@@ -291,6 +293,8 @@ FMEAN = 'fmean'
 FCST_VALID = 'fcst_valid'
 FCST_INIT = 'fcst_init'
 EC_VALUE = 'ec_value'
+FI_OJ = 'fi_oj'
+N_CAT = 'n_cat'
 
 INSTANCE_INFO = 'instance_info'
 INSTANCE_INFO_ID = 'instance_info_id'
@@ -372,13 +376,17 @@ LINE_DATA_VAR_TABLES[TCDIAG] = 'line_data_tcdiag_diag'
 
 LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
                         ['fbar', 'fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
-                         'fstdev', 'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
+                         'fstdev', 'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl',
+                         'fstdev_bcu',
                          'obar', 'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
-                         'ostdev', 'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl', 'ostdev_bcu',
-                         'pr_corr', 'pr_corr_ncl', 'pr_corr_ncu', 'pr_corr_bcl', 'pr_corr_bcu',
+                         'ostdev', 'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl',
+                         'ostdev_bcu',
+                         'pr_corr', 'pr_corr_ncl', 'pr_corr_ncu', 'pr_corr_bcl',
+                         'pr_corr_bcu',
                          'sp_corr', 'dt_corr', 'ranks', 'frank_ties', 'orank_ties',
                          'me', 'me_ncl', 'me_ncu', 'me_bcl', 'me_bcu',
-                         'estdev', 'estdev_ncl', 'estdev_ncu', 'estdev_bcl', 'estdev_bcu',
+                         'estdev', 'estdev_ncl', 'estdev_ncu', 'estdev_bcl',
+                         'estdev_bcu',
                          'mbias', 'mbias_bcl', 'mbias_bcu', 'mae', 'mae_bcl', 'mae_bcu',
                          'mse', 'mse_bcl', 'mse_bcu', 'bcmse', 'bcmse_bcl', 'bcmse_bcu',
                          'rmse', 'rmse_bcl', 'rmse_bcu', 'e10', 'e10_bcl', 'e10_bcu',
@@ -388,8 +396,10 @@ LINE_DATA_FIELDS[CNT] = ALPH_LINE_DATA_FIELDS + \
                          'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu',
                          'anom_corr_bcl', 'anom_corr_bcu',
                          'me2', 'me2_bcl', 'me2_bcu', 'msess', 'msess_bcl', 'msess_bcu',
-                         'rmsfa', 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa', 'rmsoa_bcl', 'rmsoa_bcu',
-                         'anom_corr_uncntr', 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu',
+                         'rmsfa', 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa', 'rmsoa_bcl',
+                         'rmsoa_bcu',
+                         'anom_corr_uncntr', 'anom_corr_uncntr_bcl',
+                         'anom_corr_uncntr_bcu',
                          'si', 'si_bcl', 'si_bcu']
 
 LINE_DATA_FIELDS[CTC] = TOT_LINE_DATA_FIELDS + \
@@ -441,14 +451,16 @@ LINE_DATA_FIELDS[ENSCNT] = ALL_LINE_DATA_FIELDS + \
                             'rpscl', 'rpscl_ncl', 'rpscl_ncu', 'rpscl_bcl', 'rpscl_bcu',
                             'rpss', 'rpss_ncl', 'rpss_ncu', 'rpss_bcl', 'rpss_bcu',
                             'crpsf', 'crpsf_ncl', 'crpsf_ncu', 'crpsf_bcl', 'crpsf_bcu',
-                            'crpscl', 'crpscl_ncl', 'crpscl_ncu', 'crpscl_bcl', 'crpscl_bcu',
+                            'crpscl', 'crpscl_ncl', 'crpscl_ncu', 'crpscl_bcl',
+                            'crpscl_bcu',
                             'crpss', 'crpss_ncl', 'crpss_ncu', 'crpss_bcl', 'crpss_bcu']
 
 LINE_DATA_FIELDS[FHO] = TOT_LINE_DATA_FIELDS + \
                         ['f_rate', 'h_rate', 'o_rate']
 
 LINE_DATA_FIELDS[GRAD] = TOT_LINE_DATA_FIELDS + \
-                         ['fgbar', 'ogbar', 'mgbar', 'egbar', 's1', 's1_og', 'fgog_ratio',
+                         ['fgbar', 'ogbar', 'mgbar', 'egbar', 's1', 's1_og',
+                          'fgog_ratio',
                           'dx', 'dy']
 
 LINE_DATA_FIELDS[ISC] = TOT_LINE_DATA_FIELDS + \
@@ -465,13 +477,15 @@ LINE_DATA_FIELDS[MCTS] = ALPH_LINE_DATA_FIELDS + \
                           'hss_ec_bcu', EC_VALUE]
 
 LINE_DATA_FIELDS[MPR] = TOT_LINE_DATA_FIELDS + \
-                        ['mp_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl', 'obs_elv',
+                        ['mp_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl',
+                         'obs_elv',
                          'mpr_fcst', 'mpr_obs', 'mpr_climo', 'obs_qc',
                          'climo_mean', 'climo_stdev', 'climo_cdf']
 
 LINE_DATA_FIELDS[NBRCNT] = ALPH_LINE_DATA_FIELDS + \
                            ['fbs', 'fbs_bcl', 'fbs_bcu', 'fss', 'fss_bcl', 'fss_bcu',
-                            'afss', 'afss_bcl', 'afss_bcu', 'ufss', 'ufss_bcl', 'ufss_bcu',
+                            'afss', 'afss_bcl', 'afss_bcu', 'ufss', 'ufss_bcl',
+                            'ufss_bcu',
                             'f_rate', 'f_rate_bcl', 'f_rate_bcu',
                             'o_rate', 'o_rate_bcl', 'o_rate_bcu']
 
@@ -501,7 +515,8 @@ LINE_DATA_FIELDS[NBRCTS] = COVA_LINE_DATA_FIELDS + \
                             'bagss', 'bagss_bcl', 'bagss_bcu']
 
 LINE_DATA_FIELDS[ORANK] = TOT_LINE_DATA_FIELDS + \
-                          ['orank_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl', 'obs_elv',
+                          ['orank_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl',
+                           'obs_elv',
                            'obs', 'pit', 'obs_rank', 'n_ens_vld', 'n_ens', 'obs_qc',
                            'ens_mean', 'climo_mean', 'spread', 'ens_mean_oerr',
                            'spread_oerr', 'spread_plus_oerr',
@@ -522,7 +537,8 @@ LINE_DATA_FIELDS[PJC] = COV_LINE_DATA_FIELDS + \
 LINE_DATA_FIELDS[PRC] = COV_LINE_DATA_FIELDS + \
                         ['n_thresh']
 
-# the last 5 fields are currently (August 2019) blank in stat files, filled in in write_stat_sql
+# the last 5 fields are currently (August 2019) blank in stat files, filled in in
+# write_stat_sql
 LINE_DATA_FIELDS[PSTD] = COVA_LINE_DATA_FIELDS + \
                          ['n_thresh', BASER, 'baser_ncl', 'baser_ncu',
                           'reliability', 'resolution', 'uncertainty', 'roc_auc',
@@ -556,33 +572,39 @@ LINE_DATA_FIELDS[SEEPS_MPR] = ALL_LINE_DATA_FIELDS + \
                                'p1', 'p2', 't1', 't2', 'seeps']
 
 LINE_DATA_FIELDS[SSIDX] = ALL_LINE_DATA_FIELDS + \
-                           [ALPHA, 'fcst_model', 'ref_model', 'n_init', 'n_term',
-                            'v_vld', 'ss_index']
+                          [ALPHA, 'fcst_model', 'ref_model', 'n_init', 'n_term',
+                           'v_vld', 'ss_index']
 
 LINE_DATA_FIELDS[SSVAR] = ALPH_LINE_DATA_FIELDS + \
                           ['n_bin', 'bin_i', 'bin_n', 'var_min', 'var_max', 'var_mean',
                            'fbar', 'obar', 'fobar', 'ffbar', 'oobar',
                            'fbar_ncl', 'fbar_ncu', 'fstdev', 'fstdev_ncl', 'fstdev_ncu',
                            'obar_ncl', 'obar_ncu', 'ostdev', 'ostdev_ncl', 'ostdev_ncu',
-                           'pr_corr', 'pr_corr_ncl', 'pr_corr_ncu', 'me', 'me_ncl', 'me_ncu',
-                           'estdev', 'estdev_ncl', 'estdev_ncu', 'mbias', 'mse', 'bcmse', 'rmse']
+                           'pr_corr', 'pr_corr_ncl', 'pr_corr_ncu', 'me', 'me_ncl',
+                           'me_ncu',
+                           'estdev', 'estdev_ncl', 'estdev_ncu', 'mbias', 'mse',
+                           'bcmse', 'rmse']
 
 LINE_DATA_FIELDS[VL1L2] = TOT_LINE_DATA_FIELDS + \
                           ['ufbar', 'vfbar', 'uobar', 'vobar', 'uvfobar', 'uvffbar',
                            'uvoobar', 'f_speed_bar', 'o_speed_bar']
 
 LINE_DATA_FIELDS[VAL1L2] = TOT_LINE_DATA_FIELDS + \
-                           ['ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar', 'uvffabar',
+                           ['ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar',
+                            'uvffabar',
                             'uvooabar', 'fa_speed_bar', 'oa_speed_bar']
 
 LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
-                         ['fbar', 'fbar_bcl', 'fbar_bcu', 'obar', 'obar_bcl', 'obar_bcu',
+                         ['fbar', 'fbar_bcl', 'fbar_bcu', 'obar', 'obar_bcl',
+                          'obar_bcu',
                           'fs_rms', 'fs_rms_bcl', 'fs_rms_bcu',
                           'os_rms', 'os_rms_bcl', 'os_rms_bcu',
-                          'msve', 'msve_bcl', 'msve_bcu', 'rmsve', 'rmsve_bcl', 'rmsve_bcu',
+                          'msve', 'msve_bcl', 'msve_bcu', 'rmsve', 'rmsve_bcl',
+                          'rmsve_bcu',
                           'fstdev', 'fstdev_bcl', 'fstdev_bcu',
                           'ostdev', 'ostdev_bcl', 'ostdev_bcu',
-                          'fdir', 'fdir_bcl', 'fdir_bcu', 'odir', 'odir_bcl', 'odir_bcu',
+                          'fdir', 'fdir_bcl', 'fdir_bcu', 'odir', 'odir_bcl',
+                          'odir_bcu',
                           'fbar_speed', 'fbar_speed_bcl', 'fbar_speed_bcu',
                           'obar_speed', 'obar_speed_bcl', 'obar_speed_bcu',
                           'vdiff_speed', 'vdiff_speed_bcl', 'vdiff_speed_bcu',
@@ -632,8 +654,10 @@ COLUMNS[TCDIAG] = ['total', 'index_pair', 'diag_source', 'track_source',
 
 LINE_DATA_FIELDS[TCDIAG] = ALL_LINE_DATA_FIELDS_TCST + COLUMNS[TCDIAG]
 
-LINE_DATA_FIELDS_TO_REPLACE[TCMPR] = ['fcst_lead', 'total', 'index_pair', 'alat', 'alon',
-                                      'blat', 'blon', 'tk_err', 'x_err', 'y_err', 'altk_err',
+LINE_DATA_FIELDS_TO_REPLACE[TCMPR] = ['fcst_lead', 'total', 'index_pair', 'alat',
+                                      'alon',
+                                      'blat', 'blon', 'tk_err', 'x_err', 'y_err',
+                                      'altk_err',
                                       'crtk_err',
                                       'adland', 'bdland', 'amslp', 'bmslp',
                                       'amax_wind', 'bmax_wind', 'aal_wind_34',
@@ -653,10 +677,13 @@ LINE_DATA_FIELDS_TO_REPLACE[TCMPR] = ['fcst_lead', 'total', 'index_pair', 'alat'
                                       'num_members', 'track_spread', 'track_stdev',
                                       'mslp_stdev', 'max_wind_stdev']
 
-LINE_DATA_FIELDS_TO_REPLACE[PROBRIRW] = ['fcst_lead', 'alat', 'alon', 'blat', 'blon', 'tk_err', 'x_err',
-                                         'y_err', 'adland', 'bdland', 'rirw_beg', 'rirw_end',
+LINE_DATA_FIELDS_TO_REPLACE[PROBRIRW] = ['fcst_lead', 'alat', 'alon', 'blat', 'blon',
+                                         'tk_err', 'x_err',
+                                         'y_err', 'adland', 'bdland', 'rirw_beg',
+                                         'rirw_end',
                                          'rirw_window', 'awind_end',
-                                         'bwind_beg', 'bwind_end', 'bdelta', 'bdelta_max']
+                                         'bwind_beg', 'bwind_end', 'bdelta',
+                                         'bdelta_max']
 
 LINE_DATA_FIELDS_TO_REPLACE[TCDIAG] = ['fcst_lead', 'total', 'index_pair']
 
@@ -702,7 +729,8 @@ for line_type in UC_LINE_TYPES_TCST:
 
     line_table = LINE_TABLES_TCST[UC_LINE_TYPES_TCST.index(line_type)]
 
-    i_line = "INSERT INTO " + line_table + " (" + ",".join(LINE_DATA_FIELDS[line_type]) + \
+    i_line = "INSERT INTO " + line_table + " (" + ",".join(
+        LINE_DATA_FIELDS[line_type]) + \
              ") VALUES (" + VALUE_SLOTS + ")"
 
     LINE_DATA_Q[line_type] = i_line
@@ -747,7 +775,8 @@ for line_type in UC_LINE_TYPES:
 
     line_table = LINE_TABLES[UC_LINE_TYPES.index(line_type)]
 
-    i_line = "INSERT INTO " + line_table + " (" + ",".join(LINE_DATA_FIELDS[line_type]) + \
+    i_line = "INSERT INTO " + line_table + " (" + ",".join(
+        LINE_DATA_FIELDS[line_type]) + \
              ") VALUES (" + VALUE_SLOTS + ")"
     LINE_DATA_Q[line_type] = i_line
 
@@ -943,8 +972,10 @@ CENTROID_T = 'centroid_t'
 AXIS_ANG = 'axis_ang'
 
 MTD_HEADER_KEYS = [VERSION, MODEL, DESCR, FCST_LEAD, FCST_VALID, FCST_INIT,
-                   OBS_LEAD, OBS_VALID, T_DELTA, FCST_T_BEG, FCST_T_END, FCST_RAD, FCST_THR,
-                   OBS_T_BEG, OBS_T_END, OBS_RAD, OBS_THR, FCST_VAR, FCST_UNITS, FCST_LEV,
+                   OBS_LEAD, OBS_VALID, T_DELTA, FCST_T_BEG, FCST_T_END, FCST_RAD,
+                   FCST_THR,
+                   OBS_T_BEG, OBS_T_END, OBS_RAD, OBS_THR, FCST_VAR, FCST_UNITS,
+                   FCST_LEV,
                    OBS_VAR, OBS_UNITS, OBS_LEV]
 
 MTD_HEADER_FIELDS = [MTD_HEADER_ID, LINE_TYPE_LU_ID, DATA_FILE_ID,
@@ -963,11 +994,13 @@ MTD_2D_REV_FIELDS = [MODEL, DESCR, FCST_VALID, OBS_VALID, FCST_RAD, FCST_THR,
                      OBS_RAD, OBS_THR, FCST_LEV, OBS_LEV]
 
 MTD_3D_OBJ_SINGLE_FIELDS = [MTD_HEADER_ID, OBJECT_ID, OBJECT_CAT,
-                            CENTROID_X, CENTROID_Y, CENTROID_T, CENTROID_LAT, CENTROID_LON,
+                            CENTROID_X, CENTROID_Y, CENTROID_T, CENTROID_LAT,
+                            CENTROID_LON,
                             'x_dot', 'y_dot', AXIS_ANG, 'volume',
                             'start_time', 'end_time', 'cdist_travelled',
                             INTENSITY_10, INTENSITY_25, INTENSITY_50, INTENSITY_75,
-                            INTENSITY_90, INTENSITY_NN, FCST_FLAG, SIMPLE_FLAG, MATCHED_FLAG]
+                            INTENSITY_90, INTENSITY_NN, FCST_FLAG, SIMPLE_FLAG,
+                            MATCHED_FLAG]
 
 MTD_3D_OBJ_PAIR_FIELDS = [MTD_HEADER_ID, OBJECT_ID, OBJECT_CAT,
                           'space_centroid_dist', 'time_centroid_delta', 'axis_diff',
@@ -991,7 +1024,8 @@ INS_M2HEADER = "INSERT INTO mtd_2d_obj (" + ",".join(MTD_2D_OBJ_FIELDS) + \
 S_VALUE_SLOTS = '%s, ' * len(MTD_3D_OBJ_SINGLE_FIELDS)
 S_VALUE_SLOTS = S_VALUE_SLOTS[:-2]
 
-INS_M3SHEADER = "INSERT INTO mtd_3d_obj_single (" + ",".join(MTD_3D_OBJ_SINGLE_FIELDS) + \
+INS_M3SHEADER = "INSERT INTO mtd_3d_obj_single (" + ",".join(
+    MTD_3D_OBJ_SINGLE_FIELDS) + \
                 ") VALUES (" + S_VALUE_SLOTS + ")"
 
 P_VALUE_SLOTS = '%s, ' * len(MTD_3D_OBJ_PAIR_FIELDS)
@@ -1040,7 +1074,8 @@ DROP_INDEXES_QUERIES = ["DROP INDEX stat_header_model_idx ON stat_header",
                         "DROP INDEX line_data_pct_fcst_valid_beg_idx ON line_data_pct",
                         "DROP INDEX line_data_pct_fcst_init_beg_idx ON line_data_pct",
                         "DROP INDEX line_data_pstd_fcst_lead_idx ON line_data_pstd",
-                        "DROP INDEX line_data_pstd_fcst_valid_beg_idx ON line_data_pstd",
+                        "DROP INDEX line_data_pstd_fcst_valid_beg_idx ON "
+                        "line_data_pstd",
                         "DROP INDEX line_data_pstd_fcst_init_beg_idx ON line_data_pstd",
                         "DROP INDEX line_data_pjc_fcst_lead_idx ON line_data_pjc",
                         "DROP INDEX line_data_pjc_fcst_valid_beg_idx ON line_data_pjc",
@@ -1049,65 +1084,94 @@ DROP_INDEXES_QUERIES = ["DROP INDEX stat_header_model_idx ON stat_header",
                         "DROP INDEX line_data_prc_fcst_valid_beg_idx ON line_data_prc",
                         "DROP INDEX line_data_prc_fcst_init_beg_idx ON line_data_prc",
                         "DROP INDEX line_data_sl1l2_fcst_lead_idx ON line_data_sl1l2",
-                        "DROP INDEX line_data_sl1l2_fcst_valid_beg_idx ON line_data_sl1l2",
-                        "DROP INDEX line_data_sl1l2_fcst_init_beg_idx ON line_data_sl1l2",
+                        "DROP INDEX line_data_sl1l2_fcst_valid_beg_idx ON "
+                        "line_data_sl1l2",
+                        "DROP INDEX line_data_sl1l2_fcst_init_beg_idx ON "
+                        "line_data_sl1l2",
                         "DROP INDEX line_data_sal1l2_fcst_lead_idx ON line_data_sal1l2",
-                        "DROP INDEX line_data_sal1l2_fcst_valid_beg_idx ON line_data_sal1l2",
-                        "DROP INDEX line_data_sal1l2_fcst_init_beg_idx ON line_data_sal1l2",
+                        "DROP INDEX line_data_sal1l2_fcst_valid_beg_idx ON "
+                        "line_data_sal1l2",
+                        "DROP INDEX line_data_sal1l2_fcst_init_beg_idx ON "
+                        "line_data_sal1l2",
                         "DROP INDEX line_data_vl1l2_fcst_lead_idx ON line_data_vl1l2",
-                        "DROP INDEX line_data_vl1l2_fcst_valid_beg_idx ON line_data_vl1l2",
-                        "DROP INDEX line_data_vl1l2_fcst_init_beg_idx ON line_data_vl1l2",
+                        "DROP INDEX line_data_vl1l2_fcst_valid_beg_idx ON "
+                        "line_data_vl1l2",
+                        "DROP INDEX line_data_vl1l2_fcst_init_beg_idx ON "
+                        "line_data_vl1l2",
                         "DROP INDEX line_data_val1l2_fcst_lead_idx ON line_data_val1l2",
-                        "DROP INDEX line_data_val1l2_fcst_valid_beg_idx ON line_data_val1l2",
-                        "DROP INDEX line_data_val1l2_fcst_init_beg_idx ON line_data_val1l2",
+                        "DROP INDEX line_data_val1l2_fcst_valid_beg_idx ON "
+                        "line_data_val1l2",
+                        "DROP INDEX line_data_val1l2_fcst_init_beg_idx ON "
+                        "line_data_val1l2",
                         "DROP INDEX line_data_mpr_fcst_lead_idx ON line_data_mpr",
                         "DROP INDEX line_data_mpr_fcst_valid_beg_idx ON line_data_mpr",
                         "DROP INDEX line_data_mpr_fcst_init_beg_idx ON line_data_mpr",
                         "DROP INDEX line_data_nbrctc_fcst_lead_idx ON line_data_nbrctc",
-                        "DROP INDEX line_data_nbrctc_fcst_valid_beg_idx ON line_data_nbrctc",
-                        "DROP INDEX line_data_nbrctc_fcst_init_beg_idx ON line_data_nbrctc",
+                        "DROP INDEX line_data_nbrctc_fcst_valid_beg_idx ON "
+                        "line_data_nbrctc",
+                        "DROP INDEX line_data_nbrctc_fcst_init_beg_idx ON "
+                        "line_data_nbrctc",
                         "DROP INDEX line_data_nbrcts_fcst_lead_idx ON line_data_nbrcts",
-                        "DROP INDEX line_data_nbrcts_fcst_valid_beg_idx ON line_data_nbrcts",
-                        "DROP INDEX line_data_nbrcts_fcst_init_beg_idx ON line_data_nbrcts",
+                        "DROP INDEX line_data_nbrcts_fcst_valid_beg_idx ON "
+                        "line_data_nbrcts",
+                        "DROP INDEX line_data_nbrcts_fcst_init_beg_idx ON "
+                        "line_data_nbrcts",
                         "DROP INDEX line_data_nbrcnt_fcst_lead_idx ON line_data_nbrcnt",
-                        "DROP INDEX line_data_nbrcnt_fcst_valid_beg_idx ON line_data_nbrcnt",
-                        "DROP INDEX line_data_nbrcnt_fcst_init_beg_idx ON line_data_nbrcnt",
+                        "DROP INDEX line_data_nbrcnt_fcst_valid_beg_idx ON "
+                        "line_data_nbrcnt",
+                        "DROP INDEX line_data_nbrcnt_fcst_init_beg_idx ON "
+                        "line_data_nbrcnt",
                         "DROP INDEX line_data_isc_fcst_lead_idx ON line_data_isc",
                         "DROP INDEX line_data_isc_fcst_valid_beg_idx ON line_data_isc",
                         "DROP INDEX line_data_isc_fcst_init_beg_idx ON line_data_isc",
                         "DROP INDEX line_data_mctc_fcst_lead_idx ON line_data_mctc",
-                        "DROP INDEX line_data_mctc_fcst_valid_beg_idx ON line_data_mctc",
+                        "DROP INDEX line_data_mctc_fcst_valid_beg_idx ON "
+                        "line_data_mctc",
                         "DROP INDEX line_data_mctc_fcst_init_beg_idx ON line_data_mctc",
                         "DROP INDEX line_data_rhist_fcst_lead_idx ON line_data_rhist",
-                        "DROP INDEX line_data_rhist_fcst_valid_beg_idx ON line_data_rhist",
-                        "DROP INDEX line_data_rhist_fcst_init_beg_idx ON line_data_rhist",
+                        "DROP INDEX line_data_rhist_fcst_valid_beg_idx ON "
+                        "line_data_rhist",
+                        "DROP INDEX line_data_rhist_fcst_init_beg_idx ON "
+                        "line_data_rhist",
                         "DROP INDEX line_data_orank_fcst_lead_idx ON line_data_orank",
-                        "DROP INDEX line_data_orank_fcst_valid_beg_idx ON line_data_orank",
-                        "DROP INDEX line_data_orank_fcst_init_beg_idx ON line_data_orank",
+                        "DROP INDEX line_data_orank_fcst_valid_beg_idx ON "
+                        "line_data_orank",
+                        "DROP INDEX line_data_orank_fcst_init_beg_idx ON "
+                        "line_data_orank",
                         "DROP INDEX line_data_relp_fcst_lead_idx ON line_data_relp",
-                        "DROP INDEX line_data_relp_fcst_valid_beg_idx ON line_data_relp",
+                        "DROP INDEX line_data_relp_fcst_valid_beg_idx ON "
+                        "line_data_relp",
                         "DROP INDEX line_data_relp_fcst_init_beg_idx ON line_data_relp",
                         "DROP INDEX line_data_eclv_fcst_lead_idx ON line_data_eclv",
-                        "DROP INDEX line_data_eclv_fcst_valid_beg_idx ON line_data_eclv",
+                        "DROP INDEX line_data_eclv_fcst_valid_beg_idx ON "
+                        "line_data_eclv",
                         "DROP INDEX line_data_eclv_fcst_init_beg_idx ON line_data_eclv",
                         "DROP INDEX line_data_ssvar_fcst_lead_idx ON line_data_ssvar",
-                        "DROP INDEX line_data_ssvar_fcst_valid_beg_idx ON line_data_ssvar",
-                        "DROP INDEX line_data_ssvar_fcst_init_beg_idx ON line_data_ssvar",
+                        "DROP INDEX line_data_ssvar_fcst_valid_beg_idx ON "
+                        "line_data_ssvar",
+                        "DROP INDEX line_data_ssvar_fcst_init_beg_idx ON "
+                        "line_data_ssvar",
                         "DROP INDEX line_data_enscnt_fcst_lead_idx ON line_data_enscnt",
-                        "DROP INDEX line_data_enscnt_fcst_valid_beg_idx ON line_data_enscnt",
-                        "DROP INDEX line_data_enscnt_fcst_init_beg_idx ON line_data_enscnt",
+                        "DROP INDEX line_data_enscnt_fcst_valid_beg_idx ON "
+                        "line_data_enscnt",
+                        "DROP INDEX line_data_enscnt_fcst_init_beg_idx ON "
+                        "line_data_enscnt",
                         "DROP INDEX line_data_grad_fcst_lead_idx ON line_data_grad",
-                        "DROP INDEX line_data_grad_fcst_valid_beg_idx ON line_data_grad",
+                        "DROP INDEX line_data_grad_fcst_valid_beg_idx ON "
+                        "line_data_grad",
                         "DROP INDEX line_data_grad_fcst_init_beg_idx ON line_data_grad",
                         "DROP INDEX line_data_dmap_fcst_lead_idx ON line_data_dmap",
-                        "DROP INDEX line_data_dmap_fcst_valid_beg_idx ON line_data_dmap",
+                        "DROP INDEX line_data_dmap_fcst_valid_beg_idx ON "
+                        "line_data_dmap",
                         "DROP INDEX line_data_dmap_fcst_init_beg_idx ON line_data_dmap",
                         "DROP INDEX line_data_rps_fcst_lead_idx ON line_data_rps",
                         "DROP INDEX line_data_rps_fcst_valid_beg_idx ON line_data_rps",
                         "DROP INDEX line_data_rps_fcst_init_beg_idx ON line_data_rps",
                         "DROP INDEX line_data_ssidx_fcst_lead_idx ON line_data_ssidx",
-                        "DROP INDEX line_data_ssidx_fcst_valid_beg_idx ON line_data_ssidx",
-                        "DROP INDEX line_data_ssidx_fcst_init_beg_idx ON line_data_ssidx"]
+                        "DROP INDEX line_data_ssidx_fcst_valid_beg_idx ON "
+                        "line_data_ssidx",
+                        "DROP INDEX line_data_ssidx_fcst_init_beg_idx ON "
+                        "line_data_ssidx"]
 
 CREATE_INDEXES_QUERIES = \
     ["CREATE INDEX stat_header_model_idx ON stat_header (model)",
@@ -1150,7 +1214,8 @@ CREATE_INDEXES_QUERIES = \
      "CREATE INDEX line_data_pct_fcst_valid_beg_idx ON line_data_pct (fcst_valid_beg)",
      "CREATE INDEX line_data_pct_fcst_init_beg_idx ON line_data_pct (fcst_init_beg)",
      "CREATE INDEX line_data_pstd_fcst_lead_idx ON line_data_pstd (fcst_lead)",
-     "CREATE INDEX line_data_pstd_fcst_valid_beg_idx ON line_data_pstd (fcst_valid_beg)",
+     "CREATE INDEX line_data_pstd_fcst_valid_beg_idx ON line_data_pstd ("
+     "fcst_valid_beg)",
      "CREATE INDEX line_data_pstd_fcst_init_beg_idx ON line_data_pstd (fcst_init_beg)",
      "CREATE INDEX line_data_pjc_fcst_lead_idx ON line_data_pjc (fcst_lead)",
      "CREATE INDEX line_data_pjc_fcst_valid_beg_idx ON line_data_pjc (fcst_valid_beg)",
@@ -1159,214 +1224,423 @@ CREATE_INDEXES_QUERIES = \
      "CREATE INDEX line_data_prc_fcst_valid_beg_idx ON line_data_prc (fcst_valid_beg)",
      "CREATE INDEX line_data_prc_fcst_init_beg_idx ON line_data_prc (fcst_init_beg)",
      "CREATE INDEX line_data_sl1l2_fcst_lead_idx ON line_data_sl1l2 (fcst_lead)",
-     "CREATE INDEX line_data_sl1l2_fcst_valid_beg_idx ON line_data_sl1l2 (fcst_valid_beg)",
-     "CREATE INDEX line_data_sl1l2_fcst_init_beg_idx ON line_data_sl1l2 (fcst_init_beg)",
+     "CREATE INDEX line_data_sl1l2_fcst_valid_beg_idx ON line_data_sl1l2 ("
+     "fcst_valid_beg)",
+     "CREATE INDEX line_data_sl1l2_fcst_init_beg_idx ON line_data_sl1l2 ("
+     "fcst_init_beg)",
      "CREATE INDEX line_data_sal1l2_fcst_lead_idx ON line_data_sal1l2 (fcst_lead)",
-     "CREATE INDEX line_data_sal1l2_fcst_valid_beg_idx ON line_data_sal1l2 (fcst_valid_beg)",
-     "CREATE INDEX line_data_sal1l2_fcst_init_beg_idx ON line_data_sal1l2 (fcst_init_beg)",
+     "CREATE INDEX line_data_sal1l2_fcst_valid_beg_idx ON line_data_sal1l2 ("
+     "fcst_valid_beg)",
+     "CREATE INDEX line_data_sal1l2_fcst_init_beg_idx ON line_data_sal1l2 ("
+     "fcst_init_beg)",
      "CREATE INDEX line_data_vl1l2_fcst_lead_idx ON line_data_vl1l2 (fcst_lead)",
-     "CREATE INDEX line_data_vl1l2_fcst_valid_beg_idx ON line_data_vl1l2 (fcst_valid_beg)",
-     "CREATE INDEX line_data_vl1l2_fcst_init_beg_idx ON line_data_vl1l2 (fcst_init_beg)",
+     "CREATE INDEX line_data_vl1l2_fcst_valid_beg_idx ON line_data_vl1l2 ("
+     "fcst_valid_beg)",
+     "CREATE INDEX line_data_vl1l2_fcst_init_beg_idx ON line_data_vl1l2 ("
+     "fcst_init_beg)",
      "CREATE INDEX line_data_val1l2_fcst_lead_idx ON line_data_val1l2 (fcst_lead)",
-     "CREATE INDEX line_data_val1l2_fcst_valid_beg_idx ON line_data_val1l2 (fcst_valid_beg)",
-     "CREATE INDEX line_data_val1l2_fcst_init_beg_idx ON line_data_val1l2 (fcst_init_beg)",
+     "CREATE INDEX line_data_val1l2_fcst_valid_beg_idx ON line_data_val1l2 ("
+     "fcst_valid_beg)",
+     "CREATE INDEX line_data_val1l2_fcst_init_beg_idx ON line_data_val1l2 ("
+     "fcst_init_beg)",
      "CREATE INDEX line_data_mpr_fcst_lead_idx ON line_data_mpr (fcst_lead)",
      "CREATE INDEX line_data_mpr_fcst_valid_beg_idx ON line_data_mpr (fcst_valid_beg)",
      "CREATE INDEX line_data_mpr_fcst_init_beg_idx ON line_data_mpr (fcst_init_beg)",
      "CREATE INDEX line_data_nbrctc_fcst_lead_idx ON line_data_nbrctc (fcst_lead)",
-     "CREATE INDEX line_data_nbrctc_fcst_valid_beg_idx ON line_data_nbrctc (fcst_valid_beg)",
-     "CREATE INDEX line_data_nbrctc_fcst_init_beg_idx ON line_data_nbrctc (fcst_init_beg)",
+     "CREATE INDEX line_data_nbrctc_fcst_valid_beg_idx ON line_data_nbrctc ("
+     "fcst_valid_beg)",
+     "CREATE INDEX line_data_nbrctc_fcst_init_beg_idx ON line_data_nbrctc ("
+     "fcst_init_beg)",
      "CREATE INDEX line_data_nbrcts_fcst_lead_idx ON line_data_nbrcts (fcst_lead)",
-     "CREATE INDEX line_data_nbrcts_fcst_valid_beg_idx ON line_data_nbrcts (fcst_valid_beg)",
-     "CREATE INDEX line_data_nbrcts_fcst_init_beg_idx ON line_data_nbrcts (fcst_init_beg)",
+     "CREATE INDEX line_data_nbrcts_fcst_valid_beg_idx ON line_data_nbrcts ("
+     "fcst_valid_beg)",
+     "CREATE INDEX line_data_nbrcts_fcst_init_beg_idx ON line_data_nbrcts ("
+     "fcst_init_beg)",
      "CREATE INDEX line_data_nbrcnt_fcst_lead_idx ON line_data_nbrcnt (fcst_lead)",
-     "CREATE INDEX line_data_nbrcnt_fcst_valid_beg_idx ON line_data_nbrcnt (fcst_valid_beg)",
-     "CREATE INDEX line_data_nbrcnt_fcst_init_beg_idx ON line_data_nbrcnt (fcst_init_beg)",
+     "CREATE INDEX line_data_nbrcnt_fcst_valid_beg_idx ON line_data_nbrcnt ("
+     "fcst_valid_beg)",
+     "CREATE INDEX line_data_nbrcnt_fcst_init_beg_idx ON line_data_nbrcnt ("
+     "fcst_init_beg)",
      "CREATE INDEX line_data_isc_fcst_lead_idx ON line_data_isc (fcst_lead)",
      "CREATE INDEX line_data_isc_fcst_valid_beg_idx ON line_data_isc (fcst_valid_beg)",
      "CREATE INDEX line_data_isc_fcst_init_beg_idx ON line_data_isc (fcst_init_beg)",
      "CREATE INDEX line_data_mctc_fcst_lead_idx ON line_data_mctc (fcst_lead)",
-     "CREATE INDEX line_data_mctc_fcst_valid_beg_idx ON line_data_mctc (fcst_valid_beg)",
+     "CREATE INDEX line_data_mctc_fcst_valid_beg_idx ON line_data_mctc ("
+     "fcst_valid_beg)",
      "CREATE INDEX line_data_mctc_fcst_init_beg_idx ON line_data_mctc (fcst_init_beg)",
      "CREATE INDEX line_data_rhist_fcst_lead_idx ON line_data_rhist (fcst_lead)",
-     "CREATE INDEX line_data_rhist_fcst_valid_beg_idx ON line_data_rhist (fcst_valid_beg)",
-     "CREATE INDEX line_data_rhist_fcst_init_beg_idx ON line_data_rhist (fcst_init_beg)",
+     "CREATE INDEX line_data_rhist_fcst_valid_beg_idx ON line_data_rhist ("
+     "fcst_valid_beg)",
+     "CREATE INDEX line_data_rhist_fcst_init_beg_idx ON line_data_rhist ("
+     "fcst_init_beg)",
      "CREATE INDEX line_data_orank_fcst_lead_idx ON line_data_orank (fcst_lead)",
-     "CREATE INDEX line_data_orank_fcst_valid_beg_idx ON line_data_orank (fcst_valid_beg)",
-     "CREATE INDEX line_data_orank_fcst_init_beg_idx ON line_data_orank (fcst_init_beg)",
+     "CREATE INDEX line_data_orank_fcst_valid_beg_idx ON line_data_orank ("
+     "fcst_valid_beg)",
+     "CREATE INDEX line_data_orank_fcst_init_beg_idx ON line_data_orank ("
+     "fcst_init_beg)",
      "CREATE INDEX line_data_relp_fcst_lead_idx ON line_data_relp (fcst_lead)",
-     "CREATE INDEX line_data_relp_fcst_valid_beg_idx ON line_data_relp (fcst_valid_beg)",
+     "CREATE INDEX line_data_relp_fcst_valid_beg_idx ON line_data_relp ("
+     "fcst_valid_beg)",
      "CREATE INDEX line_data_relp_fcst_init_beg_idx ON line_data_relp (fcst_init_beg)",
      "CREATE INDEX line_data_eclv_fcst_lead_idx ON line_data_eclv (fcst_lead)",
-     "CREATE INDEX line_data_eclv_fcst_valid_beg_idx ON line_data_eclv (fcst_valid_beg)",
+     "CREATE INDEX line_data_eclv_fcst_valid_beg_idx ON line_data_eclv ("
+     "fcst_valid_beg)",
      "CREATE INDEX line_data_eclv_fcst_init_beg_idx ON line_data_eclv (fcst_init_beg)",
      "CREATE INDEX line_data_ssvar_fcst_lead_idx ON line_data_ssvar (fcst_lead)",
-     "CREATE INDEX line_data_ssvar_fcst_valid_beg_idx ON line_data_ssvar (fcst_valid_beg)",
-     "CREATE INDEX line_data_ssvar_fcst_init_beg_idx ON line_data_ssvar (fcst_init_beg)",
+     "CREATE INDEX line_data_ssvar_fcst_valid_beg_idx ON line_data_ssvar ("
+     "fcst_valid_beg)",
+     "CREATE INDEX line_data_ssvar_fcst_init_beg_idx ON line_data_ssvar ("
+     "fcst_init_beg)",
      "CREATE INDEX line_data_enscnt_fcst_lead_idx ON line_data_enscnt (fcst_lead)",
-     "CREATE INDEX line_data_enscnt_fcst_valid_beg_idx ON line_data_enscnt (fcst_valid_beg)",
-     "CREATE INDEX line_data_enscnt_fcst_init_beg_idx ON line_data_enscnt (fcst_init_beg)",
+     "CREATE INDEX line_data_enscnt_fcst_valid_beg_idx ON line_data_enscnt ("
+     "fcst_valid_beg)",
+     "CREATE INDEX line_data_enscnt_fcst_init_beg_idx ON line_data_enscnt ("
+     "fcst_init_beg)",
      "CREATE INDEX line_data_grad_fcst_lead_idx ON line_data_grad (fcst_lead)",
-     "CREATE INDEX line_data_grad_fcst_valid_beg_idx ON line_data_grad (fcst_valid_beg)",
+     "CREATE INDEX line_data_grad_fcst_valid_beg_idx ON line_data_grad ("
+     "fcst_valid_beg)",
      "CREATE INDEX line_data_grad_fcst_init_beg_idx ON line_data_grad (fcst_init_beg)",
      "CREATE INDEX line_data_dmap_fcst_lead_idx ON line_data_dmap (fcst_lead)",
-     "CREATE INDEX line_data_dmap_fcst_valid_beg_idx ON line_data_dmap (fcst_valid_beg)",
+     "CREATE INDEX line_data_dmap_fcst_valid_beg_idx ON line_data_dmap ("
+     "fcst_valid_beg)",
      "CREATE INDEX line_data_dmap_fcst_init_beg_idx ON line_data_dmap (fcst_init_beg)",
      "CREATE INDEX line_data_rps_fcst_lead_idx ON line_data_rps (fcst_lead)",
      "CREATE INDEX line_data_rps_fcst_valid_beg_idx ON line_data_rps (fcst_valid_beg)",
      "CREATE INDEX line_data_rps_fcst_init_beg_idx ON line_data_rps (fcst_init_beg)",
      "CREATE INDEX line_data_ssidx_fcst_lead_idx ON line_data_ssidx (fcst_lead)",
-     "CREATE INDEX line_data_ssidx_fcst_valid_beg_idx ON line_data_ssidx (fcst_valid_beg)",
-     "CREATE INDEX line_data_ssidx_fcst_init_beg_idx ON line_data_ssidx (fcst_init_beg)"]
+     "CREATE INDEX line_data_ssidx_fcst_valid_beg_idx ON line_data_ssidx ("
+     "fcst_valid_beg)",
+     "CREATE INDEX line_data_ssidx_fcst_init_beg_idx ON line_data_ssidx ("
+     "fcst_init_beg)"]
 
 #
 # Used by MET reformatter
+# 1 more than the MET User's Guide to
+# account for the FCST_INIT_BEG
 #
 
-NUM_STAT_FHO_COLS = 30
+NUM_STAT_FHO_COLS = 29
 NUM_STAT_CNT_COLS = 125
+NUM_STAT_ECNT_COLS = 50
+NUM_STAT_VCNT_COLS = 87
 NUM_STAT_CTC_COLS = 31
 NUM_STAT_SL1L2_COLS = 32
+NUM_STAT_SAL1L2_COLS = 32
+NUM_STAT_VL1L2_COLS = 35
 NUM_STAT_CTS_COLS = 122
+NUM_STAT_MCTC_COLS = 28
+NUM_STAT_MCTS_COLS = 45
+# Number of columns BEFORE the "variable" fields (i.e. VERSION, MODEL, ..., LINETYPE), including the
+# FCST_INIT_BEG column .
+# For PCT the "variable" fields are N_THRESH, THRESH_i, OY_i, ON_i,..., THRESH_N, where the
+# number of THRESH_i, OY_i, and ON_i depend on the number of thresholds specified by the
+# N_THRESH value.
+NUM_STATIC_PCT_COLS = 26
+
+# Number of columns before the RANK_i variable columns (i.e. VERSION, MODEL,...,LINETYPE, TOTAL, N_RANK), including
+# the FCST_INIT_BEG and TOTAL columns.
+NUM_STATIC_RHIST_COLS = 26
 
 
 DESC = "desc"
-COMMON_STAT_HEADER = [VERSION, MODEL, DESC, FCST_LEAD, FCST_VALID_BEG, FCST_VALID_END, FCST_INIT_BEG, OBS_LEAD, OBS_VALID_BEG,
-                      OBS_VALID_END, FCST_VAR, FCST_UNITS, FCST_LEV, OBS_VAR, OBS_UNITS, OBS_LEV, OBTYPE, VX_MASK,
-                      INTERP_MTHD, INTERP_PNTS, FCST_THRESH, OBS_THRESH, COV_THRESH, ALPHA, LINE_TYPE]
-LC_COMMON_STAT_HEADER = [cur_stat_header.lower() for cur_stat_header in COMMON_STAT_HEADER]
+COMMON_STAT_HEADER = [VERSION, MODEL, DESC, FCST_LEAD, FCST_VALID_BEG, FCST_VALID_END,
+                      FCST_INIT_BEG, OBS_LEAD, OBS_VALID_BEG,
+                      OBS_VALID_END, FCST_VAR, FCST_UNITS, FCST_LEV, OBS_VAR, OBS_UNITS,
+                      OBS_LEV, OBTYPE, VX_MASK,
+                      INTERP_MTHD, INTERP_PNTS, FCST_THRESH, OBS_THRESH, COV_THRESH,
+                      ALPHA, LINE_TYPE]
+LC_COMMON_STAT_HEADER = [cur_stat_header.lower() for cur_stat_header in
+                         COMMON_STAT_HEADER]
 
 #
-# POINT STAT specific
+# POINT STAT/GRID STAT/ ENSEMBLE STAT linetypes, used in METreformat
 #
 
 
 #### FHO Line type ####
 FHO_FULL_HEADER = LC_COMMON_STAT_HEADER + ['total', 'F_RATE', 'H_RATE', 'O_RATE']
 
-
-
 ###### CNT line type
-LC_CNT_SPECIFIC =  ['fbar', 'fbar_ncl', 'fbar_ncu','fbar_bcl', 'fbar_bcu',
-                         'fstdev', 'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
-                         'obar', 'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
-                         'ostdev', 'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl', 'ostdev_bcu',
-                         'pr_corr', 'pr_corr_ncl', 'pr_corr_ncu', 'pr_corr_bcl', 'pr_corr_bcu',
-                         'sp_corr', 'kt_corr', 'ranks', 'frank_ties', 'orank_ties',
-                         'me', 'me_ncl', 'me_ncu', 'me_bcl', 'me_bcu',
-                         'estdev', 'estdev_ncl', 'estdev_ncu', 'estdev_bcl', 'estdev_bcu',
-                         'mbias', 'mbias_bcl', 'mbias_bcu', 'mae', 'mae_bcl', 'mae_bcu',
-                         'mse', 'mse_bcl', 'mse_bcu', 'bcmse', 'bcmse_bcl', 'bcmse_bcu',
-                         'rmse', 'rmse_bcl', 'rmse_bcu', 'e10', 'e10_bcl', 'e10_bcu',
-                         'e25', 'e25_bcl', 'e25_bcu', 'e50', 'e50_bcl', 'e50_bcu',
-                         'e75', 'e75_bcl', 'e75_bcu', 'e90', 'e90_bcl', 'e90_bcu',
-                         'eiqr', 'iqr_bcl', 'iqr_bcu', 'mad', 'mad_bcl', 'mad_bcu',
-                         'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu',
-                         'anom_corr_bcl', 'anom_corr_bcu',
-                         'me2', 'me2_bcl', 'me2_bcu', 'msess', 'msess_bcl', 'msess_bcu',
-                         'rmsfa', 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa', 'rmsoa_bcl', 'rmsoa_bcu',
-                         'anom_corr_uncntr', 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu',
-                         'si', 'si_bcl', 'si_bcu']
+LC_CNT_SPECIFIC = ['fbar', 'fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
+                   'fstdev', 'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
+                   'obar', 'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
+                   'ostdev', 'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl', 'ostdev_bcu',
+                   'pr_corr', 'pr_corr_ncl', 'pr_corr_ncu', 'pr_corr_bcl',
+                   'pr_corr_bcu',
+                   'sp_corr', 'kt_corr', 'ranks', 'frank_ties', 'orank_ties',
+                   'me', 'me_ncl', 'me_ncu', 'me_bcl', 'me_bcu',
+                   'estdev', 'estdev_ncl', 'estdev_ncu', 'estdev_bcl', 'estdev_bcu',
+                   'mbias', 'mbias_bcl', 'mbias_bcu', 'mae', 'mae_bcl', 'mae_bcu',
+                   'mse', 'mse_bcl', 'mse_bcu', 'bcmse', 'bcmse_bcl', 'bcmse_bcu',
+                   'rmse', 'rmse_bcl', 'rmse_bcu', 'e10', 'e10_bcl', 'e10_bcu',
+                   'e25', 'e25_bcl', 'e25_bcu', 'e50', 'e50_bcl', 'e50_bcu',
+                   'e75', 'e75_bcl', 'e75_bcu', 'e90', 'e90_bcl', 'e90_bcu',
+                   'eiqr', 'iqr_bcl', 'iqr_bcu', 'mad', 'mad_bcl', 'mad_bcu',
+                   'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu',
+                   'anom_corr_bcl', 'anom_corr_bcu',
+                   'me2', 'me2_bcl', 'me2_bcu', 'msess', 'msess_bcl', 'msess_bcu',
+                   'rmsfa', 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa', 'rmsoa_bcl', 'rmsoa_bcu',
+                   'anom_corr_uncntr', 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu',
+                   'si', 'si_bcl', 'si_bcu']
 CNT_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_CNT_SPECIFIC]
 FULL_CNT_HEADER = LC_COMMON_STAT_HEADER + ['total'] + CNT_SPECIFIC
 LC_CNT_STATISTICS_HEADERS = ['fbar',
-                                  'fstdev',
-                                  'obar',
-                                  'ostdev',
-                                  'pr_corr',
-                                  'sp_corr', 'kt_corr', 'ranks', 'frank_ties', 'orank_ties',
-                                  'me',
-                                  'estdev',
-                                  'mbias', 'mae',
-                                  'mse', 'bcmse',
-                                  'rmse', 'e10',
-                                  'e25', 'e50',
-                                  'e75', 'e90',
-                                  'eiqr', 'mad',
-                                  'anom_corr',
-                                  'me2', 'msess',
-                                  'rmsfa', 'rmsoa',
-                                  'anom_corr_uncntr',
-                                  'si']
-CNT_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_CNT_STATISTICS_HEADERS]
+                             'fstdev',
+                             'obar',
+                             'ostdev',
+                             'pr_corr',
+                             'sp_corr', 'kt_corr', 'ranks', 'frank_ties', 'orank_ties',
+                             'me',
+                             'estdev',
+                             'mbias', 'mae',
+                             'mse', 'bcmse',
+                             'rmse', 'e10',
+                             'e25', 'e50',
+                             'e75', 'e90',
+                             'eiqr', 'mad',
+                             'anom_corr',
+                             'me2', 'msess',
+                             'rmsfa', 'rmsoa',
+                             'anom_corr_uncntr',
+                             'si']
+CNT_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                          LC_CNT_STATISTICS_HEADERS]
 LC_CNT_BOOTSTRAP_HEADERS = ['fbar_ncl', 'fbar_ncu', 'fbar_bcl', 'fbar_bcu',
-                                 'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
-                                 'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
-                                 'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl', 'ostdev_bcu',
-                                 'pr_corr_ncl', 'pr_corr_ncu', 'pr_corr_bcl', 'pr_corr_bcu',
-                                 'me_ncl', 'me_ncu', 'me_bcl', 'me_bcu',
-                                 'estdev_ncl', 'estdev_ncu', 'estdev_bcl', 'estdev_bcu',
-                                 'mbias_bcl', 'mbias_bcu', 'mae_bcl', 'mae_bcu',
-                                 'mse_bcl', 'mse_bcu', 'bcmse_bcl', 'bcmse_bcu',
-                                 'rmse_bcl', 'rmse_bcu', 'e10_bcl', 'e10_bcu',
-                                 'e25_bcl', 'e25_bcu', 'e50_bcl', 'e50_bcu',
-                                 'e75_bcl', 'e75_bcu', 'e90_bcl', 'e90_bcu',
-                                 'iqr_bcl', 'iqr_bcu', 'mad_bcl', 'mad_bcu',
-                                 'anom_corr_ncl', 'anom_corr_ncu',
-                                 'anom_corr_bcl', 'anom_corr_bcu',
-                                 'me2_bcl', 'me2_bcu', 'msess_bcl', 'msess_bcu',
-                                 'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa_bcl', 'rmsoa_bcu',
-                                 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu',
-                                 'si_bcl', 'si_bcu']
-CNT_BOOTSTRAP_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_CNT_BOOTSTRAP_HEADERS]
-
+                            'fstdev_ncl', 'fstdev_ncu', 'fstdev_bcl', 'fstdev_bcu',
+                            'obar_ncl', 'obar_ncu', 'obar_bcl', 'obar_bcu',
+                            'ostdev_ncl', 'ostdev_ncu', 'ostdev_bcl', 'ostdev_bcu',
+                            'pr_corr_ncl', 'pr_corr_ncu', 'pr_corr_bcl', 'pr_corr_bcu',
+                            'me_ncl', 'me_ncu', 'me_bcl', 'me_bcu',
+                            'estdev_ncl', 'estdev_ncu', 'estdev_bcl', 'estdev_bcu',
+                            'mbias_bcl', 'mbias_bcu', 'mae_bcl', 'mae_bcu',
+                            'mse_bcl', 'mse_bcu', 'bcmse_bcl', 'bcmse_bcu',
+                            'rmse_bcl', 'rmse_bcu', 'e10_bcl', 'e10_bcu',
+                            'e25_bcl', 'e25_bcu', 'e50_bcl', 'e50_bcu',
+                            'e75_bcl', 'e75_bcu', 'e90_bcl', 'e90_bcu',
+                            'iqr_bcl', 'iqr_bcu', 'mad_bcl', 'mad_bcu',
+                            'anom_corr_ncl', 'anom_corr_ncu',
+                            'anom_corr_bcl', 'anom_corr_bcu',
+                            'me2_bcl', 'me2_bcu', 'msess_bcl', 'msess_bcu',
+                            'rmsfa_bcl', 'rmsfa_bcu', 'rmsoa_bcl', 'rmsoa_bcu',
+                            'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu',
+                            'si_bcl', 'si_bcu']
+CNT_BOOTSTRAP_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                         LC_CNT_BOOTSTRAP_HEADERS]
 
 # Column headers for the CNT line type's bootstrap confidence levels
 
-CNT_NCL_HEADERS = ['FBAR_NCL', 'FSTDEV_NCL', 'OBAR_NCL', 'OSTDEV_NCL', 'PR_CORR_NCL', 'ME_NCL', 'ESTDEV_NCL',
-                        'ANOM_CORR_NCL']
+CNT_NCL_HEADERS = ['FBAR_NCL', 'FSTDEV_NCL', 'OBAR_NCL', 'OSTDEV_NCL', 'PR_CORR_NCL',
+                   'ME_NCL', 'ESTDEV_NCL',
+                   'ANOM_CORR_NCL']
 
-CNT_NCU_HEADERS = ['FBAR_NCU', 'FSTDEV_NCU', 'OBAR_NCU', 'OSTDEV_NCU', 'PR_CORR_NCU', 'ME_NCU', 'ESTDEV_NCU',
-                        'ANOM_CORR_NCU']
+CNT_NCU_HEADERS = ['FBAR_NCU', 'FSTDEV_NCU', 'OBAR_NCU', 'OSTDEV_NCU', 'PR_CORR_NCU',
+                   'ME_NCU', 'ESTDEV_NCU',
+                   'ANOM_CORR_NCU']
 
-CNT_BCL_HEADERS = ['FBAR_BCL', 'FSTDEV_BCL', 'OBAR_BCL', 'OSTDEV_BCL', 'PR_CORR_BCL', 'ME_BCL', 'ESTDEV_BCL',
-                        'MBIAS_BCL', 'MAE_BCL', 'MSE_BCL', 'BCMSE_BCL', 'RMSE_BCL', 'E10_BCL', 'E25_BCL', 'E50_BCL',
-                        'E75_BCL', 'E90_BCL', 'IQR_BCL', 'MAD_BCL', 'ANOM_CORR_BCL', 'ME2_BCL', 'MSESS_BCL',
-                        'RMSFA_BCL', 'RMSOA_BCL','ANOM_CORR_UNCNTR_BCL', 'SI_BCL']
+CNT_BCL_HEADERS = ['FBAR_BCL', 'FSTDEV_BCL', 'OBAR_BCL', 'OSTDEV_BCL', 'PR_CORR_BCL',
+                   'ME_BCL', 'ESTDEV_BCL',
+                   'MBIAS_BCL', 'MAE_BCL', 'MSE_BCL', 'BCMSE_BCL', 'RMSE_BCL',
+                   'E10_BCL', 'E25_BCL', 'E50_BCL',
+                   'E75_BCL', 'E90_BCL', 'IQR_BCL', 'MAD_BCL', 'ANOM_CORR_BCL',
+                   'ME2_BCL', 'MSESS_BCL',
+                   'RMSFA_BCL', 'RMSOA_BCL', 'ANOM_CORR_UNCNTR_BCL', 'SI_BCL']
 
-CNT_BCU_HEADERS = ['FBAR_BCU', 'FSTDEV_BCU', 'OBAR_BCU', 'OSTDEV_BCU', 'PR_CORR_BCU', 'ME_BCU', 'ESTDEV_BCU',
-                        'MBIAS_BCU', 'MAE_BCU', 'MSE_BCU', 'BCMSE_BCU', 'RMSE_BCU', 'E10_BCU', 'E25_BCU', 'E50_BCU',
-                        'E75_BCU', 'E90_BCU', 'IQR_BCU', 'MAD_BCU', 'ANOM_CORR_BCU', 'ME2_BCU', 'MSESS_BCU',
-                        'RMSFA_BCU', 'RMSOA_BCU','ANOM_CORR_UNCNTR_BCU', 'SI_BCU']
+CNT_BCU_HEADERS = ['FBAR_BCU', 'FSTDEV_BCU', 'OBAR_BCU', 'OSTDEV_BCU', 'PR_CORR_BCU',
+                   'ME_BCU', 'ESTDEV_BCU',
+                   'MBIAS_BCU', 'MAE_BCU', 'MSE_BCU', 'BCMSE_BCU', 'RMSE_BCU',
+                   'E10_BCU', 'E25_BCU', 'E50_BCU',
+                   'E75_BCU', 'E90_BCU', 'IQR_BCU', 'MAD_BCU', 'ANOM_CORR_BCU',
+                   'ME2_BCU', 'MSESS_BCU',
+                   'RMSFA_BCU', 'RMSOA_BCU', 'ANOM_CORR_UNCNTR_BCU', 'SI_BCU']
+
+# Column headers for the ECNT line type
+
+LC_ECNT_SPECIFIC = ['n_ens', 'crps', 'crpss', 'ign', 'me', 'rmse', 'spread',
+                          'me_oerr', 'rmse_oerr', 'spread_oerr', 'spread_plus_oerr',
+                          'crpscl', 'crps_emp', 'crpscl_emp', 'crpss_emp',
+                          'crps_emp_fair', 'spread_md', 'mae', 'mae_oerr',
+                          'bias_ratio', 'n_ge_obs', 'me_ge_obs',
+                          'n_lt_obs', 'me_lt_obs']
+ECNT_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                         LC_ECNT_SPECIFIC]
+ECNT_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + ECNT_STATISTICS_HEADERS
+
+
+
+###### VCNT line type
+LC_VCNT_SPECIFIC = ['fbar', 'fbar_bcl', 'fbar_bcu',
+                   'obar', 'obar_bcl', 'obar_bcu',
+                   'fs_rms', 'fs_rms_bcl', 'fs_rms_bcu',
+                    'os_rms', 'os_rms_bcl', 'os_rms_bcu',
+                    'msve', 'msve_bcl', 'msve_bcu',
+                    'rmsve', 'rmsve_bcl', 'rmsve_bcu',
+                    'fstdev', 'fstdev_bcl', 'fstdev_bcu',
+                    'ostdev', 'ostdev_bcl', 'ostdev_bcu',
+                    'fdir', 'fdir_bcl', 'fdir_bcu',
+                    'odir', 'odir_bcl', 'odir_bcu',
+                    'fbar_speed', 'fbar_speed_bcl', 'fbar_speed_bcu'
+                    'obar_speed', 'obar_speed_bcl', 'obar_speed_bcu',
+                    'vdiff_speed', 'vdiff_speed_bcl', 'vdiff_speed_bcu',
+                    'vdiff_dir', 'vdiff_dir_bcl', 'vdiff_dir_bcu',
+                    'speed_err', 'speed_err_bcl', 'speed_err_bcu',
+                    'speed_abserr', 'speed_abserr_bcl', 'speed_abserr_bcu',
+                    'dir_err', 'dir_err_bcl', 'dir_err_bcu',
+                    'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu',
+                    'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu', 'anom_corr_bcl',
+                    'anom_corr_bcu',
+                    'anom_corr_uncntr', 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu'
+
+                ]
+VCNT_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_VCNT_SPECIFIC]
+FULL_VCNT_HEADER = LC_COMMON_STAT_HEADER + ['total'] + VCNT_SPECIFIC
+LC_VCNT_STATISTICS_HEADERS =  ['fbar',
+                    'obar',
+                    'fs_rms',
+                    'os_rms',
+                    'msve',
+                    'rmsve',
+                    'fstdev',
+                    'ostdev',
+                    'fdir',
+                    'odir',
+                    'fbar_speed',
+                    'obar_speed',
+                    'vdiff_speed',
+                    'vdiff_dir',
+                    'speed_err',
+                    'speed_abserr',
+                    'dir_err',
+                    'dir_abserr',
+                    'anom_corr',
+                    'anom_corr_uncntr'
+
+                ]
+VCNT_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                          LC_VCNT_STATISTICS_HEADERS]
+LC_VCNT_BOOTSTRAP_HEADERS = ['fbar_bcl', 'fbar_bcu',
+                             'obar_bcl', 'obar_bcu',
+                             'fs_rms_bcl', 'fs_rms_bcu',
+                             'os_rms_bcl', 'os_rms_bcu',
+                             'msve_bcl', 'msve_bcu',
+                             'rmsve_bcl', 'rmsve_bcu',
+                             'fstdev_bcl', 'fstdev_bcu',
+                             'ostdev_bcl', 'ostdev_bcu',
+                             'fdir_bcl', 'fdir_bcu',
+                             'odir_bcl', 'odir_bcu',
+                             'fbar_speed_bcl', 'fbar_speed_bcu'
+                             'obar_speed_bcl', 'obar_speed_bcu',
+                             'vdiff_speed_bcl', 'vdiff_speed_bcu',
+                             'vdiff_dir_bcl', 'vdiff_dir_bcu',
+                             'speed_err_bcl', 'speed_err_bcu',
+                             'speed_abserr_bcl', 'speed_abserr_bcu',
+                             'dir_err_bcl', 'dir_err_bcu',
+                             'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu',
+                             'anom_corr_ncl', 'anom_corr_ncu', 'anom_corr_bcl',
+                             'anom_corr_bcu',
+                             'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu'
+
+                             ]
+VCNT_BOOTSTRAP_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                         LC_VCNT_BOOTSTRAP_HEADERS]
+
+# Column headers for the VCNT line type's bootstrap confidence levels
+
+VCNT_NCL_HEADERS = ['ANOM_CORR_NCL']
+
+VCNT_NCU_HEADERS = ['ANOM_CORR_NCU']
+
+VCNT_BCL_HEADERS = ['FBAR_BCL', 'OBAR_BCL','FS_RMS_BCL', 'OS_RMS_BCL',
+                    'MSVE_BCL', 'RMSVE_BCL', 'FSTDEV_BCL', 'OSTDEV_BCL',
+                    'FDIR_BCL', 'ODIR_BCL', 'FBAR_SPEED_BCL', 'OBAR_SPEED_BCL',
+                    'VDIFF_SPEED_BCL', 'VDIFF_DIR_BCL', 'SPEED_ERR_BCL',
+                    'SPEED_ABSERR_BCL', 'DIR_ERR_BCL','DIR_ABSERR_BCL',
+                    'ANOM_CORR_BCL', 'ANOM_CORR_UNCNTR_BCL']
+
+VCNT_BCU_HEADERS = ['FBAR_BCU', 'OBAR_BCU','FS_RMS_BCU', 'OS_RMS_BCU',
+                    'MSVE_BCU', 'RMSVE_BCU', 'FSTDEV_BCU', 'OSTDEV_BCU',
+                    'FDIR_BCU', 'ODIR_BCU', 'FBAR_SPEED_BCU', 'OBAR_SPEED_BCU',
+                    'VDIFF_SPEED_BCU', 'VDIFF_DIR_BCU', 'SPEED_ERR_BCU',
+                    'SPEED_ABSERR_BCU', 'DIR_ERR_BCU','DIR_ABSERR_BCU',
+                    'ANOM_CORR_BCU', 'ANOM_CORR_UNCNTR_BCU']
+
+
 
 ##### CTC Line type ######
 LC_STAT_CTC_SPECIFIC = [FY_OY, FY_ON, FN_OY, FN_ON, EC_VALUE]
-CTC_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_STAT_CTC_SPECIFIC]
+CTC_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                          LC_STAT_CTC_SPECIFIC]
 CTC_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + CTC_STATISTICS_HEADERS
 
+##### MCTC Line type ######
+LC_STAT_MCTC_SPECIFIC = [N_CAT, FI_OJ, EC_VALUE]
+MCTC_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                           LC_STAT_MCTC_SPECIFIC]
+MCTC_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + MCTC_STATISTICS_HEADERS
 
 #### SL1L2 Line type ####
 
 LC_SL1L2_SPECIFIC = ['fbar', 'obar', 'fobar', 'ffbar', 'oobar', 'mae']
-SL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in LC_SL1L2_SPECIFIC]
+SL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                            LC_SL1L2_SPECIFIC]
 SL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + SL1L2_STATISTICS_HEADERS
+
+#### VL1L2 Line type ####
+
+LC_VL1L2_SPECIFIC = ['ufbar', 'vfbar', 'uobar', 'vobar', 'uvfobar', 'uvffbar',
+                     'uvoobar', 'f_speed_bar', 'o_speed_bar']
+VL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                            LC_VL1L2_SPECIFIC]
+VL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + VL1L2_STATISTICS_HEADERS
 
 
 #### CTS Line type ####
-LC_CTS_SPECIFIC =[BASER, 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
-                         FMEAN, 'fmean_ncl', 'fmean_ncu', 'fmean_bcl', 'fmean_bcu',
-                         'acc', 'acc_ncl', 'acc_ncu', 'acc_bcl', 'acc_bcu',
-                         'fbias', 'fbias_bcl', 'fbias_bcu',
-                         'pody', 'pody_ncl', 'pody_ncu', 'pody_bcl', 'pody_bcu',
-                         'podn', 'podn_ncl', 'podn_ncu', 'podn_bcl', 'podn_bcu',
-                         'pofd', 'pofd_ncl', 'pofd_ncu', 'pofd_bcl', 'pofd_bcu',
-                         'far', 'far_ncl', 'far_ncu', 'far_bcl', 'far_bcu',
-                         'csi', 'csi_ncl', 'csi_ncu', 'csi_bcl', 'csi_bcu',
-                         'gss', 'gss_bcl', 'gss_bcu',
-                         'hk', 'hk_ncl', 'hk_ncu', 'hk_bcl', 'hk_bcu',
-                         'hss', 'hss_bcl', 'hss_bcu',
-                         'odds', 'odds_ncl', 'odds_ncu', 'odds_bcl', 'odds_bcu',
-                         'lodds', 'lodds_ncl', 'lodds_ncu', 'lodds_bcl', 'lodds_bcu',
-                         'orss', 'orss_ncl', 'orss_ncu', 'orss_bcl', 'orss_bcu',
-                         'eds', 'eds_ncl', 'eds_ncu', 'eds_bcl', 'eds_bcu',
-                         'seds', 'seds_ncl', 'seds_ncu', 'seds_bcl', 'seds_bcu',
-                         'edi', 'edi_ncl', 'edi_ncu', 'edi_bcl', 'edi_bcu',
-                         'sedi', 'sedi_ncl', 'sedi_ncu', 'sedi_bcl', 'sedi_bcu',
-                         'bagss', 'bagss_bcl', 'bagss_bcu', 'hss_ec', 'hss_ec_bcl',
-                         'hss_ec_bcu', EC_VALUE]
+LC_CTS_SPECIFIC = [BASER, 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
+                   FMEAN, 'fmean_ncl', 'fmean_ncu', 'fmean_bcl', 'fmean_bcu',
+                   'acc', 'acc_ncl', 'acc_ncu', 'acc_bcl', 'acc_bcu',
+                   'fbias', 'fbias_bcl', 'fbias_bcu',
+                   'pody', 'pody_ncl', 'pody_ncu', 'pody_bcl', 'pody_bcu',
+                   'podn', 'podn_ncl', 'podn_ncu', 'podn_bcl', 'podn_bcu',
+                   'pofd', 'pofd_ncl', 'pofd_ncu', 'pofd_bcl', 'pofd_bcu',
+                   'far', 'far_ncl', 'far_ncu', 'far_bcl', 'far_bcu',
+                   'csi', 'csi_ncl', 'csi_ncu', 'csi_bcl', 'csi_bcu',
+                   'gss', 'gss_bcl', 'gss_bcu',
+                   'hk', 'hk_ncl', 'hk_ncu', 'hk_bcl', 'hk_bcu',
+                   'hss', 'hss_bcl', 'hss_bcu',
+                   'odds', 'odds_ncl', 'odds_ncu', 'odds_bcl', 'odds_bcu',
+                   'lodds', 'lodds_ncl', 'lodds_ncu', 'lodds_bcl', 'lodds_bcu',
+                   'orss', 'orss_ncl', 'orss_ncu', 'orss_bcl', 'orss_bcu',
+                   'eds', 'eds_ncl', 'eds_ncu', 'eds_bcl', 'eds_bcu',
+                   'seds', 'seds_ncl', 'seds_ncu', 'seds_bcl', 'seds_bcu',
+                   'edi', 'edi_ncl', 'edi_ncu', 'edi_bcl', 'edi_bcu',
+                   'sedi', 'sedi_ncl', 'sedi_ncu', 'sedi_bcl', 'sedi_bcu',
+                   'bagss', 'bagss_bcl', 'bagss_bcu', 'hss_ec', 'hss_ec_bcl',
+                   'hss_ec_bcu', EC_VALUE]
 CTS_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_CTS_SPECIFIC]
 CTS_SPECIFIC_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + CTS_SPECIFIC
-CTS_STATS_ONLY = [BASER, FMEAN, 'acc', 'fbias', 'pody', 'podn', 'pofd', 'far', 'csi', 'gss', 'odds', 'lodds', 'orss',
-                  'eds', 'sedi', 'bagss', 'hss_ec_bcu', 'edi', 'hk', 'seds', 'hss', 'hss_ec', EC_VALUE]
+CTS_STATS_ONLY = [BASER, FMEAN, 'acc', 'fbias', 'pody', 'podn', 'pofd', 'far', 'csi',
+                  'gss', 'hk', 'hss', 'odds', 'lodds', 'orss', 'eds', 'seds', 'edi',
+                  'sedi', 'bagss', 'hss_ec', EC_VALUE]
 CTS_STATS_ONLY_HEADERS = [cur_stat_header.upper() for cur_stat_header in CTS_STATS_ONLY]
 CTS_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + CTS_STATS_ONLY_HEADERS
+
+#### MCTS Line type ####
+LC_MCTS_SPECIFIC = [ N_CAT, 'acc', 'acc_ncl', 'acc_ncu', 'acc_bcl', 'acc_bcu',
+                    'hk', 'hk_bcl', 'hk_bcu', 'hss', 'hss_bcl', 'hss_bcu', 'ger',
+                    'ger_bcl', 'ger_bcu', 'hss_ec', 'hss_ec_bcl', 'hss_ec_bcu',
+                    EC_VALUE]
+MCTS_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_MCTS_SPECIFIC]
+MCTS_SPECIFIC_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + MCTS_SPECIFIC
+MCTS_STATS_ONLY = [N_CAT, 'acc', 'hk', 'hss', 'ger', 'hss_ec', EC_VALUE]
+MCTS_STATS_ONLY_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                           MCTS_STATS_ONLY]
+MCTS_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + MCTS_STATS_ONLY_HEADERS
+
+
+#### PCT line type ####
+LC_PCT_VARIABLE_HEADERS = ['thresh','oy', 'on']
+
+#### RHIST line type ####
+LC_RHIST_VARIABLE_HEADERS = ['rank']
+
+
+
