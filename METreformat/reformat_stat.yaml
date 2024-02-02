@@ -1,4 +1,9 @@
 # Configuration settings for reformatting MET .stat output to format for METplotpy
+
+# if .stat file input already contains aggregated statistics (i.e. output from MET stat-analysis
+# has been applied to MET .stat output from point-stat, grid-stat, or ensemble-stat).
+input_stats_aggregated: True 
+
 output_dir: /path/to/output-dir
 output_filename: reformatted_output.data
 

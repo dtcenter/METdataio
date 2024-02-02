@@ -1,4 +1,5 @@
 # Configuration settings for reformatting MET .stat output to format for METplotpy
+input_stats_aggregated: True
 output_dir: ./output
 output_filename: reformatted_rhist_output.txt
 

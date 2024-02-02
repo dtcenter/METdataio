@@ -1,3 +1,4 @@
+input_stats_aggregated: True
 output_dir: ../output
 output_filename: vcnt_reformatted.data
 line_type: VCNT
