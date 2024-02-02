@@ -799,6 +799,16 @@ def test_ecnt_reformat_for_agg():
     assert ref2['n_ens'].iloc[0] == expected_values[1].n_ens
 
 
+    # Verify that all the expected columns are present: ECNT headers and the stat_name and stat_value
+    ecnt_headers = list(cn.ECNT_HEADERS)
+    ecnt_headers_lc = [hdr.lower() for hdr in ecnt_headers]
+    added_headers = ['stat_name', 'stat_value']
+    for hdr in added_headers:
+        ecnt_headers_lc.append(hdr)
+
+    actual_headers =list(reformatted_df.columns)
+    assert len(actual_headers) == len(ecnt_headers_lc)
+
 def test_fho_reformat_for_agg():
     '''
        Verify that the NotImplementedError is raised when attempting
