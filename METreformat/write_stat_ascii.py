@@ -1396,6 +1396,7 @@ class WriteStatAscii:
                  'bias_ratio', 'n_ge_obs', 'me_ge_obs',
                  'n_lt_obs', 'me_lt_obs'
 
+             In addition, create a stat_name column with  ECNT_<stat> (where stat is the name of the stat
              This format is *required* for using the METcalcpy agg_stat.py module to calculate aggregation
              statistics.
 
@@ -1425,7 +1426,30 @@ class WriteStatAscii:
         all_headers_lc = [cur_hdr.lower() for cur_hdr in all_headers]
         ecnt_df.columns = all_headers_lc
 
-        return ecnt_df
+        # Add the stat_name column and stat_value columns.  Populate the stat_name column with the
+        # 'ECNT_' prefixed statistic names (e.g. for crps, this becomes ECNT_CRPS).  Do this for
+        # each ECNT-specific statistic.  This will result in a very large dataframe.
+        linetype_str = linetype.upper() + '_'
+        ecnt_headers = cn.LC_ECNT_SPECIFIC
+        renamed_ecnt = [linetype_str + cur_hdr.upper() for cur_hdr in ecnt_headers]
+
+        # Create a list of dataframes, each corresponding to the ECNT statistics, then merge them
+        # all into one final dataframe.
+        dfs_to_merge = []
+
+        for renamed in renamed_ecnt:
+            tmp_df:pd.DataFrame = ecnt_df.copy()
+            tmp_df['stat_name'] = renamed
+            dfs_to_merge.append(tmp_df)
+
+        # Merge all the statistics dataframes into one, then add the
+        # stat_value column. Initialize the stat_values to NaN/NA.  These
+        # values will be filled by the METcalcpy agg_stat calculation.
+        merged_dfs:pd.DataFrame = pd.concat(dfs_to_merge, axis=0, ignore_index=True)
+        merged_dfs['stat_value'] = np.nan
+        merged_dfs.replace('N/A', pd.NA)
+
+        return merged_dfs
 
 
     def rename_confidence_level_columns(self, confidence_level_columns: List[str]) -> \
