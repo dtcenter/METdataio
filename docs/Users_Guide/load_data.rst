@@ -1,6 +1,5 @@
-**********
 Background
-**********
+==========
 
 The METdbLoad module provides support for inserting MET output data into the database.
 
@@ -21,8 +20,8 @@ is a template YAML configuration file.  The *data_loading_config.yaml* file cont
 information about the database (username, password, database name, etc.). This information is used by the
 *generate_xml_spec.py* script to generate the XML specification file which is then used to load data into the database.
 
-Generate the XML Specification File
-===================================
+Generate the XML specification file
+-----------------------------------
 
 Copy the *data_loading_config.yaml* file to a secure location in your workspace, as this file will contain the username
 and password to the database. **Do not put this file where it can be read by anyone who should not have access to this
@@ -101,8 +100,8 @@ Generate the new XML specification file by running the following:
 A new XML specification file *load_met.xml*, will be generated and saved in the
 same directory where the YAML configuration file was copied.
 
-Load Data
-=========
+Load data
+---------
 
 Now the MET data can be loaded in the database using the *met_db_load.py* script in the path-to-METdataio-source/METdbLoad/ush
 directory.  The *path-to-METdataio-source* is the directory where the METdataio source code is saved.
@@ -255,7 +254,7 @@ functional sections:
 
 
 Additional Loading Options
---------------------------
+__________________________
 
 The load_met.xml specification file created above loads the entire dataset specified in the data_dir setting in the
 YAML config file, data_loading_config.yaml.
@@ -330,8 +329,7 @@ suffix .stat in the following folders.
   ...
 
 Troubleshooting
----------------
-
+_______________
 .. _test:
 
 .. list-table::

@@ -208,7 +208,12 @@ class WriteFileSql:
 
                 # If you find a match, update the category and description
                 if sql_cur.rowcount > 0:
-                    if group != result[0] or description != result[1]:
+                    change_metadata = False
+                    if group != result[0]:
+                        change_metadata = True
+                    if description != result[1]:
+                        change_metadata = True
+                    if change_metadata:
                         sql_cur.execute(CN.UPD_METADATA, [group, description])
                 # otherwise, insert the category and description
                 else:

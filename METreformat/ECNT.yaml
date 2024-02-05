@@ -1,8 +1,0 @@
-output_dir: /Users/minnawin/RRFS/feature_234_RRFS_linetypes/METdataio/METreformat/output
-output_filename: rrfs_ensemble_stat_ecnt.data
-line_type: ECNT
-input_data_dir: /Users/minnawin/RRFS/feature_234_RRFS_linetypes/METdataio/METreformat/sample_data/ECNT
-# Set to log_filename to STDOUT if no log file is to be saved
-log_directory: ./output
-log_filename: stdout
-log_level: info

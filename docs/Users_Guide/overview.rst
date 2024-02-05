@@ -1,9 +1,8 @@
-********
 Overview
-********
+========
 
-Purpose and Organization of the User's Guide
-============================================
+Purpose and organization of the User's Guide
+____________________________________________
 
 The goal of this User's Guide is to provide basic information for users of the
 METdataio database and the METviewer and METexpress display systems to enable
@@ -15,7 +14,7 @@ METdataio.  Eventually, there will be utilities to add and delete databases,
 delete duplicate records, etc.
 
 The Developmental Testbed Center (DTC)
-======================================
+______________________________________
 
 METdataio has been developed, and will be maintained and enhanced, by the
 Developmental Testbed Center (DTC; http://www.dtcenter.org/ ).
@@ -35,8 +34,8 @@ METdataio will also be available to DTC visitors and to the modeling community
 for testing and evaluation of new model capabilities, applications in new
 environments, and so on.
 
-METdataio Goals and Design Philosophy
-=====================================
+METdataio goals and design philosophy
+_____________________________________
 
 METdataio is a Python rewrite of the capabilities in METviewer. METdbload,
 a METdataio utility, reads MET verification statistics ASCII files,
@@ -49,8 +48,8 @@ and operational communities, including universities, governments,
 the private sector, and operational modeling and prediction centers.
 
 	     
-Future Development Plans
-========================
+Future development plans
+________________________
 
 METdataio is an evolving verification database package. New capabilities are
 planned in controlled, successive version releases. Bug fixes and
@@ -59,8 +58,8 @@ in place to incorporate many new capabilities and options in future releases
 of METdataio. Additionally, updates to accommodate new features of the MET
 software are often required.
 
-Code Support
-============
+Code support
+____________
 
 Support for METdataio is provided through the
 `METplus GitHub Discussions Forum <https://github.com/dtcenter/METplus/discussions>`_.

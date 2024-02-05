@@ -550,7 +550,8 @@ class ReadDataFiles:
                         one_file[CN.FILE_ROW] = row_num
                         # keep the dataframes from each file in a list
                         list_frames.append(one_file)
-                        logging.debug("Lines in {filename}: {str(len(one_file.index))}")
+                        logging.debug("Lines in %s: %s", filename,
+                                      str(len(one_file.index)))
                         one_file = one_file.iloc[0:0]
                         if not file_hdr.empty:
                             file_hdr = file_hdr.iloc[0:0]
@@ -723,7 +724,7 @@ class ReadDataFiles:
                                         (all_stat['19'] == CN.NOTAV)), '1']
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data if list_frames ***  {sys.exc_info()[0]}")
+            logging.error("*** %s in read_data if list_frames ***", sys.exc_info()[0])
 
         try:
 
@@ -1307,7 +1308,8 @@ class ReadDataFiles:
             stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None,
                                     skipinitialspace=True)
         except (pd.errors.EmptyDataError):
-            logging.warning("!!! Stat file "+ filename + " has no data after headers")
+            logging.warning("!!! Stat file %s has no data after headers",
+                            filename)
             return stat_file
 
         stat_file = stat_file.iloc[:, 0]

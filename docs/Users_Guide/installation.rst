@@ -1,11 +1,10 @@
 .. _installation:
 
-*************************************
 Software Installation/Getting Started
-*************************************
+=====================================
 
 Introduction
-============
+____________
 
 This chapter describes how to install and get started using METdataio.
 METdataio has been developed and tested on Mac and Linux operating
@@ -17,7 +16,7 @@ of the METdataio database package. Additional METdataio programs that work
 with the data are planned.
 
 Requirements
-============
+____________
 
 METdataio relies on the following tools. These must be installed and tested
 prior to installing METdataio:
@@ -34,10 +33,10 @@ requires the Python packages pymysql, pandas, numpy, pyyaml, and lxml. Please re
 requirements.txt file for the version numbers. 
 
 Installation
-============
+____________
 
 Download
---------
+^^^^^^^^
 
 Download METdataio into an installation directory.  Programs can be run from
 the ush subdirectory.
@@ -48,7 +47,7 @@ the ush subdirectory.
   cd [install]/METdataio/METdbLoad/ush
 
 Create Database
----------------
+^^^^^^^^^^^^^^^
 
 Data must be loaded into a database which has the prefix \'\mv_\'\,
 e.g. mv_met_data. This database must be structured with the METviewer
