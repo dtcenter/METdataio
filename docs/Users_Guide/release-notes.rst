@@ -9,6 +9,14 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
+METdataio Version 2.1.1 release notes (20240123)
+------------------------------------------------------
+
+.. dropdown:: Bugfixes
+
+     * **Bugfix for TC Pairs files not loading into database** (`#260 <https://github.com/dtcenter/METdataio/issues/260>`_)
+
+
 METdataio Version 2.1.0 release notes (20230726)
 ------------------------------------------------------
 
