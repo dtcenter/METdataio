@@ -20,7 +20,10 @@ the database schema is updated when the following conditions apply:
 Steps
 =====
 
-1. Create a Github issue in the METdataio repository
+1. Create a Github issue in the METdataio repository and assign the appropriate settings under
+   the *Assignees*, *Labels*, *Projects* and *Milestones* links to the right side of the Github issues
+   page.
+
 
 2. Create a feature branch corresponding to this Github issue in the METdataio repository:
 
@@ -64,6 +67,10 @@ where **xyz** corresponds to the Github issue number and is branched from the *d
   the comment and provide a concise description.
 
 7. Submit a Github PR (at least one reviewer is required).
+
+8. Perform a Squash and Merge once the PR has been approved.
+
+9. Close the PR and close the Github issue
 
 
 
