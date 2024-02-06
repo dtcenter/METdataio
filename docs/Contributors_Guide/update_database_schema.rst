@@ -20,9 +20,15 @@ the database schema is updated when the following conditions apply:
 Steps
 =====
 
-1. Create a Github issue in the METdataio repository and assign the appropriate settings under
+1. Create a Github issue in the METdataio repository.
+
+*  Click on the **Issues** tab at the top of the `METdataio Repository page <https://github.com/dtcenter/METdataio>`_
+*  Click on the green **New issue** button on the top right of the issues page.
+*  Click on the green **Get started** button corresponding to the **Task** template
+*  Assign the appropriate settings under
    the *Assignees*, *Labels*, *Projects* and *Milestones* links to the right side of the Github issues
    page.
+*  Fill in relevant information under the **Add a description**
 
 
 2. Create a feature branch corresponding to this Github issue in the METdataio repository:
