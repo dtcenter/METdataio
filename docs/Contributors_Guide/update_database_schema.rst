@@ -28,7 +28,7 @@ Steps
 *  Assign the appropriate settings under
    the *Assignees*, *Labels*, *Projects* and *Milestones* links to the right side of the Github issues
    page.
-*  Fill in relevant information under the **Add a description**
+*  Fill in relevant information under the **Add a description** window
 
 
 2. Create a feature branch corresponding to this Github issue in the METdataio repository:
