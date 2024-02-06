@@ -118,6 +118,7 @@ To cite this documentation in publications, please refer to the METdataio User's
    :caption: METdataio
 
    Users_Guide/index
+   Contributors_Guide/index
 
 Index
 =====
