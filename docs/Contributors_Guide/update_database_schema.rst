@@ -45,21 +45,23 @@ where **xyz** corresponds to the Github issue number and is branched from the *d
 3. Create an **update_for_x_y.sql** file in the $BASE_DIR/METdbLoad/sql/updates directory
 
    * $BASE_DIR corresponds to the directory where the METdataio source code resides
-   * **x_y** corresponds to the METplus Analysis version (e.g 5_1 for 5.1)
-   * To determine the current version of METviewer, go to https://github.com/dtcenter/METviewer and look at the default main_vx.y version in
-     the pull-down menu to the left of the *Branches* and *Tags* links at the top of the page.
 
 4. In the **update_for_x_y.sql** file created above, make any changes to reflect updates to the schema
    The `MET release guide  <https://met.readthedocs.io/en/latest/Users_Guide/release-notes.html>`_
    is a useful resource for determining which linetypes were added or modified.
    Test that this loads the schema updates correctly.
 
-5. Update the Release Notes under the $BASE_DIR/METdataio/docs/Users_Guide/release-notes.rst under the
+5. In the $BASE_DIR/METdataio/METdbLoad/sql/mv_mysql.sql file, make necessary edits corresponding to the latest
+   changes in the database schema.
+
+6. Update the Release Notes under the $BASE_DIR/METdataio/docs/Users_Guide/release-notes.rst under the
    **METdataio Upgrade Instructions** section at the bottom of the documentation
 
    * $BASE_DIR corresponds to the directory where the METdataio source code resides
 
-6. Add and commit the changes:
+7. Add and commit the changes.
+
+In the $BASE_DIR/METdataio/METdbLoad/sql/updates directory:
 
 .. code-block:: ini
 
@@ -67,14 +69,23 @@ where **xyz** corresponds to the Github issue number and is branched from the *d
    git commit update_for_x_y.sql
 
 * Replace **x_y** with the appropriate version
+
+In the $BASE_DIR/METdataio/METdbLoad/sql directory:
+
+.. code-block:: ini
+
+   git commit mv_mysql.sql
+
+
+
 * The git commit will generate a pop-up box for adding comments.  Include the Github issue number in
   the comment and provide a concise description of what was done.
 
-7. Submit a Github PR (at least one reviewer is required).
+8. Submit a Github PR (at least one reviewer is required).
 
-8. Perform a Squash and Merge once the PR has been approved.
+9. Perform a Squash and Merge once the PR has been approved.
 
-9. Close the PR and close the Github issue
+10. Close the PR and close the Github issue
 
 
 
