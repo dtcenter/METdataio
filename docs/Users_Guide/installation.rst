@@ -36,6 +36,9 @@ Python Requirements
 requires the Python packages pymysql, pandas, numpy, pyyaml, and lxml. Please refer to the
 requirements.txt file for the version numbers. 
 
+The requirements below come directly from the **requirements.txt** file 
+at the top level of the repository.
+
 .. literalinclude:: ../../requirements.txt
 
 Installation
