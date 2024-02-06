@@ -7,15 +7,13 @@ Update the Database Schema
 Background
 ===========
 
-The METdataio METdbLoad module is used to load input data into the METviewer database. It is important that
+The METdataio METdbLoad module is used to load input data into the METplus Analysis database. It is important that
 the database schema is updated when the following conditions apply:
 
 * The MET tool has introduced a *new linetype*
 * The MET tool has *modified one or more existing linetype(s)*
-* A new METplus *coordinated release*
-  (i.e. x.y METplus release with all components: METplus, MET, METviewer,
-  METdataio, METcalcpy, METplotpy)
-* A new *bugfix* or *beta release* of the METplus components: METdataio and MET
+
+If no changes exist, then an update to the database schema is unnecessary.
 
 Steps
 =====
@@ -47,7 +45,7 @@ where **xyz** corresponds to the Github issue number and is branched from the *d
 3. Create an **update_for_x_y.sql** file in the $BASE_DIR/METdbLoad/sql/updates directory
 
    * $BASE_DIR corresponds to the directory where the METdataio source code resides
-   * **x_y** corresponds to the METviewer version (e.g 5_1 for 5.1)
+   * **x_y** corresponds to the METplus Analysis version (e.g 5_1 for 5.1)
    * To determine the current version of METviewer, go to https://github.com/dtcenter/METviewer and look at the default main_vx.y version in
      the pull-down menu to the left of the *Branches* and *Tags* links at the top of the page.
 
@@ -70,7 +68,7 @@ where **xyz** corresponds to the Github issue number and is branched from the *d
 
 * Replace **x_y** with the appropriate version
 * The git commit will generate a pop-up box for adding comments.  Include the Github issue number in
-  the comment and provide a concise description.
+  the comment and provide a concise description of what was done.
 
 7. Submit a Github PR (at least one reviewer is required).
 
