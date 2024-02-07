@@ -32,8 +32,7 @@ typing the command in the CLI and/or make the corresponding edit to
 Python Requirements
 -------------------
 
-**Python 3.10.4+** - Python 3.10.4 or higher must be installed. METdataio also
-requires the Python packages pymysql, pandas, numpy, pyyaml, and lxml. 
+**Python 3.10.4+** - Python 3.10.4 or higher must be installed. 
 
 The requirements below come directly from the **requirements.txt** file 
 at the top level of the repository.
