@@ -144,7 +144,7 @@ class ReadDataFiles:
 
                         # Get the first line of the .stat file that has the headers
                         try:
-                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                            file_hdr = pd.read_csv(filename, sep='\s+',
                                                    header=None, nrows=1)
                         except (pandas.errors.EmptyDataError):
                             logging.warning("!!! Stat file %s has no columns", filename)
@@ -267,7 +267,7 @@ class ReadDataFiles:
 
                         # Get the first line of the mode cts or obj file that has the headers
                         try:
-                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                            file_hdr = pd.read_csv(filename, sep='\s+',
                                                    nrows=1)
                         except (pandas.errors.EmptyDataError):
                             logging.warning("!!! Mode file %s has no columns", filename)
@@ -337,7 +337,7 @@ class ReadDataFiles:
 
                         # Get the first line of the .tcst file that has the headers
                         try:
-                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                            file_hdr = pd.read_csv(filename, sep='\s+',
                                                    header=None, nrows=1)
                         except (pandas.errors.EmptyDataError):
                             logging.warning("!!! TCST file %s has no columns", filename)
@@ -380,7 +380,7 @@ class ReadDataFiles:
 
                         # Get the first line of the MTD file that has the headers
                         try:
-                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                            file_hdr = pd.read_csv(filename, sep='\s+',
                                                    nrows=1)
                         except (pandas.errors.EmptyDataError):
                             logging.warning("!!! MTD file %s has no columns", filename)
