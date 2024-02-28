@@ -283,10 +283,8 @@ class WriteStatAscii:
 
         # PCT
         elif linetype == cn.PCT:
-            if is_aggregated:
-                linetype_data: pd.DataFrame = self.process_pct(stat_data)
-            else:
-                linetype_data: pd.DataFrame = self.process_pct_for_agg(stat_data)
+            # No need to support additional reformatting for agg_stat, this format supports this.
+            linetype_data: pd.DataFrame = self.process_pct(stat_data)
 
         # RHIST (ranked histogram)
         elif linetype == cn.RHIST:
@@ -308,6 +306,7 @@ class WriteStatAscii:
 
             Arguments:
             @param stat_data: Input data from MET .stat output represented as a dataframe.
+
 
             Returns:
             linetype_data: the input dataframe reformatted into long format
@@ -386,7 +385,7 @@ class WriteStatAscii:
         # and concat to the working_df.
         num_rows = working_df.shape[0]
 
-        # Create a dictionary of values corresponding to each value_1, value_2, etc 'key'
+        # Create a dictionary of values corresponding to each value_1, value_2, etc. 'key'
         value_i_dict = {}
 
         # Create a dataframe with the same number of rows
@@ -433,6 +432,7 @@ class WriteStatAscii:
         on_cols = []
         i_value = []
         working_headers = working_copy_df.columns.to_list()
+        print(f"working headers: {working_headers}")
         remaining_columns = working_headers[cn.NUM_STATIC_PCT_COLS:]
         for cur in remaining_columns:
             match_thresh = re.match(r'(thresh_)(\d+)', cur)
@@ -485,8 +485,7 @@ class WriteStatAscii:
 
         return reformatted_df
 
-    def process_pct_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
-        raise NotImplementedError
+
 
     def process_rhist(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
