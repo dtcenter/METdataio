@@ -1,22 +1,27 @@
-import pytest
-import pathlib
 import os
-import yaml
+import pathlib
 from collections import namedtuple
+from dataclasses import make_dataclass
 from typing import List
+
 import numpy as np
 import pandas as pd
-from METdataio.METdbLoad.ush.read_load_xml import XmlLoadFile
+import pytest
+import yaml
+
 import METdataio.METdbLoad.ush.constants as cn
 from METdataio.METdbLoad.ush.read_data_files import ReadDataFiles
+from METdataio.METdbLoad.ush.read_load_xml import XmlLoadFile
 from METdataio.METreformat.write_stat_ascii import WriteStatAscii
 
-def read_input(config_file):
+
+def read_input(config_file, is_tcst):
     """
        Read in the input .stat data file, return a data frame representation of all the data in the specified
        input data directory.
 
     :param input_data_dir: The full path of the directory where the input data is located.
+    :param is_tcst: If the linetype is a TCMPR or TCDiag (.tcst file)
     :return: file_df, the dataframe representation of the input data
     """
 
@@ -41,8 +46,11 @@ def read_input(config_file):
     flags = xml_loadfile_obj.flags
     line_types = xml_loadfile_obj.line_types
     rdf_obj.read_data(flags, load_files, line_types)
-    file_df = rdf_obj.stat_data
 
+    if is_tcst:
+        file_df = rdf_obj.tcst_data
+    else:
+        file_df = rdf_obj.stat_data
     # Check if the output file already exists, if so, delete it to avoid
     # appending output from subsequent runs into the same file.
     existing_output_file = os.path.join(parms['output_dir'], parms['output_filename'])
@@ -51,7 +59,8 @@ def read_input(config_file):
 
     return file_df, parms
 
-def setup_test(yaml_file):
+
+def setup_test(yaml_file, is_tcst=False):
     """
        Read in the YAML config settings, then generate the input data as a data frame and perform reformatting.
 
@@ -59,9 +68,11 @@ def setup_test(yaml_file):
 
     cwd = os.path.dirname(__file__)
     full_yaml_file = os.path.join(cwd, yaml_file)
-    file_df, config = read_input(full_yaml_file)
+    file_df, config = read_input(full_yaml_file, is_tcst)
 
     return file_df, config
+
+
 def test_point_stat_FHO_consistency():
     '''
            For the data frame for the FHO line type, verify that a value in the
@@ -73,7 +84,7 @@ def test_point_stat_FHO_consistency():
     '''
 
     # Subset the input dataframe to include only the FHO linetype
-    stat_data, parms= setup_test("FHO.yaml")
+    stat_data, parms = setup_test("FHO.yaml")
     end = cn.NUM_STAT_FHO_COLS
     fho_columns_to_use = np.arange(0, end).tolist()
     linetype = cn.FHO
@@ -116,7 +127,7 @@ def test_point_stat_FHO_consistency():
 
 
 # @pytest.mark.skip()
-def test_point_stat_SL1L2_consistency():
+def test_point_stat_sl1l2_consistency():
     '''
            For the data frame for the SL1L2 line type, verify that a value in the
            original data
@@ -166,8 +177,6 @@ def test_point_stat_SL1L2_consistency():
     actual_row: pd.Series = actual_df.iloc[0]
     actual_value: float = actual_row['stat_value']
 
-    actual_name: str = actual_row['stat_name']
-
     # Checking for consistency between the reformatted/reshaped data and the
     # "original" data.
     assert expected_val == actual_value
@@ -176,7 +185,7 @@ def test_point_stat_SL1L2_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_point_stat_VL1L2_consistency():
+def test_point_stat_vl1l2_consistency():
     '''
            For the data frame for the VL1L2 line type, verify that a value in the
            original data corresponds to the value identified with the same criteria
@@ -229,8 +238,6 @@ def test_point_stat_VL1L2_consistency():
     actual_row: pd.Series = actual_df.iloc[0]
     actual_value: float = actual_row['stat_value']
 
-    actual_name: str = actual_row['stat_name']
-
     # Checking for consistency between the reformatted/reshaped data and the
     # "original" data.
     assert expected_val == actual_value
@@ -239,7 +246,7 @@ def test_point_stat_VL1L2_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_point_stat_CTC_consistency():
+def test_point_stat_ctc_consistency():
     '''
            For the data frame for the CTC line type, verify that a value in the
            original data
@@ -290,8 +297,6 @@ def test_point_stat_CTC_consistency():
     actual_row: pd.Series = actual_df.iloc[0]
     actual_value: float = actual_row['stat_value']
 
-    actual_name: str = actual_row['stat_name']
-
     # Checking for consistency between the reformatted/reshaped data and the
     # "original" data.
     assert expected_val == actual_value
@@ -300,7 +305,7 @@ def test_point_stat_CTC_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_point_stat_CTS_consistency():
+def test_point_stat_cts_consistency():
     '''
            For the data frame for the CTS line type, verify that a value in the
            original data
@@ -367,7 +372,7 @@ def test_point_stat_CTS_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_point_stat_CNT_consistency():
+def test_point_stat_cnt_consistency():
     '''
            For the data frame for the CNT line type, verify that a value in the
            original data
@@ -433,8 +438,9 @@ def test_point_stat_CNT_consistency():
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
 
+
 @pytest.mark.skip('Work in progress')
-def test_point_stat_VCNT_consistency():
+def test_point_stat_vcnt_consistency():
     '''
            For the data frame for the VCNT line type, verify that a value in the
            original data
@@ -454,7 +460,7 @@ def test_point_stat_VCNT_consistency():
 
     # Subset original dataframe to one containing only the VCNT data
     vcnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                           vcnt_columns_to_use]
+                            vcnt_columns_to_use]
 
     # Add the stat columns for the VCNT line type
     vcnt_columns: List[str] = cn.FULL_VCNT_HEADER
@@ -486,12 +492,11 @@ def test_point_stat_VCNT_consistency():
     # "original" data.
     assert expected_val == actual_value
 
-
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_point_stat_MCTS_consistency():
+def test_point_stat_mcts_consistency():
     '''
            For the data frame for the MCTS line type, verify that a value in the
            original data corresponds to the value identified with the same criteria
@@ -590,9 +595,9 @@ def test_ensemble_stat_ecnt_consistency():
     vx_mask = 'FULL'
     interp_mthd = 'NEAREST'
     expected_df: pd.DataFrame = ecnt_df.loc[(ecnt_df['total'] == total) & (ecnt_df[
-                                                             'obs_var'] == obs_var) &
+                                                                               'obs_var'] == obs_var) &
                                             (ecnt_df['obs_lev'] == obs_level) &
-                                            (ecnt_df['obs_lead'] == obs_lead)  &
+                                            (ecnt_df['obs_lead'] == obs_lead) &
                                             (ecnt_df['vx_mask'] == vx_mask) &
                                             (ecnt_df['interp_mthd'] == interp_mthd)]
     expected_row: pd.Series = expected_df.iloc[0]
@@ -613,8 +618,6 @@ def test_ensemble_stat_ecnt_consistency():
     actual_row: pd.Series = actual_df.iloc[0]
     actual_value: float = actual_row['stat_value']
 
-    actual_name: str = actual_row['stat_name']
-
     # Checking for consistency between the reformatted/reshaped data and the
     # "original" data.
     assert expected_val == actual_value
@@ -634,8 +637,8 @@ def test_ensemble_stat_ecnt_consistency():
     # row where VX_MASK = FULL and TOTAL=1125
     expected_rmse = 12.52909
     actual_rmse_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['stat_name'] == 'RMSE') &
-                                  (reshaped_df['vx_mask'] == 'FULL') &
-                                  (reshaped_df['total'] == '1125')]
+                                                   (reshaped_df['vx_mask'] == 'FULL') &
+                                                   (reshaped_df['total'] == '1125')]
     print(f"RMSE from reformatted: {actual_rmse_df} of type {type(actual_rmse_df)}")
     assert str(actual_rmse_df.iloc[0].stat_value) == str(expected_rmse)
 
@@ -650,8 +653,6 @@ def test_pct_consistency():
     stat_data, config = setup_test('PCT_ROC.yaml')
 
     # Relevant columns for the PCT line type
-    linetype: str = cn.PCT
-
     wsa = WriteStatAscii(config)
     reshaped_df = wsa.process_pct(stat_data)
 
@@ -674,12 +675,12 @@ def test_pct_consistency():
 
     # Values from reformatting
     subset = reshaped_df.loc[(reshaped_df['fcst_thresh'] == '==0.10000') & (reshaped_df['obs_thresh'] == '>=288') &
-                    (reshaped_df['total'] == '4307') & (reshaped_df['fcst_lev'] == 'Z2') &
-                    (reshaped_df['fcst_lead'] == 110000) & (reshaped_df['obs_var'] == 'DPT')]
+                             (reshaped_df['total'] == '4307') & (reshaped_df['fcst_lev'] == 'Z2') &
+                             (reshaped_df['fcst_lead'] == 110000) & (reshaped_df['obs_var'] == 'DPT')]
 
     values = [1, 2, 3, 10]
     for idx, val in enumerate(values):
-        subset_by_value:pd.DataFrame = subset.loc[subset['i_value']== val]
+        subset_by_value: pd.DataFrame = subset.loc[subset['i_value'] == val]
         cur_thresh = list(subset_by_value['thresh_i'])[0]
         cur_oy = list(subset_by_value['oy_i'])[0]
         cur_on = list(subset_by_value['on_i'])[0]
@@ -703,11 +704,10 @@ def test_rhist_consistency():
     :return:  None
     '''
 
-
     # Original data
     stat_data, config = setup_test('RHIST.yaml')
 
-   # Relevant columns for the RHIST line type
+    # Relevant columns for the RHIST line type
     linetype: str = cn.RHIST
 
     wsa = WriteStatAscii(config)
@@ -715,14 +715,14 @@ def test_rhist_consistency():
 
     # Verify that the following values are found for the rows with these columns + values (corresponding to the
     # last row of data in the raw RHIST input dataframe):
-    fcst_lead=280000
-    obs_var='DPT'
-    obtype='ADPSFC'
-    model='RRFS_GEFS_GF.SPP.SPPT'
-    fcst_var='DPT'
-    total= '4089'
-    fcst_lev='Z2'
-    obs_lev='Z2'
+    fcst_lead = 280000
+    obs_var = 'DPT'
+    obtype = 'ADPSFC'
+    model = 'RRFS_GEFS_GF.SPP.SPPT'
+    fcst_var = 'DPT'
+    total = '4089'
+    fcst_lev = 'Z2'
+    obs_lev = 'Z2'
 
     ExpectedValues = namedtuple('ExpectedValues', 'rank, i_value')
     rank_i = [955, 460, 389, 220]
@@ -735,10 +735,10 @@ def test_rhist_consistency():
 
     # Values from reformatted stat file
     subset = reshaped_df.loc[(reshaped_df['fcst_lead'] == fcst_lead) & (reshaped_df['obs_var'] == obs_var) &
-                    (reshaped_df['total'] == total) & (reshaped_df['fcst_lev'] == fcst_lev) &
-                    (reshaped_df['fcst_lead'] == fcst_lead) & (reshaped_df['obs_var'] == obs_var) &
-                    (reshaped_df['model'] == model) & (reshaped_df['obtype'] == obtype) &
-                    (reshaped_df['fcst_var'] == fcst_var) & (reshaped_df['obs_lev'] == obs_lev)]
+                             (reshaped_df['total'] == total) & (reshaped_df['fcst_lev'] == fcst_lev) &
+                             (reshaped_df['fcst_lead'] == fcst_lead) & (reshaped_df['obs_var'] == obs_var) &
+                             (reshaped_df['model'] == model) & (reshaped_df['obtype'] == obtype) &
+                             (reshaped_df['fcst_var'] == fcst_var) & (reshaped_df['obs_lev'] == obs_lev)]
 
     # Check that our subsetted dataframe isn't an empty data frame and it contains n_rank rows
     num_ranks = reshaped_df['n_rank'][0]
@@ -747,7 +747,7 @@ def test_rhist_consistency():
 
     values = [1, 2, 3, 11]
     for idx, val in enumerate(values):
-        subset_by_value:pd.DataFrame = subset.loc[subset['i_value']== val]
+        subset_by_value: pd.DataFrame = subset.loc[subset['i_value'] == val]
         cur_rank = list(subset_by_value['rank_i'])[0]
         cur_val = list(subset_by_value['i_value'])[0]
         expected_rank = expected_values[idx].rank
@@ -782,22 +782,17 @@ def test_ecnt_reformat_for_agg():
     for cur in zipped_list:
         expected_values.append(ExpectedValues(*cur))
 
-    ref1:pd.Series = reformatted_df.loc[reformatted_df['total'] == str(expected_values[0].total)]
-    ref2:pd.Series = reformatted_df.loc[reformatted_df['total'] == str(expected_values[1].total)]
+    ref1: pd.Series = reformatted_df.loc[reformatted_df['total'] == str(expected_values[0].total)]
+    ref2: pd.Series = reformatted_df.loc[reformatted_df['total'] == str(expected_values[1].total)]
 
     # Verify that we still have a row of ECNT linetype data with the original total values of 1125 and 503
-    if ref1 is not None and ref2 is not None :
-        # There are rows of data corresponding to the requested total values
-        assert True
-    else:
-        assert False
+    assert ref1 is not None and ref2 is not None
 
     # Verify that the values for crps and n_ens are consistent with the original input data.
     assert float(ref1['crps'].iloc[0]) == expected_values[0].crps
     assert float(ref2['crps'].iloc[0]) == expected_values[1].crps
     assert ref1['n_ens'].iloc[0] == expected_values[0].n_ens
     assert ref2['n_ens'].iloc[0] == expected_values[1].n_ens
-
 
     # Verify that all the expected columns are present: ECNT headers and the stat_name and stat_value
     ecnt_headers = list(cn.ECNT_HEADERS)
@@ -806,8 +801,9 @@ def test_ecnt_reformat_for_agg():
     for hdr in added_headers:
         ecnt_headers_lc.append(hdr)
 
-    actual_headers =list(reformatted_df.columns)
+    actual_headers = list(reformatted_df.columns)
     assert len(actual_headers) == len(ecnt_headers_lc)
+
 
 def test_fho_reformat_for_agg():
     '''
@@ -827,3 +823,68 @@ def test_fho_reformat_for_agg():
     # Expect SystemExit within the process_by_stat_line_type when a NotImplementedError is caught
     with pytest.raises(SystemExit):
         wsa.write_stat_ascii(stat_data, parms)
+
+
+def test_tcdiag_from_tcpairs():
+    '''
+        Test that the reformatting is correct by comparing values in the original data to the reformatted data
+
+    '''
+    stat_data, config = setup_test('test_reformat_tcdiag.yaml', is_tcst=True)
+    wsa = WriteStatAscii(config)
+    reformatted_df = wsa.process_tcdiag(stat_data)
+
+    # Compare original data (read in from METdbLoad) to reformatted
+
+    # Create a dataclass of expected values for the TCDiag linetype in the unformatted data
+    # for amodel=GFSO, fcst_init=2022-09-26 00:00:00, fcst_lead 000000, line_type= TCDIAG
+
+    subset = stat_data.loc[(stat_data['amodel'] == 'GFSO') & (stat_data['fcst_init'] == '2022-09-26 00:00:00') & (
+            stat_data['fcst_lead'] == '000000') & (stat_data['line_type'] == 'TCDIAG')]
+    orig_total = subset['0'].to_list()[0]
+    orig_index = subset['1'].to_list()[0]
+    orig_diag_src = subset['2'].to_list()[0]
+    # Value of the SHEAR_MAGNITUDE diagnostic
+    orig_diag_val = subset['7'].to_list()[0]
+
+    TCDiag = make_dataclass("TCDiag", ["total", "index", "diag_src", "diag_val"], frozen=True)
+    orig = TCDiag(orig_total, orig_index, orig_diag_src, orig_diag_val)
+
+    # Reformatted values for the same fcst init, fcst lead, amodel, etc. as above should yield the same results
+    sub_reformatted = reformatted_df.loc[(reformatted_df['AMODEL'] == 'GFSO') &
+                                         (reformatted_df['INIT'] == '2022-09-26 00:00:00') &
+                                         (reformatted_df['LEAD'] == '000000')]
+    reformatted_total = sub_reformatted['TOTAL'].to_list()[0]
+    reformatted_index = sub_reformatted['INDEX_PAIR'].to_list()[0]
+    reformatted_diag_src = sub_reformatted['DIAG_SOURCE'].to_list()[0]
+    reformatted_diag_val = sub_reformatted['SHEAR_MAGNITUDE'].to_list()[0]
+    reformatted = TCDiag(reformatted_total, reformatted_index, reformatted_diag_src, reformatted_diag_val)
+
+    assert orig.total == reformatted.total
+    assert orig.index == reformatted.index
+    assert orig.diag_src == reformatted.diag_src
+    assert orig.diag_val == reformatted.diag_val
+
+    # Expected columns
+    expected_columns = ['VERSION', 'AMODEL', 'BMODEL', 'DESCR', 'STORM_ID', 'BASIN', 'CYCLONE', 'STORM_NAME', 'INIT',
+                        'LEAD', 'VALID', 'INIT_MASK', 'VALID_MASK', 'TOTAL', 'INDEX_PAIR', 'LEVEL', 'WATCH_WARN',
+                        'INITIALS', 'ALAT', 'ALON', 'BLAT', 'BLON', 'TK_ERR', 'X_ERR', 'Y_ERR', 'ALTK_ERR', 'CRTK_ERR',
+                        'ADLAND', 'BDLAND', 'AMSLP', 'BMSLP', 'AMAX_WIND', 'BMAX_WIND', 'AAL_WIND_34', 'BAL_WIND_34',
+                        'ANE_WIND_34', 'BNE_WIND_34', 'ASE_WIND_34', 'BSE_WIND_34', 'ASW_WIND_34', 'BSW_WIND_34',
+                        'ANW_WIND_34', 'BNW_WIND_34', 'AAL_WIND_50', 'BAL_WIND_50', 'ANE_WIND_50', 'BNE_WIND_50',
+                        'ASE_WIND_50', 'BSE_WIND_50', 'ASW_WIND_50', 'BSW_WIND_50', 'ANW_WIND_50', 'BNW_WIND_50',
+                        'AAL_WIND_64', 'BAL_WIND_64', 'ANE_WIND_64', 'BNE_WIND_64', 'ASE_WIND_64', 'BSE_WIND_64',
+                        'ASW_WIND_64', 'BSW_WIND_64', 'ANW_WIND_64', 'BNW_WIND_64', 'ARADP', 'BRADP', 'ARRP', 'BRRP',
+                        'AMRD', 'BMRD', 'AGUSTS', 'BGUSTS', 'AEYE', 'BEYE', 'ADIR', 'BDIR', 'ASPEED', 'BSPEED',
+                        'ADEPTH', 'BDEPTH', 'NUM_MEMBERS', 'TRACK_SPREAD', 'TRACK_STDEV', 'MSLP_STDEV',
+                        'MAX_WIND_STDEV', 'LINE_TYPE', 'INDEX_PAIRS', 'DIAG_SOURCE', 'TRACK_SOURCE', 'FIELD_SOURCE',
+                        'N_DIAG', 'SHEAR_MAGNITUDE', 'STORM_SPEED', 'TPW', 'DIST_TO_LAND', 'PW01']
+
+    actual_columns = reformatted_df.columns.to_list()
+
+    for col in actual_columns:
+        assert col in expected_columns
+
+    # Test the TCMPR data
+
+
