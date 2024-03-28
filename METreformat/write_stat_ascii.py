@@ -18,23 +18,25 @@ NOAA/OAR/ESRL/GSD
 # pylint:disable=no-member
 # constants exist in constants.py
 import gc
-import sys
-import os
 import logging
-import time
+import os
 import pathlib
+import re
+import sys
+import time
 from typing import List
+
 import numpy as np
 import pandas as pd
 import yaml
-import re
 
 import constants as cn
-from METdbLoad.ush.read_load_xml import XmlLoadFile
-from METdbLoad.ush.read_data_files import ReadDataFiles
 import util
+from METdbLoad.ush.read_data_files import ReadDataFiles
+from METdbLoad.ush.read_load_xml import XmlLoadFile
 
 logger = logging.getLogger(__name__)
+
 
 class WriteStatAscii:
     """ Class to write MET .stat files to an ASCII file that contains the reformatted input data
@@ -72,9 +74,8 @@ class WriteStatAscii:
                                 format=' %(asctime)s || %(module)s || User:%(user)s || %(levelname)s : '
                                        '%(message)s',
                                 datefmt='%Y-%m-%d %H:%M:%S',
-                                filename = full_log_filename,
-                                filemode = 'w')
-
+                                filename=full_log_filename,
+                                filemode='w')
 
     def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict) -> pd.DataFrame:
         """ For line types: FHO, CTC, CTS, SL1L2, ECNT, MCTS, and VCNT reformat the MET stat files (.stat) to another
@@ -123,7 +124,7 @@ class WriteStatAscii:
             # and ROC diagrams require specific formatting.
 
             working_df = stat_data.copy(deep=True)
-            linetype_requested = str( parms['line_type']).upper()
+            linetype_requested = str(parms['line_type']).upper()
             if linetype_requested in supported_linetypes:
                 # If the TCDiag linetype is requested, keep both the TCDiag and TCMPR linetypes.
                 if linetype_requested == cn.TCDIAG:
@@ -133,7 +134,8 @@ class WriteStatAscii:
                     working_df = working_df.loc[working_df['line_type'] == linetype_requested]
             else:
                 logging.ERROR("Requested line type is currently not supported for reformatting")
-                raise ValueError("Requested line type ", linetype_requested,  " is currently not supported for reformatting")
+                raise ValueError("Requested line type ", linetype_requested,
+                                 " is currently not supported for reformatting")
 
             # --------------------
             # Write Stat Headers
@@ -145,7 +147,6 @@ class WriteStatAscii:
             # The FCST_INIT_BEG header is added in after the FCST_VALID_END
             # column, resulting in one additional column to the common header.
 
-
             # ------------------------------
             # Extract statistics information
             # ------------------------------
@@ -155,7 +156,7 @@ class WriteStatAscii:
             # Setting to indicate whether .stat files were processed with MET stat-analysis (True)
             # or directly from the MET point-stat, grid-stat, or ensemble-stat tool (False)
             is_aggregated = parms['input_stats_aggregated']
-            
+
             # Replace any nan records with 'NA'.  These nan values were set by the
             # METdbLoad read_data_files module.
             working_df = working_df.fillna('NA')
@@ -166,7 +167,6 @@ class WriteStatAscii:
             except NotImplementedError:
                 sys.exit('NotImplementedError')
 
-
             end_reformat = time.perf_counter()
             reformat_time = end_reformat - begin_reformat
             msg = 'Reformatting took: ' + str(reformat_time) + ' seconds'
@@ -175,7 +175,7 @@ class WriteStatAscii:
             # Write out to the tab-separated text file
             output_file = os.path.join(parms['output_dir'], parms['output_filename'])
             _: pd.DataFrame = reformatted_df.to_csv(output_file, index=None, sep='\t',
-                                                  mode='a')
+                                                    mode='a')
 
         except (RuntimeError, TypeError, NameError, KeyError, NotImplementedError):
             logging.error("*** %s in write_stat_ascii ***", sys.exc_info()[0])
@@ -199,9 +199,9 @@ class WriteStatAscii:
            
 
         Args:
-            @param linetype: The linetype of interest (i.e. CNT, CTS, FHO, etc.)
-            @param stat_data: The original MET data read in from the .stat file, containing only the requested linetype
-                              rows.
+            @param linetype: The linetype of interest (i.e. CNT, CTS, FHO, TCMPR, etc.)
+            @param stat_data: The original MET data read in from the .stat/.tcst file, containing only the requested
+                              linetype rows.
             Empty columns from the original .stat
                               file are named with the string representation of the
                               numbers 1-n.
@@ -300,8 +300,8 @@ class WriteStatAscii:
 
         # TCDIAG (from MET TC-Pairs output)
         elif linetype == cn.TCDIAG:
-           # No need to support additional reformatting for agg_stat.
-           linetype_data: pd.DataFrame = self.process_tcdiag(stat_data)
+            # No need to support additional reformatting for agg_stat.
+            linetype_data: pd.DataFrame = self.process_tcdiag(stat_data)
 
         else:
             return None
@@ -326,7 +326,6 @@ class WriteStatAscii:
 
         # Determine the columns for this line type
         linetype: str = cn.PCT
-
 
         #
         # Subset the input dataframe to include only the PCT columns and label the remaining
@@ -368,14 +367,14 @@ class WriteStatAscii:
         gc.collect()
 
         # Replace the first two numbered labels (following the LINETYPE column) with the TOTAL and N_THRESH labels
-        working_df.rename(columns={'0':'total', cn.LINE_VAR_COUNTER[cn.PCT]:'n_thresh'}, inplace=True)
+        working_df.rename(columns={'0': 'total', cn.LINE_VAR_COUNTER[cn.PCT]: 'n_thresh'}, inplace=True)
 
         # Relabel the remaining numbered column headers
         last_column_name = len(working_df.columns) - cn.NUM_STATIC_PCT_COLS
 
         # The THRESH_n column is the last column
         thresh_n_col_name = 'thresh_' + str(num_thresh + 1)
-        working_df.rename(columns={str(last_column_name):thresh_n_col_name}, inplace=True)
+        working_df.rename(columns={str(last_column_name): thresh_n_col_name}, inplace=True)
 
         # Relabel the repeating columns (THRESH_i, OY_i, ON_i)
         # column names are numbered '1','2','3',...,etc. Give them descriptive labels: thresh_1, oy_1, on_1, etc.
@@ -386,7 +385,7 @@ class WriteStatAscii:
             for column in cn.LC_PCT_VARIABLE_HEADERS:
                 column_name = str(column_name_value)
                 column_label = "{label}_{idx}".format(label=column, idx=i)
-                working_df.rename(columns={column_name:column_label}, inplace=True)
+                working_df.rename(columns={column_name: column_label}, inplace=True)
                 column_name_value += 1
 
             # Add a list used to facilitate creating the value_i column when reformatting.
@@ -464,10 +463,12 @@ class WriteStatAscii:
         # Now apply melt to get the thresh_i, oy_i, on_i columns, and i_value column
         # include the n_thresh column for indexing.
         common_list.append('n_thresh')
-        df_thresh  = working_copy_df.melt(id_vars=common_list, value_vars=thresh_cols, var_name='thresh', value_name='thresh_i')
+        df_thresh = working_copy_df.melt(id_vars=common_list, value_vars=thresh_cols, var_name='thresh',
+                                         value_name='thresh_i')
         df_oy = working_copy_df.melt(id_vars=common_list, value_vars=oy_cols, var_name='oy', value_name='oy_i')
         df_on = working_copy_df.melt(id_vars=common_list, value_vars=on_cols, var_name='on', value_name='on_i')
-        df_values = working_copy_df.melt(id_vars=common_list, value_vars=i_value, var_name='values', value_name='i_value')
+        df_values = working_copy_df.melt(id_vars=common_list, value_vars=i_value, var_name='values',
+                                         value_name='i_value')
 
         # Drop the unused var_names in the melted dataframes
         df_thresh.drop('thresh', axis=1, inplace=True)
@@ -491,11 +492,9 @@ class WriteStatAscii:
         reformatted_df = reformatted_df.reset_index(drop=False)
 
         # Convert the n_thresh values to integers
-        reformatted_df = reformatted_df.astype({"n_thresh":np.int16})
+        reformatted_df = reformatted_df.astype({"n_thresh": np.int16})
 
         return reformatted_df
-
-
 
     def process_rhist(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -516,7 +515,6 @@ class WriteStatAscii:
         # Determine the columns for this line type
         linetype: str = cn.RHIST
 
-
         #
         # Subset the input dataframe to include only the RHIST columns and label the remaining
         # "unlabelled" (i.e. labelled with numbers after data is read in by METdbLoad)
@@ -532,7 +530,7 @@ class WriteStatAscii:
         num_repeating_col_labels: int = int(cn.LINE_VAR_REPEATS[linetype])
 
         #  Retrieve the value for N_RANK, the number of possible ranks
-        num_rank:int = int(stat_data_copy.iloc[0][cn.NUM_STATIC_RHIST_COLS])
+        num_rank: int = int(stat_data_copy.iloc[0][cn.NUM_STATIC_RHIST_COLS])
 
         # Add 1 for the TOTAL column to get the total number of columns for this line type
         total_number_relevant_columns = cn.NUM_STATIC_RHIST_COLS + num_rank * num_repeating_col_labels + 1
@@ -554,7 +552,7 @@ class WriteStatAscii:
         gc.collect()
 
         # Replace the first two numbered labels (following the LINETYPE column) with the TOTAL and N_RANK labels
-        working_df.rename(columns={'0':'total', cn.LINE_VAR_COUNTER[cn.RHIST]:'n_rank'}, inplace=True)
+        working_df.rename(columns={'0': 'total', cn.LINE_VAR_COUNTER[cn.RHIST]: 'n_rank'}, inplace=True)
 
         # Relabel the repeating columns (RANK_1, ..., RANK_n)
         # column names are numbered '1','2','3',...,etc. by METdbLoad.
@@ -566,7 +564,7 @@ class WriteStatAscii:
             for column in cn.LC_RHIST_VARIABLE_HEADERS:
                 column_name = str(column_name_value)
                 column_label = "{label}_{idx}".format(label=column, idx=i)
-                working_df.rename(columns={column_name:column_label}, inplace=True)
+                working_df.rename(columns={column_name: column_label}, inplace=True)
                 column_name_value += 1
 
             # Add a list used to facilitate creating the value_i column when reformatting.
@@ -632,8 +630,9 @@ class WriteStatAscii:
         # Now apply melt to get the rank_i and i_value columns
         # include the n_rank column for indexing.
         common_list.append('n_rank')
-        df_rank  = working_copy_df.melt(id_vars=common_list, value_vars=rank_cols, var_name='rank', value_name='rank_i')
-        df_values = working_copy_df.melt(id_vars=common_list, value_vars=i_value, var_name='values', value_name='i_value')
+        df_rank = working_copy_df.melt(id_vars=common_list, value_vars=rank_cols, var_name='rank', value_name='rank_i')
+        df_values = working_copy_df.melt(id_vars=common_list, value_vars=i_value, var_name='values',
+                                         value_name='i_value')
 
         # Drop the unused var_names in the melted dataframes
         df_rank.drop('rank', axis=1, inplace=True)
@@ -653,7 +652,7 @@ class WriteStatAscii:
         reformatted_df = reformatted_df.reset_index(drop=False)
 
         # Convert the n_rank values to integers
-        reformatted_df = reformatted_df.astype({"n_rank":np.int16})
+        reformatted_df = reformatted_df.astype({"n_rank": np.int16})
 
         return reformatted_df
 
@@ -689,7 +688,7 @@ class WriteStatAscii:
         # Relevant columns for the FHO line type
         linetype: str = cn.FHO
         end = cn.NUM_STAT_FHO_COLS
-        fho_columns_to_use: List[str] =\
+        fho_columns_to_use: List[str] = \
             np.arange(0, end).tolist()
 
         # Subset original dataframe to another dataframe consisting of only the FHO
@@ -763,7 +762,7 @@ class WriteStatAscii:
         # Relevant columns for the CNT line type
         linetype: str = cn.CNT
         end = cn.NUM_STAT_CNT_COLS
-        cnt_columns_to_use: List[str] =\
+        cnt_columns_to_use: List[str] = \
             np.arange(0, end).tolist()
 
         # Subset original dataframe to one containing only the CNT data
@@ -864,7 +863,7 @@ class WriteStatAscii:
 
         # Subset original dataframe to one containing only the VCNT data
         vcnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                               vcnt_columns_to_use]
+                                vcnt_columns_to_use]
 
         # Add the stat columns for the CNT line type
         vcnt_columns: List[str] = cn.FULL_VCNT_HEADER
@@ -954,7 +953,7 @@ class WriteStatAscii:
         # Relevant columns for the CTC line type
         linetype: str = cn.CTC
         end = cn.NUM_STAT_CTC_COLS
-        ctc_columns_to_use: List[str] =\
+        ctc_columns_to_use: List[str] = \
             np.arange(0, end).tolist()
 
         # Subset original dataframe to one containing only the CTC data
@@ -999,7 +998,6 @@ class WriteStatAscii:
 
         raise NotImplementedError
 
-
     def process_cts(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
              Reshape the data from the original MET output file (stat_data) into new
@@ -1022,7 +1020,7 @@ class WriteStatAscii:
         # Relevant columns for the CTS line type
         linetype: str = cn.CTS
         end = cn.NUM_STAT_CTS_COLS
-        cts_columns_to_use: List[str] =\
+        cts_columns_to_use: List[str] = \
             np.arange(0, end).tolist()
 
         # Subset original dataframe to one containing only the CTS data
@@ -1096,7 +1094,6 @@ class WriteStatAscii:
 
         raise NotImplementedError
 
-
     def process_mcts(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
              Reshape the data from the original MET output file (stat_data) into new
@@ -1120,12 +1117,12 @@ class WriteStatAscii:
         # Relevant columns for the MCTS line type
         linetype: str = cn.MCTS
         end = cn.NUM_STAT_MCTS_COLS
-        mcts_columns_to_use: List[str] =\
+        mcts_columns_to_use: List[str] = \
             np.arange(0, end).tolist()
 
         # Subset original dataframe to one containing only the CTS data
         mcts_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                               mcts_columns_to_use]
+                                mcts_columns_to_use]
 
         # Add all the columns header names for the MCTS line type
         mcts_columns: List[str] = cn.MCTS_SPECIFIC_HEADERS
@@ -1258,7 +1255,6 @@ class WriteStatAscii:
 
         raise NotImplementedError
 
-
     def process_vl1l2(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
              Reshape the data from the original MET output file (stat_data) into new
@@ -1321,7 +1317,7 @@ class WriteStatAscii:
 
     def process_vl1l2_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
 
-       raise NotImplementedError
+        raise NotImplementedError
 
     def process_ecnt(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -1370,9 +1366,9 @@ class WriteStatAscii:
         # Columns we don't want to stack (i.e. treat these columns as a multi index)
         id_vars_list = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
         reshaped = ecnt_df_copy.melt(id_vars=id_vars_list,
-                                      value_vars=cn.ECNT_STATISTICS_HEADERS,
-                                      var_name='stat_name',
-                                      value_name='stat_value').sort_values('Idx')
+                                     value_vars=cn.ECNT_STATISTICS_HEADERS,
+                                     var_name='stat_name',
+                                     value_name='stat_value').sort_values('Idx')
 
         # ECNT line type doesn't have the bcl and bcu stat values set these to NA
         na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
@@ -1383,7 +1379,6 @@ class WriteStatAscii:
         reshaped['stat_bcu']: pd.Series = na_column
 
         return reshaped
-
 
     def process_ecnt_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -1444,14 +1439,14 @@ class WriteStatAscii:
         dfs_to_merge = []
 
         for renamed in renamed_ecnt:
-            tmp_df:pd.DataFrame = ecnt_df.copy()
+            tmp_df: pd.DataFrame = ecnt_df.copy()
             tmp_df['stat_name'] = renamed
             dfs_to_merge.append(tmp_df)
 
         # Merge all the statistics dataframes into one, then add the
         # stat_value column. Initialize the stat_values to NaN/NA.  These
         # values will be filled by the METcalcpy agg_stat calculation.
-        merged_dfs:pd.DataFrame = pd.concat(dfs_to_merge, axis=0, ignore_index=True)
+        merged_dfs: pd.DataFrame = pd.concat(dfs_to_merge, axis=0, ignore_index=True)
         merged_dfs['stat_value'] = np.nan
         merged_dfs.replace('N/A', pd.NA)
 
@@ -1497,7 +1492,6 @@ class WriteStatAscii:
         # the column names specified in the MET User's Guide TC-Pairs section).
         tcmpr_df = stat_data.loc[stat_data['line_type'] == cn.TCMPR]
         reformatted_tcmpr = self.reformat_tcmpr(tcmpr_df)
-        reformatted_tcmpr.to_csv("/Users/minnawin/feature_240_reformat_tcdiag/METdataio/METreformat/output/tcmpr_reformatted.txt", sep='\t', index=False)
 
         # Perform reformatting for the TCDiag linetype
         # Determine the columns for the line type
@@ -1511,17 +1505,15 @@ class WriteStatAscii:
         # Do not assume that the input data contains only the TCDIAG lines.  Since the TCDIAG linetype
         # is available from the MET TC-Pairs tool, it is very likely that TCMPR line type data will also be
         # present in the input data file(s).
-        stat_data.to_csv('/Users/minnawin/feature_240_reformat_tcdiag/METdataio/METreformat/output/all_tcpairs_tcdiag.txt', sep='\t')
         all_tcdiag_df = stat_data.loc[stat_data['line_type'] == linetype]
-        all_tcdiag_df.to_csv('/Users/minnawin/feature_240_reformat_tcdiag/METdataio/METreformat/output/all_tcdiag.txt', sep='\t')
 
         # Subset based on the DIAG_SOURCE, these provide different diaganostic measurements (i.e. columns).
         # Join all the subsets into one final dataframe.
 
         # Get the diagnostic sources (DIAG_SOURCE column)
         diag_src_col_name = cn.TCDIAG_DIAG_SOURCE_COLNAME
-        all_diag_sources:np.narray = all_tcdiag_df[diag_src_col_name].unique()
-        diag_sources:list = sorted(all_diag_sources)
+        all_diag_sources: np.narray = all_tcdiag_df[diag_src_col_name].unique()
+        diag_sources: list = sorted(all_diag_sources)
 
         reformatted_dfs = []
         subset_df = all_tcdiag_df.copy(deep=True)
@@ -1562,7 +1554,6 @@ class WriteStatAscii:
         # Ensure that the LEAD column is integer type
         all_tcdiag_reformatted['LEAD'].astype(int)
 
-
         # Join the TCMPR and TCDIAG dataframes into one and do some cleaning up of columns
         uc_long_header_tcst = [hdr.upper() for hdr in cn.LONG_HEADER_TCST]
         common_headers = uc_long_header_tcst[0:len(uc_long_header_tcst) - 1]
@@ -1574,7 +1565,7 @@ class WriteStatAscii:
         cleanup_df = full_df.copy(deep=True)
         cleanup_df.drop('TOTAL_y', axis=1, inplace=True)
         cleanup_df.drop('LINE_TYPE_x', axis=1, inplace=True)
-        cleanup_df.rename({'TOTAL_x':'TOTAL', 'LINE_TYPE_y':'LINE_TYPE'}, axis=1, inplace=True)
+        cleanup_df.rename({'TOTAL_x': 'TOTAL', 'LINE_TYPE_y': 'LINE_TYPE'}, axis=1, inplace=True)
 
         end_tcdiag = time.perf_counter()
         time_to_process_tcdiag = end_tcdiag - begin_tcdiag
@@ -1666,9 +1657,9 @@ class WriteStatAscii:
         # for shear magnitude
         reformatted_cols = reformatted.columns.to_list()
         if 'SHR_MAG' in reformatted_cols:
-            reformatted.rename({'SHR_MAG':cn.TCDIAG_COMMON_NAMES['SHR_MAG']}, axis='columns', inplace=True)
+            reformatted.rename({'SHR_MAG': cn.TCDIAG_COMMON_NAMES['SHR_MAG']}, axis='columns', inplace=True)
         elif 'SHRD' in reformatted_cols:
-            reformatted.rename({'SHRD':cn.TCDIAG_COMMON_NAMES['SHRD']}, axis='columns', inplace=True)
+            reformatted.rename({'SHRD': cn.TCDIAG_COMMON_NAMES['SHRD']}, axis='columns', inplace=True)
         if 'LAND' in reformatted_cols:
             reformatted.rename({'LAND': cn.TCDIAG_COMMON_NAMES['LAND']}, axis='columns', inplace=True)
         elif 'DTL' in reformatted_cols:
@@ -1680,16 +1671,13 @@ class WriteStatAscii:
         del ds_df
         gc.collect
 
-
-
         end_reformat = time.perf_counter()
         time_to_reformat = end_reformat - begin_reformat
         logger.info(f"Finished reformatting TCDiag matched pair output in {time_to_reformat} seconds")
 
         return reformatted
 
-
-    def reformat_tcmpr(self, tcmpr_df:pd.DataFrame)-> pd.DataFrame:
+    def reformat_tcmpr(self, tcmpr_df: pd.DataFrame) -> pd.DataFrame:
         """
            Reformats the TCMPR data by providing explicit header (column) names as specified by the MET User's Guide
            section 24.2.
@@ -1705,15 +1693,15 @@ class WriteStatAscii:
         logger.info("Reformatting the TCMPR dataframe...")
 
         #  Keep only the TCMPR columns
-        tcmpr_columns:list = cn.COLUMNS[cn.TCMPR]
+        tcmpr_columns: list = cn.COLUMNS[cn.TCMPR]
         uc_tcmpr_columns = [col.upper() for col in tcmpr_columns]
         long_header_tcst = cn.LONG_HEADER_TCST
         uc_long_header_tcst = [header.upper() for header in long_header_tcst]
         all_tcmpr_headers = uc_long_header_tcst + uc_tcmpr_columns
 
         # Keep only the TCMPR relevant columns (extra columns may exist due to TCDIAG rows in the original data)
-        all_columns:list = tcmpr_df.columns.to_list()
-        cols_to_drop:list = all_columns[len(all_tcmpr_headers):]
+        all_columns: list = tcmpr_df.columns.to_list()
+        cols_to_drop: list = all_columns[len(all_tcmpr_headers):]
         tcmpr_relevant: pd.DataFrame = tcmpr_df.drop(cols_to_drop, axis=1)
 
         # Give appropriate names to all the columns (all upper case and replace numbered columns with actual
@@ -1726,9 +1714,8 @@ class WriteStatAscii:
 
         return tcmpr_relevant
 
-
     def rename_confidence_level_columns(self, confidence_level_columns: List[str]) -> \
-    List[str]:
+            List[str]:
         """
 
         Rename the column headers for the confidence levels so they begin with the
@@ -1835,12 +1822,11 @@ def main():
     rdf_obj.read_data(flags, load_files, line_types)
     end_read_data = time.perf_counter()
     read_data_total = end_read_data - beg_read_data
-    logger.info("Time to read input .stat data files using METdbLoad: {read_data_total} in seconds" )
+    logger.info("Time to read input .stat data files using METdbLoad: {read_data_total} in seconds")
     if parms['line_type'] == 'TCDIAG':
         file_df = rdf_obj.tcst_data
     else:
         file_df = rdf_obj.stat_data
-    file_df.to_csv('/Users/minnawin/feature_240_reformat_tcdiag/METdataio/METreformat/output/orig_input.txt', sep='\t', index=False)
 
     # Check if the output file already exists, if so, delete it to avoid
     # appending output from subsequent runs into the same file.
@@ -1854,6 +1840,7 @@ def main():
     stat_lines_obj: WriteStatAscii = WriteStatAscii(parms)
     # stat_lines_obj.write_stat_ascii(file_df, parms, logger)
     stat_lines_obj.write_stat_ascii(file_df, parms)
+
 
 def config_file_complete(parms):
     '''
@@ -1869,7 +1856,7 @@ def config_file_complete(parms):
     expected_settings = ['input_stats_aggregated', 'output_dir', 'output_filename', 'input_data_dir',
                          'log_directory', 'log_filename', 'log_level', 'line_type']
     actual_keys = []
-    for k,v in parms.items():
+    for k, v in parms.items():
         actual_keys.append(k)
         if v is None:
             msg = "ERROR: Missing the value for the " + k + " setting."
@@ -1881,15 +1868,8 @@ def config_file_complete(parms):
             msg = "ERROR: The " + expected + " setting is missing in the YAML config file"
             logger.error(msg)
             return False
-
-
-
-
-
     return True
 
 
-
 if __name__ == "__main__":
-
     main()
