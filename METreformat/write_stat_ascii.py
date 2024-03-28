@@ -432,7 +432,6 @@ class WriteStatAscii:
         on_cols = []
         i_value = []
         working_headers = working_copy_df.columns.to_list()
-        print(f"working headers: {working_headers}")
         remaining_columns = working_headers[cn.NUM_STATIC_PCT_COLS:]
         for cur in remaining_columns:
             match_thresh = re.match(r'(thresh_)(\d+)', cur)
