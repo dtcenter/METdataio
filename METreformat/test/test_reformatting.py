@@ -639,7 +639,7 @@ def test_ensemble_stat_ecnt_consistency():
     actual_rmse_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['stat_name'] == 'RMSE') &
                                                    (reshaped_df['vx_mask'] == 'FULL') &
                                                    (reshaped_df['total'] == '1125')]
-    print(f"RMSE from reformatted: {actual_rmse_df} of type {type(actual_rmse_df)}")
+    # print(f"RMSE from reformatted: {actual_rmse_df} of type {type(actual_rmse_df)}")
     assert str(actual_rmse_df.iloc[0].stat_value) == str(expected_rmse)
 
 
@@ -712,9 +712,6 @@ def test_rhist_consistency():
 
     wsa = WriteStatAscii(config)
     reshaped_df = wsa.process_rhist(stat_data)
-    reshaped_df.to_csv('/Users/minnawin/feature_240_reformat_tcdiag/METplotpy/test/histogram/rhist.txt', index=False,
-                       sep='\t')
-
     # Verify that the following values are found for the rows with these columns + values (corresponding to the
     # last row of data in the raw RHIST input dataframe):
     fcst_lead = 280000
