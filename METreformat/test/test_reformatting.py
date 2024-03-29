@@ -712,6 +712,8 @@ def test_rhist_consistency():
 
     wsa = WriteStatAscii(config)
     reshaped_df = wsa.process_rhist(stat_data)
+    reshaped_df.to_csv('/Users/minnawin/feature_240_reformat_tcdiag/METplotpy/test/histogram/rhist.txt', index=False,
+                       sep='\t')
 
     # Verify that the following values are found for the rows with these columns + values (corresponding to the
     # last row of data in the raw RHIST input dataframe):
@@ -818,7 +820,7 @@ def test_fho_reformat_for_agg():
 
     # Expect error when invoking the process_fho_for_agg directly
     with pytest.raises(NotImplementedError):
-        reshaped_df = wsa.process_fho_for_agg(stat_data)
+        wsa.process_fho_for_agg(stat_data)
 
     # Expect SystemExit within the process_by_stat_line_type when a NotImplementedError is caught
     with pytest.raises(SystemExit):
@@ -885,6 +887,65 @@ def test_tcdiag_from_tcpairs():
     for col in actual_columns:
         assert col in expected_columns
 
-    # Test the TCMPR data
+    # Test the TCMPR data for another fcst lead time and that the TCDIAG that corresponds to this is correct
+    subset = stat_data.loc[(stat_data['amodel'] == 'GFSO') & (stat_data['fcst_init'] == '2022-09-26 00:00:00') & (
+            stat_data['fcst_lead'] == '060000') & (stat_data['line_type'] == 'TCMPR')]
+    orig_alat = subset['5'].to_list()[0]
+    orig_alon = subset['6'].to_list()[0]
+    orig_tkerr = subset['9'].to_list()[0]
+    orig_amax_wind = subset['18'].to_list()[0]
+
+    # Value of the SHEAR_MAGNITUDE diagnostic and STORM SPEED from the corresponding row of TCDIAG data
+    subset_tcdiag = subset = stat_data.loc[(stat_data['amodel'] == 'GFSO') &
+                                           (stat_data['fcst_init'] == '2022-09-26 00:00:00') &
+                                           (stat_data['fcst_lead'] == '060000') &
+                                           (stat_data['line_type'] == 'TCDIAG')]
+
+    orig_shear_mag = subset_tcdiag['7'].to_list()[0]
+    orig_storm_speed = subset_tcdiag['9'].to_list()[0]
+
+    # Make comparisons between the original data and the reformatted data
+    TCMPR = make_dataclass("TCMPR", ["alat", "alon", "tk_err", "amax_wind"], frozen=True)
+    TCDIAG = make_dataclass("TCDIAG", ["SHEAR_MAGNITUDE", "STORM_SPEED"], frozen=True)
+
+    orig_tcmpr = TCMPR(orig_alat, orig_alon, orig_tkerr, orig_amax_wind)
+    orig_tcdiag = TCDIAG(orig_shear_mag, orig_storm_speed)
+
+    sub_reformatted = reformatted_df.loc[(reformatted_df['AMODEL'] == 'GFSO') &
+                                         (reformatted_df['INIT'] == '2022-09-26 00:00:00') &
+                                         (reformatted_df['LEAD'] == '060000') &
+                                         (reformatted_df['LINE_TYPE'] == 'TCDIAG')]
+    reformatted_alat = sub_reformatted['ALAT'].to_list()[0]
+    reformatted_alon = sub_reformatted['ALON'].to_list()[0]
+    reformatted_tkerr = sub_reformatted['TK_ERR'].to_list()[0]
+    reformatted_amax_wind = sub_reformatted['AMAX_WIND'].to_list()[0]
+    reformatted_shear_mag = sub_reformatted['SHEAR_MAGNITUDE'].to_list()[0]
+    reformatted_storm_speed = sub_reformatted['STORM_SPEED'].to_list()[0]
+
+    reformatted_tcmpr = TCMPR(reformatted_alat, reformatted_alon, reformatted_tkerr, reformatted_amax_wind)
+    reformatted_tcdiag = TCDIAG(reformatted_shear_mag, reformatted_storm_speed)
+
+    assert orig_tcmpr.alat == reformatted_tcmpr.alat
+    assert orig_tcmpr.alon == reformatted_tcmpr.alon
+    assert orig_tcmpr.tk_err == reformatted_tcmpr.tk_err
+    assert orig_tcmpr.amax_wind == reformatted_tcmpr.amax_wind
+    assert orig_tcdiag.SHEAR_MAGNITUDE == reformatted_tcdiag.SHEAR_MAGNITUDE
+    assert orig_tcdiag.STORM_SPEED == reformatted_tcdiag.STORM_SPEED
 
 
+# BENCHMARKING
+def test_tcdiag_benchmark(benchmark):
+    stat_data, config = setup_test('test_reformat_tcdiag.yaml', is_tcst=True)
+    wsa = WriteStatAscii(config)
+    # reformatted_df = wsa.process_tcdiag(stat_data)
+    result = benchmark(wsa.process_tcdiag, stat_data)
+
+
+def test_ecnt_benchmark(benchmark):
+    stat_data, config = setup_test('ECNT_for_agg.yaml')
+
+    wsa = WriteStatAscii(config)
+
+    # Benchmark
+    result = benchmark(wsa.process_ecnt, stat_data)
+    assert isinstance(result, pd.DataFrame)
