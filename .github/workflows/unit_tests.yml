@@ -80,15 +80,8 @@ jobs:
 
           echo "Finished unit tests"
 
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-without-markdown
-          path: |
-            dist
-            !dist/**/*.md
       - name: Archive benchmark results
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-report
-          path: .benchmarks/benchmark.log
+          path: /home/runner/work/METdataio/MEtdatio/METreformat/test/.benchmarks/*.json
