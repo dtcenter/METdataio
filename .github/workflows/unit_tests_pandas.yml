@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }} for pandas2.2 testing
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -66,7 +66,7 @@ jobs:
       #       id: extract_branch
 
 
-      - name: Test with pytest
+      - name: Test with pytest with pandas2.2
         run: |
           echo "GITHUB wspace: $GITHUB_WORKSPACE"
           export PYTHONPATH=$GITHUB_WORKSPACE/:$GITHUB_WORKSPACE/METdbLoad:$GITHUB_WORKSPACE/METdbLoad/ush:$GITHUB_WORKSPACE/METreformat:$GITHUB_WORKSPACE/METreadnc
@@ -86,4 +86,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-report
-          path: /home/runner/work/METdataio/METdatio/METreformat/test/**/'**.json'
+          path: /home/runner/work/METdataio/METdatio/METreformat/test/**
