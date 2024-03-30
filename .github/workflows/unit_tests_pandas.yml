@@ -73,16 +73,17 @@ jobs:
           echo "PYTHONPATH is $PYTHONPATH"
           cd $GITHUB_WORKSPACE/METreformat
           cd test
+          pytest --cov 
 
           py.test test_reformatting.py -v -s
           cd $GITHUB_WORKSPACE/METreadnc
           cd test
           pytest test_readnc.py
-
+          pytest --cov
           echo "Finished unit tests"
 
       - name: Archive benchmark results
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-report
-          path: /home/runner/work/METdataio/METdatio/METreformat/test/**
+          path: /home/runner/work/METdataio/METdatio/METreformat/test/**/'**.json'
