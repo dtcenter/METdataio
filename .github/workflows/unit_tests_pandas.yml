@@ -57,7 +57,7 @@ jobs:
           python -m pip install netcdf4==1.6.2
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install pandas==2.2
-      
+          python -m pip install pytest-cov
 
       #   Checking the branch name, not necessary but useful when setting things up.
       #     - name: Extract branch name
@@ -74,7 +74,7 @@ jobs:
           cd $GITHUB_WORKSPACE/METreformat
           cd test
 
-          py.test test_reformatting.py -v -s --benchmark-autosave > /home/runner/work/METdataio/METdataio/METreformat/test/.benchmarks/benchmark.log
+          py.test test_reformatting.py -v -s
           cd $GITHUB_WORKSPACE/METreadnc
           cd test
           pytest test_readnc.py
@@ -85,4 +85,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-report
-          path: /home/runner/work/METdataio/METdatio/METreformat/test/.benchmarks/benchmark.log
+          path: /home/runner/work/METdataio/METdatio/METreformat/test/.benchmarks/
