@@ -44,6 +44,7 @@ jobs:
       - name: Retrieve METcalcpy repository develop branch
         run: |
           /usr/bin/git clone https://github.com/dtcenter/METcalcpy
+          python -m pip install --upgrade pip
           cd METcalcpy
           /usr/bin/git checkout develop
           python -m pip install -e .
