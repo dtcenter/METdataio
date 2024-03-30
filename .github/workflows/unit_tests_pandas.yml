@@ -75,7 +75,7 @@ jobs:
           cd test
           pytest --cov 
 
-          py.test test_reformatting.py -v -s
+          py.test test_reformatting.py -v -s --benchmark-autosave
           cd $GITHUB_WORKSPACE/METreadnc
           cd test
           pytest test_readnc.py
