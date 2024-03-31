@@ -72,6 +72,7 @@ jobs:
           echo "PYTHONPATH is $PYTHONPATH"
           cd $GITHUB_WORKSPACE/METreformat
           cd test
+          cd benchmarks
           py.test test_benchmark.py -v -s --benchmark-autosave
           
           echo "Finished benchmarking for pandas 1.5x "
