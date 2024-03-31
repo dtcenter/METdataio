@@ -70,15 +70,18 @@ jobs:
           echo "GITHUB wspace: $GITHUB_WORKSPACE"
           export PYTHONPATH=$GITHUB_WORKSPACE/:$GITHUB_WORKSPACE/METdbLoad:$GITHUB_WORKSPACE/METdbLoad/ush:$GITHUB_WORKSPACE/METreformat:$GITHUB_WORKSPACE/METreadnc
           echo "PYTHONPATH is $PYTHONPATH"
+          
+          # test reformatter
           cd $GITHUB_WORKSPACE/METreformat
           cd test
-          pytest --cov
-
           py.test test_reformatting.py 
+          pytest --cov test_reformatting.py
+          
+          # test NetCDF reader 
           cd $GITHUB_WORKSPACE/METreadnc
           cd test
-          pytest --cov
           pytest test_readnc.py
+          pytest --cov test_readnc.py
 
           echo "Finished unit tests and coverage"
 
