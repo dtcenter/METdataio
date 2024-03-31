@@ -57,7 +57,7 @@ jobs:
           python -m pip install pytest_benchmark
           python -m pip install netcdf4==1.6.2
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      
+          python -m pip install pytest-cov
 
       #   Checking the branch name, not necessary but useful when setting things up.
       #     - name: Extract branch name
@@ -73,16 +73,18 @@ jobs:
           echo "PYTHONPATH is $PYTHONPATH"
           cd $GITHUB_WORKSPACE/METreformat
           cd test
+          pytest --cov
 
           py.test test_reformatting.py -v -s --benchmark-autosave 
           cd $GITHUB_WORKSPACE/METreadnc
           cd test
+          pytest --cov
           pytest test_readnc.py
 
           echo "Finished unit tests"
 
-      - name: Archive benchmark results
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-report
-          path: /home/runner/work/METdataio/METdatio/METreformat/test/**/
+#      - name: Archive benchmark results
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: benchmark-report
+#          path: /home/runner/work/METdataio/METdatio/METreformat/test/**/
