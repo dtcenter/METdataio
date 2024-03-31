@@ -928,21 +928,3 @@ def test_tcdiag_from_tcpairs():
     assert orig_tcmpr.amax_wind == reformatted_tcmpr.amax_wind
     assert orig_tcdiag.SHEAR_MAGNITUDE == reformatted_tcdiag.SHEAR_MAGNITUDE
     assert orig_tcdiag.STORM_SPEED == reformatted_tcdiag.STORM_SPEED
-
-
-# BENCHMARKING
-def test_tcdiag_benchmark(benchmark):
-    stat_data, config = setup_test('test_reformat_tcdiag.yaml', is_tcst=True)
-    wsa = WriteStatAscii(config)
-    # reformatted_df = wsa.process_tcdiag(stat_data)
-    result = benchmark(wsa.process_tcdiag, stat_data)
-
-
-def test_ecnt_benchmark(benchmark):
-    stat_data, config = setup_test('ECNT_for_agg.yaml')
-
-    wsa = WriteStatAscii(config)
-
-    # Benchmark
-    result = benchmark(wsa.process_ecnt, stat_data)
-    assert isinstance(result, pd.DataFrame)
