@@ -1,9 +1,0 @@
-input_stats_aggregated: True
-output_dir: ../output
-output_filename: ensemble_stat_ecnt_for_agg.data
-line_type: ECNT
-input_data_dir: ./data/ensemble_stat
-# Set to log_filename to STDOUT if no log file is to be saved
-log_directory: ./output
-log_filename: stdout
-log_level: ERROR
