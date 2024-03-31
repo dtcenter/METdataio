@@ -74,7 +74,7 @@ jobs:
           cd $GITHUB_WORKSPACE/METreformat
           cd test
           cd benchmarks
-          py.test test_benchmark.py -v -s --benchmark-autosave
+          py.test run_benchmark.py -v -s --benchmark-autosave
           
           
           echo "Finished benchmark for pandas 2.2"
