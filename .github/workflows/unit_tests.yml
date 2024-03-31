@@ -74,7 +74,7 @@ jobs:
           # test reformatter
           cd $GITHUB_WORKSPACE/METreformat
           cd test
-          py.test test_reformatting.py 
+          pytest test_reformatting.py 
           pytest --cov test_reformatting.py
           
           # test NetCDF reader 
