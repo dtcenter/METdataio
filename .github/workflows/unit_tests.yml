@@ -75,13 +75,13 @@ jobs:
           cd $GITHUB_WORKSPACE/METreformat
           cd test
           pytest test_reformatting.py 
-          pytest --cov test_reformatting.py
+          pytest --cov 
           
           # test NetCDF reader 
           cd $GITHUB_WORKSPACE/METreadnc
           cd test
           pytest test_readnc.py
-          pytest --cov test_readnc.py
+          pytest --cov 
 
           echo "Finished unit tests and coverage"
 
