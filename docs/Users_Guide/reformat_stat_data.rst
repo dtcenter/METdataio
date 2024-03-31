@@ -158,6 +158,12 @@ specified in
 `Table 13.2 of the MET User's Guide <https://met.readthedocs.io/en/develop/Users_Guide/ensemble-stat.html#id2>`_.
 
 
+**Reformatting for generating TCMPR plots**
+The **TCDIAG linetype**, that also has corresponding TCMPR linetype data, is reformatted by consolidating
+the TCMPR columns with the TCDIAG columns.  The reformatted data does not need to have aggregate statistics computed and
+can be used by the TCMPR plots (e.g. point, boxplot) to generate time series plots and box plots. Refer to
+the METplotpy User's Guide for information on using the TCMPR plotter.
+
 **NOTE**: An appropriate error message will appear when attempting to reformat an unsupported linetype for aggregation
 input.
 
@@ -240,6 +246,7 @@ Refer to the following details for each of the mandatory settings in the configu
       * VCNT
       * RHIST
       * PCT
+      * TCDIAG
 
 
 Example
