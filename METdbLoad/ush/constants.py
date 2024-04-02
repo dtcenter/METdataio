@@ -444,7 +444,7 @@ LINE_DATA_FIELDS[ECNT] = TOT_LINE_DATA_FIELDS + \
                           'crpscl', 'crps_emp', 'crpscl_emp', 'crpss_emp',
                           'crps_emp_fair', 'spread_md', 'mae', 'mae_oerr',
                           'bias_ratio', 'n_ge_obs', 'me_ge_obs',
-                          'n_lt_obs', 'me_lt_obs']
+                          'n_lt_obs', 'me_lt_obs', 'ign_conv_oerr', 'ign_corr_oerr']
 
 LINE_DATA_FIELDS[ENSCNT] = ALL_LINE_DATA_FIELDS + \
                            ['rpsf', 'rpsf_ncl', 'rpsf_ncu', 'rpsf_bcl', 'rpsf_bcu',
@@ -587,12 +587,12 @@ LINE_DATA_FIELDS[SSVAR] = ALPH_LINE_DATA_FIELDS + \
 
 LINE_DATA_FIELDS[VL1L2] = TOT_LINE_DATA_FIELDS + \
                           ['ufbar', 'vfbar', 'uobar', 'vobar', 'uvfobar', 'uvffbar',
-                           'uvoobar', 'f_speed_bar', 'o_speed_bar']
+                           'uvoobar', 'f_speed_bar', 'o_speed_bar', 'dir_me', 'dir_mae', 'dir_mse']
 
 LINE_DATA_FIELDS[VAL1L2] = TOT_LINE_DATA_FIELDS + \
                            ['ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar',
                             'uvffabar',
-                            'uvooabar', 'fa_speed_bar', 'oa_speed_bar']
+                            'uvooabar', 'fa_speed_bar', 'oa_speed_bar', 'dira_me', 'dira_mae', 'dira_mse']
 
 LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
                          ['fbar', 'fbar_bcl', 'fbar_bcu', 'obar', 'obar_bcl',
@@ -615,7 +615,11 @@ LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
                           'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu',
                           'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu',
                           'anom_corr_bcl', 'anom_corr_bcu', 'anom_corr_uncntr',
-                          'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu']
+                          'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu', 'dir_me',
+                          'dir_me_bcl', 'dir_me_bcu',
+                          'dir_mae', 'dir_mae_bcl', 'dir_mae_bcu',
+                          'dir_mse', 'dir_mse_bcl', 'dir_mse_bcu',
+                          'dir_rmse', 'dir_rmse_bcl', 'dir_rmse_bcu']
 
 COLUMNS[TCMPR] = ['total', 'index_pair', 'level', 'watch_warn', 'initials', 'alat',
                   'alon',
@@ -1321,12 +1325,12 @@ CREATE_INDEXES_QUERIES = \
 
 NUM_STAT_FHO_COLS = 29
 NUM_STAT_CNT_COLS = 125
-NUM_STAT_ECNT_COLS = 50
-NUM_STAT_VCNT_COLS = 87
+NUM_STAT_ECNT_COLS = 52
+NUM_STAT_VCNT_COLS = 99
 NUM_STAT_CTC_COLS = 31
 NUM_STAT_SL1L2_COLS = 32
 NUM_STAT_SAL1L2_COLS = 32
-NUM_STAT_VL1L2_COLS = 35
+NUM_STAT_VL1L2_COLS = 38
 NUM_STAT_CTS_COLS = 122
 NUM_STAT_MCTC_COLS = 28
 NUM_STAT_MCTS_COLS = 45
@@ -1460,7 +1464,7 @@ LC_ECNT_SPECIFIC = ['n_ens', 'crps', 'crpss', 'ign', 'me', 'rmse', 'spread',
                           'crpscl', 'crps_emp', 'crpscl_emp', 'crpss_emp',
                           'crps_emp_fair', 'spread_md', 'mae', 'mae_oerr',
                           'bias_ratio', 'n_ge_obs', 'me_ge_obs',
-                          'n_lt_obs', 'me_lt_obs']
+                          'n_lt_obs', 'me_lt_obs', 'ign_conv_oerr', 'ign_corr_oerr']
 ECNT_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
                          LC_ECNT_SPECIFIC]
 ECNT_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + ECNT_STATISTICS_HEADERS
@@ -1488,7 +1492,11 @@ LC_VCNT_SPECIFIC = ['fbar', 'fbar_bcl', 'fbar_bcu',
                     'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu',
                     'anom_corr', 'anom_corr_ncl', 'anom_corr_ncu', 'anom_corr_bcl',
                     'anom_corr_bcu',
-                    'anom_corr_uncntr', 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu'
+                    'anom_corr_uncntr', 'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu',
+                    'dir_me', 'dir_me_bcl', 'dir_me_bcu',
+                    'dir_mae', 'dir_mae_bcl', 'dir_mae_bcu',
+                    'dir_mse', 'dir_mse_bcl', 'dir_mse_bcu',
+                    'dir_rmse', 'dir_rmse_bcl', 'dir_rmse_bcu'
 
                 ]
 VCNT_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_VCNT_SPECIFIC]
@@ -1512,7 +1520,11 @@ LC_VCNT_STATISTICS_HEADERS =  ['fbar',
                     'dir_err',
                     'dir_abserr',
                     'anom_corr',
-                    'anom_corr_uncntr'
+                    'anom_corr_uncntr',
+                    'dir_me',
+                    'dir_mae',
+                    'dir_mse',
+                    'dir_rmse'
 
                 ]
 VCNT_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
@@ -1527,7 +1539,7 @@ LC_VCNT_BOOTSTRAP_HEADERS = ['fbar_bcl', 'fbar_bcu',
                              'ostdev_bcl', 'ostdev_bcu',
                              'fdir_bcl', 'fdir_bcu',
                              'odir_bcl', 'odir_bcu',
-                             'fbar_speed_bcl', 'fbar_speed_bcu'
+                             'fbar_speed_bcl', 'fbar_speed_bcu',
                              'obar_speed_bcl', 'obar_speed_bcu',
                              'vdiff_speed_bcl', 'vdiff_speed_bcu',
                              'vdiff_dir_bcl', 'vdiff_dir_bcu',
@@ -1537,7 +1549,11 @@ LC_VCNT_BOOTSTRAP_HEADERS = ['fbar_bcl', 'fbar_bcu',
                              'dir_abserr', 'dir_abserr_bcl', 'dir_abserr_bcu',
                              'anom_corr_ncl', 'anom_corr_ncu', 'anom_corr_bcl',
                              'anom_corr_bcu',
-                             'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu'
+                             'anom_corr_uncntr_bcl', 'anom_corr_uncntr_bcu',
+                             'dir_me_bcl',  'dir_me_bcu',
+                             'dir_mae_bcl', 'dir_mae_bcu',
+                             'dir_mse_bcl', 'dir_mse_bcu',
+                             'dir_rmse_bcl', 'dir_rmse_bcu'
 
                              ]
 VCNT_BOOTSTRAP_HEADERS = [cur_stat_header.upper() for cur_stat_header in
@@ -1553,15 +1569,18 @@ VCNT_BCL_HEADERS = ['FBAR_BCL', 'OBAR_BCL','FS_RMS_BCL', 'OS_RMS_BCL',
                     'MSVE_BCL', 'RMSVE_BCL', 'FSTDEV_BCL', 'OSTDEV_BCL',
                     'FDIR_BCL', 'ODIR_BCL', 'FBAR_SPEED_BCL', 'OBAR_SPEED_BCL',
                     'VDIFF_SPEED_BCL', 'VDIFF_DIR_BCL', 'SPEED_ERR_BCL',
-                    'SPEED_ABSERR_BCL', 'DIR_ERR_BCL','DIR_ABSERR_BCL',
-                    'ANOM_CORR_BCL', 'ANOM_CORR_UNCNTR_BCL']
+                    'SPEED_ABSERR_BCL', 'DIR_ERR_BCL', 'DIR_ABSERR_BCL',
+                    'ANOM_CORR_BCL', 'ANOM_CORR_UNCNTR_BCL',
+                    'DIR_ME_BCL', 'DIR_MAE_BCL', 'DIR_MSE_BCL', 'DIR_RMSE_BCL']
 
 VCNT_BCU_HEADERS = ['FBAR_BCU', 'OBAR_BCU','FS_RMS_BCU', 'OS_RMS_BCU',
                     'MSVE_BCU', 'RMSVE_BCU', 'FSTDEV_BCU', 'OSTDEV_BCU',
                     'FDIR_BCU', 'ODIR_BCU', 'FBAR_SPEED_BCU', 'OBAR_SPEED_BCU',
                     'VDIFF_SPEED_BCU', 'VDIFF_DIR_BCU', 'SPEED_ERR_BCU',
                     'SPEED_ABSERR_BCU', 'DIR_ERR_BCU','DIR_ABSERR_BCU',
-                    'ANOM_CORR_BCU', 'ANOM_CORR_UNCNTR_BCU']
+                    'ANOM_CORR_BCU', 'ANOM_CORR_UNCNTR_BCU',
+                    'DIR_ME_BCU', 'DIR_MAE_BCU', 'DIR_MSE_BCU', 'DIR_RMSE_BCU'
+                    ]
 
 
 
@@ -1587,7 +1606,7 @@ SL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + SL1L2_STATISTICS_HEADERS
 #### VL1L2 Line type ####
 
 LC_VL1L2_SPECIFIC = ['ufbar', 'vfbar', 'uobar', 'vobar', 'uvfobar', 'uvffbar',
-                     'uvoobar', 'f_speed_bar', 'o_speed_bar']
+                     'uvoobar', 'f_speed_bar', 'o_speed_bar', 'dir_me', 'dir_mae', 'dir_mse']
 VL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
                             LC_VL1L2_SPECIFIC]
 VL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + VL1L2_STATISTICS_HEADERS
