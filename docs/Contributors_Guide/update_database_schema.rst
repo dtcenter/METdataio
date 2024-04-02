@@ -54,6 +54,20 @@ where **xyz** corresponds to the Github issue number and is branched from the *d
 5. In the $BASE_DIR/METdataio/METdbLoad/sql/mv_mysql.sql file, make necessary edits corresponding to the latest
    changes in the database schema.
 
+   For example, if adding columns, use syntax like the following:
+.. code-block:: ini
+
+   DELIMITER |
+      ALTER TABLE line_data_val1l1
+          ADD COLUMN dira_ma DOUBLE |
+
+   DELIMITER ;
+
+In the example above, the *dira_ma* column is to be added to the existing **VAL1L2** linetype
+columns, with type 'DOUBLE'.
+
+Remember to include the 'DELIMITER |' at the beginning/top of the file and 'DELIMETER ;' at the end of the file.
+
 6. Update the Release Notes under the $BASE_DIR/METdataio/docs/Users_Guide/release-notes.rst under the
    **METdataio Upgrade Instructions** section at the bottom of the documentation
 
