@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests the specified Python version
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Python tests
+name: Benchmark for  pandas 1.5x
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }} for pandas1.5x benchmarking
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -44,7 +44,6 @@ jobs:
       - name: Retrieve METcalcpy repository develop branch
         run: |
           /usr/bin/git clone https://github.com/dtcenter/METcalcpy
-          python -m pip install --upgrade pip
           cd METcalcpy
           /usr/bin/git checkout develop
           python -m pip install -e .
@@ -54,9 +53,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install pytest>=7.1.1
+          python -m pip install pytest_benchmark
           python -m pip install netcdf4==1.6.2
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          python -m pip install pytest-cov
+      
 
       #   Checking the branch name, not necessary but useful when setting things up.
       #     - name: Extract branch name
@@ -65,23 +65,19 @@ jobs:
       #       id: extract_branch
 
 
-      - name: Test with pytest
+      - name: Test with pytest with pandas 1.5x
         run: |
           echo "GITHUB wspace: $GITHUB_WORKSPACE"
           export PYTHONPATH=$GITHUB_WORKSPACE/:$GITHUB_WORKSPACE/METdbLoad:$GITHUB_WORKSPACE/METdbLoad/ush:$GITHUB_WORKSPACE/METreformat:$GITHUB_WORKSPACE/METreadnc
           echo "PYTHONPATH is $PYTHONPATH"
-          
-          # test reformatter
           cd $GITHUB_WORKSPACE/METreformat
           cd test
-          pytest test_reformatting.py 
-          pytest --cov 
+          py.test run_benchmark.py -v -s --benchmark-autosave
           
-          # test NetCDF reader 
-          cd $GITHUB_WORKSPACE/METreadnc
-          cd test
-          pytest test_readnc.py
-          pytest --cov 
+          echo "Finished benchmarking for pandas 1.5x "
 
-          echo "Finished unit tests and coverage"
-
+#      - name: Archive benchmark results
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: benchmark-report
+#          path: /home/runner/work/METdataio/METdatio/METreformat/test/**
