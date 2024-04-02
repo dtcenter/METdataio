@@ -111,7 +111,7 @@ PSTD = "PSTD"  # Contingency Table Stats for Probabilistic Forecasts with Dichot
 PJC = "PJC"  # Joint and Conditional Factorization for Probabilistic Forecasts
 PRC = "PRC"  # Receiver Operating Characteristic for Probabilistic Forecasts
 ECLV = "ECLV"  # Economic Cost/Loss Value derived from CTC and PCT lines
-MPR = "MPR"  # Matched Pair Data
+MPR = "MPR"  # Matched Pair TCDiag_Data
 NBRCTC = "NBRCTC"  # Neighborhood Contingency Table Counts
 NBRCTS = "NBRCTS"  # Neighborhood Contingency Table Statistics
 NBRCNT = "NBRCNT"  # Neighborhood Continuous Statistics
@@ -130,7 +130,7 @@ DMAP = "DMAP"  # Distance Map
 RPS = "RPS"  # Ranked Probability Score
 SSIDX = "SSIDX"  # SKILL SCORE INDEX
 SEEPS = "SEEPS"  # Stable Equitable Error in Probability Space (SEEPS) score
-SEEPS_MPR = "SEEPS_MPR"  # SEEPS Matched Pair Data
+SEEPS_MPR = "SEEPS_MPR"  # SEEPS Matched Pair TCDiag_Data
 
 # VSDB line types
 BSS = "BSS"  # same as PSTD
@@ -1341,6 +1341,12 @@ NUM_STAT_MCTS_COLS = 45
 # N_THRESH value.
 NUM_STATIC_PCT_COLS = 26
 
+# Number of columns BEFORE the "variable" fields (i.e. the VERSION, MODEL, ..., LINETYPE, TOTAL,
+# INDEX precede the variable columns DIAG_i and VALUE_i).
+# The "variable" fields are DIAG_i and VALUE_i, the number of these is dictated by the N_DIAG
+# value.
+NUM_STATIC_TCDIAG_COLS = 20
+
 # Number of columns before the RANK_i variable columns (i.e. VERSION, MODEL,...,LINETYPE, TOTAL, N_RANK), including
 # the FCST_INIT_BEG and TOTAL columns.
 NUM_STATIC_RHIST_COLS = 26
@@ -1661,5 +1667,20 @@ LC_PCT_VARIABLE_HEADERS = ['thresh','oy', 'on']
 #### RHIST line type ####
 LC_RHIST_VARIABLE_HEADERS = ['rank']
 
+#### TCDIAG line type ####
+# These are the header names assigned by the METdbLoad
+# read_data_files module
+TC_DIAG_TOTAL_COLNAME = '0'
+TC_DIAG_INDEX_COLNAME = '1'
+TCDIAG_DIAG_SOURCE_COLNAME = '2'
+TCDIAG_TRACK_SOURCE_COLNAME = '3'
+TCDIAG_FIELD_SOURCE_COLNAME = '4'
+TCDIAG_N_DIAG_COLNAME = LINE_VAR_COUNTER[TCDIAG]
+# Common name for identical fields with different identifiers (due to different DIAG_SOURCE)
+# Used for cleaning up reformatted output
+SHMAG = 'SHEAR_MAGNITUDE'
+DLAND = 'DIST_TO_LAND'
+SSPEED = 'STORM_SPEED'
+TCDIAG_COMMON_NAMES = {'SHR_MAG':SHMAG, 'SHRD':SHMAG, 'LAND':DLAND, 'DTL':DLAND, 'STM_SPD':SSPEED }
 
 
