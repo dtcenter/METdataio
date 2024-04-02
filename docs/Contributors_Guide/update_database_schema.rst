@@ -55,6 +55,7 @@ where **xyz** corresponds to the Github issue number and is branched from the *d
    changes in the database schema.
 
    For example, if adding columns, use syntax like the following:
+
 .. code-block:: ini
 
    DELIMITER |
@@ -64,9 +65,9 @@ where **xyz** corresponds to the Github issue number and is branched from the *d
    DELIMITER ;
 
 In the example above, the *dira_ma* column is to be added to the existing **VAL1L2** linetype
-columns (corresponding to the line_data_val1l2 table), with type 'DOUBLE'.
+columns (corresponding to the **line_data_val1l2 table**), with type *DOUBLE*.
 
-Remember to include the 'DELIMITER |' at the beginning/top of the file and 'DELIMETER ;' at the end of the file.
+Remember to include the *DELIMITER |*  at the beginning/top of the file and *DELIMITER ;* at the end of the file.
 
 6. Update the Release Notes under the $BASE_DIR/METdataio/docs/Users_Guide/release-notes.rst under the
    **METdataio Upgrade Instructions** section at the bottom of the documentation
