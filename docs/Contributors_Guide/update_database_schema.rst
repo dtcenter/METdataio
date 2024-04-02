@@ -58,13 +58,13 @@ where **xyz** corresponds to the Github issue number and is branched from the *d
 .. code-block:: ini
 
    DELIMITER |
-      ALTER TABLE line_data_val1l1
+      ALTER TABLE line_data_val1l2
           ADD COLUMN dira_ma DOUBLE |
 
    DELIMITER ;
 
 In the example above, the *dira_ma* column is to be added to the existing **VAL1L2** linetype
-columns, with type 'DOUBLE'.
+columns (corresponding to the line_data_val1l2 table), with type 'DOUBLE'.
 
 Remember to include the 'DELIMITER |' at the beginning/top of the file and 'DELIMETER ;' at the end of the file.
 
