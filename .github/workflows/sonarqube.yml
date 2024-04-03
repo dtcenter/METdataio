@@ -39,6 +39,7 @@ on:
 
 jobs:
   sonarqube:
+    name: SonarQube Scan
     runs-on: ubuntu-latest
 
     steps:
@@ -48,11 +49,23 @@ jobs:
         # Disable shallow clones for better analysis
         fetch-depth: 0
 
+    - name: Get branch name
+      id: get_branch_name
+      run: echo branch_name=${GITHUB_REF#refs/heads/} >> $GITHUB_OUTPUT
+
+    - name: Configure SonarQube
+      run: .github/jobs/configure_sonarqube.sh
+      env:
+        SOURCE_BRANCH: ${{ steps.get_branch_name.outputs.branch_name }}
+        WD_REFERENCE_BRANCH: ${{ github.event.inputs.reference_branch }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
     - name: SonarQube Scan
       uses: sonarsource/sonarqube-scan-action@master
       env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     - name: SonarQube Quality Gate check
       id: sonarqube-quality-gate-check
@@ -60,5 +73,5 @@ jobs:
       # Force to fail step after specific time.
       timeout-minutes: 5
       env:
-       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

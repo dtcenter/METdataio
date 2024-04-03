@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-# Run SonarQube Source Code Analyzer on a specified revision of MET
+# Run SonarQube Source Code Analyzer for METdataio
 #=======================================================================
 #
 # This run_sonarqube.sh script will check out the specified version
-# of MET and run the SonarQube Source Code Analyzer on it.  First,
+# of METdataio and run the SonarQube Source Code Analyzer on it.  First,
 # go to the directory where you would like the SCA output written and
 # then run:
 #
@@ -12,9 +12,9 @@
 #    METdataio/sonarqube/run_sonarqube.sh name
 #
 # Usage: run_sonarqube.sh name
-#    Test the specified branched version of MET:
+#    Test the specified branched version of METdataio:
 #       run_sonarqube.sh {branch name}
-#    Test the specified tagged version of MET:
+#    Test the specified tagged version of METdataio:
 #       run_sonarqube.sh {tag name}
 #
 #=======================================================================
@@ -104,9 +104,15 @@ run_command "git checkout ${1}"
 
 SONAR_PROPERTIES=sonar-project.properties
 
-# Copy sonar-project.properties for Python code
+# Configure the sonar-project.properties
 [ -e $SONAR_PROPERTIES ] && rm $SONAR_PROPERTIES
-cp -p $SCRIPT_DIR/sonar-project.properties $SONAR_PROPERTIES
+sed -e "s|SONAR_TOKEN|$SONAR_TOKEN|" \
+    -e "s|SONAR_HOST_URL|$SONAR_HOST_URL|" \
+    -e "s|SONAR_PROJECT_KEY|METdataio_NB|" \
+    -e "s|SONAR_PROJECT_NAME|METdatio Nightly Build|" \
+    -e "s|SONAR_BRANCH_NAME|develop|" \
+    -e "s|SONAR_REFERENCE_BRANCH|develop|" \
+    $SCRIPT_DIR/$SONAR_PROPERTIES > $SONAR_PROPERTIES
 
 # Run SonarQube scan for Python code
 run_command "${SONARQUBE_SCANNER_BIN}/sonar-scanner"
