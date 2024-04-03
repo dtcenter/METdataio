@@ -33,6 +33,16 @@ function usage {
 # Check for arguments
 if [[ $# -lt 1 ]]; then usage; exit; fi
 
+# Check that SONAR_TOKEN and SONAR_HOST_URL are defined
+if [ -z ${SONAR_TOKEN} ]; then
+  echo "ERROR: SONAR_TOKEN must be set"
+  exit 1
+fi
+if [ -z ${SONAR_HOST_URL} ]; then
+  echo "ERROR: SONAR_HOST_URL must be set"
+  exit 1
+fi
+
 # Check that SONARQUBE_WRAPPER_BIN is defined
 if [ -z ${SONARQUBE_WRAPPER_BIN} ]; then
   which build-wrapper-linux-x86-64 2> /dev/null
