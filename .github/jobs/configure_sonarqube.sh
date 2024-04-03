@@ -1,7 +1,5 @@
 #!/bin/bash
 
-source ${GITHUB_WORKSPACE}/.github/jobs/bash_functions.sh
-
 # Constants
 SONAR_PROPERTIES_DIR=internal/scripts/sonarqube
 SONAR_PROPERTIES=sonar-project.properties
@@ -59,5 +57,6 @@ if [ "$SOURCE_BRANCH" != "$SONAR_REFERENCE_BRANCH" ]; then
   echo "sonar.newCode.referenceBranch=${SONAR_REFERENCE_BRANCH}" >> $SONAR_PROPERTIES
 fi
 
-echo "Contents of $SONAR_PROPERTIES"
+echo "Contents of the $SONAR_PROPERTIES file:"
 cat $SONAR_PROPERTIES
+
