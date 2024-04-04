@@ -48,7 +48,7 @@ fi
 # Configure the sonar-project.properties
 [ -e $SONAR_PROPERTIES ] && rm $SONAR_PROPERTIES
 sed -e "s|SONAR_PROJECT_KEY|METdataio-GHA|" \
-    -e "s|SONAR_PROJECT_NAME|METdatio GHA|" \
+    -e "s|SONAR_PROJECT_NAME|METdataio GHA|" \
     -e "s|SONAR_PROJECT_VERSION|$SONAR_PROJECT_VERSION|" \
     -e "s|SONAR_HOST_URL|$SONAR_HOST_URL|" \
     -e "s|SONAR_TOKEN|$SONAR_TOKEN|" \
