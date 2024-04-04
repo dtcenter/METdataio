@@ -97,7 +97,6 @@ function run_command() {
   return ${STATUS}
 }
 
-
 # Store the full path to the scripts directory
 SCRIPT_DIR=`dirname $0`
 if [[ ${0:0:1} != "/" ]]; then SCRIPT_DIR=$(pwd)/${SCRIPT_DIR}; fi 
@@ -112,20 +111,21 @@ run_command "git clone ${GIT_REPO} ${REPO_DIR}"
 run_command "cd ${REPO_DIR}"
 run_command "git checkout ${1}"
 
+# Define the version string
+SONAR_PROJECT_VERSION=$(cat ${REPO_DIR}/docs/version | cut -d'=' -f2 | tr -d '" ')
+
 SONAR_PROPERTIES=sonar-project.properties
 
 # Configure the sonar-project.properties
 [ -e $SONAR_PROPERTIES ] && rm $SONAR_PROPERTIES
-sed -e "s|SONAR_TOKEN|$SONAR_TOKEN|" \
-    -e "s|SONAR_HOST_URL|$SONAR_HOST_URL|" \
-    -e "s|SONAR_PROJECT_KEY|METdataio_NB|" \
+sed -e "s|SONAR_PROJECT_KEY|METdataio_NB|" \
     -e "s|SONAR_PROJECT_NAME|METdatio Nightly Build|" \
+    -e "s|SONAR_PROJECT_VERSION|$SONAR_PROJECT_VERSION|" \
+    -e "s|SONAR_HOST_URL|$SONAR_HOST_URL|" \
+    -e "s|SONAR_TOKEN|$SONAR_TOKEN|" \
     -e "s|SONAR_BRANCH_NAME|develop|" \
-    -e "s|SONAR_REFERENCE_BRANCH|develop|" \
     $SCRIPT_DIR/$SONAR_PROPERTIES > $SONAR_PROPERTIES
 
 # Run SonarQube scan for Python code
 run_command "${SONARQUBE_SCANNER_BIN}/sonar-scanner"
 
-# Run SonarQube report generator to make a PDF file
-#TODAY=`date +%Y%m%d`

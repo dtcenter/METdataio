@@ -28,6 +28,9 @@ if [ -z ${SONAR_TOKEN+x} ]; then
   exit 1
 fi
 
+# Define the version string
+SONAR_PROJECT_VERSION=$(cat docs/version | cut -d'=' -f2 | tr -d '" ')
+
 #
 # Define the $SONAR_REFERENCE_BRANCH as the
 #   - Target of any requests
@@ -44,12 +47,12 @@ fi
 
 # Configure the sonar-project.properties
 [ -e $SONAR_PROPERTIES ] && rm $SONAR_PROPERTIES
-sed -e "s|SONAR_TOKEN|$SONAR_TOKEN|" \
-    -e "s|SONAR_HOST_URL|$SONAR_HOST_URL|" \
-    -e "s|SONAR_PROJECT_KEY|METdataio-GHA|" \
+sed -e "s|SONAR_PROJECT_KEY|METdataio-GHA|" \
     -e "s|SONAR_PROJECT_NAME|METdatio GHA|" \
+    -e "s|SONAR_PROJECT_VERSION|$SONAR_PROJECT_VERSION|" \
+    -e "s|SONAR_HOST_URL|$SONAR_HOST_URL|" \
+    -e "s|SONAR_TOKEN|$SONAR_TOKEN|" \
     -e "s|SONAR_BRANCH_NAME|$SOURCE_BRANCH|" \
-    -e "s|SONAR_REFERENCE_BRANCH|$SONAR_REFERENCE_BRANCH|" \
     $SONAR_PROPERTIES_DIR/$SONAR_PROPERTIES > $SONAR_PROPERTIES
 
 # Define new code when the source and reference branches differ
