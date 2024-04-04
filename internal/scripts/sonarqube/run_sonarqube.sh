@@ -112,7 +112,7 @@ run_command "cd ${REPO_DIR}"
 run_command "git checkout ${1}"
 
 # Define the version string
-SONAR_PROJECT_VERSION=$(cat ${REPO_DIR}/docs/version | cut -d'=' -f2 | tr -d '" ')
+SONAR_PROJECT_VERSION=$(cat docs/version | cut -d'=' -f2 | tr -d '" ')
 
 SONAR_PROPERTIES=sonar-project.properties
 
@@ -123,7 +123,7 @@ sed -e "s|SONAR_PROJECT_KEY|METdataio_NB|" \
     -e "s|SONAR_PROJECT_VERSION|$SONAR_PROJECT_VERSION|" \
     -e "s|SONAR_HOST_URL|$SONAR_HOST_URL|" \
     -e "s|SONAR_TOKEN|$SONAR_TOKEN|" \
-    -e "s|SONAR_BRANCH_NAME|develop|" \
+    -e "s|SONAR_BRANCH_NAME|${1}|" \
     $SCRIPT_DIR/$SONAR_PROPERTIES > $SONAR_PROPERTIES
 
 # Run SonarQube scan for Python code
