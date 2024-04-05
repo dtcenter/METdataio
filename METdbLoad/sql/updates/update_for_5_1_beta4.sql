@@ -7,23 +7,23 @@ ALTER TABLE line_data_vcnt
     ADD COLUMN dir_me_bcl DOUBLE |
 ALTER TABLE line_data_vcnt
     ADD COLUMN dir_me_bcu DOUBLE |
-ALTER TABLE line_data_val1l2
+ALTER TABLE line_data_vcnt
     ADD COLUMN dir_mae DOUBLE |
-ALTER TABLE line_data_val1l2
+ALTER TABLE line_data_vcnt
     ADD COLUMN dir_mae_bcl DOUBLE |
-ALTER TABLE line_data_val1l2
+ALTER TABLE line_data_vcnt
     ADD COLUMN dir_mae_bcu DOUBLE |
-ALTER TABLE line_data_val1l2
+ALTER TABLE line_data_vcnt
     ADD COLUMN dir_mse DOUBLE |
-ALTER TABLE line_data_val1l2
+ALTER TABLE line_data_vcnt
     ADD COLUMN dir_mse_bcl DOUBLE |
-ALTER TABLE line_data_val1l2
+ALTER TABLE line_data_vcnt
     ADD COLUMN dir_mse_bcu DOUBLE |
-ALTER TABLE line_data_val1l2
+ALTER TABLE line_data_vcnt
     ADD COLUMN dir_rmse DOUBLE |
-ALTER TABLE line_data_val1l2 
+ALTER TABLE line_data_vcnt
     ADD COLUMN dir_rmse_bcl DOUBLE |
-ALTER TABLE line_data_val1l2 
+ALTER TABLE line_data_vcnt
     ADD COLUMN dir_rmse_bcu DOUBLE |
 
 ALTER TABLE line_data_val1l2
