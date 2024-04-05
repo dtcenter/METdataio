@@ -89,7 +89,7 @@ If this is part of a major release, then omit the beta information.
 
 - Include a small set of sample data in this directory
 
-
+- Remove the test data and database when testing is complete.
 
 8. Add and commit the changes.
 
