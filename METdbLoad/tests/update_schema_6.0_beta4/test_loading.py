@@ -233,3 +233,39 @@ def test_val1l2_columns(setup_db):
     finally:
         conn.close()
 
+
+def test_ecnt_vals(setup_db):
+   # log into the database and verify the ECNT values for ign_conv_oerr and
+   # ign_corr_oerr result in a result. This verifies that the input data
+   # was correctly loaded for the ECNT data.
+
+    ign_conv_oerr = "33.41424"
+    ign_corr_oerr = "440.06905"
+
+    conn = pymysql.connect(
+        host=setup_db.hostname,
+        user=setup_db.username,
+        password=setup_db.password,
+        db=setup_db.dbname,
+        charset='utf8mb4'
+    )
+
+    try:
+        with conn.cursor() as cursor:
+            # Check that the line_data_vl1l2 table has the expected columns
+            cursor.execute(CONST_LOAD_DB_CMD)
+
+            check_columns_exist = "select * from line_data_ecnt where ign_conv_oerr = " + ign_conv_oerr + \
+                                  " AND ign_corr_oerr = " + ign_corr_oerr +  ";"
+            cursor.execute(check_columns_exist)
+
+            # Get all rows
+            rows = cursor.fetchall()
+            # Only one row should correspond to this query
+            assert len(rows) == 1
+
+
+    finally:
+        conn.close()
+
+
