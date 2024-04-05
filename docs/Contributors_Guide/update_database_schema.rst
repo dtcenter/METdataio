@@ -73,8 +73,25 @@ Remember to include the *DELIMITER |*  at the beginning/top of the file and *DEL
    **METdataio Upgrade Instructions** section at the bottom of the documentation
 
    * $BASE_DIR corresponds to the directory where the METdataio source code resides
+7. Test the updates
 
-7. Add and commit the changes.
+- Verify that the schema is correct by creating a new database with the updated schema, **mv_mysql.sql**
+
+- Load MET .stat output with the updated columns into the database.
+
+- Create tests like those in the METdataio/METdbLoad/tests directory, creating a new subdirectory following the naming convention:
+
+ - update_schema_release_beta (e.g. update_schema_6.0_beta4).
+
+The update_schema_6.0_beta4
+directory indicates that these tests and data correspond to the METplus 6.0 beta 4 release.
+If this is part of a major release, then omit the beta information.
+
+- Include a small set of sample data in this directory
+
+
+
+8. Add and commit the changes.
 
 In the $BASE_DIR/METdataio/METdbLoad/sql/updates directory:
 
@@ -96,11 +113,10 @@ In the $BASE_DIR/METdataio/METdbLoad/sql directory:
 * The git commit will generate a pop-up box for adding comments.  Include the Github issue number in
   the comment and provide a concise description of what was done.
 
-8. Submit a Github PR (at least one reviewer is required).
+9. Submit a Github PR (at least one reviewer is required).
+10. Perform a Squash and Merge once the PR has been approved.
 
-9. Perform a Squash and Merge once the PR has been approved.
-
-10. Close the PR and close the Github issue
+11. Close the PR and close the Github issue
 
 
 
