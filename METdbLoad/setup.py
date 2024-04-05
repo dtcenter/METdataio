@@ -20,6 +20,6 @@ setup(
     description='Rewrite of Java MVLoad for METviewer and METexpress database load',
     author='Venita Hagerty',
     author_email='venita.hagerty@noaa.gov',
-    packages=find_packages(exclude=['docs', 'tests']),
+    packages=find_packages(exclude=['docs', 'test']),
     long_description=open('README.md').read(), install_requires=['pandas', 'numpy', 'pymysql']
 )
