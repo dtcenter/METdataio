@@ -15,7 +15,7 @@ defaults:
   run:
     shell: bash -leo pipefail {0}
 
-jobs: 
+jobs:
   run-shell-command:
     runs-on: ubuntu-20.04
     name: job_run

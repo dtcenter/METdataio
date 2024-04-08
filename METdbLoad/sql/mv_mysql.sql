@@ -458,6 +458,8 @@ CREATE TABLE line_data_ecnt
     me_ge_obs        DOUBLE,
     n_lt_obs         INT,
     me_lt_obs        DOUBLE,
+    ign_conv_oerr    DOUBLE,
+    ign_corr_oerr    DOUBLE,
 
     CONSTRAINT line_data_ecnt_data_file_id_pk
         FOREIGN KEY (data_file_id)
@@ -910,6 +912,9 @@ CREATE TABLE line_data_vl1l2
     uvoobar        DOUBLE,
     f_speed_bar    DOUBLE DEFAULT -9999,
     o_speed_bar    DOUBLE DEFAULT -9999,
+    dir_me         DOUBLE,
+    dir_mae        DOUBLE,
+    dir_mse        DOUBLE,
 
     CONSTRAINT line_data_vl1l2_data_file_id_pk
         FOREIGN KEY (data_file_id)
@@ -948,6 +953,9 @@ CREATE TABLE line_data_val1l2
     uvooabar       DOUBLE,
     fa_speed_bar   DOUBLE DEFAULT -9999,
     oa_speed_bar   DOUBLE DEFAULT -9999,
+    dira_me        DOUBLE,
+    dira_mae       DOUBLE,
+    dira_mse       DOUBLE,
 
     CONSTRAINT line_data_val1l2_data_file_id_pk
         FOREIGN KEY (data_file_id)
@@ -1706,6 +1714,19 @@ CREATE TABLE line_data_vcnt
     anom_corr_uncntr     DOUBLE DEFAULT -9999,
     anom_corr_uncntr_bcl DOUBLE DEFAULT -9999,
     anom_corr_uncntr_bcu DOUBLE DEFAULT -9999,
+    dir_me,              DOUBLE,
+    dir_me_bcl           DOUBLE,
+    dir_me_bcu           DOUBLE,
+    dir_mae              DOUBLE,
+    dir_mae_bcl          DOUBLE,
+    dir_mae_bcu          DOUBLE,
+    dir_mse              DOUBLE,
+    dir_mse_bcl          DOUBLE,
+    dir_mse_bcu          DOUBLE,
+    dir_rmse             DOUBLE,
+    dir_rmse_bcl         DOUBLE,
+    dir_rmse_bcu         DOUBLE,
+
 
     CONSTRAINT line_data_vcnt_data_file_id_pk
         FOREIGN KEY (data_file_id)
