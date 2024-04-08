@@ -15,7 +15,12 @@ defaults:
   run:
     shell: bash -leo pipefail {0}
 
-jobs: 
+jobs:
+  build_and_preview:
+    if: ${{ false }
+    runs-on: ubuntu-20.04
+    name: skip_cf_two_db
+
   run-shell-command:
     runs-on: ubuntu-20.04
     name: job_run
