@@ -20,12 +20,14 @@ METdataio Version 3.0.0 Beta 4 Release Notes (20240417)
 
 
   .. dropdown:: Enhancements
+
      * **Support reformatting the TCDIAG line type written by the TC-Pairs tool** (`#240 <https://github.com/dtcenter/METdataio/issues/240>`_)
      * **Modify Requirements section of the User's Guide** (`#273 <https://github.com/dtcenter/METdataio/issues/273>`_)
      * **Enhance METdataio schema to handle changes to the ECNT, VL1L2, VAL1L2, and VCNT line types during the MET 12.0.0 beta4 development cycles** (`#282 <https://github.com/dtcenter/METdataio/issues/282>`_)
 
 
   .. dropdown:: Internal
+
      * **Add GitHub action to run SonarQube for METdataio pull requests and feature branches** (`#289 <https://github.com/dtcenter/METdataio/issues/289>`_)
 
 
