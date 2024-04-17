@@ -9,8 +9,10 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
-METdataio Version 3.0.0 Beta 4 Release Notes (20230417)
+
+METdataio Version 3.0.0 Beta 4 Release Notes (20240417)
 -------------------------------------------------------
+
 
 
   .. dropdown:: New Functionality
@@ -34,7 +36,7 @@ METdataio Version 3.0.0 Beta 4 Release Notes (20230417)
 
 
 
-METdataio Version 3.0.0 Beta 3 Release Notes (20230207)
+METdataio Version 3.0.0 Beta 3 Release Notes (20240207)
 -------------------------------------------------------
 
 
@@ -60,6 +62,11 @@ METdataio Version 3.0.0 Beta 3 Release Notes (20230207)
      * Create an update schema script to add columns to line_data_tcmpr table (`#251 <https://github.com/dtcenter/METdataio/issues/251>`_)
      * **TC Pairs files not loading into database** (`#256 <https://github.com/dtcenter/METdataio/issues/256>`_)
      * **Refactor the ECNT reformatter to accomodate the METcalcpy input data format requirements** (`#267 <https://github.com/dtcenter/METdataio/issues/267>`_)
+
+
+
+  .. dropdown:: Internal
+
 
 
 
