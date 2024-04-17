@@ -144,7 +144,7 @@ class ReadDataFiles:
 
                         # Get the first line of the .stat file that has the headers
                         try:
-                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                            file_hdr = pd.read_csv(filename, sep='\s+',
                                                    header=None, nrows=1)
                         except (pandas.errors.EmptyDataError):
                             logging.warning("!!! Stat file %s has no columns", filename)
@@ -267,7 +267,7 @@ class ReadDataFiles:
 
                         # Get the first line of the mode cts or obj file that has the headers
                         try:
-                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                            file_hdr = pd.read_csv(filename, sep='\s+',
                                                    nrows=1)
                         except (pandas.errors.EmptyDataError):
                             logging.warning("!!! Mode file %s has no columns", filename)
@@ -337,7 +337,7 @@ class ReadDataFiles:
 
                         # Get the first line of the .tcst file that has the headers
                         try:
-                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                            file_hdr = pd.read_csv(filename, sep='\s+',
                                                    header=None, nrows=1)
                         except (pandas.errors.EmptyDataError):
                             logging.warning("!!! TCST file %s has no columns", filename)
@@ -348,9 +348,7 @@ class ReadDataFiles:
                             logging.warning("!!! TCST file %s is empty", filename)
                             continue
 
-                        # File has headers but not data
-                        if not len(tcst_file):
-                            continue
+
 
                         # Add a DESC column if the data file does not have one
                         if not file_hdr.iloc[0].str.contains(CN.UC_DESC).any():
@@ -363,9 +361,10 @@ class ReadDataFiles:
                         else:
                             hdr_names = CN.LONG_HEADER_TCST + CN.COL_NUMS
                             tcst_file = self.read_tcst(filename, hdr_names)
-                            # File has headers but not data
-                            if not len(tcst_file):
-                                continue
+
+                        # File has headers but not data
+                        if not len(tcst_file):
+                            continue
 
                         # add line numbers and count the header line, for tcst files
                         tcst_file[CN.LINE_NUM] = tcst_file.index + 2
@@ -381,7 +380,7 @@ class ReadDataFiles:
 
                         # Get the first line of the MTD file that has the headers
                         try:
-                            file_hdr = pd.read_csv(filename, delim_whitespace=True,
+                            file_hdr = pd.read_csv(filename, sep='\s+',
                                                    nrows=1)
                         except (pandas.errors.EmptyDataError):
                             logging.warning("!!! MTD file %s has no columns", filename)
@@ -551,8 +550,7 @@ class ReadDataFiles:
                         one_file[CN.FILE_ROW] = row_num
                         # keep the dataframes from each file in a list
                         list_frames.append(one_file)
-                        logging.debug("Lines in %s: %s", filename,
-                                      str(len(one_file.index)))
+                        logging.debug("Lines in {filename}: {str(len(one_file.index))}")
                         one_file = one_file.iloc[0:0]
                         if not file_hdr.empty:
                             file_hdr = file_hdr.iloc[0:0]
@@ -725,7 +723,7 @@ class ReadDataFiles:
                                         (all_stat['19'] == CN.NOTAV)), '1']
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data if list_frames ***", sys.exc_info()[0])
+            logging.error("*** %s in read_data if list_frames ***  {sys.exc_info()[0]}")
 
         try:
 
@@ -1309,8 +1307,7 @@ class ReadDataFiles:
             stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None,
                                     skipinitialspace=True)
         except (pd.errors.EmptyDataError):
-            logging.warning("!!! Stat file %s has no data after headers",
-                            filename)
+            logging.warning("!!! Stat file "+ filename + " has no data after headers")
             return stat_file
 
         stat_file = stat_file.iloc[:, 0]

@@ -15,7 +15,7 @@ defaults:
   run:
     shell: bash -leo pipefail {0}
 
-jobs: 
+jobs:
   run-shell-command:
     runs-on: ubuntu-20.04
     name: job_run
@@ -26,12 +26,12 @@ jobs:
       DB_HOST: localhost
     steps:
       - name: check out headnew code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: headnew
           ref: ${{github.event.pull_request.head.ref}}
       - name: check out baseold code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: baseold
           ref: ${{github.event.pull_request.base.ref}}
@@ -81,14 +81,14 @@ jobs:
         shell: bash
         run: |
           cd /home/runner/work/METdataio/METdataio/baseold/METdbLoad/ush
-          python met_db_load.py /home/runner/work/METdataio/METdataio/headnew/METdbLoad/tests/load_met_gha_prod.xml
+          python met_db_load.py /home/runner/work/METdataio/METdataio/headnew/METdbLoad/test/load_met_gha_prod.xml
           mysql -e 'SHOW TABLE STATUS WHERE `rows` > 0;'  -uroot -proot mv_ci_prod
       - name: run METdbload new
         shell: bash
         run: |
           cd /home/runner/work/METdataio/METdataio/headnew/METdbLoad/ush
-          python met_db_load.py /home/runner/work/METdataio/METdataio/headnew/METdbLoad/tests/load_met_gha_new.xml
+          python met_db_load.py /home/runner/work/METdataio/METdataio/headnew/METdbLoad/test/load_met_gha_new.xml
           mysql -e 'SHOW TABLE STATUS WHERE `rows` > 0;'  -uroot -proot mv_ci_new
       - name: run test_tables to compare tables in 2 databases
         shell: bash
-        run: python /home/runner/work/METdataio/METdataio/headnew/METdbLoad/tests/test_tables.py
+        run: python /home/runner/work/METdataio/METdataio/headnew/METdbLoad/test/test_tables.py

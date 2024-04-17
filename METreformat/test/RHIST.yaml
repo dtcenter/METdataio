@@ -1,0 +1,15 @@
+# Configuration settings for reformatting MET .stat output to format for METplotpy
+input_stats_aggregated: True
+output_dir: ./output
+output_filename: reformatted_rhist_output.txt
+
+input_data_dir: ./data/rhist_phist_relp_orank
+
+# Set log_filename to STDOUT (or stdout, case-insensitive) if no log file is to be saved
+log_directory: ./output
+log_filename: stdout
+# most verbose is info, less verbose is error
+log_level: info
+
+# Currently support FHO, CTC, CTS, CNT, SL1L2, PCT, MCTC, VCNT, ECNT, RHIST line types
+line_type: RHIST

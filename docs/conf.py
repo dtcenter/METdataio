@@ -20,7 +20,7 @@ print(sys.path)
 project = 'METdataio'
 author = 'UCAR/NCAR, NOAA, CSU/CIRA, and CU/CIRES'
 author_list = 'Fisher, H.,  M. Win-Gildenmeister, V. Hagerty, and T. Burek'
-version = '2.1.0'
+version = '3.0.0-beta4'
 verinfo = version
 release = f'{version}'
 release_year = '2023'
@@ -38,7 +38,7 @@ html_last_updated_fmt = '%c'
 # ones.
 # Adding 'sphinx_design' to use drop-down menus in release_notes. 
 
-extensions = ['sphinx.ext.autodoc','sphinx.ext.intersphinx','sphinx_design',]
+extensions = ['sphinx.ext.autodoc','sphinx.ext.intersphinx','sphinx_design','sphinx_rtd_theme',]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
