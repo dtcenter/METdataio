@@ -2573,3 +2573,4 @@ CREATE TABLE line_data_tcdiag_diag
             REFERENCES line_data_tcdiag (line_data_id)
 ) ENGINE = MyISAM
   CHARACTER SET = latin1;
+
