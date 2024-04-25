@@ -1714,7 +1714,7 @@ CREATE TABLE line_data_vcnt
     anom_corr_uncntr     DOUBLE DEFAULT -9999,
     anom_corr_uncntr_bcl DOUBLE DEFAULT -9999,
     anom_corr_uncntr_bcu DOUBLE DEFAULT -9999,
-    dir_me,              DOUBLE,
+    dir_me               DOUBLE,
     dir_me_bcl           DOUBLE,
     dir_me_bcu           DOUBLE,
     dir_mae              DOUBLE,
