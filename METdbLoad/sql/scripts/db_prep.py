@@ -1,6 +1,6 @@
 '''
     Creates the METviewer database to store MET output. Requires a YAML configuration
-    file (data_loading_config.yaml) with relevant database information (i.e. username,
+    file (data_loading_config.yml) with relevant database information (i.e. username,
     password, etc.).
 '''
 import os.path

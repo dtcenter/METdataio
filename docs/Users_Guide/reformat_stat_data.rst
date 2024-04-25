@@ -185,15 +185,15 @@ The YAML configuration file is also used to indicate the name and
 location of the output file, logging information (filename, log level),
 and the line type to read in and reformat:
 
-.. literalinclude:: ../../../METdataio/METreformat/reformat_stat.yaml
+.. literalinclude:: ../../../METdataio/METreformat/reformat_stat.yml
 
 Copy this custom config file from the directory where the source code
 was saved to the working directory.
 
 **Modify the YAML configuration file**
 
-Edit the reformat_stat.yaml config file:
-.. literalinclude:: ../../../METdataio/METreformat/reformat_stat.yaml
+Edit the reformat_stat.yml config file:
+.. literalinclude:: ../../../METdataio/METreformat/reformat_stat.yml
 
 Refer to the following details for each of the mandatory settings in the configuration file.
 
@@ -297,7 +297,7 @@ Generate the reformatted file:
      * NOTE*: This may require  reorganization of data that is distributed over numerous directories into
      a single directory.
 
-   - modify the **reformat_stat.yaml** file, indicating the *input directory*,
+   - modify the **reformat_stat.yml** file, indicating the *input directory*,
      *output directory*, *output file name*, *line stat to reformat*, and
      *logging settings* (log level, log filename, log directory). Refer to the
      **Definition of Configuration Settings** above for a description of each setting.
@@ -305,6 +305,6 @@ Generate the reformatted file:
 
 .. code-block:: ini
 
-   python $BASE_DIR/METreformat/write_stat_ascii.py $WORKING_DIR/*line_type*_stat.yaml
+   python $BASE_DIR/METreformat/write_stat_ascii.py $WORKING_DIR/*line_type*_stat.yml
 
 - A text file will be created in the output directory with the file name that was specified in the yaml file.

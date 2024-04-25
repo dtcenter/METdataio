@@ -69,14 +69,14 @@ def setup_test(yaml_file, is_tcst=False):
 
 # BENCHMARKING
 def test_tcdiag_benchmark(benchmark):
-    stat_data, config = setup_test('../test/test_reformat_tcdiag.yaml', is_tcst=True)
+    stat_data, config = setup_test('../test/test_reformat_tcdiag.yml', is_tcst=True)
     wsa = WriteStatAscii(config)
     # reformatted_df = wsa.process_tcdiag(stat_data)
     result = benchmark(wsa.process_tcdiag, stat_data)
 
 
 def test_ecnt_benchmark(benchmark):
-    stat_data, config = setup_test('../test/ECNT_for_agg.yaml')
+    stat_data, config = setup_test('../test/ECNT_for_agg.yml')
 
     wsa = WriteStatAscii(config)
 

@@ -14,31 +14,31 @@ In the METdataio/METdbLoad/sql/scripts directory, there are two configuration fi
 
   * db_load_specification.xml
 
-  * data_loading_config.yaml
+  * data_loading_config.yml
 
-The *db_load_specification.xml* is a template XML specification file, and *data_loading_config.yaml*
-is a template YAML configuration file.  The *data_loading_config.yaml* file contains
+The *db_load_specification.xml* is a template XML specification file, and *data_loading_config.yml*
+is a template YAML configuration file.  The *data_loading_config.yml* file contains
 information about the database (username, password, database name, etc.). This information is used by the
 *generate_xml_spec.py* script to generate the XML specification file which is then used to load data into the database.
 
 Generate the XML Specification File
 ===================================
 
-Copy the *data_loading_config.yaml* file to a secure location in your workspace, as this file will contain the username
+Copy the *data_loading_config.yml* file to a secure location in your workspace, as this file will contain the username
 and password to the database. **Do not put this file where it can be read by anyone who should not have access to this
 information.**
 
 .. code-block:: ini
 
-   cp data_loading_config.yaml /path-to-your-dir/
+   cp data_loading_config.yml /path-to-your-dir/
 
 Replace the *path-to-your-dir* with the actual path to where this file is to be saved.
 
-Change directory to the location where the *data_loading_config.yaml* file was copied.
+Change directory to the location where the *data_loading_config.yml* file was copied.
 
-Open the data_loading_config.yaml file:
+Open the data_loading_config.yml file:
 
-.. literalinclude:: ../../METdbLoad/sql/scripts/data_loading_config.yaml
+.. literalinclude:: ../../METdbLoad/sql/scripts/data_loading_config.yml
 
 Update the database information with information relevant to the database you are using:
 
@@ -93,9 +93,9 @@ Generate the new XML specification file by running the following:
 
    *Replace path-to-METdataio-source to the location where the METdataio source code is saved.
 
-   python generate_xml_spec.py path-to/data_loading_config.yaml
+   python generate_xml_spec.py path-to/data_loading_config.yml
 
-   *Replace the path-to with the path to the directory you created to store the copy of the data_loading_config.yaml
+   *Replace the path-to with the path to the directory you created to store the copy of the data_loading_config.yml
    file as specified earlier.
 
 A new XML specification file *load_met.xml*, will be generated and saved in the
@@ -116,7 +116,7 @@ directory.  The *path-to-METdataio-source* is the directory where the METdataio 
   python met_db_load.py /path-to/load_met.xml
 
   * Replace the path-to with the location where the load_met.xml file was saved.  This is the same directory
-    you created to save the copy of the data_loading_config.yaml file.
+    you created to save the copy of the data_loading_config.yml file.
 
 The usage statement:
 
@@ -258,7 +258,7 @@ Additional Loading Options
 --------------------------
 
 The load_met.xml specification file created above loads the entire dataset specified in the data_dir setting in the
-YAML config file, data_loading_config.yaml.
+YAML config file, data_loading_config.yml.
 
 A subset of the data can be selected by date and field names (i.e. by model, valid_time, vx_mask, etc.).
 The load_met.xml specification file can be further modified to accomplish this by adding the date_list and

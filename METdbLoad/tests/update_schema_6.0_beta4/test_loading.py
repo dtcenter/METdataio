@@ -20,7 +20,7 @@ def setup_db():
           Read in the config file to retrieve the database login information.
 
     """
-    config_file = 'test_loading.yaml'
+    config_file = 'test_loading.yml'
     with open(config_file, 'r') as stream:
         try:
             parms: dict = yaml.load(stream, Loader=yaml.FullLoader)

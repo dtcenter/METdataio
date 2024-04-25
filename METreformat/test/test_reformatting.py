@@ -84,7 +84,7 @@ def test_point_stat_FHO_consistency():
     '''
 
     # Subset the input dataframe to include only the FHO linetype
-    stat_data, parms = setup_test("FHO.yaml")
+    stat_data, parms = setup_test("FHO.yml")
     end = cn.NUM_STAT_FHO_COLS
     fho_columns_to_use = np.arange(0, end).tolist()
     linetype = cn.FHO
@@ -138,7 +138,7 @@ def test_point_stat_sl1l2_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('SL1L2.yaml')
+    stat_data, parms = setup_test('SL1L2.yml')
 
     # Relevant columns for the SL1L2 line type
     linetype: str = cn.SL1L2
@@ -195,7 +195,7 @@ def test_point_stat_vl1l2_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('VL1L2.yaml')
+    stat_data, parms = setup_test('VL1L2.yml')
 
     # Relevant columns for the VL1L2 line type
     linetype: str = cn.VL1L2
@@ -258,7 +258,7 @@ def test_point_stat_ctc_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('CTC.yaml')
+    stat_data, parms = setup_test('CTC.yml')
 
     # Relevant columns for the CTC line type
     linetype: str = cn.CTC
@@ -317,7 +317,7 @@ def test_point_stat_cts_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('CTS.yaml')
+    stat_data, parms = setup_test('CTS.yml')
 
     # Relevant columns for the CTS line type
     linetype: str = cn.CTS
@@ -384,7 +384,7 @@ def test_point_stat_cnt_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('CNT.yaml')
+    stat_data, parms = setup_test('CNT.yml')
 
     # Relevant columns for the CNT line type
     linetype: str = cn.CNT
@@ -452,7 +452,7 @@ def test_point_stat_vcnt_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('VCNT.yaml')
+    stat_data, parms = setup_test('VCNT.yml')
 
     # Relevant columns for the VCNT line type
     linetype: str = cn.VCNT
@@ -506,7 +506,7 @@ def test_point_stat_mcts_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('./MCTS.yaml')
+    stat_data, parms = setup_test('./MCTS.yml')
 
     # Relevant columns for the MCTS line type
     linetype: str = cn.MCTS
@@ -573,7 +573,7 @@ def test_ensemble_stat_ecnt_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test('ECNT.yaml')
+    stat_data, config = setup_test('ECNT.yml')
 
     # Relevant columns for the ECNT line type
     linetype: str = cn.ECNT
@@ -653,7 +653,7 @@ def test_pct_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test('PCT_ROC.yaml')
+    stat_data, config = setup_test('PCT_ROC.yml')
 
     # Relevant columns for the PCT line type
     wsa = WriteStatAscii(config)
@@ -708,7 +708,7 @@ def test_rhist_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test('RHIST.yaml')
+    stat_data, config = setup_test('RHIST.yml')
 
     # Relevant columns for the RHIST line type
     linetype: str = cn.RHIST
@@ -768,7 +768,7 @@ def test_ecnt_reformat_for_agg():
        '''
 
     # Original reformatted data
-    stat_data, config = setup_test('ECNT_for_agg.yaml')
+    stat_data, config = setup_test('ECNT_for_agg.yml')
 
     wsa = WriteStatAscii(config)
     reformatted_df = wsa.process_ecnt_for_agg(stat_data)
@@ -815,7 +815,7 @@ def test_fho_reformat_for_agg():
     :return:
     '''
 
-    stat_data, parms = setup_test("FHO_for_agg.yaml")
+    stat_data, parms = setup_test("FHO_for_agg.yml")
     wsa = WriteStatAscii(parms)
 
     # Expect error when invoking the process_fho_for_agg directly
@@ -832,7 +832,7 @@ def test_tcdiag_from_tcpairs():
         Test that the reformatting is correct by comparing values in the original data to the reformatted data
 
     '''
-    stat_data, config = setup_test('test_reformat_tcdiag.yaml', is_tcst=True)
+    stat_data, config = setup_test('test_reformat_tcdiag.yml', is_tcst=True)
     wsa = WriteStatAscii(config)
     reformatted_df = wsa.process_tcdiag(stat_data)
 
