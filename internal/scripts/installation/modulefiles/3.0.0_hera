@@ -10,10 +10,15 @@ proc ModulesHelp { } {
 prereq intel
 
 prepend-path PATH /scratch1/BMC/dtc/miniconda/miniconda3/envs/metplus_v5.1_py3.10/bin
+
+prepend-path PATH /contrib/METdataio/METdataio-3.0.0/METdbLoad/ush
+prepend-path PATH /contrib/METdataio/METdataio-3.0.0/METdbLoad
 prepend-path PATH /contrib/METdataio/METdataio-3.0.0/METreformat
 prepend-path PATH /contrib/METdataio/METdataio-3.0.0/METreadnc/util
 prepend-path PATH /contrib/METdataio/METdataio-3.0.0/METreadnc
 prepend-path PATH /contrib/METdataio/METdataio-3.0.0
+prepend-path PYTHONPATH /contrib/METdataio/METdataio-3.0.0/METdbLoad/ush
+prepend-path PYTHONPATH /contrib/METdataio/METdataio-3.0.0/METdbLoad
 prepend-path PYTHONPATH /contrib/METdataio/METdataio-3.0.0/METreformat
 prepend-path PYTHONPATH /contrib/METdataio/METdataio-3.0.0/METreadnc/util
 prepend-path PYTHONPATH /contrib/METdataio/METdataio-3.0.0/METreadnc

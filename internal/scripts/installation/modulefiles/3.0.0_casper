@@ -13,10 +13,14 @@ module load intel-classic/2023.2.1
 
 prepend-path PATH /glade/work/dtcrt/METplus/casper/miniconda/miniconda3/envs/metplus_v5.1_py3.10/bin
 
+prepend-path PATH /glade/work/dtcrt/METplus/casper/components/METdataio/installations/METdataio-3.0.0/METdbLoad/ush
+prepend-path PATH /glade/work/dtcrt/METplus/casper/components/METdataio/installations/METdataio-3.0.0/METdbLoad
 prepend-path PATH /glade/work/dtcrt/METplus/casper/components/METdataio/installations/METdataio-3.0.0/METreformat
 prepend-path PATH /glade/work/dtcrt/METplus/casper/components/METdataio/installations/METdataio-3.0.0/METreadnc/util
 prepend-path PATH /glade/work/dtcrt/METplus/casper/components/METdataio/installations/METdataio-3.0.0/METreadnc
 prepend-path PATH /glade/work/dtcrt/METplus/casper/components/METdataio/installations/METdataio-3.0.0
+prepend-path PYTHONPATH /glade/work/dtcrt/METplus/casper/components/METdataio/installations/METdataio-3.0.0/METdbLoad/ush
+prepend-path PYTHONPATH /glade/work/dtcrt/METplus/casper/components/METdataio/installations/METdataio-3.0.0/METdbLoad
 prepend-path PYTHONPATH /glade/work/dtcrt/METplus/casper/components/METdataio/installations/METdataio-3.0.0/METreformat
 prepend-path PYTHONPATH /glade/work/dtcrt/METplus/casper/components/METdataio/installations/METdataio-3.0.0/METreadnc/util
 prepend-path PYTHONPATH /glade/work/dtcrt/METplus/casper/components/METdataio/installations/METdataio-3.0.0/METreadnc
