@@ -14,10 +14,10 @@ module load ve/evs/2.0
 
 prepend-path PATH /apps/sw_review/emc/METdataio/3.0.0/METdataio/METdbLoad/ush
 prepend-path PATH /apps/sw_review/emc/METdataio/3.0.0/METdataio/METdbLoad
+prepend-path PATH /apps/sw_review/emc/METdataio/3.0.0/METdataio/METreformat
 prepend-path PATH /apps/sw_review/emc/METdataio/3.0.0/METdataio/METreadnc/util
 prepend-path PATH /apps/sw_review/emc/METdataio/3.0.0/METdataio/METreadnc
 prepend-path PATH /apps/sw_review/emc/METdataio/3.0.0/METdataio
-
 prepend-path PYTHONPATH /apps/sw_review/emc/METdataio/3.0.0/METdataio
 prepend-path PYTHONPATH /apps/sw_review/emc/METdataio/3.0.0/METdataio/METdbLoad/ush
 prepend-path PYTHONPATH	/apps/sw_review/emc/METdataio/3.0.0/METdataio/METdbLoad
