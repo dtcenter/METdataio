@@ -159,6 +159,7 @@ specified in
 
 
 **Reformatting for generating TCMPR plots**
+
 The **TCDIAG linetype**, that also has corresponding TCMPR linetype data, is reformatted by consolidating
 the TCMPR columns with the TCDIAG columns.  The reformatted data does not need to have aggregate statistics computed and
 can be used by the TCMPR plots (e.g. point, boxplot) to generate time series plots and box plots. Refer to
