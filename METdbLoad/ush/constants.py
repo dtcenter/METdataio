@@ -1334,6 +1334,7 @@ NUM_STAT_VL1L2_COLS = 38
 NUM_STAT_CTS_COLS = 122
 NUM_STAT_MCTC_COLS = 28
 NUM_STAT_MCTS_COLS = 45
+NUM_STAT_MPR_COLS = 38
 # Number of columns BEFORE the "variable" fields (i.e. VERSION, MODEL, ..., LINETYPE), including the
 # FCST_INIT_BEG column .
 # For PCT the "variable" fields are N_THRESH, THRESH_i, OY_i, ON_i,..., THRESH_N, where the
@@ -1684,3 +1685,11 @@ SSPEED = 'STORM_SPEED'
 TCDIAG_COMMON_NAMES = {'SHR_MAG':SHMAG, 'SHRD':SHMAG, 'LAND':DLAND, 'DTL':DLAND, 'STM_SPD':SSPEED }
 
 
+# MPR
+LC_MPR_SPECIFIC = ['index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl',
+                    'obs_elv', 'fcst', 'obs', 'obs_qc',
+                    'climo_mean', 'climo_stdev', 'climo_cdf']
+
+MPR_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_MPR_SPECIFIC]
+
+MPR_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + LC_MPR_SPECIFIC
