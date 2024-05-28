@@ -945,13 +945,6 @@ def test_tcdiag_from_tcpairs():
     assert orig_tcdiag.STORM_SPEED == reformatted_tcdiag.STORM_SPEED
 
 
-# def test_mpr_for_line_with_usecase_data():
-#
-#     stat_data, config = setup_test("mpr_for_line_regression_data.yaml")
-#     wsa = WriteStatAscii(config, logger)
-#     reformatted_df = wsa.process_mpr(stat_data)
-
-    # Verify that the reformatted dataframe is consistent with the input data
 
 def test_mpr_for_line_with_regression_data():
     """
@@ -1050,7 +1043,7 @@ def test_mpr_for_scatter_with_regression_data():
             None passes or fails
     """
 
-    stat_data, config = setup_test("mpr_for_scatter_usecase_data.yaml")
+    stat_data, config = setup_test("mpr_for_scatter_regression_data.yaml")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
