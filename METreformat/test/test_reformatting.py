@@ -1043,7 +1043,7 @@ def test_mpr_for_scatter_with_regression_data():
             None passes or fails
     """
 
-    stat_data, config = setup_test("mpr_for_scatter_regression_data.yaml")
+    stat_data, config = setup_test("mpr_for_line_regression_data.yaml")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
