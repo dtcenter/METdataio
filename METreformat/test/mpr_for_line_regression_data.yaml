@@ -6,10 +6,7 @@ input_stats_aggregated: True
 
 output_dir:  ../output
 output_filename: reformatted_mpr_for_line.txt
-keep_all_mpr_cols: False
 
-#output_filename: reformatted_regression_data_for_scatter.txt
-#keep_all_mpr_cols: True
 
 input_data_dir: ./data/mpr/from_regression_data/
 
@@ -31,6 +28,6 @@ line_type: MPR
 # data file but provides flexibility to use the
 # reformatted data for BOTH line and scatter
 # plots.
-#keep_all_mpr_cols: True
+keep_all_mpr_cols: True
 # For line plot
 #keep_all_mpr_cols: False
