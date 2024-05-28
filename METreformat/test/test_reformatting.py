@@ -13,7 +13,10 @@ import METdataio.METdbLoad.ush.constants as cn
 from METdataio.METdbLoad.ush.read_data_files import ReadDataFiles
 from METdataio.METdbLoad.ush.read_load_xml import XmlLoadFile
 from METdataio.METreformat.write_stat_ascii import WriteStatAscii
+import METdataio.METreformat.util as util
 
+full_log_filename = os.path.join('../output', 'test_reformatting_log.txt')
+logger = util.get_common_logger('DEBUG', full_log_filename)
 
 def read_input(config_file, is_tcst):
     """
@@ -32,8 +35,8 @@ def read_input(config_file, is_tcst):
         except yaml.YAMLError as exc:
             print(exc)
 
-    input_data_filename = parms['input_data_dir']
-    input_data = os.path.join(os.path.dirname(__file__), input_data_filename)
+    input_data_dir = parms['input_data_dir']
+    input_data_full_path = os.path.join(os.path.dirname(__file__), input_data_dir)
 
     # Replacing the need for an XML specification file, pass in the XMLLoadFile and
     # ReadDataFile parameters
@@ -41,14 +44,23 @@ def read_input(config_file, is_tcst):
     xml_loadfile_obj: XmlLoadFile = XmlLoadFile(None)
 
     # Retrieve all the filenames in the data_dir specified in the YAML config file
-    load_files = xml_loadfile_obj.filenames_from_template(input_data, {})
+    load_files = xml_loadfile_obj.filenames_from_template(input_data_full_path, {})
+
+    linetype = str(parms['line_type']).upper()
 
     flags = xml_loadfile_obj.flags
+
+    # The read_data_files will delete MPR files if the
+    #  load_flags["load_mpr"] isn't explicitly set to True
+    if linetype == 'MPR':
+        flags["load_mpr"] = True
+
     line_types = xml_loadfile_obj.line_types
     rdf_obj.read_data(flags, load_files, line_types)
 
     if is_tcst:
         file_df = rdf_obj.tcst_data
+
     else:
         file_df = rdf_obj.stat_data
     # Check if the output file already exists, if so, delete it to avoid
@@ -108,7 +120,7 @@ def test_point_stat_FHO_consistency():
     expected_name: str = "F_RATE"
     expected_val: float = expected_row.loc[expected_name]
 
-    wsa = WriteStatAscii(parms)
+    wsa = WriteStatAscii(parms, logger)
     reshaped_df = wsa.process_fho(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
@@ -167,7 +179,7 @@ def test_point_stat_sl1l2_consistency():
     expected_name: str = "MAE"
     expected_val: float = expected_row.loc[expected_name]
 
-    wsa = WriteStatAscii(parms)
+    wsa = WriteStatAscii(parms, logger)
     reshaped_df = wsa.process_sl1l2(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
@@ -288,7 +300,7 @@ def test_point_stat_ctc_consistency():
     expected_name: str = "FN_ON"
     expected_val: float = expected_row.loc[expected_name]
 
-    wsa = WriteStatAscii(parms)
+    wsa = WriteStatAscii(parms, logger)
     reshaped_df = wsa.process_ctc(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
@@ -351,7 +363,7 @@ def test_point_stat_cts_consistency():
     expected_ncl: float = expected_row.loc[expected_ncl]
     expected_ncu: float = expected_row.loc[expected_ncu]
 
-    wsa = WriteStatAscii(parms)
+    wsa = WriteStatAscii(parms, logger)
     reshaped_df = wsa.process_cts(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
@@ -418,7 +430,7 @@ def test_point_stat_cnt_consistency():
     expected_ncl: float = expected_row.loc[expected_ncl]
     expected_ncu: float = expected_row.loc[expected_ncu]
 
-    wsa = WriteStatAscii(parms)
+    wsa = WriteStatAscii(parms, logger)
     reshaped_df = wsa.process_cnt(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
@@ -540,7 +552,7 @@ def test_point_stat_mcts_consistency():
     expected_ncl: float = expected_row.loc[expected_ncl]
     expected_ncu: float = expected_row.loc[expected_ncu]
 
-    wsa = WriteStatAscii(parms)
+    wsa = WriteStatAscii(parms, logger)
     reshaped_df = wsa.process_mcts(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
@@ -609,7 +621,7 @@ def test_ensemble_stat_ecnt_consistency():
     me_val = float(0.97455)
     assert me_val == float(expected_val)
 
-    wsa = WriteStatAscii(config)
+    wsa = WriteStatAscii(config, logger)
     reshaped_df = wsa.process_ecnt(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[
         (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
@@ -656,7 +668,7 @@ def test_pct_consistency():
     stat_data, config = setup_test('PCT_ROC.yaml')
 
     # Relevant columns for the PCT line type
-    wsa = WriteStatAscii(config)
+    wsa = WriteStatAscii(config, logger)
     reshaped_df = wsa.process_pct(stat_data)
 
     # Verify that the following values are found for the rows with these columns + values:
@@ -713,7 +725,7 @@ def test_rhist_consistency():
     # Relevant columns for the RHIST line type
     linetype: str = cn.RHIST
 
-    wsa = WriteStatAscii(config)
+    wsa = WriteStatAscii(config, logger)
     reshaped_df = wsa.process_rhist(stat_data)
     # Verify that the following values are found for the rows with these columns + values (corresponding to the
     # last row of data in the raw RHIST input dataframe):
@@ -770,7 +782,7 @@ def test_ecnt_reformat_for_agg():
     # Original reformatted data
     stat_data, config = setup_test('ECNT_for_agg.yaml')
 
-    wsa = WriteStatAscii(config)
+    wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_ecnt_for_agg(stat_data)
 
     ExpectedValues = namedtuple('ExpectedValues', 'total, n_ens, crps')
@@ -816,7 +828,7 @@ def test_fho_reformat_for_agg():
     '''
 
     stat_data, parms = setup_test("FHO_for_agg.yaml")
-    wsa = WriteStatAscii(parms)
+    wsa = WriteStatAscii(parms, logger)
 
     # Expect error when invoking the process_fho_for_agg directly
     with pytest.raises(NotImplementedError):
@@ -833,7 +845,7 @@ def test_tcdiag_from_tcpairs():
 
     '''
     stat_data, config = setup_test('test_reformat_tcdiag.yaml', is_tcst=True)
-    wsa = WriteStatAscii(config)
+    wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_tcdiag(stat_data)
 
     # Compare original data (read in from METdbLoad) to reformatted
@@ -931,3 +943,194 @@ def test_tcdiag_from_tcpairs():
     assert orig_tcmpr.amax_wind == reformatted_tcmpr.amax_wind
     assert orig_tcdiag.SHEAR_MAGNITUDE == reformatted_tcdiag.SHEAR_MAGNITUDE
     assert orig_tcdiag.STORM_SPEED == reformatted_tcdiag.STORM_SPEED
+
+
+# def test_mpr_for_line_with_usecase_data():
+#
+#     stat_data, config = setup_test("mpr_for_line_regression_data.yaml")
+#     wsa = WriteStatAscii(config, logger)
+#     reformatted_df = wsa.process_mpr(stat_data)
+
+    # Verify that the reformatted dataframe is consistent with the input data
+
+def test_mpr_for_line_with_regression_data():
+    """
+        Use one of the MPR linetype files found in the MET
+        nightly regression tests.
+
+        Verify that the columns in the reformatted file are consistent with the
+        original data which has all header columns.  The header columns are present
+        because the MET tool that generated this output was set up to generate individual
+        linetype files.
+
+        Args:
+
+        Returns:
+
+            None passes or fails
+    """
+
+    stat_data, config = setup_test("mpr_for_line_regression_data.yaml")
+    wsa = WriteStatAscii(config, logger)
+    reformatted_df = wsa.process_mpr(stat_data)
+
+    # Verify that the reformatted dataframe is consistent with the input data
+    subset_input = stat_data.loc[(stat_data['2'] == 'KSTK') & (stat_data['interp_mthd'] == 'NEAREST') &
+                                 (stat_data['0'] == '4529') & (stat_data['1'].convert_dtypes(int) == 651)]
+
+    # Set expected values, convert the series to a list
+    expected_obs_lat = subset_input['3'].to_list()[0]
+    expected_obs_lon = subset_input['4'].to_list()[0]
+    expected_obs_lvl = subset_input['5'].to_list()[0]
+    expected_obs_elv = subset_input['6'].to_list()[0]
+    expected_fcst = subset_input['7'].to_list()[0]
+    expected_obs = subset_input['8'].to_list()[0]
+
+    # retrieve the obs_lat, obs_lon, obs_lvl, obs_elv, fcst, and obs values from the reformatted code
+    reformatted_obs_sid = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_sid') &
+                                            (reformatted_df['interp_mthd']=='NEAREST') &
+                                            (reformatted_df['total']== '4529') &
+                                            (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    reformatted_obs_lat = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lat') &
+                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                             (reformatted_df['total'] == '4529') &
+                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    reformatted_obs_lon = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lon') &
+                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                             (reformatted_df['total'] == '4529') &
+                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    reformatted_obs_lvl = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lvl') &
+                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                             (reformatted_df['total'] == '4529') &
+                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    reformatted_obs_elv = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_elv') &
+                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                             (reformatted_df['total'] == '4529') &
+                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    reformatted_fcst = reformatted_df.loc[(reformatted_df['stat_name'] == 'fcst') &
+                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                             (reformatted_df['total'] == '4529') &
+                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    reformatted_obs = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs') &
+                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                              (reformatted_df['total'] == '4529') &
+                                              (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    assert reformatted_obs_sid['stat_value'].to_list()[0] == 'KSTK'
+    assert reformatted_obs_lat['stat_value'].to_list()[0] == expected_obs_lat
+    assert reformatted_obs_lon['stat_value'].to_list()[0] == expected_obs_lon
+    assert reformatted_obs_lvl['stat_value'].to_list()[0] == expected_obs_lvl
+    assert reformatted_obs_elv['stat_value'].to_list()[0] == expected_obs_elv
+    assert reformatted_fcst['stat_value'].to_list()[0] == expected_fcst
+    assert reformatted_obs['stat_value'].to_list()[0] == expected_obs
+
+
+
+
+def test_mpr_for_scatter_with_regression_data():
+    """
+        Use one of the MPR linetype files found in the MET
+        nightly regression tests.
+
+        Verify that the columns in the reformatted file are consistent with the
+        original data which has all header columns.  The header columns are present
+        because the MET tool that generated this output was set up to generate individual
+        linetype files.
+
+        Args:
+
+        Returns:
+
+            None passes or fails
+    """
+
+    stat_data, config = setup_test("mpr_for_scatter_usecase_data.yaml")
+    wsa = WriteStatAscii(config, logger)
+    reformatted_df = wsa.process_mpr(stat_data)
+
+    # Verify that the reformatted dataframe is consistent with the input data for the stat_name and stat_values
+    # columns in the reformatted data
+    subset_input = stat_data.loc[(stat_data['2'] == 'KSTK') & (stat_data['interp_mthd'] == 'NEAREST') &
+                                 (stat_data['0'] == '4529') & (stat_data['1'].convert_dtypes(int) == 651)]
+
+    # Set expected values, convert the series to a list
+    expected_obs_lat = subset_input['3'].to_list()[0]
+    expected_obs_lon = subset_input['4'].to_list()[0]
+    expected_obs_lvl = subset_input['5'].to_list()[0]
+    expected_obs_elv = subset_input['6'].to_list()[0]
+    expected_fcst = subset_input['7'].to_list()[0]
+    expected_obs = subset_input['8'].to_list()[0]
+
+    # retrieve the obs_lat, obs_lon, obs_lvl, obs_elv, fcst, and obs values from the reformatted code
+    reformatted_obs_sid = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_sid') &
+                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                             (reformatted_df['total'] == '4529') &
+                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    reformatted_obs_lat = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lat') &
+                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                             (reformatted_df['total'] == '4529') &
+                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    reformatted_obs_lon = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lon') &
+                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                             (reformatted_df['total'] == '4529') &
+                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    reformatted_obs_lvl = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lvl') &
+                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                             (reformatted_df['total'] == '4529') &
+                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    reformatted_obs_elv = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_elv') &
+                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                             (reformatted_df['total'] == '4529') &
+                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    reformatted_fcst = reformatted_df.loc[(reformatted_df['stat_name'] == 'fcst') &
+                                          (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                          (reformatted_df['total'] == '4529') &
+                                          (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    reformatted_obs = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs') &
+                                         (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                         (reformatted_df['total'] == '4529') &
+                                         (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    assert reformatted_obs_sid['stat_value'].to_list()[0] == 'KSTK'
+    assert reformatted_obs_lat['stat_value'].to_list()[0] == expected_obs_lat
+    assert reformatted_obs_lon['stat_value'].to_list()[0] == expected_obs_lon
+    assert reformatted_obs_lvl['stat_value'].to_list()[0] == expected_obs_lvl
+    assert reformatted_obs_elv['stat_value'].to_list()[0] == expected_obs_elv
+    assert reformatted_fcst['stat_value'].to_list()[0] == expected_fcst
+    assert reformatted_obs['stat_value'].to_list()[0] == expected_obs
+
+
+    # Test that the MPR-specific columns (obs_sid, ..., climo_cdf) in the reformatted file are consistent with the
+    # corresponding columns in the input data file.
+    subset_reformatted = reformatted_df.loc[(reformatted_df['obs_sid'] == 'KSTK') & (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                 (reformatted_df['total'] == '4529') & (reformatted_df['index'].convert_dtypes(int) == 651)]
+
+    # retrieve the values from the MPR columns in the reformatted data
+    reformatted_obs_lat = subset_reformatted['obs_lat'].to_list()[0]
+    reformatted_obs_lon = subset_reformatted['obs_lon'].to_list()[0]
+    reformatted_obs_lvl = subset_reformatted['obs_lvl'].to_list()[0]
+    reformatted_obs_elv = subset_reformatted['obs_elv'].to_list()[0]
+    reformatted_fcst = subset_reformatted['fcst'].to_list()[0]
+    reformatted_obs = subset_reformatted['obs'].to_list()[0]
+
+    # Compare the MPR columns in the reformatted data with the corresponding columns
+    # in the original data.
+    assert reformatted_obs_lat == expected_obs_lat
+    assert reformatted_obs_lon == expected_obs_lon
+    assert reformatted_obs_lvl == expected_obs_lvl
+    assert reformatted_obs_elv == expected_obs_elv
+    assert reformatted_fcst == expected_fcst
+    assert reformatted_obs == expected_obs
+
