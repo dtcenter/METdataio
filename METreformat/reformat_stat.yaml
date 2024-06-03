@@ -18,3 +18,10 @@ log_level: info
 
 # Currently support FHO, CTC, CTS, CNT, SL1L2, VL1L2, PCT, MCTC, VCNT, ECNT, RHIST, TCDiag, and MPR line types
 line_type: PCT
+
+#
+# FOR MPR linetype only
+#
+
+# True if reformatting for scatter plot, False otherwise
+keep_all_mpr_cols: False
