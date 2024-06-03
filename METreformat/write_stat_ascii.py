@@ -1740,7 +1740,7 @@ class WriteStatAscii:
         # if there were other linetypes in the input file).
         #
 
-        # Relevant columns for the FHO line type
+        # Relevant columns for the MPR line type
         linetype: str = cn.MPR
         end = cn.NUM_STAT_MPR_COLS
         mpr_columns_to_use: List[str] = \
@@ -1763,10 +1763,12 @@ class WriteStatAscii:
         # Work on a copy of the mpr_df dataframe to avoid a possible PerformanceWarning
         # message due to a fragmented dataframe.
         mpr_df_copy = mpr_df.copy()
-        # DEBUG REMOVE ME WHEN DONE
-        mpr_df_copy.to_csv("./mpr_df_orig.txt", sep='\t', index=False)
-        # DEBUG END
         mpr_df_copy.insert(loc=0, column='Idx', value=idx)
+
+        # if reformatting for a scatter plot, only return all the original columns,
+        # maintaining the 'tidy' format provided by the MET tool.
+        if self.parms['keep_all_mpr_cols'] is True:
+            return mpr_df_copy
 
         # Use pandas 'melt' to reshape the data frame from wide to long shape (i.e.
         # collecting the obs_sid, obs_lat, obs_lon,..., and climo_cdf
@@ -1778,12 +1780,12 @@ class WriteStatAscii:
         # columns of interest,
         # we want to capture that information into the stat_name and stat_values
         # columns)
-        # columns_to_use: List[str] = mpr_df_copy.columns[0:-11].tolist()
         columns_to_use: List[str] = mpr_df_copy.columns[0:].tolist()
         self.logger.info(f"Columns to use: {columns_to_use} ")
+
         # variables to transform from wide to long (i.e. organize into
         # key-value structure with variables in one column and their corresponding
-        # values in another column. Omit the matched pair index.
+        # values in another column). Omit the matched pair index.
         variables_to_transform = list(cn.LC_MPR_SPECIFIC)[-12:]
         self.logger.info(f"Variables to transform from wide to long: {cn.LC_MPR_SPECIFIC[1:]} ")
 
@@ -1792,31 +1794,8 @@ class WriteStatAscii:
                                               var_name='stat_name',
                                               value_name='stat_value',
                                               ignore_index=True)
-        if self.parms['keep_all_mpr_cols'] is True:
-            # Merge the original data frame with the melted dataframe
-            value_vars = ['obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl', 'obs_elv', 'mpr_fcst', 'mpr_obs', 'mpr_climo', 'obs_qc', 'climo_mean', 'climo_stdev', 'climo_cdf']
-            # linetype_data: pd.DataFrame = pd.melt(mpr_copy, id_vars=columns_to_use[2:-12],
-            #                                       value_vars=value_vars,
-            #                                       var_name='stat_name',
-            #                                       value_name='stat_value',
-            #                                       ignore_index=True)
-            # linetype_data: pd.DataFrame = mpr_df_copy.merge(melted[columns_to_use[1:-11]], how='left', on=columns_to_use[2:26])
-            # linetype_data: pd.DataFrame = melted.merge(mpr_df_copy[value_vars], how='left', on=columns_to_use[2:28])
-            common_headers = columns_to_use[1:17]
-            melted_sorted = melted.sort_values(common_headers)
-            melted_indexed = melted_sorted.set_index(common_headers)
-            mpr_df_sorted = mpr_df_copy.sort_values(common_headers)
-            mpr_df_indexed = mpr_df_sorted.set_index(common_headers)
-            mpr_df_indexed = mpr_df_sorted.set_index(common_headers)
-            #
-            linetype_data: pd.DataFrame = mpr_df_sorted.merge(melted_sorted, how='inner')
-            # full_df = pd.merge(reformatted_tcmpr, all_tcdiag_reformatted, on=common_headers, how='inner')
-        # uc_long_header_tcst = [hdr.upper() for hdr in cn.LONG_HEADER_TCST]
-        # common_headers = uc_long_header_tcst[0:len(uc_long_header_tcst) - 1]
-        # full_df = pd.merge(reformatted_tcmpr, all_tcdiag_reformatted, on=common_headers, how='inner')
 
-        else:
-            linetype_data = melted.copy(deep=True)
+        linetype_data = melted.copy(deep=True)
 
 
         # The MPR line type doesn't have the bcl and bcu stat values; set these to NA
@@ -1826,6 +1805,11 @@ class WriteStatAscii:
         linetype_data['stat_ncu']: pd.Series = na_column
         linetype_data['stat_bcl']: pd.Series = na_column
         linetype_data['stat_bcu']: pd.Series = na_column
+
+        # clean up all the intermediate dataframes
+        del mpr_df
+        del mpr_df_copy
+        _ = gc.collect()
 
         return linetype_data
 
