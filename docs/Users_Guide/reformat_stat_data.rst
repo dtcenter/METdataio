@@ -22,25 +22,29 @@ reformatted, these unlabelled columns are rearranged into a format appropriate
 for the METplotpy plot of interest (based on the *line_type* setting in the YAML configuration file).
 
 The format of input data used by the METplotpy plots is influenced by METviewer.
-When METviewer is employed to generate plots, the MET .stat input data is first loaded into the
-METviewer database. Next, a database query is performed based on the selected values for the
-dependent variables (i.e. forecast variable) and the associated statistics of interest, variables
-(i.e. model and specific model values), fixed values (to subset the input data to time/area/thresholds of interest).
-Any requested aggregation statistics (i.e. mean, median) are calculated by invoking the appropriate METcalcpy code.
-The format of the data from the query result may vary, based on the line type and whether aggregation statistics were
-calculated.  METviewer invokes the appropriate METplotpy plot script using the database query results as input.
-This why the various METplotpy plotting scripts require input data in a specific format.
+When METviewer generates plots, the MET .stat input data is first loaded into the
+METviewer database. A database query is then performed to filter the data.  The query is
+based on:
 
-Users have the option to generate plots from the command line, without the use of METviewer and its database. **However,
-the MET stat-analysis** tool will need to be used for performing any filtering of data (e.g. by any combination of
+- the selected values for the dependent variables (i.e. forecast variable) and the associated statistics of interest
+- variables (i.e. model and specific model values)
+- fixed values
+
+Any requested aggregation statistics (i.e. mean, median) are calculated by invoking the METcalcpy agg_stat.py code.
+The format of the data from the query result may vary, based on the line type and whether aggregation statistics were
+calculated.  METviewer invokes the appropriate METplotpy plot script using the database query results as input, and it
+is this format that is expected by the METplotpy scripts.
+
+Users have the option to generate plots from the command line, by-passing METviewer and its database. **However,
+the MET stat-analysis** tool will need to be used for performing any necessary filtering of data (e.g. by any combination of
 times, models, regions, etc.) prior to reformatting. The METcalcpy agg_stat.py module is used after
 reformatting to calculate aggregation statistics (i.e. total, mean, median, confidence
 intervals for a specific statistic, etc.). Not all data requires the calculation of
 aggregation statistics (e.g. histogram plots).
 
-Plots are generated from the command line, using a required YAML configuration file and the appropriate METplotpy
-plotting code. The .stat output from the point-stat, grid-stat, ensemble-stat, or tc-pairs tool must be reformatted before using the METplotpy scripts
-from the command line.
+Plots that are generated from the command line require a YAML configuration file. The .stat output from the point-stat,
+grid-stat, ensemble-stat, or tc-pairs tool must be reformatted before invoking the METplotpy scripts from the
+command line.
 
 Description of Formats:
 -----------------------
@@ -201,11 +205,14 @@ the format required for generating a line plot using METplotpy from the command 
 Required Components
 ===================
 
-Use the **MET stat-analysis** tool to calculate the aggregation statistics as input to the reformatter
-(this is only needed if aggregation statistics are to be plotted).  Otherwise, the .stat files from the MET point-stat,
-grid-stat, and ensemble-stat tools can be used as input to the reformatter.  For the **ECNT linetype**,
-the reformatter can reformat the .stat input to be used by the **METcalcpy agg_stat**  module to
-calculate aggregation statistics.
+Use the **MET stat-analysis** tool to filter data (by criteria such as model, valid times, etc.).
+The output from the stat-analysis tool can then be used
+as input to the METdataio METreformat reformatter.  If filtering of data is not needed, the .stat files from the MET
+point-stat, grid-stat, and ensemble-stat tools can be used as input to the reformatter. If aggregation statistics
+are needed, then the METcalcpy agg_stat.py module can be used following the reformatting step.
+Reformatting to accommodate METcalcpy agg_stat is currently only available for the **ECNT linetype**.
+The *input_stats_aggregated* setting is used to indicate whether the reformatter needs to
+reformat the output for the METcalcpy agg_stat module.
 
 METdbLoad modules are used to find and collect data from the individual .stat files into
 one data structure.  The input .stat files must all reside under one directory. The path to this
