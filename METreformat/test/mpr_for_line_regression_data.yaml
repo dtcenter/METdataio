@@ -28,6 +28,6 @@ line_type: MPR
 # data file but provides flexibility to use the
 # reformatted data for BOTH line and scatter
 # plots.
-keep_all_mpr_cols: True
+#keep_all_mpr_cols: True
 # For line plot
-#keep_all_mpr_cols: False
+keep_all_mpr_cols: False
