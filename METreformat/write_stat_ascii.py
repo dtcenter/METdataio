@@ -1763,6 +1763,9 @@ class WriteStatAscii:
         # Work on a copy of the mpr_df dataframe to avoid a possible PerformanceWarning
         # message due to a fragmented dataframe.
         mpr_df_copy = mpr_df.copy()
+        # DEBUG REMOVE ME WHEN DONE
+        mpr_df_copy.to_csv("./mpr_df_orig.txt", sep='\t', index=False)
+        # DEBUG END
         mpr_df_copy.insert(loc=0, column='Idx', value=idx)
 
         # if reformatting for a scatter plot, only return all the original columns,
@@ -1809,6 +1812,7 @@ class WriteStatAscii:
         # clean up all the intermediate dataframes
         del mpr_df
         del mpr_df_copy
+        del melted
         _ = gc.collect()
 
         return linetype_data
