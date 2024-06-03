@@ -1043,7 +1043,7 @@ def test_mpr_for_scatter_with_regression_data():
             None passes or fails
     """
 
-    stat_data, config = setup_test("mpr_for_line_regression_data.yaml")
+    stat_data, config = setup_test("mpr_for_scatter_regression_data.yaml")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
@@ -1061,69 +1061,18 @@ def test_mpr_for_scatter_with_regression_data():
     expected_obs = subset_input['8'].to_list()[0]
 
     # retrieve the obs_lat, obs_lon, obs_lvl, obs_elv, fcst, and obs values from the reformatted code
-    reformatted_obs_sid = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_sid') &
-                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
-                                             (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
-
-    reformatted_obs_lat = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lat') &
-                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
-                                             (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
-
-    reformatted_obs_lon = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lon') &
-                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
-                                             (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
-
-    reformatted_obs_lvl = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lvl') &
-                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
-                                             (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
-
-    reformatted_obs_elv = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_elv') &
-                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
-                                             (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
-
-    reformatted_fcst = reformatted_df.loc[(reformatted_df['stat_name'] == 'fcst') &
-                                          (reformatted_df['interp_mthd'] == 'NEAREST') &
-                                          (reformatted_df['total'] == '4529') &
-                                          (reformatted_df['index'].convert_dtypes(int) == 651)]
-
-    reformatted_obs = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs') &
-                                         (reformatted_df['interp_mthd'] == 'NEAREST') &
-                                         (reformatted_df['total'] == '4529') &
-                                         (reformatted_df['index'].convert_dtypes(int) == 651)]
-
-    assert reformatted_obs_sid['stat_value'].to_list()[0] == 'KSTK'
-    assert reformatted_obs_lat['stat_value'].to_list()[0] == expected_obs_lat
-    assert reformatted_obs_lon['stat_value'].to_list()[0] == expected_obs_lon
-    assert reformatted_obs_lvl['stat_value'].to_list()[0] == expected_obs_lvl
-    assert reformatted_obs_elv['stat_value'].to_list()[0] == expected_obs_elv
-    assert reformatted_fcst['stat_value'].to_list()[0] == expected_fcst
-    assert reformatted_obs['stat_value'].to_list()[0] == expected_obs
-
+    reformatted_subset = reformatted_df.loc[(reformatted_df['obs_sid'] == 'KSTK') &
+                                            (reformatted_df['interp_mthd'] == 'NEAREST') &
+                                            (reformatted_df['total'] == '4529') &
+                                            (reformatted_df['index'].convert_dtypes(int) == 651)]
 
     # Test that the MPR-specific columns (obs_sid, ..., climo_cdf) in the reformatted file are consistent with the
     # corresponding columns in the input data file.
-    subset_reformatted = reformatted_df.loc[(reformatted_df['obs_sid'] == 'KSTK') & (reformatted_df['interp_mthd'] == 'NEAREST') &
-                                 (reformatted_df['total'] == '4529') & (reformatted_df['index'].convert_dtypes(int) == 651)]
-
-    # retrieve the values from the MPR columns in the reformatted data
-    reformatted_obs_lat = subset_reformatted['obs_lat'].to_list()[0]
-    reformatted_obs_lon = subset_reformatted['obs_lon'].to_list()[0]
-    reformatted_obs_lvl = subset_reformatted['obs_lvl'].to_list()[0]
-    reformatted_obs_elv = subset_reformatted['obs_elv'].to_list()[0]
-    reformatted_fcst = subset_reformatted['fcst'].to_list()[0]
-    reformatted_obs = subset_reformatted['obs'].to_list()[0]
-
-    # Compare the MPR columns in the reformatted data with the corresponding columns
-    # in the original data.
-    assert reformatted_obs_lat == expected_obs_lat
-    assert reformatted_obs_lon == expected_obs_lon
-    assert reformatted_obs_lvl == expected_obs_lvl
-    assert reformatted_obs_elv == expected_obs_elv
-    assert reformatted_fcst == expected_fcst
-    assert reformatted_obs == expected_obs
+    assert reformatted_subset['obs_sid'].to_list()[0] == 'KSTK'
+    assert reformatted_subset['obs_lat'].to_list()[0] == expected_obs_lat
+    assert reformatted_subset['obs_lon'].to_list()[0] == expected_obs_lon
+    assert reformatted_subset['obs_lvl'].to_list()[0] == expected_obs_lvl
+    assert reformatted_subset['obs_elv'].to_list()[0] == expected_obs_elv
+    assert reformatted_subset['fcst'].to_list()[0] == expected_fcst
+    assert reformatted_subset['obs'].to_list()[0] == expected_obs
 
