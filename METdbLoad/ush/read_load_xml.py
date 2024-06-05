@@ -66,13 +66,13 @@ class XmlLoadFile:
         self.load_files = []
         self.line_types = []
 
-       def read_xml(self):
+    def read_xml(self):
         """! Read in load_spec xml file, store values as class attributes
             Returns:
                N/A
         """
         
-       logging.debug("[--- Start read_xml ---]")
+        logging.debug("[--- Start read_xml ---]")
 
         try:
 
