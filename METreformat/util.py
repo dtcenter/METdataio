@@ -58,8 +58,8 @@ def get_common_logger(log_level, log_filename):
                             filename=log_filename,
                             filemode='w')
     common_logger = logging.getLogger(__name__)
-    dbload_read_files_logger = logging.getLogger(name='read_data_files').setLevel(logging.DEBUG)
-    dbload_read_load_logger = logging.getLogger(name='read_load_xml').setLevel(logging.DEBUG)
+    logging.getLogger(name='read_data_files').setLevel(logging.DEBUG)
+    logging.getLogger(name='read_load_xml').setLevel(logging.DEBUG)
     f = cf()
     common_logger.addFilter(f)
 
