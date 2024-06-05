@@ -21,7 +21,7 @@ from pathlib import Path
 import logging
 import pandas as pd
 from lxml import etree
-import METreformat.util as util
+
 import constants as CN
 
 
@@ -32,7 +32,7 @@ class XmlLoadFile:
            N/A
     """
 
-    def __init__(self, xmlfile, logger=None):
+    def __init__(self, xmlfile):
         # set the defaults
         self.xmlfilename = xmlfile
 
@@ -66,21 +66,13 @@ class XmlLoadFile:
         self.load_files = []
         self.line_types = []
 
-        if logger is None:
-            log_filename = os.path.join(os.getcwd(), __name__ + "_log.txt")
-            self.logger = util.get_common_logger('DEBUG', log_filename)
-        else:
-            self.logger = logger
-
-
-    def read_xml(self):
+       def read_xml(self):
         """! Read in load_spec xml file, store values as class attributes
             Returns:
                N/A
         """
-        # logger for the static methods
-        logger = logging.getLogger(__name__)
-        self.logging.debug("[--- Start read_xml ---]")
+        
+       logging.debug("[--- Start read_xml ---]")
 
         try:
 
@@ -89,13 +81,13 @@ class XmlLoadFile:
                 sys.exit("*** XML file " + self.xmlfilename + " can not be found!")
 
             # parse the XML file
-            self.logging.info('Reading XML Load file')
+            logging.info('Reading XML Load file')
             parser = etree.XMLParser(remove_comments=True, resolve_entities=False)
             tree = etree.parse(self.xmlfilename, parser=parser)
             root = tree.getroot()
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            self.logging.error("*** %s in read_xml ***", sys.exc_info()[0])
+            logging.error("*** %s in read_xml ***", sys.exc_info()[0])
             sys.exit("*** Parsing error(s) in XML file!")
 
         # Extract values from load_spec XML tags, store in attributes of class XmlLoadFile
@@ -104,7 +96,7 @@ class XmlLoadFile:
             # Extract values for connecting to database
             if root.xpath("connection"):
                 self.read_db_connect(root)
-                self.logging.info("Database name is: %s", self.connection['db_database'])
+                logging.info("Database name is: %s", self.connection['db_database'])
 
             # group and description for putting databases into groups/categories
             if root.xpath("group"):
@@ -151,7 +143,7 @@ class XmlLoadFile:
                 self.read_file_info(root)
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            self.logging.error("*** %s in read_xml ***", sys.exc_info()[0])
+            logging.error("*** %s in read_xml ***", sys.exc_info()[0])
             sys.exit("*** Error(s) found while reading XML file!")
 
         # This removes duplicate file names. do we want that?
@@ -161,9 +153,9 @@ class XmlLoadFile:
         # Remove directory names
         self.load_files = [lf for lf in self.load_files if '.' in lf.split('/')[-1]]
 
-        self.logging.info("Initial number of files: %s", str(len(self.load_files)))
+        logging.info("Initial number of files: %s", str(len(self.load_files)))
 
-        self.logging.debug("[--- End read_xml ---]")
+        logging.debug("[--- End read_xml ---]")
 
     def read_file_info(self, root):
         """! Gather info on file template, fill-in values, and dates
@@ -214,7 +206,7 @@ class XmlLoadFile:
                 self.load_files = self.filenames_from_template(folder_template, template_fills)
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            self.logging.error("*** %s in read_xml read_file_info ***", sys.exc_info()[0])
+            logging.error("*** %s in read_xml read_file_info ***", sys.exc_info()[0])
             sys.exit("*** Error(s) found while reading XML file info!")
 
     def read_db_connect(self, root):
@@ -233,18 +225,18 @@ class XmlLoadFile:
                 else:
                     self.connection['db_port'] = CN.SQL_PORT
             else:
-                self.logging.error("!!! XML must include host tag")
+                logging.error("!!! XML must include host tag")
                 raise NameError("Missing required host tag")
 
             if root.xpath('connection')[0].xpath('database'):
                 self.connection['db_database'] = \
                     root.xpath('connection')[0].xpath('database')[0].text
             else:
-                self.logging.error("!!! XML must include database tag")
+                logging.error("!!! XML must include database tag")
                 raise NameError("Missing required database tag")
 
             if not self.connection['db_database'].startswith("mv_"):
-                self.logging.warning("!!! Database not visible unless name starts with mv_")
+                logging.warning("!!! Database not visible unless name starts with mv_")
 
             self.connection['db_user'] = \
                 root.xpath('connection')[0].xpath('user')[0].text
@@ -252,7 +244,7 @@ class XmlLoadFile:
                 root.xpath('connection')[0].xpath('password')[0].text
 
             if not self.connection['db_user']:
-                self.logging.warning("!!! XML expecting user tag")
+                logging.warning("!!! XML expecting user tag")
                 raise NameError("Missing required user tag")
 
             if root.xpath('connection')[0].xpath('management_system'):
@@ -260,7 +252,7 @@ class XmlLoadFile:
                     root.xpath('connection')[0].xpath('management_system')[0].text
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            self.logging.error("*** %s in read_xml read_db_connect ***", sys.exc_info()[0])
+            logging.error("*** %s in read_xml read_db_connect ***", sys.exc_info()[0])
             sys.exit("*** Error(s) found while reading XML file connection tag!")
 
     def flag_default_true(self, root, default_true):
@@ -287,9 +279,8 @@ class XmlLoadFile:
             Returns:
                list of dates
         """
-        # logger for the static methods
-        logger = logging.getLogger(__name__)
-        logger.debug("date format is: %s", date_list["format"])
+   
+        logging.debug("date format is: %s", date_list["format"])
 
         try:
             date_format = date_list["format"]
@@ -308,14 +299,14 @@ class XmlLoadFile:
                     date_start = date_start + pd.Timedelta(seconds=date_inc)
                 all_dates.append(date_end.strftime(date_format))
             else:
-                logger.error("*** date_list tag has unknown characters ***")
+                logging.error("*** date_list tag has unknown characters ***")
 
         except ValueError as value_error:
-            logger.error("*** %s in filenames_from_date ***", sys.exc_info()[0])
-            logger.error(value_error)
+            logging.error("*** %s in filenames_from_date ***", sys.exc_info()[0])
+            logging.error(value_error)
             sys.exit("*** Value Error found while expanding XML date format!")
         except (RuntimeError, TypeError, NameError, KeyError):
-            logger.error("*** %s in filenames_from_date ***", sys.exc_info()[0])
+            logging.error("*** %s in filenames_from_date ***", sys.exc_info()[0])
             sys.exit("*** Error found while expanding XML date format!")
 
         return all_dates
@@ -326,11 +317,7 @@ class XmlLoadFile:
             Returns:
                list of filenames
         """
-
-        # logger for the static methods
-        full_logfile = os.path.join(os.getcwd(), __name__ + "_log.txt")
-        logger = util.get_common_logger('DEBUG', full_logfile)
-        logger.debug(f"folder template is: {folder_template}")
+        logging.debug(f"folder template is: {folder_template}")
 
         try:
             fills_open = folder_template.count("{")
@@ -365,11 +352,11 @@ class XmlLoadFile:
                                              for x in os.listdir(file_dir)]
 
         except ValueError as value_error:
-            logger.error("f*** {sys.exc_info()[0]} in filenames_from_template ***")
-            logger.error(value_error)
+            logging.error("f*** {sys.exc_info()[0]} in filenames_from_template ***")
+            logging.error(value_error)
             sys.exit("*** Value Error found while expanding XML folder templates!")
         except (RuntimeError, TypeError, NameError, KeyError):
-            logger.error(f"*** %s in filenames_from_template ***", sys.exc_info()[0])
+            logging.error(f"*** %s in filenames_from_template ***", sys.exc_info()[0])
             sys.exit("*** Error found while expanding XML folder templates!")
 
         return file_list
