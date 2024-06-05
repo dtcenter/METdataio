@@ -27,7 +27,7 @@ import pandas as pd
 
 import METreformat.util as util
 import constants as CN
-import util
+
 
 
 class ReadDataFiles:
