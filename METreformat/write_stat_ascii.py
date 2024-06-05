@@ -49,7 +49,6 @@ class WriteStatAscii:
 
         # Set up logging
 
-        log_level = str(parms['log_level']).upper()
         log_directory = parms['log_directory']
 
         # Create log directory if it doesn't already exist.
@@ -57,7 +56,6 @@ class WriteStatAscii:
         if not os.path.exists(log_directory) and log_filename != 'STDOUT':
             os.mkdir(parms['log_directory'])
 
-        full_log_filename = os.path.join(log_directory, log_filename.lower())
         self.logger = logger
         self.parms = parms
 
