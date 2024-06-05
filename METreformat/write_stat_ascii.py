@@ -18,7 +18,6 @@ NOAA/OAR/ESRL/GSD
 # pylint:disable=no-member
 # constants exist in constants.py
 import gc
-import logging
 import os
 import pathlib
 import re
@@ -26,16 +25,16 @@ import sys
 import time
 from typing import List
 
+
 import numpy as np
 import pandas as pd
 import yaml
 
 import constants as cn
-import util
+import METreformat.util as util
 from METdbLoad.ush.read_data_files import ReadDataFiles
 from METdbLoad.ush.read_load_xml import XmlLoadFile
 
-logger = logging.getLogger(__name__)
 
 
 class WriteStatAscii:
@@ -45,43 +44,30 @@ class WriteStatAscii:
            a Pandas dataframe and creates an ascii file with reformatted data.
     """
 
-    def __init__(self, parms):
+
+    def __init__(self, parms, logger):
 
         # Set up logging
-        loglevel_setting = str(parms['log_level']).upper()
-        log_levels = {'DEBUG': logging.DEBUG, 'INFO': logging.INFO,
-                      'WARNING': logging.WARNING, 'ERROR': logging.ERROR,
-                      'CRITICAL': logging.CRITICAL}
-        log_level = log_levels[loglevel_setting]
+
         log_directory = parms['log_directory']
+
         # Create log directory if it doesn't already exist.
         log_filename = (str(parms['log_filename'])).upper()
         if not os.path.exists(log_directory) and log_filename != 'STDOUT':
             os.mkdir(parms['log_directory'])
 
-        full_log_filename = os.path.join(log_directory, log_filename)
-        logger.setLevel(log_level)
+        self.logger = logger
+        self.parms = parms
 
-        if log_filename.lower() == 'stdout':
-            logging.basicConfig(level=log_level,
-                                format='%(asctime)s||User:%('
-                                       'user)s||%(funcName)s|| [%(levelname)s]: %('
-                                       'message)s',
-                                datefmt='%Y-%m-%d %H:%M:%S',
-                                stream=sys.stdout)
-        else:
-            logging.basicConfig(level=log_level,
-                                format=' %(asctime)s || %(module)s || User:%(user)s || %(levelname)s : '
-                                       '%(message)s',
-                                datefmt='%Y-%m-%d %H:%M:%S',
-                                filename=full_log_filename,
-                                filemode='w')
+
 
     def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict) -> pd.DataFrame:
         """ For line types: FHO, CTC, CTS, SL1L2, ECNT, MCTS, and VCNT reformat the MET stat files (.stat) to another
             ASCII file with stat_name, stat_value,
             stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns, converting the
-            original data file from wide form to long form.
+            original data file from wide form to long form. For TCDiag line type, the
+            MET .tcst stat files (from TC-Pairs) are converted
+            to an ASCII file with the original TC-Pairs columns with the corresponding TC-Diag columns.
 
             For line types such as PCT: specific reformatting is required, based on the type of plot that is utilizing
             that data.
@@ -103,7 +89,8 @@ class WriteStatAscii:
                       into these six columns: stat_name,
                       stat_value, stat_ncl, stat_ncu,
                       stat_bcl, and stat_bcu (the stat_xyz are not available in all
-                      line types, these will have values of NA)
+                      line types, these will have values of NA).  MET .tcst input is reformatted
+                      differently.
 
         """
 
@@ -116,7 +103,7 @@ class WriteStatAscii:
             # ----------------------------------
             supported_linetypes = [cn.FHO, cn.CNT, cn.VCNT, cn.CTC,
                                    cn.CTS, cn.MCTS, cn.SL1L2, cn.ECNT, cn.PCT,
-                                   cn.RHIST, cn.TCDIAG]
+                                   cn.RHIST, cn.TCDIAG, cn.MPR]
 
             # Different formats based on the line types. Most METplotpy plots accept the long format where
             # all stats are under the stat_name and stat_value columns and the confidence limits under the
@@ -133,7 +120,7 @@ class WriteStatAscii:
                 else:
                     working_df = working_df.loc[working_df['line_type'] == linetype_requested]
             else:
-                logging.ERROR("Requested line type is currently not supported for reformatting")
+                self.logger.error("Requested line type is currently not supported for reformatting")
                 raise ValueError("Requested line type ", linetype_requested,
                                  " is currently not supported for reformatting")
 
@@ -170,21 +157,20 @@ class WriteStatAscii:
             end_reformat = time.perf_counter()
             reformat_time = end_reformat - begin_reformat
             msg = 'Reformatting took: ' + str(reformat_time) + ' seconds'
-            logger.info(msg)
+            self.logger.info(msg)
 
             # Write out to the tab-separated text file
             output_file = os.path.join(parms['output_dir'], parms['output_filename'])
             _: pd.DataFrame = reformatted_df.to_csv(output_file, index=None, sep='\t',
                                                     mode='a')
 
-        except (RuntimeError, TypeError, NameError, KeyError, NotImplementedError):
-            logging.error("*** %s in write_stat_ascii ***", sys.exc_info()[0])
+        except (TypeError, NameError, KeyError, NotImplementedError):
+            self.logger.error("*** %s in write_stat_ascii ***", sys.exc_info()[0])
 
         write_time_end: float = time.perf_counter()
         write_time = write_time_end - write_time_start
 
-        logger.info("Total time to reformat and write ASCII: %s seconds", str(write_time))
-        logger.debug("End write_stat_data ")
+        self.logger.info("Total time to reformat and write ASCII: %s seconds", str(write_time))
 
         return reformatted_df
 
@@ -293,15 +279,21 @@ class WriteStatAscii:
 
         # RHIST (ranked histogram)
         elif linetype == cn.RHIST:
-            if is_aggregated:
-                linetype_data: pd.DataFrame = self.process_rhist(stat_data)
-            else:
-                linetype_data: pd.DataFrame = self.process_rhist_for_agg(stat_data)
+            # No need to support reformatting for METcalcpy agg_stat.py,
+            # there is no need to calculate the sum or confidence intervals
+            # for the histogram plots.
+            linetype_data: pd.DataFrame = self.process_rhist(stat_data)
 
         # TCDIAG (from MET TC-Pairs output)
         elif linetype == cn.TCDIAG:
             # No need to support additional reformatting for agg_stat.
             linetype_data: pd.DataFrame = self.process_tcdiag(stat_data)
+
+        # MPR
+        elif linetype == cn.MPR:
+            # no need to support further reformatting for agg_stat, there is no
+            # code in METcalcpy agg_stat.py for MPR.
+            linetype_data: pd.DataFrame = self.process_mpr(stat_data)
 
         else:
             return None
@@ -1569,7 +1561,7 @@ class WriteStatAscii:
 
         end_tcdiag = time.perf_counter()
         time_to_process_tcdiag = end_tcdiag - begin_tcdiag
-        logging.info(f"Total time for processing the TCDiag matched pair linetype: {time_to_process_tcdiag} seconds")
+        self.logger.info(f"Total time for processing the TCDiag matched pair linetype: {time_to_process_tcdiag} seconds")
 
         return cleanup_df
 
@@ -1597,7 +1589,7 @@ class WriteStatAscii:
         """
 
         begin_reformat = time.perf_counter()
-        logger.info("Reformat the TCDiag dataframe based on the DIAG_SOURCE ")
+        self.logger.info("Reformat the TCDiag dataframe based on the DIAG_SOURCE ")
         n_diag_col_name = cn.LINE_VAR_COUNTER[cn.TCDIAG]
         ds_df = tcdiag_df.copy(deep=True)
 
@@ -1631,7 +1623,7 @@ class WriteStatAscii:
         # Keep track of the DIAG_i columns to drop
         diag_to_drop = []
 
-        for i in range(0, num_diag):
+        for _ in range(0, num_diag):
             diag_names: list = ds_df[start_diag].to_list()
             # All the diag names are identical in this column, use the first one in the list
             diag_name = diag_names[0]
@@ -1669,11 +1661,11 @@ class WriteStatAscii:
 
         # Clean up intermediate dataframes
         del ds_df
-        gc.collect
+        _ = gc.collect()
 
         end_reformat = time.perf_counter()
         time_to_reformat = end_reformat - begin_reformat
-        logger.info(f"Finished reformatting TCDiag matched pair output in {time_to_reformat} seconds")
+        self.logger.info(f"Finished reformatting TCDiag matched pair output in {time_to_reformat} seconds")
 
         return reformatted
 
@@ -1690,7 +1682,7 @@ class WriteStatAscii:
         """
 
         begin_reformat = time.perf_counter()
-        logger.info("Reformatting the TCMPR dataframe...")
+        self.logger.info("Reformatting the TCMPR dataframe...")
 
         #  Keep only the TCMPR columns
         tcmpr_columns: list = cn.COLUMNS[cn.TCMPR]
@@ -1710,9 +1702,119 @@ class WriteStatAscii:
 
         end_reformat = time.perf_counter()
         reformat_time = end_reformat - begin_reformat
-        logger.info("Reformatting the TCMPR dataframe took {reformat_time} seconds")
+        self.logger.info("Reformatting the TCMPR dataframe took {reformat_time} seconds")
 
         return tcmpr_relevant
+
+    def process_mpr(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+             Retrieve the MPR line type data and reshape it to replace the original
+             columns (based on column number) into
+             stat_name, stat_value, stat_bcl, stat_bcu, stat_ncu, and stat_ncl if the
+             keep_all_mpr_cols setting is False.
+
+             If keep_all_mpr_cols is set to True, merge the reformatted/reshaped MPR
+             data with the original MET output to use the output by both the METplotpy
+             line plot and the METplotpy scatter plot.
+
+             Arguments:
+             @param stat_data: The dataframe containing the data from
+             the MET .stat file.
+
+             Returns:
+             linetype_data:  The dataframe with the reshaped data for the MPR line type
+         """
+
+        # Extract the stat_names and stat_values for this line type:
+        # TOTAL, INDEX, OBS_SID, OBS_LAT, OBS_LON, OBS_LVL, FCST, OBS,
+        # OBS_QC, CLIMO_MEAN, CLIMO_STDEV, and CLIMO_CDF (these will be the stat name).
+        # There are no corresponding xyz_bcl, xyz_bcu,
+        # xyz_ncl, and xyz_ncu values where xyz = stat name, these columns will be
+        # created with NA values.
+
+        #
+        # Subset the stat_data dataframe into a smaller data frame containing only
+        # the MPR line type with all its columns (some of which may be unlabelled
+        # if there were other linetypes in the input file).
+        #
+
+        # Relevant columns for the MPR line type
+        linetype: str = cn.MPR
+        end = cn.NUM_STAT_MPR_COLS
+        mpr_columns_to_use: List[str] = \
+            np.arange(0, end).tolist()
+
+        # Subset the original dataframe to another dataframe consisting of only the MPR
+        # line type.  The MPR specific columns will only have numbers at this point.
+        mpr_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+                                   mpr_columns_to_use]
+
+        # Add the stat columns header names for the MPR line type
+        mpr_columns: List[str] = cn.MPR_HEADERS
+        mpr_df.columns: List[str] = mpr_columns
+
+        # Create another index column to preserve the index values from the stat_data
+        # dataframe (ie the dataframe
+        # containing the original data from the MET output file).
+        idx = list(mpr_df.index)
+
+        # Work on a copy of the mpr_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        mpr_df_copy = mpr_df.copy()
+        # DEBUG REMOVE ME WHEN DONE
+        mpr_df_copy.to_csv("./mpr_df_orig.txt", sep='\t', index=False)
+        # DEBUG END
+        mpr_df_copy.insert(loc=0, column='Idx', value=idx)
+
+        # if reformatting for a scatter plot, only return all the original columns,
+        # maintaining the 'tidy' format provided by the MET tool.
+        if self.parms['keep_all_mpr_cols'] is True:
+            return mpr_df_copy
+
+        # Use pandas 'melt' to reshape the data frame from wide to long shape (i.e.
+        # collecting the obs_sid, obs_lat, obs_lon,..., and climo_cdf
+        # values and putting them under the column 'stat_value'
+        # corresponding to the 'stat_name' column
+        # containing the names OBS_SID, OBS_LAT, ..., and CLIMO_DF columns.
+
+        # columns that we don't want to change (the last eleven columns are the stat
+        # columns of interest,
+        # we want to capture that information into the stat_name and stat_values
+        # columns)
+        columns_to_use: List[str] = mpr_df_copy.columns[0:].tolist()
+        self.logger.info(f"Columns to use: {columns_to_use} ")
+
+        # variables to transform from wide to long (i.e. organize into
+        # key-value structure with variables in one column and their corresponding
+        # values in another column). Omit the matched pair index.
+        variables_to_transform = list(cn.LC_MPR_SPECIFIC)[-12:]
+        self.logger.info(f"Variables to transform from wide to long: {cn.LC_MPR_SPECIFIC[1:]} ")
+
+        melted: pd.DataFrame = pd.melt(mpr_df_copy, id_vars=columns_to_use[1:28],
+                                              value_vars=variables_to_transform,
+                                              var_name='stat_name',
+                                              value_name='stat_value',
+                                              ignore_index=True)
+
+        linetype_data = melted.copy(deep=True)
+
+
+        # The MPR line type doesn't have the bcl and bcu stat values; set these to NA
+        na_column: List[str] = ['NA' for _ in range(0, linetype_data.shape[0])]
+
+        linetype_data['stat_ncl']: pd.Series = na_column
+        linetype_data['stat_ncu']: pd.Series = na_column
+        linetype_data['stat_bcl']: pd.Series = na_column
+        linetype_data['stat_bcu']: pd.Series = na_column
+
+        # clean up all the intermediate dataframes
+        del mpr_df
+        del mpr_df_copy
+        del melted
+        _ = gc.collect()
+
+        return linetype_data
+
 
     def rename_confidence_level_columns(self, confidence_level_columns: List[str]) -> \
             List[str]:
@@ -1779,75 +1881,61 @@ class WriteStatAscii:
         return renamed
 
 
-def main():
-    '''
-       Open the yaml config file specified at the command line to get output
-       directory, output filename,
-       and location of input files, and the MET tool used to create the input data. 
+def read_input(parms, logger):
+    """
+        Args:
 
-       Then invoke necessary methods to read and process data to reformat the MET
-       .stat file from wide to long format to
-       collect statistics information into stat_name, stat_value, stat_bcl, stat_bcu,
-       stat_ncl, and stat_ncu columns.
-    '''
+         @param parms:  The configuration file settings and values
+         @param logger:  The logger object
 
-    # Acquire the output file name and output directory information and location of
-    # the xml specification file
-    config_file: str = util.read_config_from_command_line()
-    with open(config_file, 'r') as stream:
-        try:
-            parms: dict = yaml.load(stream, Loader=yaml.FullLoader)
-            pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
-        except yaml.YAMLError as exc:
-            print(exc)
+        Returns:
+         pd_df: The input data as a pandas dataframe
+
+      """
 
     # Check that the config file has all the necessary settings and values
-    config_file_ok = config_file_complete(parms)
+    config_file_ok = config_file_complete(parms, logger)
     if not config_file_ok:
-        raise ValueError("Configuration file is missing one or more required settings and/or values.")
         sys.exit(1)
 
     # Replacing the need for an XML specification file, pass in the XMLLoadFile and
     # ReadDataFile parameters
-    rdf_obj: ReadDataFiles = ReadDataFiles()
+    rdf_obj: ReadDataFiles = ReadDataFiles(logger)
     xml_loadfile_obj: XmlLoadFile = XmlLoadFile(None)
 
     # Retrieve all the filenames in the data_dir specified in the YAML config file
+    # These are either .tcst or .stat files that most likely contain data from
+    # more than one linetype.
     load_files = xml_loadfile_obj.filenames_from_template(parms['input_data_dir'],
                                                           {})
 
     flags = xml_loadfile_obj.flags
     line_types = xml_loadfile_obj.line_types
-    beg_read_data = time.perf_counter()
+    linetype = parms['line_type'].lower()
+
+    # If MPR linetype was requested, set the flag
+    # to load mpr to True
+    if parms['line_type'] == 'MPR' or parms['line_type'] == 'mpr':
+        flags["load_mpr"] = True
+    # load_stat should always be enabled,
+    # set the load_stat flag to True
+    flags["load_stat"] = True
+
     rdf_obj.read_data(flags, load_files, line_types)
-    end_read_data = time.perf_counter()
-    read_data_total = end_read_data - beg_read_data
-    logger.info("Time to read input .stat data files using METdbLoad: {read_data_total} in seconds")
+
     if parms['line_type'] == 'TCDIAG':
-        file_df = rdf_obj.tcst_data
+        return rdf_obj.tcst_data
     else:
-        file_df = rdf_obj.stat_data
-
-    # Check if the output file already exists, if so, delete it to avoid
-    # appending output from subsequent runs into the same file.
-    existing_output_file = os.path.join(parms['output_dir'], parms['output_filename'])
-    logger.info("Checking if {existing_output_file}  already exists")
-    if os.path.exists(existing_output_file):
-        logger.info("Removing existing output file {existing_output_file}")
-        os.remove(existing_output_file)
-
-    # Write stat file in ASCII format
-    stat_lines_obj: WriteStatAscii = WriteStatAscii(parms)
-    # stat_lines_obj.write_stat_ascii(file_df, parms, logger)
-    stat_lines_obj.write_stat_ascii(file_df, parms)
+        return rdf_obj.stat_data
 
 
-def config_file_complete(parms):
+def config_file_complete(parms, logger):
     '''
         Determines if the config file contains all the necessary fields.
 
         Input:
             parms:  The config file
+            logger: The logger object
         Returns:
             True if all expected settings are found, False otherwise.
     '''
@@ -1869,6 +1957,56 @@ def config_file_complete(parms):
             logger.error(msg)
             return False
     return True
+
+
+def main():
+    '''
+       Open the yaml config file specified at the command line to get output
+       directory, output filename,
+       and location of input files, and the MET tool used to create the input data.
+
+       Then invoke necessary methods to read and process data to reformat the MET
+       .stat file from wide to long format to
+       collect statistics information into stat_name, stat_value, stat_bcl, stat_bcu,
+       stat_ncl, and stat_ncu columns.
+    '''
+
+    # Acquire the output file name and output directory information and location of
+    # the xml specification file
+    config_file: str = util.read_config_from_command_line()
+    with open(config_file, 'r') as stream:
+        try:
+            parms: dict = yaml.load(stream, Loader=yaml.FullLoader)
+            pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
+        except yaml.YAMLError:
+            sys.exit(1)
+
+    log_dir = parms['log_directory']
+
+    # Create the log directory if it doesn't alreaedy exist
+    try:
+        os.makedirs(log_dir)
+    except:
+        # ignore warning that is raised
+        # when the directory already exists
+        pass
+
+    full_log_filename = os.path.join(log_dir, parms['log_filename'])
+    logger = util.get_common_logger(parms['log_level'],full_log_filename)
+
+    file_df: pd.DataFrame = read_input(parms, logger)
+
+    # Check if the output file already exists, if so, delete it to avoid
+    # appending output from subsequent runs into the same file.
+    existing_output_file = os.path.join(parms['output_dir'], parms['output_filename'])
+    if os.path.exists(existing_output_file):
+        logger.info("Output file already exists, removing this file.")
+        os.remove(existing_output_file)
+
+    # Write stat file in ASCII format
+    stat_lines_obj: WriteStatAscii = WriteStatAscii(parms, logger)
+    # stat_lines_obj.write_stat_ascii(file_df, parms, logger)
+    stat_lines_obj.write_stat_ascii(file_df, parms)
 
 
 if __name__ == "__main__":

@@ -25,7 +25,9 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
+import METreformat.util as util
 import constants as CN
+import util
 
 
 class ReadDataFiles:
@@ -34,7 +36,7 @@ class ReadDataFiles:
            N/A
     """
 
-    def __init__(self):
+    def __init__(self, logger=None):
         self.cache = {}
         self.stat_data = pd.DataFrame()
         self.mode_cts_data = pd.DataFrame()
@@ -44,6 +46,11 @@ class ReadDataFiles:
         self.mtd_2d_data = pd.DataFrame()
         self.mtd_3d_single_data = pd.DataFrame()
         self.mtd_3d_pair_data = pd.DataFrame()
+        if logger is None:
+            full_logfile = os.path.join(os.getcwd(), __name__ + "_log.txt")
+            self.logger = util.get_common_logger('DEBUG', full_logfile)
+        else:
+            self.logger = logger
 
     def read_data(self, load_flags, load_files, line_types):
         """ Read in data files as given in load_spec file.
@@ -51,7 +58,7 @@ class ReadDataFiles:
                N/A
         """
 
-        logging.debug("[--- Start read_data ---]")
+        self.logger.debug("[--- Start read_data ---]")
 
         read_time_start = time.perf_counter()
 
@@ -100,7 +107,7 @@ class ReadDataFiles:
 
             # If no valid files to load, exit
             if not len(self.data_files):
-                logging.warning("!!! No valid files to load")
+                self.logger.warning("!!! No valid files to load")
                 sys.exit("*** No valid files to load")
 
             # Won't know database key until we interact with the database, so no keys yet
@@ -148,15 +155,13 @@ class ReadDataFiles:
                             try:
                                 file_hdr = pd.read_csv(filename, sep='\s+',
                                                        header=None, nrows=1)
-                            except (pandas.errors.EmptyDataError):
-                                logging.warning(
-                                    "!!! Stat file %s has no columns", filename)
+                            except (pd.errors.EmptyDataError):
+                                self.logger.warning(f"!!! Stat file {filename} has no columns")
                                 continue
 
                             # MET file has no headers or no text - it's empty
                             if file_hdr.empty or stat_info.st_size == 0:
-                                logging.warning(
-                                    "!!! Stat file %s is empty", filename)
+                                self.logger.warning(f"!!! Stat file {filename} is empty")
                                 continue
 
                             # Add a DESC column if the data file does not have one
@@ -212,8 +217,7 @@ class ReadDataFiles:
 
                             # check whether vsdb file is empty
                             if stat_info.st_size == 0:
-                                logging.warning(
-                                    "!!! Vsdb file %s is empty", filename)
+                                self.logger.warning(f"!!! Vsdb fil {filename} is empty")
                                 continue
 
                             # read each line in as 1 column so some fixes can be made
@@ -279,15 +283,13 @@ class ReadDataFiles:
                             try:
                                 file_hdr = pd.read_csv(filename, sep='\s+',
                                                        nrows=1)
-                            except (pandas.errors.EmptyDataError):
-                                logging.warning(
-                                    "!!! Mode file %s has no columns", filename)
+                            except (pd.errors.EmptyDataError):
+                                self.logger.warning(f"!!! Mode file {filename} has no columns")
                                 continue
 
                             # MODE file has no headers or no text - it's empty
                             if file_hdr.empty or stat_info.st_size == 0:
-                                logging.warning(
-                                    "!!! Mode file %s is empty", filename)
+                                self.logger.warning(f"!!! Mode file {filename} is empty")
                                 continue
 
                             # use lower case of headers in file as column names
@@ -354,15 +356,13 @@ class ReadDataFiles:
                             try:
                                 file_hdr = pd.read_csv(filename, sep='\s+',
                                                        header=None, nrows=1)
-                            except (pandas.errors.EmptyDataError):
-                                logging.warning(
-                                    "!!! TCST file %s has no columns", filename)
+                            except (pd.errors.EmptyDataError):
+                                self.logger.warning(f"!!! TCST file {filename} has no columns")
                                 continue
 
                             # TCST file has no headers or no text - it's empty
                             if file_hdr.empty or stat_info.st_size == 0:
-                                logging.warning(
-                                    "!!! TCST file %s is empty", filename)
+                                self.logger.warning(f"!!! TCST file {filename} is empty")
                                 continue
 
                             # Add a DESC column if the data file does not have one
@@ -397,15 +397,13 @@ class ReadDataFiles:
                             try:
                                 file_hdr = pd.read_csv(filename, sep='\s+',
                                                        nrows=1)
-                            except (pandas.errors.EmptyDataError):
-                                logging.warning(
-                                    "!!! MTD file %s has no columns", filename)
+                            except (pd.errors.EmptyDataError):
+                                self.logger.warning(f"!!! MTD file {filename} has no columns")
                                 continue
 
                             # MTD file has no headers or no text - it's empty
                             if file_hdr.empty or stat_info.st_size == 0:
-                                logging.warning(
-                                    "!!! MTD file %s is empty", filename)
+                                self.logger.warning(f"!!! MTD file {filename} is empty")
                                 continue
 
                             # use lower case of headers in file as column names
@@ -570,8 +568,7 @@ class ReadDataFiles:
                                 list_2d.append(mtd_file)
 
                         else:
-                            logging.warning(
-                                "!!! File type of %s not valid", filename)
+                            self.logger.warning(f"!!! File type of {filename} not valid")
 
                         # re-initialize pandas dataframes before reading next file
                         if not one_file.empty:
@@ -579,20 +576,17 @@ class ReadDataFiles:
                             one_file[CN.FILE_ROW] = row_num
                             # keep the dataframes from each file in a list
                             list_frames.append(one_file)
-                            logging.debug(
-                                "Lines in {filename}: {str(len(one_file.index))}")
+                            self.logger.debug(f"Lines in {filename}: {str(len(one_file.index))}")
                             one_file = one_file.iloc[0:0]
                             if not file_hdr.empty:
                                 file_hdr = file_hdr.iloc[0:0]
                         elif not vsdb_file.empty:
                             vsdb_file.insert(10, CN.FILE_ROW, row_num)
                             list_vsdb.append(vsdb_file)
-                            logging.debug("Lines in %s: %s", filename,
-                                          str(len(vsdb_file.index)))
+                            self.logger.debug(f"Lines in {filename}, {str(len(vsdb_file.index))}")
                             vsdb_file = vsdb_file.iloc[0:0]
                         elif not mode_file.empty:
-                            logging.debug("Lines in %s: %s", filename,
-                                          str(len(mode_file.index)))
+                            self.logger.debug(f"Lines in {filename},{str(len(mode_file.index))}")
                             mode_file = mode_file.iloc[0:0]
                             if not file_hdr.empty:
                                 file_hdr = file_hdr.iloc[0:0]
@@ -601,30 +595,28 @@ class ReadDataFiles:
                             tcst_file[CN.FILE_ROW] = row_num
                             # keep the dataframes from each file in a list
                             list_tcst.append(tcst_file)
-                            logging.debug("Lines in %s: %s", filename,
-                                          str(len(one_file.index)))
+                            self.logger.debug(f"Lines in {filename},{str(len(one_file.index))}")
                             tcst_file = tcst_file.iloc[0:0]
                             if not file_hdr.empty:
                                 file_hdr = file_hdr.iloc[0:0]
                         elif not mtd_file.empty:
-                            logging.debug("Lines in %s: %s", filename,
-                                          str(len(mtd_file.index)))
+                            self.logger.debug(f"Lines in {filename}, {str(len(mtd_file.index))}")
                             mtd_file = mtd_file.iloc[0:0]
                             if not file_hdr.empty:
                                 file_hdr = file_hdr.iloc[0:0]
                         else:
-                            logging.warning("!!! Empty file %s", filename)
+                            self.logger.warning(f"!!! Empty file {filename}")
                             continue
                     else:
-                        logging.warning("!!! No file %s", filename)
-                        sys.exit("*** No file " + filename)
+                        self.logger.warning(f"!!! No file {filename}")
+                        sys.exit(1)
 
-                except (RuntimeError, TypeError, NameError, KeyError):
-                    logging.error("*** %s in read_data upper, mid-loop ***")
+                except (RuntimeError, TypeError, NameError, KeyError) as e:
+                    self.logger.error(f"*** {str(e)}: in read_data upper, mid-loop ***")
            # end for row
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data upper ***", sys.exc_info()[0])
+            self.logger.error(f"*** {sys.exc_info()[0]}: in read_data upper ***", )
 
         try:
 
@@ -690,15 +682,13 @@ class ReadDataFiles:
                 alpha_lines = all_stat[(all_stat.line_type.isin(CN.ALPHA_LINE_TYPES[:-2])) &
                                        (all_stat.alpha == CN.NOTAV)].line_type
                 if not alpha_lines.empty:
-                    logging.warning("!!! ALPHA line_type has ALPHA value of NA:\r\n %s",
-                                    str(alpha_lines))
+                    self.logger.warning(f"!!! ALPHA line_type has ALPHA value of NA:\r\n {str(alpha_lines)}")
 
                 # give a warning message with data if non-alpha line type has float value
                 non_alpha_lines = all_stat[(~all_stat.line_type.isin(CN.ALPHA_LINE_TYPES)) &
                                            (all_stat.alpha != CN.NOTAV)].line_type
                 if not non_alpha_lines.empty:
-                    logging.warning("!!! non-ALPHA line_type has ALPHA float value:\r\n %s",
-                                    str(non_alpha_lines))
+                    self.logger.warning(f"!!! non-ALPHA line_type has ALPHA float value:\r\n  {str(non_alpha_lines)}")
 
                 # Change ALL items in column ALPHA to '-9999' if they are 'NA'
                 all_stat.loc[all_stat.alpha ==
@@ -771,8 +761,7 @@ class ReadDataFiles:
                                         (all_stat['19'] == CN.NOTAV)), '1']
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error(
-                "*** %s in read_data if list_frames ***  {sys.exc_info()[0]}")
+            self.logger.error(f"*** {sys.exc_info()[0]} in read_data if list_frames *** ")
 
         try:
 
@@ -782,8 +771,7 @@ class ReadDataFiles:
                 list_tcst = []
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data if list_tcst ***",
-                          sys.exc_info()[0])
+            self.logger.error(f"*** {sys.exc_info()[0]} in read_data if list_tcst ***")
 
         try:
 
@@ -897,7 +885,7 @@ class ReadDataFiles:
                 all_vsdb[CN.COL_NA] = CN.MV_NOTAV
                 all_vsdb[CN.COL_ZERO] = "0"
 
-                # find all of the line types in the data
+                # find all the line types in the data
                 vsdb_types = all_vsdb.line_type.unique()
 
                 for vsdb_type in vsdb_types:
@@ -1102,8 +1090,7 @@ class ReadDataFiles:
                 all_vsdb = all_vsdb.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data if list_vsdb ***",
-                          sys.exc_info()[0])
+            self.logger.error(f"*** {sys.exc_info()[0]} in read_data if list_vsdb ***")
 
         try:
             if list_cts:
@@ -1172,14 +1159,11 @@ class ReadDataFiles:
                 all_obj = all_obj.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data if list_cts or list_obj ***",
-                          sys.exc_info()[0])
+            self.logger.error(f"*** {sys.exc_info()[0]} in read_data if list_cts or list_obj ***")
 
         try:
             if not all_stat.empty:
-
-                logging.debug(
-                    "Shape of all_stat before transforms: %s", str(all_stat.shape))
+                self.logger.debug(f"Shape of all_stat before transforms: {str(all_stat.shape)}")
 
                 # delete any lines that have invalid line_types
                 invalid_line_indexes = all_stat[~all_stat.line_type.isin(
@@ -1187,9 +1171,8 @@ class ReadDataFiles:
 
                 if not invalid_line_indexes.empty:
 
-                    logging.warning("!!! Warning, invalid line_types:")
-                    logging.warning("line types: %s",
-                                    str(all_stat.iloc[invalid_line_indexes].line_type))
+                    self.logger.warning("!!! Warning, invalid line_types:")
+                    self.logger.warning(f"line types: {str(all_stat.iloc[invalid_line_indexes].line_type)}")
 
                     all_stat.drop(invalid_line_indexes, axis=0, inplace=True)
 
@@ -1240,21 +1223,18 @@ class ReadDataFiles:
                 all_stat[CN.FCST_INIT_BEG] = all_stat[CN.FCST_VALID_BEG] - \
                     pd.to_timedelta(all_stat[CN.FCST_LEAD_HR], unit='sec')
 
-                logging.debug(
-                    "Shape of all_stat after transforms: %s", str(all_stat.shape))
+                self.logger.debug(f"Shape of all_stat after transforms: {str(all_stat.shape)}")
 
                 self.stat_data = all_stat
                 all_stat = all_stat.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data near end ***",
-                          sys.exc_info()[0])
+            self.logger.error("*** {sys.exc_info()[0]} in read_data near end ***")
 
         try:
             if not all_tcst.empty:
 
-                logging.debug(
-                    "Shape of all_tcst before transforms: %s", str(all_tcst.shape))
+                self.logger.debug(f"Shape of all_tcst before transforms:  {str(all_tcst.shape)}")
 
                 # delete any lines that have invalid line_types
                 invalid_line_indexes = \
@@ -1263,9 +1243,8 @@ class ReadDataFiles:
 
                 if not invalid_line_indexes.empty:
 
-                    logging.warning("!!! Warning, invalid line_types:")
-                    logging.warning("line types: %s",
-                                    str(all_tcst.iloc[invalid_line_indexes].line_type))
+                    self.logger.warning("!!! Warning, invalid line_types:")
+                    self.logger.warning(f"line types: {str(all_tcst.iloc[invalid_line_indexes].line_types)}")
 
                     all_tcst.drop(invalid_line_indexes, axis=0, inplace=True)
 
@@ -1285,8 +1264,7 @@ class ReadDataFiles:
                 all_tcst = all_tcst.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data near end ***",
-                          sys.exc_info()[0])
+            self.logger.error(f"***{sys.exc_info()[0]} in read_data near end ***")
 
         try:
             if list_2d:
@@ -1300,8 +1278,7 @@ class ReadDataFiles:
                 all_2d = all_2d.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data if list_2d ***",
-                          sys.exc_info()[0])
+            self.logger.error(f"*** {sys.exc_info()[0]} in read_data if list_2d ***")
 
         try:
             if list_single:
@@ -1316,8 +1293,7 @@ class ReadDataFiles:
                 all_single = all_single.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data if list_single ***",
-                          sys.exc_info()[0])
+            self.logger.error(f"*** {sys.exc_info()[0]} in read_data if list_single ***")
 
         try:
             if list_pair:
@@ -1331,15 +1307,14 @@ class ReadDataFiles:
                 all_pair = all_pair.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in read_data if list_pair ***",
-                          sys.exc_info()[0])
+            self.logger.error(f"*** {sys.exc_info()[0]} in read_data if list_pair ***")
 
         read_time_end = time.perf_counter()
         read_time = timedelta(seconds=read_time_end - read_time_start)
 
-        logging.info("    >>> Read time: %s", str(read_time))
+        self.logger.info(f"    >>> Read time:  {str(read_time)}")
 
-        logging.debug("[--- End read_data ---]")
+        self.logger.debug("[--- End read_data ---]")
 
     @staticmethod
     def get_lookup(filename):
@@ -1387,8 +1362,7 @@ class ReadDataFiles:
             stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None,
                                     skipinitialspace=True)
         except (pd.errors.EmptyDataError):
-            logging.warning("!!! Stat file " + filename +
-                            " has no data after headers")
+            self.logger.warning(f"!!! Stat file {filename} has no data after headers")
             return stat_file
 
         stat_file = stat_file.iloc[:, 0]
@@ -1419,7 +1393,7 @@ class ReadDataFiles:
         return stat_file
 
     def read_tcst(self, filename, hdr_names):
-        """ Read in all of the lines except the header of a tcst file.
+        """ Read in all the lines except the header of a tcst file.
             Returns:
                all the tcst lines in a dataframe, with dates converted to datetime
         """
@@ -1430,8 +1404,7 @@ class ReadDataFiles:
             stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None,
                                     skipinitialspace=True)
         except (pd.errors.EmptyDataError):
-            logging.warning("!!! Tcst file %s has no data after headers",
-                            filename)
+            self.logger.warning(f"!!! Tcst file {filename} has no data after headers")
             return stat_file
 
         stat_file = stat_file.iloc[:, 0]
@@ -1457,7 +1430,7 @@ class ReadDataFiles:
         return stat_file
 
     def read_mode(self, filename, hdr_names):
-        """ Read in all of the lines except the header of a mode file.
+        """ Read in all the lines except the header of a mode file.
             Returns:
                all the mode lines in a dataframe, with dates converted to datetime
         """
@@ -1468,8 +1441,7 @@ class ReadDataFiles:
             stat_file = pd.read_csv(filename, sep=CN.SEP, skiprows=1, header=None,
                                     skipinitialspace=True)
         except (pd.errors.EmptyDataError):
-            logging.warning("!!! Mode or MTD file %s has no data after headers",
-                            filename)
+            self.logger.warning(f"!!! Mode or MTD file {filename} has no data after headers")
             return stat_file
 
         stat_file = stat_file.iloc[:, 0]
