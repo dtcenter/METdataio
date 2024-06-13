@@ -4,7 +4,7 @@
 # pylint:disable=import-error
 # imported modules exist
 
-from read_load_xml import XmlLoadFile
+from METdataio.METdbLoad.ush.read_load_xml import XmlLoadFile
 
 XML_FILE = '/Users/venita.hagerty/metviewer/testloadv10fewp3.xml'
 XML_LOADFILE = XmlLoadFile(XML_FILE)

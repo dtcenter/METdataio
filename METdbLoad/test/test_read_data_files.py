@@ -6,8 +6,8 @@
 
 # import constants as CN
 
-from read_load_xml import XmlLoadFile
-from read_data_files import ReadDataFiles
+from METdataio.METdbLoad.ush.read_load_xml import XmlLoadFile
+from METdataio.METdbLoad.ush.read_data_files import ReadDataFiles
 
 # Read in the XML load file
 XML_FILE = '/Users/venita.hagerty/metviewer/testloadv10fewp3.xml'

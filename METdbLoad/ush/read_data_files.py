@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 
 import METreformat.util as util
-import constants as CN
+from . import constants as CN
 
 
 
