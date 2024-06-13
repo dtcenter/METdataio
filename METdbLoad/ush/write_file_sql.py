@@ -22,9 +22,9 @@ from datetime import timedelta
 import getpass
 import pandas as pd
 
-import constants as CN
+from . import constants as CN
 
-from run_sql import RunSql
+from .run_sql import RunSql
 
 
 class WriteFileSql:
