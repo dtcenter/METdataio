@@ -22,9 +22,9 @@ from datetime import timedelta
 import numpy as np
 import pandas as pd
 
-from . import constants as CN
+from METdbLoad.ush import constants as CN
 
-from .run_sql import RunSql
+from METdbLoad.ush.run_sql import RunSql
 
 
 class WriteStatSql:
