@@ -22,7 +22,7 @@ import time
 from datetime import timedelta
 import pymysql
 
-import constants as CN
+from . import constants as CN
 
 
 class RunSql:

@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 
 import METreformat.util as util
-import constants as CN
+from . import constants as CN
 
 
 
@@ -153,7 +153,7 @@ class ReadDataFiles:
 
                             # Get the first line of the .stat file that has the headers
                             try:
-                                file_hdr = pd.read_csv(filename, sep='\s+',
+                                file_hdr = pd.read_csv(filename, sep=r'\s+',
                                                        header=None, nrows=1)
                             except (pd.errors.EmptyDataError):
                                 self.logger.warning(f"!!! Stat file {filename} has no columns")
@@ -281,7 +281,7 @@ class ReadDataFiles:
 
                             # Get the first line of the mode cts or obj file that has the headers
                             try:
-                                file_hdr = pd.read_csv(filename, sep='\s+',
+                                file_hdr = pd.read_csv(filename, sep=r'\s+',
                                                        nrows=1)
                             except (pd.errors.EmptyDataError):
                                 self.logger.warning(f"!!! Mode file {filename} has no columns")
@@ -354,7 +354,7 @@ class ReadDataFiles:
 
                             # Get the first line of the .tcst file that has the headers
                             try:
-                                file_hdr = pd.read_csv(filename, sep='\s+',
+                                file_hdr = pd.read_csv(filename, sep=r'\s+',
                                                        header=None, nrows=1)
                             except (pd.errors.EmptyDataError):
                                 self.logger.warning(f"!!! TCST file {filename} has no columns")
@@ -395,7 +395,7 @@ class ReadDataFiles:
 
                             # Get the first line of the MTD file that has the headers
                             try:
-                                file_hdr = pd.read_csv(filename, sep='\s+',
+                                file_hdr = pd.read_csv(filename, sep=r'\s+',
                                                        nrows=1)
                             except (pd.errors.EmptyDataError):
                                 self.logger.warning(f"!!! MTD file {filename} has no columns")

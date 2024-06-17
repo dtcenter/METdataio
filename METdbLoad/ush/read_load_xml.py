@@ -22,7 +22,7 @@ import logging
 import pandas as pd
 from lxml import etree
 
-import constants as CN
+from . import constants as CN
 
 
 
