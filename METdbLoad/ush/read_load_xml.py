@@ -22,7 +22,7 @@ import logging
 import pandas as pd
 from lxml import etree
 
-from . import constants as CN
+from METdbLoad.ush import constants as CN
 
 
 
