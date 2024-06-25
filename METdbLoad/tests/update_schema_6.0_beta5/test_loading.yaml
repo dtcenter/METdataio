@@ -1,4 +1,5 @@
-hostname: 'localhost:3306'
+hostname: 'localhost'
+port: 3306
 username: 'mvadmin'
 password: '160GiltVa0D5M'
 dbname: 'mv_load_test'
