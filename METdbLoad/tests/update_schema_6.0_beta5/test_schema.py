@@ -54,6 +54,8 @@ def test_tables_created(setup_db):
             # Check that the line_data_vcnt, line_data_vl1l2, and
             # line_data_val1l2 tables were created
             cursor.execute(CONST_LOAD_DB_CMD)
+            check_db_exists_query = "show databases;"
+            cursor.execute(check_db_exists_query)
 
 
         # Get all rows
