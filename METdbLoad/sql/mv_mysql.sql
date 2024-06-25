@@ -1592,7 +1592,6 @@ CREATE TABLE line_data_ssvar
     obs_valid_end  DATETIME,
     alpha          DOUBLE,
     total          INT UNSIGNED,
-
     n_bin          INT UNSIGNED,
     bin_i          INT UNSIGNED,
     bin_n          INT UNSIGNED,
@@ -1604,7 +1603,6 @@ CREATE TABLE line_data_ssvar
     fobar          DOUBLE,
     ffbar          DOUBLE,
     oobar          DOUBLE,
-
     fbar_ncl       DOUBLE,
     fbar_ncu       DOUBLE,
     fstdev         DOUBLE,
