@@ -46,15 +46,44 @@ def setup_db():
     yield conn
 
 
-def test_tables_created(setup_db):
-    
-    # log into the database and verify the VCNT, VL1L2, and VAL1L2 tables exist
+def test_db_created(setup_db):
+    '''
+       Verify that the mv_load_test database was created
+    Args:
+        setup_db: db connection object
+
+    Returns: None
+
+    '''
+
+    # connect to the database and verify the VCNT, VL1L2, and VAL1L2 tables exist
     try:
         with setup_db.cursor() as cursor:
             # Check that the line_data_vcnt, line_data_vl1l2, and
             # line_data_val1l2 tables were created
             cursor.execute(CONST_LOAD_DB_CMD)
             check_db_exists_query = "show databases;"
+            cursor.execute(check_db_exists_query)
+
+
+        # Get all rows
+        rows = cursor.fetchall()
+        list_of_rows = [r[0] for r in rows]
+        assert 'mv_load_test' in list_of_rows
+
+
+    finally:
+      setup_db.close()
+
+def test_tables_created(setup_db):
+    
+    # connect to the database and verify the VCNT, VL1L2, and VAL1L2 tables exist
+    try:
+        with setup_db.cursor() as cursor:
+            # Check that the line_data_vcnt, line_data_vl1l2, and
+            # line_data_val1l2 tables were created
+            cursor.execute(CONST_LOAD_DB_CMD)
+            check_db_exists_query = "show tables;"
             cursor.execute(check_db_exists_query)
 
 
