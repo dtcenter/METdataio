@@ -38,27 +38,28 @@ def setup_db():
     # Return the db connection object
 
     ## settings (hostname, username, etc.)
-    ## yield db_settings
-    conn = pymysql.connect(
-        host=db_settings.hostname,
-        user=db_settings.username,
-        password=db_settings.password,
-        db=db_settings.dbname,
-        charset='utf8mb4'
-    )
-    yield conn
+    yield db_settings
+
+    # yield conn
 
     # Tear-down
-    conn.close()
+    db_settings.close()
 
 
 def test_tables_created(setup_db):
 
     # log into the database and verify the VCNT, VL1L2, and VAL1L2 tables exist
+    conn = pymysql.connect(
+        host=setup_db.hostname,
+        user=setup_db.username,
+        password=setup_db.password,
+        db=setup_db.dbname,
+        charset='utf8mb4'
+    )
 
     try:
-        with setup_db.cursor() as cursor:
-            # Check that the  line_data_vcnt, line_data_vl1l2, and
+        with conn.cursor() as cursor:
+            # Check that the line_data_vcnt, line_data_vl1l2, and
             # line_data_val1l2 tables were created
             cursor.execute(CONST_LOAD_DB_CMD)
 
