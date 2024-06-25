@@ -40,10 +40,10 @@ def setup_db():
     ## settings (hostname, username, etc.)
     ## yield db_settings
     conn = pymysql.connect(
-        host=setup_db.hostname,
-        user=setup_db.username,
-        password=setup_db.password,
-        db=setup_db.dbname,
+        host=db_settings.hostname,
+        user=db_settings.username,
+        password=db_settings.password,
+        db=db_settings.dbname,
         charset='utf8mb4'
     )
     yield conn
