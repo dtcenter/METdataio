@@ -96,3 +96,59 @@ def test_tables_created(setup_db):
 
     finally:
       setup_db.close()
+
+
+def test_vl1l2_columns(setup_db):
+   # log into the database and verify the total_dir column is in the
+   # list_data_vl1l2 database table.
+
+    try:
+        with setup_db.cursor() as cursor:
+            cursor.execute(CONST_LOAD_DB_CMD)
+            check_columns_exist = "desc line_data_vl1l2;"
+            cursor.execute(check_columns_exist)
+
+            # Get all rows
+            rows = cursor.fetchall()
+            list_of_rows = [r[0] for r in rows]
+            assert 'total_dir' in list_of_rows
+
+    finally:
+        setup_db.close()
+
+
+def test_val1l2_columns(setup_db):
+   # log into the database and verify the total_dir column is in the
+   # list_data_val1l2 database table.
+
+    try:
+        with setup_db.cursor() as cursor:
+            cursor.execute(CONST_LOAD_DB_CMD)
+            check_columns_exist = "desc line_data_val1l2;"
+            cursor.execute(check_columns_exist)
+
+            # Get all rows
+            rows = cursor.fetchall()
+            list_of_rows = [r[0] for r in rows]
+            assert 'total_dir' in list_of_rows
+
+    finally:
+        setup_db.close()
+
+        def test_vcnt_columns(setup_db):
+            # log into the database and verify the total_dir column is in the
+            # list_data_vcnt database table.
+
+            try:
+                with setup_db.cursor() as cursor:
+                    cursor.execute(CONST_LOAD_DB_CMD)
+                    check_columns_exist = "desc line_data_vcnt;"
+                    cursor.execute(check_columns_exist)
+
+                    # Get all rows
+                    rows = cursor.fetchall()
+                    list_of_rows = [r[0] for r in rows]
+                    assert 'total_dir' in list_of_rows
+
+            finally:
+                setup_db.close()
