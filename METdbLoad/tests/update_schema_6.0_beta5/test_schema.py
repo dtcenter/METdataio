@@ -56,11 +56,12 @@ def test_tables_created(setup_db):
             cursor.execute(CONST_LOAD_DB_CMD)
 
 
-    # Get all rows
-    rows = cursor.fetchall()
-    list_of_rows = [r[0] for r in rows]
-    assert 'line_data_vcnt' in list_of_rows
-    assert 'line_data_vl1l2' in list_of_rows
-    assert 'line_data_val1l2' in list_of_rows
+        # Get all rows
+        rows = cursor.fetchall()
+        list_of_rows = [r[0] for r in rows]
+        assert 'line_data_vcnt' in list_of_rows
+        assert 'line_data_vl1l2' in list_of_rows
+        assert 'line_data_val1l2' in list_of_rows
 
-    setup_db.close()
+    finally:
+      setup_db.close()
