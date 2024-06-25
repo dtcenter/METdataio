@@ -1,6 +1,6 @@
 hostname: 'localhost:3306'
 username: 'mvadmin'
-password: '160GiltVa0D5M'
+password: 'passwordgoeshere'
 dbname: 'mv_load_test'
 output_dir: './output'
 
