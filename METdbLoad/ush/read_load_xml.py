@@ -78,14 +78,8 @@ class XmlLoadFile:
             Returns:
                N/A
         """
-<<<<<<< HEAD
-        # logger for the static methods
-        logger = logging.getLogger(__name__)
-        self.logging.debug("[--- Start read_xml ---]")
-=======
         
         logging.debug("[--- Start read_xml ---]")
->>>>>>> 45e2b6270306290fbdffa17518fdbd8d2077cc6a
 
         try:
 
@@ -292,14 +286,8 @@ class XmlLoadFile:
             Returns:
                list of dates
         """
-<<<<<<< HEAD
-        # logger for the static methods
-        logger = logging.getLogger(__name__)
-        logger.debug("date format is: %s", date_list["format"])
-=======
    
         logging.debug("date format is: %s", date_list["format"])
->>>>>>> 45e2b6270306290fbdffa17518fdbd8d2077cc6a
 
         try:
             date_format = date_list["format"]
@@ -336,15 +324,8 @@ class XmlLoadFile:
             Returns:
                list of filenames
         """
-<<<<<<< HEAD
 
-        # logger for the static methods
-        full_logfile = os.path.join(os.getcwd(), __name__ + "_log.txt")
-        logger = util.get_common_logger('DEBUG', full_logfile)
-        logger.debug(f"folder template is: {folder_template}")
-=======
         logging.debug(f"folder template is: {folder_template}")
->>>>>>> 45e2b6270306290fbdffa17518fdbd8d2077cc6a
 
         try:
             fills_open = folder_template.count("{")
@@ -379,19 +360,11 @@ class XmlLoadFile:
                                              for x in os.listdir(file_dir)]
 
         except ValueError as value_error:
-<<<<<<< HEAD
-            logger.error("f*** {sys.exc_info()[0]} in filenames_from_template ***")
-            logger.error(value_error)
-            sys.exit("*** Value Error found while expanding XML folder templates!")
-        except (RuntimeError, TypeError, NameError, KeyError):
-            logger.error(f"*** %s in filenames_from_template ***", sys.exc_info()[0])
-=======
             logging.error("f*** {sys.exc_info()[0]} in filenames_from_template ***")
             logging.error(value_error)
             sys.exit("*** Value Error found while expanding XML folder templates!")
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error(f"*** %s in filenames_from_template ***", sys.exc_info()[0])
->>>>>>> 45e2b6270306290fbdffa17518fdbd8d2077cc6a
             sys.exit("*** Error found while expanding XML folder templates!")
 
         return file_list
