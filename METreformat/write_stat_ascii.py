@@ -30,7 +30,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-import constants as cn
+from METdbLoad.ush import constants as cn
 import METreformat.util as util
 from METdbLoad.ush.read_data_files import ReadDataFiles
 from METdbLoad.ush.read_load_xml import XmlLoadFile

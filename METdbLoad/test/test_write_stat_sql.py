@@ -1,118 +1,114 @@
 #!/usr/bin/env python3
 """Test reading data files."""
 
+import pytest
+
 # pylint:disable=import-error
 # imported modules exist
 import os
 
-from read_load_xml import XmlLoadFile
-from read_data_files import ReadDataFiles
-from run_sql import RunSql
-from write_file_sql import WriteFileSql
-from write_stat_sql import WriteStatSql
-
-# Read in the XML load file
-XML_FILE = '/Users/venita.hagerty/metviewer/testloadv10fewp3.xml'
-
-XML_LOADFILE = XmlLoadFile(XML_FILE)
-XML_LOADFILE.read_xml()
-
-# Read all of the data from the data files into a dataframe
-FILE_DATA = ReadDataFiles()
-
-# read in the data files, with options specified by XML flags
-FILE_DATA.read_data(XML_LOADFILE.flags,
-                    XML_LOADFILE.load_files,
-                    XML_LOADFILE.line_types)
-
-# Connect to the database
-sql_run = RunSql()
-sql_run.sql_on(XML_LOADFILE.connection)
-
-# clear the data if it exists
-sql_run.cur.execute("delete from data_file;")
-sql_run.cur.execute("delete from line_data_cnt;")
-sql_run.cur.execute("delete from line_data_ctc;")
-sql_run.cur.execute("delete from line_data_cts;")
-sql_run.cur.execute("delete from line_data_cts;")
-sql_run.cur.execute("delete from line_data_eclv;")
-sql_run.cur.execute("delete from line_data_eclv_pnt;")
-sql_run.cur.execute("delete from line_data_ecnt;")
-sql_run.cur.execute("delete from line_data_enscnt;")
-sql_run.cur.execute("delete from line_data_fho;")
-sql_run.cur.execute("delete from line_data_grad;")
-sql_run.cur.execute("delete from line_data_isc;")
-sql_run.cur.execute("delete from line_data_mctc;")
-sql_run.cur.execute("delete from line_data_mctc_cnt;")
-sql_run.cur.execute("delete from line_data_mcts;")
-sql_run.cur.execute("delete from line_data_mpr;")
-sql_run.cur.execute("delete from line_data_nbrcnt;")
-sql_run.cur.execute("delete from line_data_nbrctc;")
-sql_run.cur.execute("delete from line_data_nbrcts;")
-sql_run.cur.execute("delete from line_data_orank;")
-sql_run.cur.execute("delete from line_data_orank_ens;")
-sql_run.cur.execute("delete from line_data_pct;")
-sql_run.cur.execute("delete from line_data_pct_thresh;")
-sql_run.cur.execute("delete from line_data_perc;")
-sql_run.cur.execute("delete from line_data_phist;")
-sql_run.cur.execute("delete from line_data_phist;")
-sql_run.cur.execute("delete from line_data_phist_bin;")
-sql_run.cur.execute("delete from line_data_pjc;")
-sql_run.cur.execute("delete from line_data_pjc_thresh;")
-sql_run.cur.execute("delete from line_data_prc;")
-sql_run.cur.execute("delete from line_data_prc_thresh;")
-sql_run.cur.execute("delete from line_data_pstd;")
-sql_run.cur.execute("delete from line_data_pstd_thresh;")
-sql_run.cur.execute("delete from line_data_relp;")
-sql_run.cur.execute("delete from line_data_relp_ens;")
-sql_run.cur.execute("delete from line_data_rhist;")
-sql_run.cur.execute("delete from line_data_rhist_rank;")
-sql_run.cur.execute("delete from line_data_sl1l2;")
-sql_run.cur.execute("delete from line_data_sal1l2;")
-sql_run.cur.execute("delete from line_data_ssvar;")
-sql_run.cur.execute("delete from line_data_vl1l2;")
-sql_run.cur.execute("delete from line_data_val1l2;")
-sql_run.cur.execute("delete from line_data_vcnt;")
-sql_run.cur.execute("delete from stat_header;")
-sql_run.cur.execute("delete from instance_info;")
-sql_run.cur.execute("delete from metadata;")
-
-tmp_dir = os.getenv('HOME')
-
-write_file = WriteFileSql()
-updated_data = write_file.write_file_sql(XML_LOADFILE.flags,
-                                         FILE_DATA.data_files,
-                                         FILE_DATA.stat_data,
-                                         FILE_DATA.mode_cts_data,
-                                         FILE_DATA.mode_obj_data,
-                                         tmp_dir,
-                                         sql_run.cur,
-                                         sql_run.local_infile)
-
-FILE_DATA.data_files = updated_data[0]
-FILE_DATA.stat_data = updated_data[1]
-
-STAT_LINES = WriteStatSql()
-
-STAT_LINES.write_stat_data(XML_LOADFILE.flags,
-                           FILE_DATA.stat_data,
-                           tmp_dir,
-                           sql_run.cur,
-                           sql_run.local_infile)
-
-write_file.write_metadata_sql(XML_LOADFILE.flags,
-                              FILE_DATA.data_files,
-                              XML_LOADFILE.group,
-                              XML_LOADFILE.description,
-                              XML_LOADFILE.load_note,
-                              XML_LOADFILE.xml_str,
-                              tmp_dir,
-                              sql_run.cur,
-                              sql_run.local_infile)
+from METdataio.METdbLoad.ush.read_data_files import ReadDataFiles
+from METdataio.METdbLoad.ush.run_sql import RunSql
+from METdataio.METdbLoad.ush.write_file_sql import WriteFileSql
+from METdataio.METdbLoad.ush.write_stat_sql import WriteStatSql
 
 
-def test_counts():
+def test_counts(get_xml_loadfile):
     """Count lines in database tables."""
+    pytest.skip('Required input file not available')
+    XML_LOADFILE = get_xml_loadfile()
+    # Read all of the data from the data files into a dataframe
+    FILE_DATA = ReadDataFiles()
+
+    # read in the data files, with options specified by XML flags
+    FILE_DATA.read_data(XML_LOADFILE.flags,
+                        XML_LOADFILE.load_files,
+                        XML_LOADFILE.line_types)
+
+    # Connect to the database
+    sql_run = RunSql()
+    sql_run.sql_on(XML_LOADFILE.connection)
+
+    # clear the data if it exists
+    sql_run.cur.execute("delete from data_file;")
+    sql_run.cur.execute("delete from line_data_cnt;")
+    sql_run.cur.execute("delete from line_data_ctc;")
+    sql_run.cur.execute("delete from line_data_cts;")
+    sql_run.cur.execute("delete from line_data_cts;")
+    sql_run.cur.execute("delete from line_data_eclv;")
+    sql_run.cur.execute("delete from line_data_eclv_pnt;")
+    sql_run.cur.execute("delete from line_data_ecnt;")
+    sql_run.cur.execute("delete from line_data_enscnt;")
+    sql_run.cur.execute("delete from line_data_fho;")
+    sql_run.cur.execute("delete from line_data_grad;")
+    sql_run.cur.execute("delete from line_data_isc;")
+    sql_run.cur.execute("delete from line_data_mctc;")
+    sql_run.cur.execute("delete from line_data_mctc_cnt;")
+    sql_run.cur.execute("delete from line_data_mcts;")
+    sql_run.cur.execute("delete from line_data_mpr;")
+    sql_run.cur.execute("delete from line_data_nbrcnt;")
+    sql_run.cur.execute("delete from line_data_nbrctc;")
+    sql_run.cur.execute("delete from line_data_nbrcts;")
+    sql_run.cur.execute("delete from line_data_orank;")
+    sql_run.cur.execute("delete from line_data_orank_ens;")
+    sql_run.cur.execute("delete from line_data_pct;")
+    sql_run.cur.execute("delete from line_data_pct_thresh;")
+    sql_run.cur.execute("delete from line_data_perc;")
+    sql_run.cur.execute("delete from line_data_phist;")
+    sql_run.cur.execute("delete from line_data_phist;")
+    sql_run.cur.execute("delete from line_data_phist_bin;")
+    sql_run.cur.execute("delete from line_data_pjc;")
+    sql_run.cur.execute("delete from line_data_pjc_thresh;")
+    sql_run.cur.execute("delete from line_data_prc;")
+    sql_run.cur.execute("delete from line_data_prc_thresh;")
+    sql_run.cur.execute("delete from line_data_pstd;")
+    sql_run.cur.execute("delete from line_data_pstd_thresh;")
+    sql_run.cur.execute("delete from line_data_relp;")
+    sql_run.cur.execute("delete from line_data_relp_ens;")
+    sql_run.cur.execute("delete from line_data_rhist;")
+    sql_run.cur.execute("delete from line_data_rhist_rank;")
+    sql_run.cur.execute("delete from line_data_sl1l2;")
+    sql_run.cur.execute("delete from line_data_sal1l2;")
+    sql_run.cur.execute("delete from line_data_ssvar;")
+    sql_run.cur.execute("delete from line_data_vl1l2;")
+    sql_run.cur.execute("delete from line_data_val1l2;")
+    sql_run.cur.execute("delete from line_data_vcnt;")
+    sql_run.cur.execute("delete from stat_header;")
+    sql_run.cur.execute("delete from instance_info;")
+    sql_run.cur.execute("delete from metadata;")
+
+    tmp_dir = os.getenv('HOME')
+
+    write_file = WriteFileSql()
+    updated_data = write_file.write_file_sql(XML_LOADFILE.flags,
+                                             FILE_DATA.data_files,
+                                             FILE_DATA.stat_data,
+                                             FILE_DATA.mode_cts_data,
+                                             FILE_DATA.mode_obj_data,
+                                             tmp_dir,
+                                             sql_run.cur,
+                                             sql_run.local_infile)
+
+    FILE_DATA.data_files = updated_data[0]
+    FILE_DATA.stat_data = updated_data[1]
+
+    STAT_LINES = WriteStatSql()
+
+    STAT_LINES.write_stat_data(XML_LOADFILE.flags,
+                               FILE_DATA.stat_data,
+                               tmp_dir,
+                               sql_run.cur,
+                               sql_run.local_infile)
+
+    write_file.write_metadata_sql(XML_LOADFILE.flags,
+                                  FILE_DATA.data_files,
+                                  XML_LOADFILE.group,
+                                  XML_LOADFILE.description,
+                                  XML_LOADFILE.load_note,
+                                  XML_LOADFILE.xml_str,
+                                  tmp_dir,
+                                  sql_run.cur,
+                                  sql_run.local_infile)
 
     # Count the number of instance_info records created
     sql_run.cur.execute("SELECT COUNT(*) from instance_info;")
