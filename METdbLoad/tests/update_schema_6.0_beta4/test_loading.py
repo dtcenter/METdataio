@@ -29,13 +29,20 @@ def setup_db():
             print(exc)
     
     # Create a dataclass of the database information
-    #TCDiag = make_dataclass("TCDiag", ["total", "index", "diag_src", "diag_val"], frozen=True)
-    #orig = TCDiag(orig_total, orig_index, orig_diag_src, orig_diag_val)
-    DBS = make_dataclass("DBS", ["hostname", "username", "password", "dbname"])
-    db_settings = DBS(parms['hostname'], parms['username'], parms['password'], parms['dbname'])
+    DBS = make_dataclass("DBS", ["hostname", "port", "username", "password", "dbname"])
+    db_settings = DBS(parms['hostname'], parms['port'], parms['username'], parms['password'], parms['dbname'])
 
     # Return the db settings (hostname, username, etc.)
-    yield db_settings
+    conn = pymysql.connect(
+        host=db_settings.hostname,
+        port=db_settings.port,
+        user=db_settings.username,
+        password=db_settings.password,
+        db=db_settings.dbname,
+        charset='utf8mb4'
+    )
+
+    yield conn
     
    
 def test_ecnt_db_created(setup_db):
@@ -45,16 +52,8 @@ def test_ecnt_db_created(setup_db):
     # found.
 
 
-    conn = pymysql.connect(
-        host=setup_db.hostname,
-        user=setup_db.username,
-        password=setup_db.password,
-        db=setup_db.dbname,
-        charset='utf8mb4'
-    )
-
     try:
-        with conn.cursor() as cursor:
+        with setup_db.cursor() as cursor:
             # Check that the mv_load_test database was created
             check_db_exists_query = "show databases;"
             cursor.execute(check_db_exists_query)
@@ -69,23 +68,14 @@ def test_ecnt_db_created(setup_db):
 
 
     finally:
-        conn.close()
+        setup_db.close()
 
 def test_tables_created(setup_db):
 
     # log into the database and verify the ECNT, VCNT, VL1L2, and VAL1L2 tables exist
 
-
-    conn = pymysql.connect(
-        host=setup_db.hostname,
-        user=setup_db.username,
-        password=setup_db.password,
-        db=setup_db.dbname,
-        charset='utf8mb4'
-    )
-
     try:
-        with conn.cursor() as cursor:
+        with setup_db.cursor() as cursor:
             # Check that the line_data_ecnt, line_data_vcnt, line_data_vl1l2, and
             # line_data_val1l2 tables were created
             cursor.execute(CONST_LOAD_DB_CMD)
@@ -102,23 +92,15 @@ def test_tables_created(setup_db):
             assert 'line_data_val1l2' in list_of_rows
 
     finally:
-        conn.close()
+        setup_db.close()
 
 
 def test_ecnt_columns(setup_db):
    # log into the database and verify the ign_conv_oerr and ign_corr_oerr columns are in the
    # list_data_ecnt database table.
 
-    conn = pymysql.connect(
-        host=setup_db.hostname,
-        user=setup_db.username,
-        password=setup_db.password,
-        db=setup_db.dbname,
-        charset='utf8mb4'
-    )
-
     try:
-        with conn.cursor() as cursor:
+        with setup_db.cursor() as cursor:
             # Check that the line_data_ecnt, line_data_vcnt, line_data_vl1l2, and
             # line_data_val1l2 tables were created
             cursor.execute(CONST_LOAD_DB_CMD)
@@ -134,7 +116,7 @@ def test_ecnt_columns(setup_db):
             assert 'ign_corr_oerr' in list_of_rows
 
     finally:
-        conn.close()
+        setup_db.close()
 
 def test_vcnt_columns(setup_db):
    # log into the database and verify the dir_me, dir_me_bcl, dir_me_bcu, ..., etc. columns are in the
@@ -145,16 +127,9 @@ def test_vcnt_columns(setup_db):
                      'dir_mse', 'dir_mse_bcl', 'dir_mse_bcu',
                      'dir_rmse', 'dir_rmse_bcl', 'dir_rmse_bcu'
                      ]
-    conn = pymysql.connect(
-        host=setup_db.hostname,
-        user=setup_db.username,
-        password=setup_db.password,
-        db=setup_db.dbname,
-        charset='utf8mb4'
-    )
 
     try:
-        with conn.cursor() as cursor:
+        with setup_db.cursor() as cursor:
             # Check that the  line_data_vcnt expected columns were created
             cursor.execute(CONST_LOAD_DB_CMD)
 
@@ -169,23 +144,16 @@ def test_vcnt_columns(setup_db):
                 assert expected in list_of_rows
 
     finally:
-        conn.close()
+        setup_db.close()
 
 def test_vl1l2_columns(setup_db):
    # log into the database and verify the dir_me, dir_mae, and dir_mse columns are in the
    # list_data_vl1l2 database table.
 
     expected_cols = ['dir_me', 'dir_mae', 'dir_mse']
-    conn = pymysql.connect(
-        host=setup_db.hostname,
-        user=setup_db.username,
-        password=setup_db.password,
-        db=setup_db.dbname,
-        charset='utf8mb4'
-    )
 
     try:
-        with conn.cursor() as cursor:
+        with setup_db.cursor() as cursor:
             # Check that the  line_data_vl1l2 table has the expected columns
             cursor.execute(CONST_LOAD_DB_CMD)
 
@@ -200,23 +168,16 @@ def test_vl1l2_columns(setup_db):
                 assert expected in list_of_rows
 
     finally:
-        conn.close()
+        setup_db.close()
 
 def test_val1l2_columns(setup_db):
    # log into the database and verify the dira_me, dira_mae, and dira_mse columns are in the
    # list_data_val1l2 database table.
 
     expected_cols = ['dira_me', 'dira_mae', 'dira_mse']
-    conn = pymysql.connect(
-        host=setup_db.hostname,
-        user=setup_db.username,
-        password=setup_db.password,
-        db=setup_db.dbname,
-        charset='utf8mb4'
-    )
 
     try:
-        with conn.cursor() as cursor:
+        with setup_db.cursor() as cursor:
             # Check that the line_data_vl1l2 table has the expected columns
             cursor.execute(CONST_LOAD_DB_CMD)
 
@@ -231,7 +192,7 @@ def test_val1l2_columns(setup_db):
                 assert expected in list_of_rows
 
     finally:
-        conn.close()
+        setup_db.close()
 
 
 def test_ecnt_vals(setup_db):
@@ -242,16 +203,8 @@ def test_ecnt_vals(setup_db):
     ign_conv_oerr = "33.41424"
     ign_corr_oerr = "440.06905"
 
-    conn = pymysql.connect(
-        host=setup_db.hostname,
-        user=setup_db.username,
-        password=setup_db.password,
-        db=setup_db.dbname,
-        charset='utf8mb4'
-    )
-
     try:
-        with conn.cursor() as cursor:
+        with setup_db.cursor() as cursor:
             # Check that the line_data_vl1l2 table has the expected columns
             cursor.execute(CONST_LOAD_DB_CMD)
 
@@ -266,6 +219,6 @@ def test_ecnt_vals(setup_db):
 
 
     finally:
-        conn.close()
+        setup_db.close()
 
 
