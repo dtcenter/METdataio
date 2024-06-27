@@ -18,12 +18,10 @@ Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 import sys
 import os
 from pathlib import Path
-import logging
 import pandas as pd
 from lxml import etree
 import METreformat.util as util
 from METdbLoad.ush import constants as CN
-
 
 
 class XmlLoadFile:
@@ -36,9 +34,10 @@ class XmlLoadFile:
         # set the defaults
         self.xmlfilename = xmlfile
 
-        self.connection = {}
-        self.connection['db_port'] = CN.SQL_PORT
-        self.connection['db_management_system'] = "mysql"
+        self.connection = {
+            'db_port': CN.SQL_PORT,
+            'db_management_system': "mysql",
+        }
 
         self.insert_size = 1
         self.load_note = None
@@ -46,22 +45,23 @@ class XmlLoadFile:
         self.description = ""
         self.xml_str = None
 
-        self.flags = {}
-        self.flags['line_type_load'] = False
-        self.flags['load_stat'] = True
-        self.flags['load_mode'] = True
-        self.flags['load_mtd'] = True
-        self.flags['load_mpr'] = False
-        self.flags['load_orank'] = False
-        self.flags['force_dup_file'] = False
-        self.flags['verbose'] = False
-        self.flags['stat_header_db_check'] = True
-        self.flags['tcst_header_db_check'] = True
-        self.flags['mode_header_db_check'] = True
-        self.flags['mtd_header_db_check'] = True
-        self.flags['drop_indexes'] = False
-        self.flags['apply_indexes'] = False
-        self.flags['load_xml'] = True
+        self.flags = {
+            'line_type_load': False,
+            'load_stat': True,
+            'load_mode': True,
+            'load_mtd': True,
+            'load_mpr': False,
+            'load_orank': False,
+            'force_dup_file': False,
+            'verbose': False,
+            'stat_header_db_check': True,
+            'tcst_header_db_check': True,
+            'mode_header_db_check': True,
+            'mtd_header_db_check': True,
+            'drop_indexes': False,
+            'apply_indexes': False,
+            'load_xml': True,
+        }
 
         self.load_files = []
         self.line_types = []
@@ -72,14 +72,12 @@ class XmlLoadFile:
         else:
             self.logger = logger
 
-
     def read_xml(self):
         """! Read in load_spec xml file, store values as class attributes
             Returns:
                N/A
         """
-        
-        logging.debug("[--- Start read_xml ---]")
+        self.logger.debug("[--- Start read_xml ---]")
 
         try:
 
@@ -88,13 +86,13 @@ class XmlLoadFile:
                 sys.exit("*** XML file " + self.xmlfilename + " can not be found!")
 
             # parse the XML file
-            self.logging.info('Reading XML Load file')
+            self.logger.info('Reading XML Load file')
             parser = etree.XMLParser(remove_comments=True, resolve_entities=False)
             tree = etree.parse(self.xmlfilename, parser=parser)
             root = tree.getroot()
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            self.logging.error("*** %s in read_xml ***", sys.exc_info()[0])
+            self.logger.error("*** %s in read_xml ***", sys.exc_info()[0])
             sys.exit("*** Parsing error(s) in XML file!")
 
         # Extract values from load_spec XML tags, store in attributes of class XmlLoadFile
@@ -103,7 +101,7 @@ class XmlLoadFile:
             # Extract values for connecting to database
             if root.xpath("connection"):
                 self.read_db_connect(root)
-                self.logging.info("Database name is: %s", self.connection['db_database'])
+                self.logger.info("Database name is: %s", self.connection['db_database'])
 
             # group and description for putting databases into groups/categories
             if root.xpath("group"):
@@ -150,7 +148,7 @@ class XmlLoadFile:
                 self.read_file_info(root)
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            self.logging.error("*** %s in read_xml ***", sys.exc_info()[0])
+            self.logger.error("*** %s in read_xml ***", sys.exc_info()[0])
             sys.exit("*** Error(s) found while reading XML file!")
 
         # This removes duplicate file names. do we want that?
@@ -160,9 +158,9 @@ class XmlLoadFile:
         # Remove directory names
         self.load_files = [lf for lf in self.load_files if '.' in lf.split('/')[-1]]
 
-        self.logging.info("Initial number of files: %s", str(len(self.load_files)))
+        self.logger.info("Initial number of files: %s", str(len(self.load_files)))
 
-        self.logging.debug("[--- End read_xml ---]")
+        self.logger.debug("[--- End read_xml ---]")
 
     def read_file_info(self, root):
         """! Gather info on file template, fill-in values, and dates
@@ -213,7 +211,7 @@ class XmlLoadFile:
                 self.load_files = self.filenames_from_template(folder_template, template_fills)
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            self.logging.error("*** %s in read_xml read_file_info ***", sys.exc_info()[0])
+            self.logger.error("*** %s in read_xml read_file_info ***", sys.exc_info()[0])
             sys.exit("*** Error(s) found while reading XML file info!")
 
     def read_db_connect(self, root):
@@ -222,6 +220,7 @@ class XmlLoadFile:
                N/A
         """
         try:
+            host_and_port = None
             if root.xpath('connection')[0].xpath('host'):
                 host_and_port = root.xpath('connection')[0].xpath('host')[0].text
             if host_and_port:
@@ -232,18 +231,18 @@ class XmlLoadFile:
                 else:
                     self.connection['db_port'] = CN.SQL_PORT
             else:
-                self.logging.error("!!! XML must include host tag")
+                self.logger.error("!!! XML must include host tag")
                 raise NameError("Missing required host tag")
 
             if root.xpath('connection')[0].xpath('database'):
                 self.connection['db_database'] = \
                     root.xpath('connection')[0].xpath('database')[0].text
             else:
-                self.logging.error("!!! XML must include database tag")
+                self.logger.error("!!! XML must include database tag")
                 raise NameError("Missing required database tag")
 
             if not self.connection['db_database'].startswith("mv_"):
-                self.logging.warning("!!! Database not visible unless name starts with mv_")
+                self.logger.warning("!!! Database not visible unless name starts with mv_")
 
             self.connection['db_user'] = \
                 root.xpath('connection')[0].xpath('user')[0].text
@@ -251,7 +250,7 @@ class XmlLoadFile:
                 root.xpath('connection')[0].xpath('password')[0].text
 
             if not self.connection['db_user']:
-                self.logging.warning("!!! XML expecting user tag")
+                self.logger.warning("!!! XML expecting user tag")
                 raise NameError("Missing required user tag")
 
             if root.xpath('connection')[0].xpath('management_system'):
@@ -259,7 +258,7 @@ class XmlLoadFile:
                     root.xpath('connection')[0].xpath('management_system')[0].text
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            self.logging.error("*** %s in read_xml read_db_connect ***", sys.exc_info()[0])
+            self.logger.error("*** %s in read_xml read_db_connect ***", sys.exc_info()[0])
             sys.exit("*** Error(s) found while reading XML file connection tag!")
 
     def flag_default_true(self, root, default_true):
@@ -280,15 +279,13 @@ class XmlLoadFile:
             if root.xpath(flag_name) and root.xpath(flag_name)[0].text.lower() == CN.LC_TRUE:
                 self.flags[root.xpath(flag_name)[0].tag.lower()] = True
 
-    @staticmethod
-    def filenames_from_date(date_list):
+    def filenames_from_date(self, date_list):
         """! given date format, start and end dates, and increment, generates list of dates
             Returns:
                list of dates
         """
-   
-        logging.debug("date format is: %s", date_list["format"])
-
+        self.logger.debug("date format is: %s", date_list["format"])
+        all_dates = []
         try:
             date_format = date_list["format"]
             # check to make sure that the date format string only has known characters
@@ -300,32 +297,29 @@ class XmlLoadFile:
                 date_start = pd.to_datetime(date_list["start"], format=date_format)
                 date_end = pd.to_datetime(date_list["end"], format=date_format)
                 date_inc = int(date_list["inc"])
-                all_dates = []
                 while date_start < date_end:
                     all_dates.append(date_start.strftime(date_format))
                     date_start = date_start + pd.Timedelta(seconds=date_inc)
                 all_dates.append(date_end.strftime(date_format))
             else:
-                logger.error("*** date_list tag has unknown characters ***")
+                self.logger.error("*** date_list tag has unknown characters ***")
 
         except ValueError as value_error:
-            logger.error("*** %s in filenames_from_date ***", sys.exc_info()[0])
-            logger.error(value_error)
+            self.logger.error("*** %s in filenames_from_date ***", sys.exc_info()[0])
+            self.logger.error(value_error)
             sys.exit("*** Value Error found while expanding XML date format!")
         except (RuntimeError, TypeError, NameError, KeyError):
-            logger.error("*** %s in filenames_from_date ***", sys.exc_info()[0])
+            self.logger.error("*** %s in filenames_from_date ***", sys.exc_info()[0])
             sys.exit("*** Error found while expanding XML date format!")
 
         return all_dates
 
-    @staticmethod
-    def filenames_from_template(folder_template, template_fills):
+    def filenames_from_template(self, folder_template, template_fills):
         """! given a folder template and the values to fill in, generates list of filenames
             Returns:
                list of filenames
         """
-
-        logging.debug(f"folder template is: {folder_template}")
+        self.logger.debug(f"folder template is: {folder_template}")
 
         try:
             fills_open = folder_template.count("{")
@@ -335,7 +329,7 @@ class XmlLoadFile:
             # remove any fill values that are not in the template
             not_in = []
             if template_fills:
-                not_in = [tf for tf in template_fills.keys() if not (tf in folder_template)]
+                not_in = [tf for tf in template_fills.keys() if tf not in folder_template]
 
             for wrong_key in not_in:
                 del template_fills[wrong_key]
@@ -360,11 +354,11 @@ class XmlLoadFile:
                                              for x in os.listdir(file_dir)]
 
         except ValueError as value_error:
-            logging.error("f*** {sys.exc_info()[0]} in filenames_from_template ***")
-            logging.error(value_error)
+            self.logger.error("f*** {sys.exc_info()[0]} in filenames_from_template ***")
+            self.logger.error(value_error)
             sys.exit("*** Value Error found while expanding XML folder templates!")
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error(f"*** %s in filenames_from_template ***", sys.exc_info()[0])
+            self.logger.error("*** %s in filenames_from_template ***", sys.exc_info()[0])
             sys.exit("*** Error found while expanding XML folder templates!")
 
         return file_list
