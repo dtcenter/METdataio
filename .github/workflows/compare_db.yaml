@@ -42,9 +42,9 @@ jobs:
           pip3 --version
           mysql -e 'SELECT VERSION();' -uroot -proot
           mysql -e 'CREATE DATABASE mv_ci_prod;' -uroot -proot
-          mysql -e 'SOURCE ${GITHUB_WORKSPACE}/baseold/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_prod
+          mysql -e 'SOURCE /home/runner/work/METdataio/METdataio/baseold/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_prod
           mysql -e 'CREATE DATABASE mv_ci_new;' -uroot -proot
-          mysql -e 'SOURCE ${GITHUB_WORKSPACE}/headnew/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_new
+          mysql -e 'SOURCE /home/runner/work/METdataio/METdataio/headnew/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_new
       - name: multiline script
         run: |
           pip3 install numpy
