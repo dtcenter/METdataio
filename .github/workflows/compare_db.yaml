@@ -42,9 +42,9 @@ jobs:
           pip3 --version
           mysql -e 'SELECT VERSION();' -uroot -proot
           mysql -e 'CREATE DATABASE mv_ci_prod;' -uroot -proot
-          mysql -e 'SOURCE /home/runner/work/METdataio/METdataio/baseold/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_prod
+          mysql -e 'SOURCE ${GITHUB_WORKSPACE}/baseold/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_prod
           mysql -e 'CREATE DATABASE mv_ci_new;' -uroot -proot
-          mysql -e 'SOURCE /home/runner/work/METdataio/METdataio/headnew/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_new
+          mysql -e 'SOURCE ${GITHUB_WORKSPACE}/headnew/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_new
       - name: multiline script
         run: |
           pip3 install numpy
@@ -80,15 +80,17 @@ jobs:
       - name: run METdbload prod
         shell: bash
         run: |
-          cd /home/runner/work/METdataio/METdataio/baseold/METdbLoad/ush
-          python met_db_load.py /home/runner/work/METdataio/METdataio/headnew/METdbLoad/test/load_met_gha_prod.xml
+          export PYTHONPATH=${GITHUB_WORKSPACE}/baseold
+          cd ${GITHUB_WORKSPACE}/baseold/METdbLoad/ush
+          python met_db_load.py ${GITHUB_WORKSPACE}/headnew/METdbLoad/test/load_met_gha_prod.xml
           mysql -e 'SHOW TABLE STATUS WHERE `rows` > 0;'  -uroot -proot mv_ci_prod
       - name: run METdbload new
         shell: bash
         run: |
-          cd /home/runner/work/METdataio/METdataio/headnew/METdbLoad/ush
-          python met_db_load.py /home/runner/work/METdataio/METdataio/headnew/METdbLoad/test/load_met_gha_new.xml
+          export PYTHONPATH=${GITHUB_WORKSPACE}/headnew
+          cd ${GITHUB_WORKSPACE}/headnew/METdbLoad/ush
+          python met_db_load.py ${GITHUB_WORKSPACE}/headnew/METdbLoad/test/load_met_gha_new.xml
           mysql -e 'SHOW TABLE STATUS WHERE `rows` > 0;'  -uroot -proot mv_ci_new
       - name: run test_tables to compare tables in 2 databases
         shell: bash
-        run: python /home/runner/work/METdataio/METdataio/headnew/METdbLoad/test/test_tables.py
+        run: python ${GITHUB_WORKSPACE}/headnew/METdbLoad/test/test_tables.py
