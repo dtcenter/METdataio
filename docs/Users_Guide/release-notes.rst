@@ -9,6 +9,33 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
+METdataio Version 3.0.0 Beta 5 Release Notes (20240630)
+-------------------------------------------------------
+
+
+  .. dropdown:: New Functionality
+
+
+
+  .. dropdown:: Enhancements
+
+     * **Enhance METdataio schema to load the TOTAL_DIR column added to the VL1L2, VAL1L2, and VCNT line types during the MET 12.0.0 beta5 develpment cycle** (`#307 <https://github.com/dtcenter/METdataio/issues/307>`_)
+
+     * **Add support for reformatting the MPR linetype** (`#255 <https://github.com/dtcenter/METdataio/issues/255>`_)
+
+  .. dropdown:: Internal
+
+     * Update GitHub issue and pull request templates to reflect the current development workflow details (`#231 <https://github.com/dtcenter/METdataio/issues/231>`_)
+
+     * Consider using only .yml or only .yaml extensions (`#272 <https://github.com/dtcenter/METdataio/issues/272>`_)
+
+     * METdataio: Code coverage statistics  (`#53 <https://github.com/dtcenter/METplus-Interna/issues/53>`_)
+
+
+  .. dropdown:: Bugfixes
+
+
+
 
 METdataio Version 3.0.0 Beta 4 Release Notes (20240417)
 -------------------------------------------------------
