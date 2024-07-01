@@ -31,7 +31,6 @@ METdataio Version 3.0.0 Beta 5 Release Notes (20240630)
 
      * METdataio: Code coverage statistics  (`#53 <https://github.com/dtcenter/METplus-Interna/issues/53>`_)
 
-     * Add GitHub action to run SonarQube for METdataio pull requests and feature branches (`#289 <https://github.com/dtcenter/METplus-Interna/issues/289>`_)
 
   .. dropdown:: Bugfixes
 
