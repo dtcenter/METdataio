@@ -4,7 +4,7 @@
 import sys
 import argparse
 
-def test_argxmlfile():
+def test_argxmlfile(get_xml_test_file):
     """Check the XML filename."""
     sys.argv = ["METdbLoad", "-index", "/Users/venita.hagerty/metviewer/testloads.xml"]
 
