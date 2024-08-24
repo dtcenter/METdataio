@@ -997,9 +997,12 @@ CREATE TABLE line_data_mpr
     mpr_obs        DOUBLE,
     mpr_climo      DOUBLE,
     obs_qc         VARCHAR(32),
-    climo_mean     DOUBLE,
-    climo_stdev    DOUBLE,
-    climo_cdf      DOUBLE,
+    obs_climo_mean     DOUBLE,
+    obs_climo_stdev    DOUBLE,
+    obs_climo_cdf      DOUBLE,
+    fcst_climo_mean    DOUBLE,
+    fcst_climo_stdev...DOUBLE,
+
 
     CONSTRAINT line_data_mpr_data_file_id_pk
         FOREIGN KEY (data_file_id)
@@ -1541,13 +1544,15 @@ CREATE TABLE line_data_orank
     n_ens            INT UNSIGNED,
     obs_qc           VARCHAR(32),
     ens_mean         DOUBLE DEFAULT -9999,
-    climo_mean       DOUBLE DEFAULT -9999,
+    obs_climo_mean   DOUBLE DEFAULT -9999,
     spread           DOUBLE DEFAULT -9999,
     ens_mean_oerr    DOUBLE DEFAULT -9999,
     spread_oerr      DOUBLE DEFAULT -9999,
     spread_plus_oerr DOUBLE DEFAULT -9999,
 
-    climo_stdev      DOUBLE DEFAULT -9999,
+    obs_climo_stdev  DOUBLE DEFAULT -9999,
+    fcst_climo_mean  DOUBLE DEFAULT -9999,
+    fcst_climo_stdev DOUBLE DEFAULT -9999,
 
 
     PRIMARY KEY (line_data_id),
