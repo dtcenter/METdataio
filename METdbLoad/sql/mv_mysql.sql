@@ -1001,7 +1001,7 @@ CREATE TABLE line_data_mpr
     obs_climo_stdev    DOUBLE,
     obs_climo_cdf      DOUBLE,
     fcst_climo_mean    DOUBLE,
-    fcst_climo_stdev...DOUBLE,
+    fcst_climo_stdev   DOUBLE,
 
 
     CONSTRAINT line_data_mpr_data_file_id_pk
