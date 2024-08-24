@@ -135,7 +135,7 @@ def test_val1l2_columns(setup_db):
     finally:
         setup_db.close()
 
-        def test_vcnt_columns(setup_db):
+def test_vcnt_columns(setup_db):
             # log into the database and verify the total_dir column is in the
             # list_data_vcnt database table.
 
