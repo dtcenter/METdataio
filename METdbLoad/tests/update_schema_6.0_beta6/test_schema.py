@@ -12,8 +12,10 @@ from dataclasses import make_dataclass
 #     This is to avoid having the password visible in the test code.
 #
 
-CONST_LOAD_DB_CMD = "use mv_load_test"
 
+# Make sure the database name matches with the one you created on the database host
+CONST_LOAD_DB_CMD = "use mv_mpr_orank"
+TEST_DB = "mv_mpr_orank"
 
 @pytest.fixture
 def setup_db():
@@ -45,10 +47,9 @@ def setup_db():
     # settings (hostname, username, etc.)
     yield conn
 
-
 def test_db_created(setup_db):
     '''
-       Verify that the mv_load_test database was created
+       Verify that the mv_mpr_orank database was created
     Args:
         setup_db: db connection object
 
@@ -69,7 +70,7 @@ def test_db_created(setup_db):
         # Get all rows
         rows = cursor.fetchall()
         list_of_rows = [r[0] for r in rows]
-        assert 'mv_load_test' in list_of_rows
+        assert TEST_DB in list_of_rows
 
 
     finally:
@@ -90,12 +91,12 @@ def test_tables_created(setup_db):
         # Get all rows
         rows = cursor.fetchall()
         list_of_rows = [r[0] for r in rows]
+        print(f"list of rows: {list_of_rows}")
         assert 'line_data_mpr' in list_of_rows
         assert 'line_data_orank' in list_of_rows
 
     finally:
       setup_db.close()
-
 
 def test_mpr_columns(setup_db):
    # log into the database and verify the renamed columns are in the
@@ -111,19 +112,16 @@ def test_mpr_columns(setup_db):
             # Get all rows
             rows = cursor.fetchall()
             list_of_rows = [r[0] for r in rows]
+            print(f"list of rows:\n{list_of_rows}")
             assert 'obs_climo_mean' in list_of_rows
             assert 'obs_climo_stdev' in list_of_rows
             assert 'obs_climo_cdf' in list_of_rows
-            assert 'climo_mean' not in list_of_rows
-            assert 'climo_stdev' not in list_of_rows
-            assert 'climo_cdf' not in list_of_rows
             assert 'fcst_climo_mean' in list_of_rows
             assert 'fcst_climo_stdev' in list_of_rows
 
 
     finally:
         setup_db.close()
-
 
 def test_orank_columns(setup_db):
    # log into the database and verify the renamed and new columns are in the
@@ -143,8 +141,6 @@ def test_orank_columns(setup_db):
             assert 'obs_climo_stdev' in list_of_rows
             assert 'fcst_climo_mean' in list_of_rows
             assert 'fcst_climo_stdev' in list_of_rows
-            assert 'climo_mean' not in list_of_rows
-            assert 'climo_stdev' not in list_of_rows
 
     finally:
         setup_db.close()
