@@ -1,0 +1,7 @@
+hostname: 'localhost'
+port: 3306
+username: 'dbusername'
+password: 'dbpassword'
+dbname: 'mv_mpr_orank'
+output_dir: './output'
+

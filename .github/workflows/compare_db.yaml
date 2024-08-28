@@ -51,6 +51,7 @@ jobs:
           pip3 install pandas
           pip3 install pymysql
           pip3 install lxml
+          pip3 install pytest
       - name: change default python to python 3
         shell: bash
         run: |

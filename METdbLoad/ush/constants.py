@@ -480,7 +480,8 @@ LINE_DATA_FIELDS[MPR] = TOT_LINE_DATA_FIELDS + \
                         ['mp_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl',
                          'obs_elv',
                          'mpr_fcst', 'mpr_obs', 'mpr_climo', 'obs_qc',
-                         'climo_mean', 'climo_stdev', 'climo_cdf']
+                         'obs_climo_mean', 'obs_climo_stdev', 'obs_climo_cdf',
+                         'fcst_climo_mean','fcst_climo_stdev']
 
 LINE_DATA_FIELDS[NBRCNT] = ALPH_LINE_DATA_FIELDS + \
                            ['fbs', 'fbs_bcl', 'fbs_bcu', 'fss', 'fss_bcl', 'fss_bcu',
@@ -518,9 +519,9 @@ LINE_DATA_FIELDS[ORANK] = TOT_LINE_DATA_FIELDS + \
                           ['orank_index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl',
                            'obs_elv',
                            'obs', 'pit', 'obs_rank', 'n_ens_vld', 'n_ens', 'obs_qc',
-                           'ens_mean', 'climo_mean', 'spread', 'ens_mean_oerr',
+                           'ens_mean', 'obs_climo_mean', 'spread', 'ens_mean_oerr',
                            'spread_oerr', 'spread_plus_oerr',
-                           'climo_stdev']
+                           'obs_climo_stdev', 'fcst_climo_mean', 'fcst_climo_stdev']
 
 LINE_DATA_FIELDS[PCT] = COV_LINE_DATA_FIELDS + \
                         ['n_thresh']
@@ -1334,7 +1335,7 @@ NUM_STAT_VL1L2_COLS = 38
 NUM_STAT_CTS_COLS = 122
 NUM_STAT_MCTC_COLS = 28
 NUM_STAT_MCTS_COLS = 45
-NUM_STAT_MPR_COLS = 38
+NUM_STAT_MPR_COLS = 40
 # Number of columns BEFORE the "variable" fields (i.e. VERSION, MODEL, ..., LINETYPE), including the
 # FCST_INIT_BEG column .
 # For PCT the "variable" fields are N_THRESH, THRESH_i, OY_i, ON_i,..., THRESH_N, where the
@@ -1688,7 +1689,8 @@ TCDIAG_COMMON_NAMES = {'SHR_MAG':SHMAG, 'SHRD':SHMAG, 'LAND':DLAND, 'DTL':DLAND,
 # MPR
 LC_MPR_SPECIFIC = ['index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl',
                     'obs_elv', 'fcst', 'obs', 'obs_qc',
-                    'climo_mean', 'climo_stdev', 'climo_cdf']
+                    'obs_climo_mean', 'obs_climo_stdev', 'obs_climo_cdf',
+                   'fcst_climo_mean', 'fcst_climo_stdev']
 
 MPR_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_MPR_SPECIFIC]
 
