@@ -945,7 +945,6 @@ def test_tcdiag_from_tcpairs():
     assert orig_tcdiag.STORM_SPEED == reformatted_tcdiag.STORM_SPEED
 
 
-@pytest.mark.skip("Updates made to the MPR linetype will break this test")
 def test_mpr_for_line_with_regression_data():
     """
         Use one of the MPR linetype files found in the MET
@@ -1075,4 +1074,33 @@ def test_mpr_for_scatter_with_regression_data():
     assert reformatted_subset['obs_elv'].to_list()[0] == expected_obs_elv
     assert reformatted_subset['fcst'].to_list()[0] == expected_fcst
     assert reformatted_subset['obs'].to_list()[0] == expected_obs
+
+def test_mpr_for_climo_data():
+    """
+        Use one of the MPR linetype files found in the MET
+        nightly regression tests.  The MPR linetype has been updated to contain
+        climo data, where the CLIMO_MEAN, CLIMO_STDEV, and CLIMO_CDF columns were renamed
+        OBS_CLIMO_MEAN, OBS_CLIMO_STDEV, and OBS_CLIMO_CDF.  Two new columns were added:
+        FCST_CLIMO_MEAN and FCST_CLIMO_STDEV
+
+        Verify that the renamed header columns and new columns are present
+
+
+        Args:
+
+        Returns:
+
+            None: passes or fails
+    """
+
+    stat_data, config = setup_test("mpr_climo_data.yaml")
+    wsa = WriteStatAscii(config, logger)
+    reformatted_df = wsa.process_mpr(stat_data)
+
+   
+    # Check for expected column name changes and new columns
+    expected_col_headers = ['OBS_CLIMO_STDEV', 'OBS_CLIMO_MEAN', 'OBS_CLIMO_CDF', 'FCST_CLIMO_MEAN', 'FCST_CLIMO_STDEV']
+    reformatted_col_headers = reformatted_df.columns.to_list()
+    for cur_col in reformatted_col_headers:
+        assert cur_col in reformatted_col_headers
 
