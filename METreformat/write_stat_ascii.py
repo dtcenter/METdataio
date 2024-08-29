@@ -1787,7 +1787,7 @@ class WriteStatAscii:
         # variables to transform from wide to long (i.e. organize into
         # key-value structure with variables in one column and their corresponding
         # values in another column). Omit the matched pair index.
-        variables_to_transform = list(cn.LC_MPR_SPECIFIC)[-12:]
+        variables_to_transform = list(cn.LC_MPR_SPECIFIC)[:]
         self.logger.info(f"Variables to transform from wide to long: {cn.LC_MPR_SPECIFIC[1:]} ")
 
         melted: pd.DataFrame = pd.melt(mpr_df_copy, id_vars=columns_to_use[1:28],

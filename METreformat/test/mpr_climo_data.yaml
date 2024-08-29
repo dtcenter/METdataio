@@ -1,0 +1,22 @@
+# Configuration settings for reformatting MET .stat output to format for METplotpy
+
+# True if the input .stat file already contains aggregated statistics (i.e. output from MET stat-analysis
+# has been applied to MET .stat output from point-stat, grid-stat, or ensemble-stat).
+input_stats_aggregated: True 
+
+output_dir: ./output
+output_filename: reformatted_mpr_climo_data.txt
+keep_all_mpr_cols: False
+
+input_data_dir: ./data/mpr/climo_data/
+
+# Set to log_filename to STDOUT/stdout if no log file is to be saved
+log_directory: ./output
+log_filename: mpr_climo_log.txt
+
+# most verbose is debug, less verbose is error
+log_level: DEBUG
+
+# Currently support FHO, CTC, CTS, CNT, SL1L2, VL1L2, PCT, MCTC, VCNT, ECNT, RHIST, TCDiag, and MPR line types
+line_type: MPR
+
