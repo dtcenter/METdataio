@@ -21,9 +21,9 @@ import time
 from datetime import timedelta
 import pandas as pd
 
-import constants as CN
+import METdbLoad.ush.constants as CN
 
-from run_sql import RunSql
+from METdbLoad.ush.run_sql import RunSql
 
 
 class WriteMtdSql:
