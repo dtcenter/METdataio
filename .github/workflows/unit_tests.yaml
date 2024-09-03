@@ -13,6 +13,7 @@ on:
       - bugfix_*
       - issue_*
       - gha_*
+      - test_*
     paths-ignore:
       - 'docs/**'
       - '.github/pull_request_template.md'
@@ -27,8 +28,20 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:latest
+        env:
+          MARIADB_ROOT_PASSWORD: root_password
+          MARIADB_DATABASE: test_db
+          MARIADB_USER: test_user
+          MARIADB_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
+
     strategy:
       fail-fast: false
       matrix:
@@ -67,6 +80,7 @@ jobs:
 
       - name: Test with pytest
         run: |
+          coverage run --append -m pytest METdbLoad/test
           coverage run --append -m pytest METreformat
           coverage run --append -m pytest METreadnc
           coverage report -m
