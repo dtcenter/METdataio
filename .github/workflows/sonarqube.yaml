@@ -71,7 +71,6 @@ jobs:
 
     - name: Run Pytests
       run: |
-        coverage run --append -m pytest METdbLoad/test
         coverage run --append -m pytest METreformat
         coverage run --append -m pytest METreadnc
 
