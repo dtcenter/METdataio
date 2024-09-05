@@ -43,6 +43,9 @@ jobs:
 
     steps:
 
+    - name: Check if PR is from a fork
+      if: ${{ github.event.pull_request.head.repo.full_name != 'dtcenter/METdataio' }}
+      run: echo "SonarQube scan cannot be run from a fork"; exit 1
     - uses: actions/checkout@v4
       with:
         # Disable shallow clones for better analysis
