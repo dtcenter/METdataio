@@ -44,6 +44,7 @@ jobs:
     steps:
 
     - name: Check if PR is from a fork
+      id: check_fork
       if: ${{ github.event.pull_request.head.repo.full_name != 'dtcenter/METdataio' }}
       run: echo "SonarQube scan cannot be run from a fork"; exit 1
     - uses: actions/checkout@v4
@@ -79,11 +80,11 @@ jobs:
 
     - name: Output coverage report
       run: coverage report -m
-      if: always()
+      ${{ always() && steps.check_fork.conclusion == 'skipped' }}
 
     - name: Generate XML coverage report
       run: coverage xml
-      if: always()
+      ${{ always() && steps.check_fork.conclusion == 'skipped' }}
 
     - name: Get branch name
       id: get_branch_name
