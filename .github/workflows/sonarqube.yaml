@@ -80,11 +80,11 @@ jobs:
 
     - name: Output coverage report
       run: coverage report -m
-      ${{ always() && steps.check_fork.conclusion == 'skipped' }}
+      if: ${{ always() && steps.check_fork.conclusion == 'skipped' }}
 
     - name: Generate XML coverage report
       run: coverage xml
-      ${{ always() && steps.check_fork.conclusion == 'skipped' }}
+      if: ${{ always() && steps.check_fork.conclusion == 'skipped' }}
 
     - name: Get branch name
       id: get_branch_name
