@@ -9,7 +9,7 @@ def test_met_db_load(emptyDB, get_xml_test_file, testRunSql, tmp_path):
     test_data = {
         "xmlfile": str(get_xml_test_file),
         "index": True,
-        "tmpdir": str(tmp_path),
+        "tmpdir": [str(tmp_path)],
     }
     test_args = argparse.Namespace()
     for k,v in test_data.items():
