@@ -19,8 +19,8 @@ def test_counts(get_xml_loadfile):
                         XML_LOADFILE.line_types)
 
     # number of files
-    assert len(XML_LOADFILE.load_files) == 1
+    assert len(XML_LOADFILE.load_files) == 2
     # number of lines of data
-    assert FILE_DATA.stat_data.shape[0] == 6
+    assert FILE_DATA.stat_data.shape[0] == 94
     # number of line types
-    assert FILE_DATA.stat_data.line_type.unique().size == 5
+    assert FILE_DATA.stat_data.line_type.unique().size == 7

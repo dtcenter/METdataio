@@ -27,19 +27,19 @@ import sys
 import os
 import getpass
 
-import constants as CN
+import METdbLoad.ush.constants as CN
 
-from read_load_xml import XmlLoadFile
-from read_data_files import ReadDataFiles
-from run_sql import RunSql
-from write_file_sql import WriteFileSql
-from write_stat_sql import WriteStatSql
-from write_mode_sql import WriteModeSql
-from write_tcst_sql import WriteTcstSql
-from write_mtd_sql import WriteMtdSql
+from METdbLoad.ush.read_load_xml import XmlLoadFile
+from METdbLoad.ush.read_data_files import ReadDataFiles
+from METdbLoad.ush.run_sql import RunSql
+from METdbLoad.ush.write_file_sql import WriteFileSql
+from METdbLoad.ush.write_stat_sql import WriteStatSql
+from METdbLoad.ush.write_mode_sql import WriteModeSql
+from METdbLoad.ush.write_tcst_sql import WriteTcstSql
+from METdbLoad.ush.write_mtd_sql import WriteMtdSql
 
 
-def main():
+def main(args):
     """ Main program to load files into the METdataio/METviewer database
         Returns:
            N/A
@@ -64,16 +64,6 @@ def main():
     # time execution
     load_time_start = time.perf_counter()
 
-    parser = argparse.ArgumentParser()
-    # Allow user to choose dir for tmp files - default to user home
-    tmp_dir = [os.getenv('HOME')]
-    parser.add_argument("xmlfile", help="Please provide required xml load_spec filename")
-    parser.add_argument("-index", action="store_true", help="Only process index, do not load data")
-    parser.add_argument("tmpdir", nargs='*', default=tmp_dir,
-                        help="Optional - when different directory wanted for tmp file")
-
-    # get the command line arguments
-    args = parser.parse_args()
 
     #
     #  Read the XML file
@@ -405,4 +395,15 @@ def purge_files(load_files, xml_flags):
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    # Allow user to choose dir for tmp files - default to user home
+    tmp_dir = [os.getenv('HOME')]
+    parser.add_argument("xmlfile", help="Please provide required xml load_spec filename")
+    parser.add_argument("-index", action="store_true", help="Only process index, do not load data")
+    parser.add_argument("tmpdir", nargs='*', default=tmp_dir,
+                        help="Optional - when different directory wanted for tmp file")
+
+    # get the command line arguments
+    args = parser.parse_args()
+
+    main(args)
