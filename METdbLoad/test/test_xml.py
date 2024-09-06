@@ -22,7 +22,7 @@ def test_loadgroup(get_xml_loadfile):
     """Read group and description from XML file."""
     XML_LOADFILE = get_xml_loadfile()
     assert XML_LOADFILE.group == "Testing"
-    assert XML_LOADFILE.description == "testing DB load"
+    assert XML_LOADFILE.description == "testing with pytest"
 
 def test_connection(get_xml_loadfile):
     """Read connection tags from XML file."""
