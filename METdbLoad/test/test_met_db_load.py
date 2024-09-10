@@ -1,7 +1,5 @@
 import argparse
 import pytest
-from pathlib import Path
-from METdbLoad.conftest import TOP_DIR
 from METdbLoad.ush.met_db_load import main as load_main
 
 from METdataio.METdbLoad.test.utils import (
@@ -104,8 +102,6 @@ def test_met_db_table_counts(
     met_tool,
     expected_counts,
 ):
-
-    met_data_dir = str(Path(TOP_DIR) / met_data_dir)
     test_data = {
         "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool)),
         "index": "true",

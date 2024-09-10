@@ -1,14 +1,22 @@
+from pathlib import Path
+
+
+def abs_path(rel_path):
+    """Turn a relative path into abs path"""
+    return str(Path(str(Path(__file__).parents[2])) / rel_path)
+
+
 # Use data from METreformat where available
-ENSEMBLE_STAT_DATA_DIR = "METreformat/test/data/ensemble_stat"
-GRID_STAT_DATA_DIR = "METreformat/test/data/grid_stat/mctc_mcts"
-MPR_DATA_DIR = "METreformat/test/data/mpr/climo_data"
-POINT_STAT_DATA_DIR = "METreformat/test/data/point_stat"
-TCDIAG_DATA_DIR = "METreformat/test/data/tcdiag_tcmpr"
+ENSEMBLE_STAT_DATA_DIR = abs_path("METreformat/test/data/ensemble_stat")
+GRID_STAT_DATA_DIR = abs_path("METreformat/test/data/grid_stat/mctc_mcts")
+MPR_DATA_DIR = abs_path("METreformat/test/data/mpr/climo_data")
+POINT_STAT_DATA_DIR = abs_path("METreformat/test/data/point_stat")
+TCDIAG_DATA_DIR = abs_path("METreformat/test/data/tcdiag_tcmpr")
 
 # This data is copied from MET test data
 # https://hub.docker.com/r/dtcenter/met-data-output
-MTD_DATA_DIR = "METdbLoad/test/data/mtd/"
-MODE_DATA_DIR = "METdbLoad/test/data/mode/"
+MTD_DATA_DIR = abs_path("METdbLoad/test/data/mtd/")
+MODE_DATA_DIR = abs_path("METdbLoad/test/data/mode/")
 
 
 DEFAULT_LOAD_FLAGS = {
@@ -72,9 +80,9 @@ def populate_xml_load_spec(met_data_dir, met_tool, load_flags=DEFAULT_LOAD_FLAGS
 
 def get_xml_test_file(tmp_path, met_data_dir, met_tool, load_flags={}):
     """Write test_load_specification.xml and return path
-    
+
     Args:
-        tmp_path (Path): Path to write test file to. 
+        tmp_path (Path): Path to write test file to.
         met_data_dir (str): directory containing MET files to load
         met_tool (str): Name of MET tool that generated files, e.g. "point_stat"
         load_flags (dict): Optional.

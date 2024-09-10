@@ -16,6 +16,7 @@ from METdataio.METdbLoad.test.utils import (
 TOP_DIR = str(Path(__file__).parents[1])
 sys.path.insert(0, os.path.abspath(TOP_DIR))
 
+
 def parse_sql(filename):
     """Parse a .sql file and return a list of SQL statements"""
     data = open(filename, "r").readlines()
@@ -112,18 +113,13 @@ def testRunSql():
 
 
 @pytest.fixture
-def point_stat_xml_file(tmp_path):
-    """Get xml load file for point_stat test data."""
-    data_path = Path(TOP_DIR) / POINT_STAT_DATA_DIR
-    return get_xml_test_file(tmp_path, data_path, "point_stat")
-
-
-@pytest.fixture
-def get_xml_loadfile(point_stat_xml_file):
-    def load_and_read_xml():
+def get_xml_loadfile():
+    def load_and_read_xml(
+        tmp_path, data_dir=POINT_STAT_DATA_DIR, met_tool="point_stat"
+    ):
         from METdataio.METdbLoad.ush.read_load_xml import XmlLoadFile
 
-        XML_FILE = point_stat_xml_file
+        XML_FILE = get_xml_test_file(tmp_path, data_dir, met_tool)
         XML_LOADFILE = XmlLoadFile(XML_FILE)
         XML_LOADFILE.read_xml()
         return XML_LOADFILE
