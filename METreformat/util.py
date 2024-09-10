@@ -44,16 +44,12 @@ def get_common_logger(log_level, log_filename):
 
     if log_filename.lower() == 'stdout':
         logging.basicConfig(level=log_levels[log_level],
-                            format='%(asctime)s||User:%('
-                                   'user)s||%(pathname)s: %(funcName)s|| [%(levelname)s]: %('
-                                   'message)s',
+                            format='%(asctime)s||%(pathname)s: %(funcName)s|| [%(levelname)s]: %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S',
                             stream=sys.stdout)
     else:
         logging.basicConfig(level=log_levels[log_level],
-                            format='%(asctime)s||User:%('
-                                   'user)s||%(pathname)s: %(funcName)s|| [%(levelname)s]: %('
-                                   'message)s',
+                            format='%(asctime)s||%(pathname)s: %(funcName)s|| [%(levelname)s]: %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S',
                             filename=log_filename,
                             filemode='w')
