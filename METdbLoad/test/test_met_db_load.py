@@ -11,6 +11,7 @@ from METdataio.METdbLoad.test.utils import (
     MTD_DATA_DIR,
     MODE_DATA_DIR,
     TCDIAG_DATA_DIR,
+    VSDB_DATA_DIR,
 )
 
 
@@ -90,6 +91,14 @@ def assert_count_rows(cur, table, expected_count):
                 "mode_cts": 2,
                 "mode_obj_pair": 5,
                 "mode_obj_single": 6,
+            },
+        ),
+        (
+            VSDB_DATA_DIR,
+            "vsdb",
+            {
+                "line_data_ctc": 19,
+                "line_data_sl1l2": 5,
             },
         ),
     ],

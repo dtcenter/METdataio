@@ -18,6 +18,8 @@ TCDIAG_DATA_DIR = abs_path("METreformat/test/data/tcdiag_tcmpr")
 MTD_DATA_DIR = abs_path("METdbLoad/test/data/mtd/")
 MODE_DATA_DIR = abs_path("METdbLoad/test/data/mode/")
 
+# Very small data sample for testing
+VSDB_DATA_DIR = abs_path("METdbLoad/test/data/vsdb/")
 
 DEFAULT_LOAD_FLAGS = {
     "stat_header_db_check": "true",
