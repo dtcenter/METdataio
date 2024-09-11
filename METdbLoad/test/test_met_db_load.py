@@ -1,7 +1,5 @@
 import argparse
 import pytest
-from pathlib import Path
-from METdbLoad.conftest import TOP_DIR
 from METdbLoad.ush.met_db_load import main as load_main
 
 from METdataio.METdbLoad.test.utils import (
@@ -13,6 +11,7 @@ from METdataio.METdbLoad.test.utils import (
     MTD_DATA_DIR,
     MODE_DATA_DIR,
     TCDIAG_DATA_DIR,
+    VSDB_DATA_DIR,
 )
 
 
@@ -94,6 +93,14 @@ def assert_count_rows(cur, table, expected_count):
                 "mode_obj_single": 6,
             },
         ),
+        (
+            VSDB_DATA_DIR,
+            "vsdb",
+            {
+                "line_data_ctc": 19,
+                "line_data_sl1l2": 5,
+            },
+        ),
     ],
 )
 def test_met_db_table_counts(
@@ -104,8 +111,6 @@ def test_met_db_table_counts(
     met_tool,
     expected_counts,
 ):
-
-    met_data_dir = str(Path(TOP_DIR) / met_data_dir)
     test_data = {
         "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool)),
         "index": "true",
