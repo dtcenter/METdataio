@@ -1,6 +1,6 @@
 <load_spec>
     <connection>
-        <management_system>mysql</management_system>
+        <management_system>mariadb</management_system>
         <host>localhost:3306</host>
         <database>mv_test</database>
         <user>root</user>
@@ -8,7 +8,7 @@
     </connection>
 
     <folder_tmpl>/METdataio/METreformat/test/data/point_stat</folder_tmpl>
-    <verbose>true</verbose>
+    <verbose>false</verbose>
     <insert_size>1</insert_size>
     <stat_header_db_check>true</stat_header_db_check>
     <mode_header_db_check>false</mode_header_db_check>
