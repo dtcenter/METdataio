@@ -1,8 +1,8 @@
-import argparse
 import pytest
 from unittest.mock import patch
 from METdbLoad.ush.met_db_load import main as load_main
 from METdbLoad.ush.run_sql import RunSql
+from METdbLoad.test.utils import dict_to_args
 
 from METdataio.METdbLoad.test.utils import (
     get_xml_test_file,
@@ -113,14 +113,14 @@ def test_met_db_table_counts(
     met_tool,
     expected_counts,
 ):
-    test_data = {
-        "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool)),
-        "index": "true",
-        "tmpdir": [str(tmp_path)],
-    }
-    test_args = argparse.Namespace()
-    for k, v in test_data.items():
-        setattr(test_args, k, v)
+
+    test_args = dict_to_args(
+        {
+            "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool)),
+            "index": "true",
+            "tmpdir": [str(tmp_path)],
+        }
+    )
 
     load_main(test_args)
 
@@ -134,22 +134,20 @@ def test_met_db_indexes(
     tmp_path,
 ):
     # set up to only apply indexes
-    testRunSql.local_infile = "OFF"
-    test_data = {
-        "xmlfile": str(
-            get_xml_test_file(
-                tmp_path,
-                POINT_STAT_DATA_DIR,
-                "point_stat",
-                {"apply_indexes": "true"},
-            )
-        ),
-        "index": "false",
-        "tmpdir": [str(tmp_path)],
-    }
-    test_args = argparse.Namespace()
-    for k, v in test_data.items():
-        setattr(test_args, k, v)
+    test_args = dict_to_args(
+        {
+            "xmlfile": str(
+                get_xml_test_file(
+                    tmp_path,
+                    POINT_STAT_DATA_DIR,
+                    "point_stat",
+                    {"apply_indexes": "true"},
+                )
+            ),
+            "index": "false",
+            "tmpdir": [str(tmp_path)],
+        }
+    )
 
     # file_id and stat_header are already indexed
     idx_cnt = testRunSql.cur.execute("SHOW INDEX FROM line_data_fho")

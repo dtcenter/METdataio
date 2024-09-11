@@ -1,4 +1,5 @@
 from pathlib import Path
+from argparse import Namespace
 
 
 def abs_path(rel_path):
@@ -96,3 +97,11 @@ def get_xml_test_file(tmp_path, met_data_dir, met_tool, load_flags={}):
     with open(xml_path, "w") as text_file:
         text_file.write(populate_xml_load_spec(met_data_dir, met_tool, load_flags))
     return xml_path
+
+
+def dict_to_args(args_dics):
+    """Convert a dcit to an argparse Namespace"""
+    test_args = Namespace()
+    for k, v in args_dics.items():
+        setattr(test_args, k, v)
+    return test_args
