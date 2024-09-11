@@ -128,6 +128,7 @@ def test_met_db_table_counts(
     expected_counts,
 ):
 
+<<<<<<< HEAD
     test_args = dict_to_args(
         {
             "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool)),
@@ -242,6 +243,18 @@ def test_local_in_file(emptyDB, testRunSql, tmp_path, met_data_dir, met_tool, ex
             "tmpdir": [str(tmp_path)],
         }
     )
+=======
+    met_data_dir = str(Path(TOP_DIR) / met_data_dir)
+    test_data = {
+        "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool)),
+        "index": "true",
+        "tmpdir": [str(tmp_path)],
+        "loglevel": "INFO",
+    }
+    test_args = argparse.Namespace()
+    for k, v in test_data.items():
+        setattr(test_args, k, v)
+>>>>>>> 63509fd (50: add loglevel to test_met_db_load)
 
     load_main(test_args)
 
