@@ -1,6 +1,8 @@
-import argparse
 import pytest
+from unittest.mock import patch
 from METdbLoad.ush.met_db_load import main as load_main
+from METdbLoad.ush.run_sql import RunSql
+from METdbLoad.test.utils import dict_to_args
 
 from METdataio.METdbLoad.test.utils import (
     get_xml_test_file,
@@ -111,16 +113,58 @@ def test_met_db_table_counts(
     met_tool,
     expected_counts,
 ):
-    test_data = {
-        "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool)),
-        "index": "true",
-        "tmpdir": [str(tmp_path)],
-    }
-    test_args = argparse.Namespace()
-    for k, v in test_data.items():
-        setattr(test_args, k, v)
+
+    test_args = dict_to_args(
+        {
+            "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool)),
+            "index": "true",
+            "tmpdir": [str(tmp_path)],
+        }
+    )
 
     load_main(test_args)
 
     for table, expected_count in expected_counts.items():
         assert_count_rows(testRunSql.cur, table, expected_count)
+
+
+def test_met_db_indexes(
+    emptyDB,
+    testRunSql,
+    tmp_path,
+):
+    # set up to only apply indexes
+    test_args = dict_to_args(
+        {
+            "xmlfile": str(
+                get_xml_test_file(
+                    tmp_path,
+                    POINT_STAT_DATA_DIR,
+                    "point_stat",
+                    {"apply_indexes": "true"},
+                )
+            ),
+            "index": "false",
+            "tmpdir": [str(tmp_path)],
+        }
+    )
+
+    # file_id and stat_header are already indexed
+    idx_cnt = testRunSql.cur.execute("SHOW INDEX FROM line_data_fho")
+    assert idx_cnt == 2
+
+    # sys.exit is called after processing indexes
+    with pytest.raises(SystemExit):
+        load_main(test_args)
+
+    # check extra indicies have been created
+    idx_cnt = testRunSql.cur.execute("SHOW INDEX FROM line_data_fho")
+    assert idx_cnt == 5
+
+    # check no data was loaded
+    assert_count_rows(testRunSql.cur, "line_data_fho", 0)
+
+    # check sys.exit called on error
+    with pytest.raises(SystemExit):
+        with patch.object(RunSql, "apply_indexes", side_effect=KeyError):
+            load_main(test_args)
