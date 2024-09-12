@@ -99,9 +99,17 @@ def get_xml_test_file(tmp_path, met_data_dir, met_tool, load_flags={}):
     return xml_path
 
 
-def dict_to_args(args_dics):
-    """Convert a dcit to an argparse Namespace"""
+def dict_to_args(args_dict):
+    """Convert a dcit to an argparse Namespace
+    
+    Args:
+        args_dict (dict): key value pairs to be converted to
+        argparse Namespace.
+    
+    Returns:
+        argparse.Namespace
+    """
     test_args = Namespace()
-    for k, v in args_dics.items():
+    for k, v in args_dict.items():
         setattr(test_args, k, v)
     return test_args
