@@ -3,7 +3,6 @@ import sys
 import os
 import pymysql
 from pathlib import Path
-from unittest.mock import patch
 
 from METdataio.METdbLoad.ush.run_sql import RunSql
 from METdataio.METdbLoad.test.utils import (

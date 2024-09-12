@@ -257,6 +257,10 @@ class XmlLoadFile:
                 self.connection['db_management_system'] = \
                     root.xpath('connection')[0].xpath('management_system')[0].text
 
+            if root.xpath('connection')[0].xpath('local_infile'):
+                self.connection['db_local_infile'] = \
+                    root.xpath('connection')[0].xpath('local_infile')[0].text
+
         except (RuntimeError, TypeError, NameError, KeyError):
             self.logger.error("*** %s in read_xml read_db_connect ***", sys.exc_info()[0])
             sys.exit("*** Error(s) found while reading XML file connection tag!")
