@@ -43,6 +43,12 @@ class RunSql:
                N/A
         """
 
+        if 'db_local_infile' in connection.keys() and connection['db_local_infile'].lower() == 'false':
+            local_infile = False
+        else:
+            # Default behaviour 
+            local_infile = True
+
         try:
             if (not 'db_host' in connection) or (not 'db_user' in connection):
                 logging.error("XML Load file does not have enough connection tags")
@@ -54,7 +60,7 @@ class RunSql:
                                         user=connection['db_user'],
                                         passwd=connection['db_password'],
                                         db=connection['db_database'],
-                                        local_infile=True)
+                                        local_infile=local_infile)
 
         except pymysql.OperationalError as pop_err:
             logging.error("*** %s in run_sql ***", str(pop_err))
@@ -71,8 +77,15 @@ class RunSql:
         # look at database to see whether we can use the local infile method
         self.cur.execute("SHOW GLOBAL VARIABLES LIKE 'local_infile';")
         result = self.cur.fetchall()
-        self.local_infile = result[0][1]
-        logging.debug("local_infile is %s", result[0][1])
+        db_infile = result[0][1]
+
+        # Check that both the connection and the database support local_infile
+        if db_infile == 'ON' and self.conn._local_infile:
+            self.local_infile = 'ON'
+        else:
+            self.local_infile = 'OFF'
+        logging.debug("local_infile is %s", self.local_infile)
+
 
     @staticmethod
     def sql_off(conn, cur):
@@ -155,9 +168,9 @@ class RunSql:
                     raw_data['obs_valid_beg'] = raw_data['obs_valid_beg'].astype(str)
                     raw_data['obs_valid_end'] = raw_data['obs_valid_end'].astype(str)
                 elif sql_table in (CN.MODE_HEADER, CN.MTD_HEADER):
-                    raw_data['fcst_valid'] = raw_data['fcst_valid_beg'].astype(str)
-                    raw_data['fcst_init'] = raw_data['fcst_valid_end'].astype(str)
-                    raw_data['obs_valid'] = raw_data['fcst_init_beg'].astype(str)
+                    raw_data['fcst_valid'] = raw_data['fcst_valid'].astype(str)
+                    raw_data['fcst_init'] = raw_data['fcst_valid'].astype(str)
+                    raw_data['obs_valid'] = raw_data['fcst_init'].astype(str)
                 # make a copy of the dataframe that is a list of lists and write to database
                 dfile = raw_data[col_list].values.tolist()
                 sql_cur.executemany(sql_query, dfile)

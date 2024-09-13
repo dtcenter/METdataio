@@ -14,6 +14,7 @@ from METdataio.METdbLoad.test.utils import (
     MODE_DATA_DIR,
     TCDIAG_DATA_DIR,
     VSDB_DATA_DIR,
+    RHIST_DATA_DIR,
 )
 
 
@@ -103,6 +104,19 @@ def assert_count_rows(cur, table, expected_count):
                 "line_data_sl1l2": 5,
             },
         ),
+        (
+            RHIST_DATA_DIR,
+            "ensemble_stat",
+                        {
+                "line_data_rhist": 2,
+                "line_data_rhist_rank":22,
+                "line_data_phist": 2,
+                "line_data_phist_bin": 40,
+                "line_data_ecnt": 2,
+                "line_data_relp": 2,
+                "line_data_relp_ens": 20,
+            },
+        ),
     ],
 )
 def test_met_db_table_counts(
@@ -133,7 +147,7 @@ def test_met_db_indexes(
     testRunSql,
     tmp_path,
 ):
-    # set up to only apply indexes
+    # set up to "apply_indexes"
     test_args = dict_to_args(
         {
             "xmlfile": str(
@@ -168,3 +182,68 @@ def test_met_db_indexes(
     with pytest.raises(SystemExit):
         with patch.object(RunSql, "apply_indexes", side_effect=KeyError):
             load_main(test_args)
+
+@pytest.mark.parametrize(
+        "met_data_dir, met_tool, expected_counts, local_infile",
+        [
+        (
+            POINT_STAT_DATA_DIR,
+            "point_stat",
+            {
+                "line_data_vcnt": 1,
+                "line_data_fho": 24,
+                "line_data_cts": 24,
+                "line_data_ctc": 24,
+                "line_data_cnt": 10,
+                "line_data_vl1l2": 1,
+            },
+            'false',
+        ),
+        (
+            POINT_STAT_DATA_DIR,
+            "point_stat",
+            {
+                "line_data_vcnt": 1,
+                "line_data_fho": 24,
+                "line_data_cts": 24,
+                "line_data_ctc": 24,
+                "line_data_cnt": 10,
+                "line_data_vl1l2": 1,
+            },
+            'true',
+        ),
+        (
+            MTD_DATA_DIR,
+            "mtd",
+            {
+                "mtd_2d_obj": 278,
+                "mtd_3d_obj_single": 8,
+            },
+            'false',
+        ),
+        (
+        MTD_DATA_DIR,
+            "mtd",
+            {
+                "mtd_2d_obj": 278,
+                "mtd_3d_obj_single": 8,
+            },
+            'true',
+        ),
+        ],
+)
+def test_local_in_file(emptyDB, testRunSql, tmp_path, met_data_dir, met_tool, expected_counts, local_infile):
+    """check we get the same result when local_file is on or off"""
+
+    test_args = dict_to_args(
+        {
+            "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool, local_infile=local_infile)),
+            "index": "false",
+            "tmpdir": [str(tmp_path)],
+        }
+    )
+
+    load_main(test_args)
+
+    for table, expected_count in expected_counts.items():
+        assert_count_rows(testRunSql.cur, table, expected_count)

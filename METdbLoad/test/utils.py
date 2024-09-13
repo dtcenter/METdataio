@@ -14,6 +14,7 @@ MPR_DATA_DIR = abs_path("METreformat/test/data/mpr/climo_data")
 POINT_STAT_DATA_DIR = abs_path("METreformat/test/data/point_stat")
 TCDIAG_DATA_DIR = abs_path("METreformat/test/data/tcdiag_tcmpr")
 
+
 # This data is copied from MET test data
 # https://hub.docker.com/r/dtcenter/met-data-output
 MTD_DATA_DIR = abs_path("METdbLoad/test/data/mtd/")
@@ -21,6 +22,7 @@ MODE_DATA_DIR = abs_path("METdbLoad/test/data/mode/")
 
 # Very small data sample for testing
 VSDB_DATA_DIR = abs_path("METdbLoad/test/data/vsdb/")
+RHIST_DATA_DIR = abs_path("METdbLoad/test/data/rhist")
 
 DEFAULT_LOAD_FLAGS = {
     "stat_header_db_check": "true",
@@ -42,7 +44,7 @@ def _dict_to_xml(flags_dict):
     return "\n    ".join(flags)
 
 
-def populate_xml_load_spec(met_data_dir, met_tool, load_flags=DEFAULT_LOAD_FLAGS):
+def populate_xml_load_spec(met_data_dir, met_tool, load_flags=DEFAULT_LOAD_FLAGS, local_infile=True):
     """Return the xml load specification with substitute values.
 
     Args:
@@ -65,6 +67,7 @@ def populate_xml_load_spec(met_data_dir, met_tool, load_flags=DEFAULT_LOAD_FLAGS
         <database>mv_test</database>
         <user>root</user>
         <password>root_password</password>
+        <local_infile>{local_infile}</local_infile>
     </connection>
 
     <folder_tmpl>{met_data_dir}</folder_tmpl>
@@ -81,7 +84,7 @@ def populate_xml_load_spec(met_data_dir, met_tool, load_flags=DEFAULT_LOAD_FLAGS
     </load_spec>"""
 
 
-def get_xml_test_file(tmp_path, met_data_dir, met_tool, load_flags={}):
+def get_xml_test_file(tmp_path, met_data_dir, met_tool, load_flags={}, local_infile=True):
     """Write test_load_specification.xml and return path
 
     Args:
@@ -95,7 +98,7 @@ def get_xml_test_file(tmp_path, met_data_dir, met_tool, load_flags={}):
     """
     xml_path = tmp_path / "test_load_specification.xml"
     with open(xml_path, "w") as text_file:
-        text_file.write(populate_xml_load_spec(met_data_dir, met_tool, load_flags))
+        text_file.write(populate_xml_load_spec(met_data_dir, met_tool, load_flags, local_infile))
     return xml_path
 
 
