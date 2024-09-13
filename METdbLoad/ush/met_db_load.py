@@ -248,7 +248,7 @@ def main(args):
 
                 if (not file_data.mode_cts_data.empty) or (not file_data.mode_obj_data.empty):
                     cts_lines = WriteModeSql()
-                    
+
                     cts_lines.write_mode_data(xml_loadfile.flags,
                                               file_data.mode_cts_data,
                                               file_data.mode_obj_data,
