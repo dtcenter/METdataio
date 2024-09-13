@@ -50,9 +50,6 @@ def main(args):
     begin_time = str(datetime.now())
 
     # setup a logger for this module
-    
-    # Any loglevel set here will be overwirtten later if XML tag "verbose" is true.
-    #TODO: determine if we want to write to file instead of stout
     cli_loglevel = False
     if args.loglevel:
         loglevel = args.loglevel
@@ -322,8 +319,7 @@ def main(args):
             # move indices to the next set of files
             first_file, mid_file, last_file = next_set(mid_file, last_file)
 
-        except (RuntimeError, TypeError, NameError, KeyError) as e:
-            raise e
+        except (RuntimeError, TypeError, NameError, KeyError):
             logger.error("*** %s occurred in Main writing data ***", sys.exc_info()[0])
             sys.exit("*** Error when writing data to database")
 

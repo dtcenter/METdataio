@@ -23,6 +23,7 @@ import pandas as pd
 
 from METdbLoad.ush import constants as CN
 from METdbLoad.ush.run_sql import RunSql
+from METdbLoad.ush.met_db_load import DEFAULT_LOGLEVEL
 from METreformat.util import get_common_logger
 
 class WriteFileSql:
@@ -34,7 +35,7 @@ class WriteFileSql:
     def __init__(self, logger=None):
         self.sql_met = RunSql()
         if logger is None:
-            self.logger = get_common_logger('DEBUG', 'stdout')
+            self.logger = get_common_logger(DEFAULT_LOGLEVEL, 'stdout')
         else:
             self.logger = logger
 
