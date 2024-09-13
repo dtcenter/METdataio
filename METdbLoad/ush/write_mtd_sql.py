@@ -16,7 +16,6 @@ Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 # constants exist in constants.py
 
 import sys
-import logging
 import time
 from datetime import timedelta
 import pandas as pd
@@ -33,13 +32,13 @@ class WriteMtdSql:
     """
     @staticmethod
     def write_mtd_data(load_flags, m_2d_data, m_3d_single_data, m_3d_pair_data,
-                       tmp_dir, sql_cur, local_infile):
+                       tmp_dir, sql_cur, local_infile, logger):
         """ write mtd files to a SQL database.
             Returns:
                N/A
         """
 
-        logging.debug("[--- Start write_mtd_sql ---]")
+        logger.debug("[--- Start write_mtd_sql ---]")
 
         write_time_start = time.perf_counter()
 
@@ -78,7 +77,7 @@ class WriteMtdSql:
             mtd_headers[CN.MTD_HEADER_ID] = CN.NO_KEY
 
             # get the next valid MTD header id. Set it to zero (first valid id) if no records yet
-            next_header_id = sql_met.get_next_id(CN.MTD_HEADER, CN.MTD_HEADER_ID, sql_cur, logging)
+            next_header_id = sql_met.get_next_id(CN.MTD_HEADER, CN.MTD_HEADER_ID, sql_cur, logger)
 
             # if the flag is set to check for duplicate headers, get ids from existing headers
             if load_flags["mtd_header_db_check"]:
@@ -122,26 +121,26 @@ class WriteMtdSql:
             # get just the new headers with their keys
             new_headers = mtd_headers[mtd_headers[CN.MTD_HEADER_ID] > (next_header_id - 1)]
             new_headers.obs_valid = pd.to_datetime(new_headers.obs_valid, errors='coerce')
-            logging.info("New MTD headers: %s rows", str(len(new_headers.index)))
+            logger.info("New MTD headers: %s rows", str(len(new_headers.index)))
 
             # Write any new headers out to the sql database
             if not new_headers.empty:
                 # If there are any 2D revision files
                 if new_headers[CN.REVISION_ID].ne(CN.MV_NULL).any():
                     # numbered revision ids must have max revision id added to be unique
-                    next_rev_id = sql_met.get_next_id(CN.MTD_HEADER, CN.REVISION_ID, sql_cur, logging)
+                    next_rev_id = sql_met.get_next_id(CN.MTD_HEADER, CN.REVISION_ID, sql_cur, logger)
                     new_headers.loc[new_headers.revision_id != CN.MV_NULL, CN.REVISION_ID] = \
                         new_headers.loc[new_headers.revision_id != CN.MV_NULL, CN.REVISION_ID] + \
                         next_rev_id
                 new_headers.loc[new_headers.obs_valid.isnull(), CN.OBS_VALID] = CN.MV_NULL
                 sql_met.write_to_sql(new_headers, CN.MTD_HEADER_FIELDS, CN.MTD_HEADER,
-                                     CN.INS_MTDHEADER, tmp_dir, sql_cur, local_infile, logging)
+                                     CN.INS_MTDHEADER, tmp_dir, sql_cur, local_infile, logger)
                 new_headers = new_headers.iloc[0:0]
 
             mtd_headers.obs_valid = pd.to_datetime(mtd_headers.obs_valid, errors='coerce')
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in write_mtd_sql write MTD headers ***", sys.exc_info()[0])
+            logger.error("*** %s in write_mtd_sql write MTD headers ***", sys.exc_info()[0])
 
         try:
             # --------------------
@@ -180,7 +179,7 @@ class WriteMtdSql:
                                   CN.MATCHED_FLAG] = 1
 
                 sql_met.write_to_sql(m_2d_data, CN.MTD_2D_OBJ_FIELDS, CN.MTD_2D_T,
-                                     CN.INS_M2HEADER, tmp_dir, sql_cur, local_infile, logging)
+                                     CN.INS_M2HEADER, tmp_dir, sql_cur, local_infile, logger)
                 m_2d_data = m_2d_data.iloc[0:0]
 
             if not m_3d_single_data.empty:
@@ -218,7 +217,7 @@ class WriteMtdSql:
                                              CN.MATCHED_FLAG] = 1
 
                 sql_met.write_to_sql(m_3d_single_data, CN.MTD_3D_OBJ_SINGLE_FIELDS, CN.MTD_SINGLE_T,
-                                     CN.INS_M3SHEADER, tmp_dir, sql_cur, local_infile, logging)
+                                     CN.INS_M3SHEADER, tmp_dir, sql_cur, local_infile, logger)
                 m_3d_single_data = m_3d_single_data.iloc[0:0]
 
             if not m_3d_pair_data.empty:
@@ -249,15 +248,15 @@ class WriteMtdSql:
                                        CN.MATCHED_FLAG] = 1
 
                 sql_met.write_to_sql(m_3d_pair_data, CN.MTD_3D_OBJ_PAIR_FIELDS, CN.MTD_PAIR_T,
-                                     CN.INS_M3PHEADER, tmp_dir, sql_cur, local_infile, logging)
+                                     CN.INS_M3PHEADER, tmp_dir, sql_cur, local_infile, logger)
                 m_3d_pair_data = m_3d_pair_data.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in write_mtd_sql write line data ***", sys.exc_info()[0])
+            logger.error("*** %s in write_mtd_sql write line data ***", sys.exc_info()[0])
 
         write_time_end = time.perf_counter()
         write_time = timedelta(seconds=write_time_end - write_time_start)
 
-        logging.info("    >>> Write time MTD: %s", str(write_time))
+        logger.info("    >>> Write time MTD: %s", str(write_time))
 
-        logging.debug("[--- End write_mtd_sql ---]")
+        logger.debug("[--- End write_mtd_sql ---]")

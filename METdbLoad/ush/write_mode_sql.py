@@ -16,7 +16,6 @@ Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 # constants exist in constants.py
 
 import sys
-import logging
 import time
 from datetime import timedelta
 import pandas as pd
@@ -32,13 +31,13 @@ class WriteModeSql:
            N/A
     """
     @staticmethod
-    def write_mode_data(load_flags, cts_data, obj_data, tmp_dir, sql_cur, local_infile):
+    def write_mode_data(load_flags, cts_data, obj_data, tmp_dir, sql_cur, local_infile, logger):
         """ write mode files (cts and object) to a SQL database.
             Returns:
                N/A
         """
 
-        logging.debug("[--- Start write_mode_sql ---]")
+        logger.debug("[--- Start write_mode_sql ---]")
 
         write_time_start = time.perf_counter()
 
@@ -68,7 +67,7 @@ class WriteModeSql:
             mode_headers[CN.MODE_HEADER_ID] = CN.NO_KEY
 
             # get the next valid mode header id. Set it to zero (first valid id) if no records yet
-            next_header_id = sql_met.get_next_id(CN.MODE_HEADER, CN.MODE_HEADER_ID, sql_cur, logging)
+            next_header_id = sql_met.get_next_id(CN.MODE_HEADER, CN.MODE_HEADER_ID, sql_cur, logger)
 
             # if the flag is set to check for duplicate headers, get ids from existing headers
             if load_flags["mode_header_db_check"]:
@@ -102,12 +101,12 @@ class WriteModeSql:
 
             # get just the new headers with their keys
             new_headers = mode_headers[mode_headers[CN.MODE_HEADER_ID] > (next_header_id - 1)]
-            logging.info("New mode headers: %s rows", str(len(new_headers.index)))
+            logger.info("New mode headers: %s rows", str(len(new_headers.index)))
 
             # Write any new headers out to the sql database
             if not new_headers.empty:
                 sql_met.write_to_sql(new_headers, CN.MODE_HEADER_FIELDS, CN.MODE_HEADER,
-                                     CN.INS_MHEADER, tmp_dir, sql_cur, local_infile, logging)
+                                     CN.INS_MHEADER, tmp_dir, sql_cur, local_infile, logger)
                 new_headers = new_headers.iloc[0:0]
 
             # --------------------
@@ -121,7 +120,7 @@ class WriteModeSql:
                 cts_data = pd.merge(left=mode_headers, right=cts_data, on=CN.MODE_HEADER_KEYS)
 
                 sql_met.write_to_sql(cts_data, CN.MODE_CTS_FIELDS, CN.MODE_CTS_T,
-                                     CN.INS_CHEADER, tmp_dir, sql_cur, local_infile, logging)
+                                     CN.INS_CHEADER, tmp_dir, sql_cur, local_infile, logger)
                 cts_data = cts_data.iloc[0:0]
 
             if not obj_data.empty:
@@ -147,7 +146,7 @@ class WriteModeSql:
                 obj_data.reset_index(drop=True, inplace=True)
 
                 # get next valid mode object id. Set it to zero (first valid id) if no records yet
-                next_line_id = sql_met.get_next_id(CN.MODE_SINGLE_T, CN.MODE_OBJ_ID, sql_cur, logging)
+                next_line_id = sql_met.get_next_id(CN.MODE_SINGLE_T, CN.MODE_OBJ_ID, sql_cur, logger)
 
                 # create the mode_obj_ids using the dataframe index and next valid id
                 obj_data[CN.MODE_OBJ_ID] = obj_data.index + next_line_id
@@ -176,7 +175,7 @@ class WriteModeSql:
 
                 # write out the mode single objects
                 sql_met.write_to_sql(obj_data, CN.MODE_SINGLE_FIELDS, CN.MODE_SINGLE_T,
-                                     CN.INS_SHEADER, tmp_dir, sql_cur, local_infile, logging)
+                                     CN.INS_SHEADER, tmp_dir, sql_cur, local_infile, logger)
 
             if not all_pair.empty:
 
@@ -228,16 +227,15 @@ class WriteModeSql:
 
                 # write out the mode pair objects
                 sql_met.write_to_sql(all_pair, CN.MODE_PAIR_FIELDS, CN.MODE_PAIR_T,
-                                     CN.INS_PHEADER, tmp_dir, sql_cur, local_infile, logging)
+                                     CN.INS_PHEADER, tmp_dir, sql_cur, local_infile, logger)
                 all_pair = all_pair.iloc[0:0]
 
-        except (RuntimeError, TypeError, NameError, KeyError) as e:
-            raise e
-            logging.error("*** %s in write_mode_sql ***", sys.exc_info()[0])
+        except (RuntimeError, TypeError, NameError, KeyError):
+            logger.error("*** %s in write_mode_sql ***", sys.exc_info()[0])
 
         write_time_end = time.perf_counter()
         write_time = timedelta(seconds=write_time_end - write_time_start)
 
-        logging.info("    >>> Write time Mode: %s", str(write_time))
+        logger.info("    >>> Write time Mode: %s", str(write_time))
 
-        logging.debug("[--- End write_mode_sql ---]")
+        logger.debug("[--- End write_mode_sql ---]")

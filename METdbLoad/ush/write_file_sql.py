@@ -16,16 +16,14 @@ Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 # constants exist in constants.py
 
 import sys
-import logging
 import time
 from datetime import timedelta
 import getpass
 import pandas as pd
 
 from METdbLoad.ush import constants as CN
-
 from METdbLoad.ush.run_sql import RunSql
-
+from METreformat.util import get_common_logger
 
 class WriteFileSql:
     """ Class to write data_file records to a SQL database
@@ -33,8 +31,12 @@ class WriteFileSql:
            N/A
     """
 
-    def __init__(self):
+    def __init__(self, logger=None):
         self.sql_met = RunSql()
+        if logger is None:
+            self.logger = get_common_logger('DEBUG', 'stdout')
+        else:
+            self.logger = logger
 
     def write_file_sql(self, load_flags, data_files, stat_data, mode_cts_data,
                        mode_obj_data, tcst_data, mtd_2d_data, mtd_3d_single_data,
@@ -44,7 +46,7 @@ class WriteFileSql:
                N/A
         """
 
-        logging.debug("[--- Start write_file_sql ---]")
+        self.logger.debug("[--- Start write_file_sql ---]")
 
         write_time_start = time.perf_counter()
 
@@ -55,7 +57,7 @@ class WriteFileSql:
             # --------------------
 
             # get next valid data file id. data files start counting from 1
-            next_file_id = self.sql_met.get_next_id(CN.DATA_FILE, CN.DATA_FILE_ID, sql_cur, logging)
+            next_file_id = self.sql_met.get_next_id(CN.DATA_FILE, CN.DATA_FILE_ID, sql_cur, self.logger)
             if next_file_id == 0:
                 next_file_id = 1
 
@@ -73,12 +75,12 @@ class WriteFileSql:
                 if sql_cur.rowcount > 0:
                     list_dupes = list_dupes + [file_line[CN.FILE_ROW]]
                     if not load_flags['force_dup_file']:
-                        logging.warning("!!! Duplicate file %s without FORCE_DUP_FILE tag",
+                        self.logger.warning("!!! Duplicate file %s without FORCE_DUP_FILE tag",
                                         file_line[CN.FULL_FILE])
                     else:
                         # With duplicate files allowed, save the existing id for the file
                         data_files.loc[data_files.index[row_num], CN.DATA_FILE_ID] = result[0]
-                        logging.warning("Duplicate file %s already in data_file",
+                        self.logger.warning("Duplicate file %s already in data_file",
                                         file_line[CN.FULL_FILE])
                 # Not a duplicate - give it a new id
                 else:
@@ -170,17 +172,17 @@ class WriteFileSql:
                 if not new_files.empty:
                     self.sql_met.write_to_sql(new_files, CN.DATA_FILE_FIELDS, CN.DATA_FILE,
                                               CN.INS_DATA_FILES, tmp_dir, sql_cur, local_infile,
-                                              logging)
+                                              self.logger)
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in write_file_sql ***", sys.exc_info()[0])
+            self.logger.error("*** %s in write_file_sql ***", sys.exc_info()[0])
 
         write_time_end = time.perf_counter()
         write_time = timedelta(seconds=write_time_end - write_time_start)
 
-        logging.info("    >>> Write time File: %s", str(write_time))
+        self.logger.info("    >>> Write time File: %s", str(write_time))
 
-        logging.debug("[--- End write_file_sql ---]")
+        self.logger.debug("[--- End write_file_sql ---]")
 
         return data_files, stat_data, mode_cts_data, mode_obj_data, tcst_data, \
             mtd_2d_data, mtd_3d_single_data, mtd_3d_pair_data
@@ -192,7 +194,7 @@ class WriteFileSql:
                N/A
         """
 
-        logging.debug("[--- Start write_metadata_sql ---]")
+        self.logger.debug("[--- Start write_metadata_sql ---]")
 
         write_time_start = time.perf_counter()
 
@@ -216,7 +218,7 @@ class WriteFileSql:
                     new_metadata = pd.DataFrame([[group, description]],
                                                 columns=['category', 'description'])
                     self.sql_met.write_to_sql(new_metadata, ['category', 'description'], 'metadata',
-                                              CN.INS_METADATA, tmp_dir, sql_cur, local_infile, logging)
+                                              CN.INS_METADATA, tmp_dir, sql_cur, local_infile, self.logger)
 
             # --------------------
             # Write Instance Info
@@ -225,16 +227,16 @@ class WriteFileSql:
             if load_flags['load_xml'] and not data_files.empty:
                 update_date = data_files[CN.LOAD_DATE].iloc[0]
                 next_instance_id = self.sql_met.get_next_id(CN.INSTANCE_INFO, CN.INSTANCE_INFO_ID,
-                                                            sql_cur, logging)
+                                                            sql_cur, self.logger)
                 sql_cur.execute(CN.INS_INSTANCE, [next_instance_id, getpass.getuser(), update_date,
                                                   load_note, xml_str])
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in write_metadata_sql ***", sys.exc_info()[0])
+            self.logger.error("*** %s in write_metadata_sql ***", sys.exc_info()[0])
 
         write_time_end = time.perf_counter()
         write_time = timedelta(seconds=write_time_end - write_time_start)
 
-        logging.info("    >>> Write time Metadata: %s", str(write_time))
+        self.logger.info("    >>> Write time Metadata: %s", str(write_time))
 
-        logging.debug("[--- End write_metadata_sql ---]")
+        self.logger.debug("[--- End write_metadata_sql ---]")

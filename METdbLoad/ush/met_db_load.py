@@ -261,7 +261,8 @@ def main(args):
                                                file_data.stat_data,
                                                tmp_dir,
                                                sql_run.cur,
-                                               sql_run.local_infile)
+                                               sql_run.local_infile,
+                                               logger)
 
                 if (not file_data.mode_cts_data.empty) or (not file_data.mode_obj_data.empty):
                     cts_lines = WriteModeSql()
@@ -271,7 +272,8 @@ def main(args):
                                               file_data.mode_obj_data,
                                               tmp_dir,
                                               sql_run.cur,
-                                              sql_run.local_infile)
+                                              sql_run.local_infile,
+                                              logger)
 
                 if not file_data.tcst_data.empty:
                     tcst_lines = WriteTcstSql()
@@ -280,7 +282,8 @@ def main(args):
                                                file_data.tcst_data,
                                                tmp_dir,
                                                sql_run.cur,
-                                               sql_run.local_infile)
+                                               sql_run.local_infile,
+                                               logger)
 
                 if (not file_data.mtd_2d_data.empty) or (not file_data.mtd_3d_single_data.empty) \
                         or (not file_data.mtd_3d_pair_data.empty):
@@ -292,7 +295,8 @@ def main(args):
                                              file_data.mtd_3d_pair_data,
                                              tmp_dir,
                                              sql_run.cur,
-                                             sql_run.local_infile)
+                                             sql_run.local_infile,
+                                             logger)
 
                 # Processing for the last set of data
                 if mid_file >= last_file:

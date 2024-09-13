@@ -17,7 +17,6 @@ Copyright 2019 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 
 import sys
 import os
-import logging
 import time
 from datetime import timedelta
 import pymysql
