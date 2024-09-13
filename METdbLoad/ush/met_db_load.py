@@ -36,10 +36,9 @@ from METdbLoad.ush.write_stat_sql import WriteStatSql
 from METdbLoad.ush.write_mode_sql import WriteModeSql
 from METdbLoad.ush.write_tcst_sql import WriteTcstSql
 from METdbLoad.ush.write_mtd_sql import WriteMtdSql
+from METdbLoad.ush import DEFAULT_LOGLEVEL
 
 from METreformat.util import get_common_logger
-
-DEFAULT_LOGLEVEL = "INFO"
 
 def main(args):
     """ Main program to load files into the METdataio/METviewer database
@@ -48,7 +47,6 @@ def main(args):
     """
     # use the current date/time for logger
     begin_time = str(datetime.now())
-
     # setup a logger for this module
     cli_loglevel = False
     if args.loglevel:

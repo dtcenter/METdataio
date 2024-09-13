@@ -22,7 +22,7 @@ from datetime import timedelta
 import pymysql
 
 from METdbLoad.ush import constants as CN
-from METdbLoad.ush.met_db_load import DEFAULT_LOGLEVEL
+from METdbLoad.ush import DEFAULT_LOGLEVEL
 from METreformat.util import get_common_logger
 
 class RunSql:

@@ -23,7 +23,7 @@ import pandas as pd
 
 from METdbLoad.ush import constants as CN
 from METdbLoad.ush.run_sql import RunSql
-from METdbLoad.ush.met_db_load import DEFAULT_LOGLEVEL
+from METdbLoad.ush import DEFAULT_LOGLEVEL
 from METreformat.util import get_common_logger
 
 class WriteFileSql:
