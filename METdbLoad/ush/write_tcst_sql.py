@@ -62,7 +62,7 @@ class WriteTcstSql:
             tcst_headers[CN.TCST_HEADER_ID] = CN.NO_KEY
 
             # get the next valid tcst header id. Set it to zero (first valid id) if no records yet
-            next_header_id = sql_met.get_next_id(CN.TCST_HEADER, CN.TCST_HEADER_ID, sql_cur)
+            next_header_id = sql_met.get_next_id(CN.TCST_HEADER, CN.TCST_HEADER_ID, sql_cur, logging)
 
             # if the flag is set to check for duplicate headers, get ids from existing headers
             if load_flags["tcst_header_db_check"]:
@@ -90,7 +90,7 @@ class WriteTcstSql:
             # Write any new headers out to the sql database
             if not new_headers.empty:
                 sql_met.write_to_sql(new_headers, CN.TCST_HEADER_FIELDS, CN.TCST_HEADER,
-                                     CN.INS_HEADER_TCST, tmp_dir, sql_cur, local_infile)
+                                     CN.INS_HEADER_TCST, tmp_dir, sql_cur, local_infile, logging)
 
             # put the header ids back into the dataframe of all the line data
             tcst_data = pd.merge(left=tcst_data, right=tcst_headers, on=CN.TCST_HEADER_KEYS[1:])
@@ -141,7 +141,7 @@ class WriteTcstSql:
                 if line_type in CN.VAR_LINE_TYPES_TCST:
                     # Get next valid line data id. Set it to zero (first valid id) if no records yet
                     next_line_id = \
-                        sql_met.get_next_id(line_table, CN.LINE_DATA_ID, sql_cur)
+                        sql_met.get_next_id(line_table, CN.LINE_DATA_ID, sql_cur, logging)
                     logging.debug("next_line_id is %s", next_line_id)
 
                     # try to keep order the same as MVLoad
@@ -184,7 +184,7 @@ class WriteTcstSql:
                 # write the lines out to a CSV file, and then load them into database
                 if not line_data.empty:
                     sql_met.write_to_sql(line_data, CN.LINE_DATA_COLS_TCST[line_type], line_table,
-                                         CN.LINE_DATA_Q[line_type], tmp_dir, sql_cur, local_infile)
+                                         CN.LINE_DATA_Q[line_type], tmp_dir, sql_cur, local_infile, logging)
                     line_data = line_data.iloc[0:0]
 
                 # if there are variable length records, write them out also
@@ -193,7 +193,7 @@ class WriteTcstSql:
                     sql_met.write_to_sql(all_var, CN.LINE_DATA_VAR_FIELDS[line_type],
                                          CN.LINE_DATA_VAR_TABLES[line_type],
                                          CN.LINE_DATA_VAR_Q[line_type],
-                                         tmp_dir, sql_cur, local_infile)
+                                         tmp_dir, sql_cur, local_infile, logging)
                     all_var = all_var.iloc[0:0]
 
             # end for line_type

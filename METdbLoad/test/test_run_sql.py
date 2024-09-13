@@ -21,22 +21,23 @@ def populate_some_data(
             ),
             "index": "true",
             "tmpdir": [str(tmp_path)],
+            "loglevel": "DEBUG"
         }
     )
     load_main(test_args)
 
 
-def test_get_file_name(tmp_path, emptyDB, testRunSql):
-    file_name = testRunSql.get_file_name(1, testRunSql.cur)
+def test_get_file_name(tmp_path, emptyDB, testRunSql, mock_logger):
+    file_name = testRunSql.get_file_name(1, testRunSql.cur, mock_logger)
     assert file_name == None
 
     populate_some_data(tmp_path)
 
-    file_name = testRunSql.get_file_name(1, testRunSql.cur)
+    file_name = testRunSql.get_file_name(1, testRunSql.cur, mock_logger)
     assert file_name == "grid_stat_GTG_latlon_060000L_20130827_180000V.stat"
 
     # check for a nonexistant id
-    file_name = testRunSql.get_file_name(9999999, testRunSql.cur)
+    file_name = testRunSql.get_file_name(9999999, testRunSql.cur, mock_logger)
     assert file_name == None
 
 
@@ -47,10 +48,10 @@ def test_get_file_name(tmp_path, emptyDB, testRunSql):
         [False, CN.CREATE_INDEXES_QUERIES],
     ),
 )
-def test_apply_indexes(testRunSql, drop, cmds):
+def test_apply_indexes(testRunSql, drop, cmds, mock_logger):
 
     mock_cursor = mock.MagicMock()
-    testRunSql.apply_indexes(drop, mock_cursor)
+    testRunSql.apply_indexes(drop, mock_cursor, mock_logger)
 
     # Check the correct commands were executed
     assert len(mock_cursor.execute.call_args_list) == len(cmds)
@@ -59,4 +60,4 @@ def test_apply_indexes(testRunSql, drop, cmds):
 
     # check no exception is raised on pymysql error
     mock_cursor.execute.side_effect = OperationalError
-    testRunSql.apply_indexes(drop, mock_cursor)
+    testRunSql.apply_indexes(drop, mock_cursor, mock_logger)

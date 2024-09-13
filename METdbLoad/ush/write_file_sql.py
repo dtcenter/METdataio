@@ -55,7 +55,7 @@ class WriteFileSql:
             # --------------------
 
             # get next valid data file id. data files start counting from 1
-            next_file_id = self.sql_met.get_next_id(CN.DATA_FILE, CN.DATA_FILE_ID, sql_cur)
+            next_file_id = self.sql_met.get_next_id(CN.DATA_FILE, CN.DATA_FILE_ID, sql_cur, logging)
             if next_file_id == 0:
                 next_file_id = 1
 
@@ -169,7 +169,8 @@ class WriteFileSql:
                 # write the new data files out to the sql database
                 if not new_files.empty:
                     self.sql_met.write_to_sql(new_files, CN.DATA_FILE_FIELDS, CN.DATA_FILE,
-                                              CN.INS_DATA_FILES, tmp_dir, sql_cur, local_infile)
+                                              CN.INS_DATA_FILES, tmp_dir, sql_cur, local_infile,
+                                              logging)
 
         except (RuntimeError, TypeError, NameError, KeyError):
             logging.error("*** %s in write_file_sql ***", sys.exc_info()[0])
@@ -215,7 +216,7 @@ class WriteFileSql:
                     new_metadata = pd.DataFrame([[group, description]],
                                                 columns=['category', 'description'])
                     self.sql_met.write_to_sql(new_metadata, ['category', 'description'], 'metadata',
-                                              CN.INS_METADATA, tmp_dir, sql_cur, local_infile)
+                                              CN.INS_METADATA, tmp_dir, sql_cur, local_infile, logging)
 
             # --------------------
             # Write Instance Info
@@ -224,7 +225,7 @@ class WriteFileSql:
             if load_flags['load_xml'] and not data_files.empty:
                 update_date = data_files[CN.LOAD_DATE].iloc[0]
                 next_instance_id = self.sql_met.get_next_id(CN.INSTANCE_INFO, CN.INSTANCE_INFO_ID,
-                                                            sql_cur)
+                                                            sql_cur, logging)
                 sql_cur.execute(CN.INS_INSTANCE, [next_instance_id, getpass.getuser(), update_date,
                                                   load_note, xml_str])
 

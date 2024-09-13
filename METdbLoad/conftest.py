@@ -3,6 +3,7 @@ import sys
 import os
 import pymysql
 from pathlib import Path
+from unittest.mock import MagicMock
 
 from METdataio.METdbLoad.ush.run_sql import RunSql
 from METdataio.METdbLoad.test.utils import (
@@ -124,3 +125,8 @@ def get_xml_loadfile():
         return XML_LOADFILE
 
     return load_and_read_xml
+
+
+@pytest.fixture
+def mock_logger():
+    return MagicMock()

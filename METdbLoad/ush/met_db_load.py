@@ -19,7 +19,6 @@ Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 
 
 import argparse
-import logging
 import time
 from datetime import datetime
 from datetime import timedelta
@@ -40,6 +39,8 @@ from METdbLoad.ush.write_mtd_sql import WriteMtdSql
 
 from METreformat.util import get_common_logger
 
+DEFAULT_LOGLEVEL = "INFO"
+
 def main(args):
     """ Main program to load files into the METdataio/METviewer database
         Returns:
@@ -52,7 +53,20 @@ def main(args):
     
     # Any loglevel set here will be overwirtten later if XML tag "verbose" is true.
     #TODO: determine if we want to write to file instead of stout
-    logger =  get_common_logger(args.loglevel, 'stdout')
+    cli_loglevel = False
+    if args.loglevel:
+        loglevel = args.loglevel
+        cli_loglevel = True
+    else:
+        loglevel = DEFAULT_LOGLEVEL
+
+    # Get the common logger
+    logger =  get_common_logger(loglevel, 'stdout')
+
+    if cli_loglevel:
+        logger.info(f"Loglevel set to {loglevel} from command line.")
+    else:
+        logger.info(f"Loglevel not supplied. Setting to default: {loglevel}. This may be overwritten by XML loadfile.")
 
     # Print the METdbload version from the docs folder
     print_version(logger)
@@ -76,7 +90,7 @@ def main(args):
         logger.debug("XML filename is %s", args.xmlfile)
 
         # instantiate a load_spec XML file
-        xml_loadfile = XmlLoadFile(args.xmlfile)
+        xml_loadfile = XmlLoadFile(args.xmlfile, logger=logger)
 
         # read in the XML file and get the information out of its tags
         xml_loadfile.read_xml()
@@ -98,9 +112,9 @@ def main(args):
         logger.error("*** %s occurred in Main accessing tmp dir ***", sys.exc_info()[0])
         sys.exit("*** Error accessing tmp dir")
 
-    # If XML tag verbose is set to True, change logger to debug level
-    # Note this overrides any CLI supplied level.
-    if xml_loadfile.flags["verbose"]:
+    # If XML tag verbose is set to True, change logger to debug level unless already
+    # supplied via the cli.
+    if xml_loadfile.flags["verbose"] and not cli_loglevel:
         logger.setLevel("DEBUG")
 
     #
@@ -111,7 +125,7 @@ def main(args):
             if xml_loadfile.connection['db_management_system'] in CN.RELATIONAL:
                 sql_run = RunSql()
                 sql_run.sql_on(xml_loadfile.connection)
-                sql_run.apply_indexes(False, sql_run.cur)
+                sql_run.apply_indexes(False, sql_run.cur, logger)
                 logger.debug("-index is true - only process index")
                 if sql_run.conn.open:
                     sql_run.sql_off(sql_run.conn, sql_run.cur)
@@ -202,7 +216,7 @@ def main(args):
 
                     #  if drop_indexes is set to true, drop the indexes
                     if xml_loadfile.flags["drop_indexes"]:
-                        sql_run.apply_indexes(True, sql_run.cur)
+                        sql_run.apply_indexes(True, sql_run.cur, logger)
 
                 # write the data file records out. put data file ids into other dataframes
                 write_file = WriteFileSql()
@@ -296,7 +310,7 @@ def main(args):
 
                     #  if apply_indexes is set to true, load the indexes
                     if xml_loadfile.flags["apply_indexes"]:
-                        sql_run.apply_indexes(False, sql_run.cur)
+                        sql_run.apply_indexes(False, sql_run.cur, logger)
 
                     if sql_run.conn.open:
                         sql_run.sql_off(sql_run.conn, sql_run.cur)
@@ -304,7 +318,8 @@ def main(args):
             # move indices to the next set of files
             first_file, mid_file, last_file = next_set(mid_file, last_file)
 
-        except (RuntimeError, TypeError, NameError, KeyError):
+        except (RuntimeError, TypeError, NameError, KeyError) as e:
+            raise e
             logger.error("*** %s occurred in Main writing data ***", sys.exc_info()[0])
             sys.exit("*** Error when writing data to database")
 
@@ -405,7 +420,7 @@ if __name__ == '__main__':
     parser.add_argument("-index", action="store_true", help="Only process index, do not load data")
     parser.add_argument("tmpdir", nargs='*', default=tmp_dir,
                         help="Optional - when different directory wanted for tmp file")
-    parser.add_argument("--loglevel", default="INFO", type=str, choices={"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"},
+    parser.add_argument("--loglevel", default=None, type=str, choices={"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"},
                         help="Optional - specify log level. One of: DEBUG, INFO, WARNING, ERROR, CRITICAL.")
     # get the command line arguments
     args = parser.parse_args()
