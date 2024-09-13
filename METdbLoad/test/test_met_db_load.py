@@ -29,87 +29,92 @@ def assert_count_rows(cur, table, expected_count):
 @pytest.mark.parametrize(
     "met_data_dir, met_tool, expected_counts",
     [
-        # (
-        #     POINT_STAT_DATA_DIR,
-        #     "point_stat",
-        #     {
-        #         "line_data_vcnt": 1,
-        #         "line_data_fho": 24,
-        #         "line_data_cts": 24,
-        #         "line_data_ctc": 24,
-        #         "line_data_cnt": 10,
-        #         "line_data_vl1l2": 1,
-        #     },
-        # ),
-        # (
-        #     ENSEMBLE_STAT_DATA_DIR,
-        #     "ensemble_stat",
-        #     {
-        #         "line_data_orank": 1426,
-        #         "line_data_phist_bin": 180,
-        #         "line_data_rhist_rank": 84,
-        #         "line_data_phist": 9,
-        #     },
-        # ),
-        # (
-        #     GRID_STAT_DATA_DIR,
-        #     "grid_stat",
-        #     {
-        #         "line_data_eclv": 9,
-        #         "line_data_fho": 9,
-        #         "line_data_eclv_pnt": 171,
-        #         "line_data_cts": 9,
-        #         "line_data_ctc": 9,
-        #         "line_data_cnt": 3,
-        #     },
-        # ),
-        # (
-        #     MPR_DATA_DIR,
-        #     "grid_stat",
-        #     {
-        #         "line_data_mpr": 1386,
-        #     },
-        # ),
-        # (
-        #     TCDIAG_DATA_DIR,
-        #     "tc_diag",
-        #     {
-        #         "line_data_tcmpr": 703,
-        #         "line_data_tcdiag_diag": 592,
-        #         "line_data_tcdiag": 168,
-        #     },
-        # ),
-        # (
-        #     MTD_DATA_DIR,
-        #     "mtd",
-        #     {
-        #         "mtd_2d_obj": 278,
-        #         "mtd_3d_obj_single": 8,
-        #     },
-        # ),
-        # (
-        #     MODE_DATA_DIR,
-        #     "mtd",
-        #     {
-        #         "mode_cts": 2,
-        #         "mode_obj_pair": 5,
-        #         "mode_obj_single": 6,
-        #     },
-        # ),
-        # (
-        #     VSDB_DATA_DIR,
-        #     "vsdb",
-        #     {
-        #         "line_data_ctc": 19,
-        #         "line_data_sl1l2": 5,
-        #     },
-        # ),
+        (
+            POINT_STAT_DATA_DIR,
+            "point_stat",
+            {
+                "line_data_vcnt": 1,
+                "line_data_fho": 24,
+                "line_data_cts": 24,
+                "line_data_ctc": 24,
+                "line_data_cnt": 10,
+                "line_data_vl1l2": 1,
+            },
+        ),
+        (
+            ENSEMBLE_STAT_DATA_DIR,
+            "ensemble_stat",
+            {
+                "line_data_orank": 1426,
+                "line_data_phist_bin": 180,
+                "line_data_rhist_rank": 84,
+                "line_data_phist": 9,
+            },
+        ),
+        (
+            GRID_STAT_DATA_DIR,
+            "grid_stat",
+            {
+                "line_data_eclv": 9,
+                "line_data_fho": 9,
+                "line_data_eclv_pnt": 171,
+                "line_data_cts": 9,
+                "line_data_ctc": 9,
+                "line_data_cnt": 3,
+            },
+        ),
+        (
+            MPR_DATA_DIR,
+            "grid_stat",
+            {
+                "line_data_mpr": 1386,
+            },
+        ),
+        (
+            TCDIAG_DATA_DIR,
+            "tc_diag",
+            {
+                "line_data_tcmpr": 703,
+                "line_data_tcdiag_diag": 592,
+                "line_data_tcdiag": 168,
+            },
+        ),
+        (
+            MTD_DATA_DIR,
+            "mtd",
+            {
+                "mtd_2d_obj": 278,
+                "mtd_3d_obj_single": 8,
+            },
+        ),
+        (
+            MODE_DATA_DIR,
+            "mtd",
+            {
+                "mode_cts": 2,
+                "mode_obj_pair": 5,
+                "mode_obj_single": 6,
+            },
+        ),
+        (
+            VSDB_DATA_DIR,
+            "vsdb",
+            {
+                "line_data_ctc": 19,
+                "line_data_sl1l2": 5,
+            },
+        ),
         (
             RHIST_DATA_DIR,
             "ensemble_stat",
                         {
-                "line_data_ctc": 19,
-                "line_data_sl1l2": 5,
+                "line_data_rhist": 2,
+                "line_data_rhist_rank":22,
+                "line_data_phist": 2,
+                "line_data_phist_bin": 40,
+                "line_data_ecnt": 2,
+                "line_data_relp": 2,
+                "line_data_relp_ens": 20,
             },
         ),
     ],
@@ -228,7 +233,7 @@ def test_met_db_indexes(
         ],
 )
 def test_local_in_file(emptyDB, testRunSql, tmp_path, met_data_dir, met_tool, expected_counts, local_infile):
-    # check we get the same result when local_file is on or off
+    """check we get the same result when local_file is on or off"""
 
     test_args = dict_to_args(
         {

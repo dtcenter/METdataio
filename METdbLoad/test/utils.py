@@ -13,7 +13,7 @@ GRID_STAT_DATA_DIR = abs_path("METreformat/test/data/grid_stat/mctc_mcts")
 MPR_DATA_DIR = abs_path("METreformat/test/data/mpr/climo_data")
 POINT_STAT_DATA_DIR = abs_path("METreformat/test/data/point_stat")
 TCDIAG_DATA_DIR = abs_path("METreformat/test/data/tcdiag_tcmpr")
-RHIST_DATA_DIR = abs_path("METreformat/test/data/rhist_phist_relp_orank")
+
 
 # This data is copied from MET test data
 # https://hub.docker.com/r/dtcenter/met-data-output
@@ -22,6 +22,7 @@ MODE_DATA_DIR = abs_path("METdbLoad/test/data/mode/")
 
 # Very small data sample for testing
 VSDB_DATA_DIR = abs_path("METdbLoad/test/data/vsdb/")
+RHIST_DATA_DIR = abs_path("METdbLoad/test/data/rhist")
 
 DEFAULT_LOAD_FLAGS = {
     "stat_header_db_check": "true",
