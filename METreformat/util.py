@@ -42,7 +42,7 @@ def get_common_logger(log_level, log_filename):
                   'WARNING': logging.WARNING, 'ERROR': logging.ERROR,
                   'CRITICAL': logging.CRITICAL}
 
-    msg_fmt = '%(asctime)s||%(filename)s: %(funcName)s|| [%(levelname)s]: %(message)s'
+    msg_fmt = '%(asctime)s||%(user)s||%(filename)s: %(funcName)s|| [%(levelname)s]: %(message)s'
     date_fmt = '%Y%m%d %H:%M:%S'
 
     if log_filename.lower() == 'stdout':
