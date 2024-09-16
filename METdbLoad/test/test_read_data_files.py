@@ -42,7 +42,7 @@ def test_mtd_loads(tmp_path, get_xml_loadfile):
     )
 
     # number of files
-    assert len(XML_LOADFILE.load_files) == 2
+    assert len(XML_LOADFILE.load_files) == 3
     # number of lines of data
     assert FILE_DATA.mtd_2d_data.shape == (278, 43)
     assert FILE_DATA.mtd_3d_single_data.shape == (8, 48)
