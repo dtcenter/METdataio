@@ -18,7 +18,6 @@ Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 import sys
 import os
 from pathlib import Path
-import logging
 import time
 from datetime import timedelta
 from datetime import datetime

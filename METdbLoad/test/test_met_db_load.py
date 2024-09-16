@@ -133,6 +133,7 @@ def test_met_db_table_counts(
             "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool)),
             "index": "true",
             "tmpdir": [str(tmp_path)],
+            "loglevel": None,
         }
     )
 
@@ -160,6 +161,7 @@ def test_met_db_indexes(
             ),
             "index": "false",
             "tmpdir": [str(tmp_path)],
+            "loglevel": None
         }
     )
 
@@ -240,6 +242,7 @@ def test_local_in_file(emptyDB, testRunSql, tmp_path, met_data_dir, met_tool, ex
             "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool, local_infile=local_infile)),
             "index": "false",
             "tmpdir": [str(tmp_path)],
+            "loglevel": None,
         }
     )
 

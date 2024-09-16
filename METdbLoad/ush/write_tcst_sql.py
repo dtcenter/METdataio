@@ -17,7 +17,6 @@ Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 
 
 import sys
-import logging
 import time
 from datetime import timedelta
 import pandas as pd
@@ -34,13 +33,13 @@ class WriteTcstSql:
     """
 
     @staticmethod
-    def write_tcst_data(load_flags, tcst_data, tmp_dir, sql_cur, local_infile):
+    def write_tcst_data(load_flags, tcst_data, tmp_dir, sql_cur, local_infile, logger):
         """ write tcst files to a SQL database.
             Returns:
                N/A
         """
 
-        logging.debug("[--- Start write_tcst_data ---]")
+        logger.debug("[--- Start write_tcst_data ---]")
 
         write_time_start = time.perf_counter()
 
@@ -62,7 +61,7 @@ class WriteTcstSql:
             tcst_headers[CN.TCST_HEADER_ID] = CN.NO_KEY
 
             # get the next valid tcst header id. Set it to zero (first valid id) if no records yet
-            next_header_id = sql_met.get_next_id(CN.TCST_HEADER, CN.TCST_HEADER_ID, sql_cur)
+            next_header_id = sql_met.get_next_id(CN.TCST_HEADER, CN.TCST_HEADER_ID, sql_cur, logger)
 
             # if the flag is set to check for duplicate headers, get ids from existing headers
             if load_flags["tcst_header_db_check"]:
@@ -85,12 +84,12 @@ class WriteTcstSql:
 
             # get just the new headers with their keys
             new_headers = tcst_headers[tcst_headers[CN.TCST_HEADER_ID] > (next_header_id - 1)]
-            logging.info("New headers: %s rows", str(len(new_headers.index)))
+            logger.info("New headers: %s rows", str(len(new_headers.index)))
 
             # Write any new headers out to the sql database
             if not new_headers.empty:
                 sql_met.write_to_sql(new_headers, CN.TCST_HEADER_FIELDS, CN.TCST_HEADER,
-                                     CN.INS_HEADER_TCST, tmp_dir, sql_cur, local_infile)
+                                     CN.INS_HEADER_TCST, tmp_dir, sql_cur, local_infile, logger)
 
             # put the header ids back into the dataframe of all the line data
             tcst_data = pd.merge(left=tcst_data, right=tcst_headers, on=CN.TCST_HEADER_KEYS[1:])
@@ -102,7 +101,7 @@ class WriteTcstSql:
             new_headers = new_headers.iloc[0:0]
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in write_tcst_data write tcst headers ***", sys.exc_info()[0])
+            logger.error("*** %s in write_tcst_data write tcst headers ***", sys.exc_info()[0])
 
         try:
 
@@ -126,7 +125,7 @@ class WriteTcstSql:
                 # get the line data of just this type and re-index
                 line_data = tcst_data[tcst_data[CN.LINE_TYPE] == line_type].copy()
                 line_data.reset_index(drop=True, inplace=True)
-                logging.info("%s: %s rows", line_type, str(len(line_data.index)))
+                logger.info("%s: %s rows", line_type, str(len(line_data.index)))
 
                 # change all Not Available numerical values to METviewer not available (-9999)
                 # replace adepth and bdepth NA -> X
@@ -141,8 +140,8 @@ class WriteTcstSql:
                 if line_type in CN.VAR_LINE_TYPES_TCST:
                     # Get next valid line data id. Set it to zero (first valid id) if no records yet
                     next_line_id = \
-                        sql_met.get_next_id(line_table, CN.LINE_DATA_ID, sql_cur)
-                    logging.debug("next_line_id is %s", next_line_id)
+                        sql_met.get_next_id(line_table, CN.LINE_DATA_ID, sql_cur, logger)
+                    logger.debug("next_line_id is %s", next_line_id)
 
                     # try to keep order the same as MVLoad
                     line_data = line_data.sort_values(by=[CN.DATA_FILE_ID, CN.LINE_NUM],
@@ -184,7 +183,7 @@ class WriteTcstSql:
                 # write the lines out to a CSV file, and then load them into database
                 if not line_data.empty:
                     sql_met.write_to_sql(line_data, CN.LINE_DATA_COLS_TCST[line_type], line_table,
-                                         CN.LINE_DATA_Q[line_type], tmp_dir, sql_cur, local_infile)
+                                         CN.LINE_DATA_Q[line_type], tmp_dir, sql_cur, local_infile, logger)
                     line_data = line_data.iloc[0:0]
 
                 # if there are variable length records, write them out also
@@ -193,17 +192,17 @@ class WriteTcstSql:
                     sql_met.write_to_sql(all_var, CN.LINE_DATA_VAR_FIELDS[line_type],
                                          CN.LINE_DATA_VAR_TABLES[line_type],
                                          CN.LINE_DATA_VAR_Q[line_type],
-                                         tmp_dir, sql_cur, local_infile)
+                                         tmp_dir, sql_cur, local_infile, logger)
                     all_var = all_var.iloc[0:0]
 
             # end for line_type
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s in write_tcst_data write line data ***", sys.exc_info()[0])
+            logger.error("*** %s in write_tcst_data write line data ***", sys.exc_info()[0])
 
         write_time_end = time.perf_counter()
         write_time = timedelta(seconds=write_time_end - write_time_start)
 
-        logging.info("    >>> Write time Tcst: %s", str(write_time))
+        logger.info("    >>> Write time Tcst: %s", str(write_time))
 
-        logging.debug("[--- End write_tcst_data ---]")
+        logger.debug("[--- End write_tcst_data ---]")

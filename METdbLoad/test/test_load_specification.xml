@@ -8,7 +8,7 @@
     </connection>
 
     <folder_tmpl>/METdataio/METreformat/test/data/point_stat</folder_tmpl>
-    <verbose>false</verbose>
+    <verbose>true</verbose>
     <insert_size>1</insert_size>
     <stat_header_db_check>true</stat_header_db_check>
     <mode_header_db_check>false</mode_header_db_check>

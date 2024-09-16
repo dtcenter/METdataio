@@ -19,7 +19,6 @@ Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 
 
 import argparse
-import logging
 import time
 from datetime import datetime
 from datetime import timedelta
@@ -37,29 +36,43 @@ from METdbLoad.ush.write_stat_sql import WriteStatSql
 from METdbLoad.ush.write_mode_sql import WriteModeSql
 from METdbLoad.ush.write_tcst_sql import WriteTcstSql
 from METdbLoad.ush.write_mtd_sql import WriteMtdSql
+from METdbLoad.ush import DEFAULT_LOGLEVEL
 
+from METreformat.util import get_common_logger
 
 def main(args):
     """ Main program to load files into the METdataio/METviewer database
         Returns:
            N/A
     """
-    # use the current date/time for logging
+    # use the current date/time for logger
     begin_time = str(datetime.now())
+    # setup a logger for this module
+    cli_loglevel = False
+    if args.loglevel:
+        loglevel = args.loglevel
+        cli_loglevel = True
+    else:
+        loglevel = DEFAULT_LOGLEVEL
 
-    # Default logging level is INFO. Can be changed with XML tag verbose
-    logging.basicConfig(level=logging.INFO)
+    # Get the common logger
+    logger =  get_common_logger(loglevel, 'stdout')
+
+    if cli_loglevel:
+        logger.info(f"Loglevel set to {loglevel} from command line.")
+    else:
+        logger.info(f"Loglevel not supplied. Setting to default: {loglevel}. This may be overwritten by XML loadfile.")
 
     # Print the METdbload version from the docs folder
-    print_version()
+    print_version(logger)
 
-    logging.info("--- *** --- Start METdbLoad --- *** ---")
-    logging.info("Begin time: %s", begin_time)
+    logger.info("--- *** --- Start METdbLoad --- *** ---")
+    logger.info("Begin time: %s", begin_time)
 
     try:
-        logging.info("User name is: %s",  getpass.getuser())
+        logger.info("User name is: %s",  getpass.getuser())
     except:
-        logging.info("User name is not available")
+        logger.info("User name is not available")
 
     # time execution
     load_time_start = time.perf_counter()
@@ -69,16 +82,16 @@ def main(args):
     #  Read the XML file
     #
     try:
-        logging.debug("XML filename is %s", args.xmlfile)
+        logger.debug("XML filename is %s", args.xmlfile)
 
         # instantiate a load_spec XML file
-        xml_loadfile = XmlLoadFile(args.xmlfile)
+        xml_loadfile = XmlLoadFile(args.xmlfile, logger=logger)
 
         # read in the XML file and get the information out of its tags
         xml_loadfile.read_xml()
 
     except (RuntimeError, TypeError, NameError, KeyError):
-        logging.error("*** %s occurred in Main reading XML ***", sys.exc_info()[0])
+        logger.error("*** %s occurred in Main reading XML ***", sys.exc_info()[0])
         sys.exit("*** Error reading XML")
 
     #
@@ -87,18 +100,17 @@ def main(args):
     try:
         tmp_dir = args.tmpdir[0]
         if not os.path.isdir(tmp_dir):
-            logging.error("*** Error occurred in Main accessing tmp dir %s ***", tmp_dir)
+            logger.error("*** Error occurred in Main accessing tmp dir %s ***", tmp_dir)
             sys.exit("*** Error accessing tmp dir")
 
     except (RuntimeError, TypeError, NameError, KeyError):
-        logging.error("*** %s occurred in Main accessing tmp dir ***", sys.exc_info()[0])
+        logger.error("*** %s occurred in Main accessing tmp dir ***", sys.exc_info()[0])
         sys.exit("*** Error accessing tmp dir")
 
-    # If XML tag verbose is set to True, change logging to debug level
-    if xml_loadfile.flags["verbose"]:
-        for handler in logging.root.handlers[:]:
-            logging.root.removeHandler(handler)
-        logging.basicConfig(level=logging.DEBUG)
+    # If XML tag verbose is set to True, change logger to debug level unless already
+    # supplied via the cli.
+    if xml_loadfile.flags["verbose"] and not cli_loglevel:
+        logger.setLevel("DEBUG")
 
     #
     # If argument -index is used, only process the index
@@ -108,15 +120,15 @@ def main(args):
             if xml_loadfile.connection['db_management_system'] in CN.RELATIONAL:
                 sql_run = RunSql()
                 sql_run.sql_on(xml_loadfile.connection)
-                sql_run.apply_indexes(False, sql_run.cur)
-                logging.debug("-index is true - only process index")
+                sql_run.apply_indexes(False, sql_run.cur, logger)
+                logger.debug("-index is true - only process index")
                 if sql_run.conn.open:
                     sql_run.sql_off(sql_run.conn, sql_run.cur)
             sys.exit("*** Only processing index with -index as argument")
         except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
             if sql_run.conn.open:
                 sql_run.sql_off(sql_run.conn, sql_run.cur)
-            logging.error("*** %s occurred in Main processing index ***", sys.exc_info()[0])
+            logger.error("*** %s occurred in Main processing index ***", sys.exc_info()[0])
             sys.exit("*** Error processing index")
 
     #
@@ -124,14 +136,14 @@ def main(args):
     #
     try:
         # If user set flags to not read files, remove those files from load_files list
-        xml_loadfile.load_files = purge_files(xml_loadfile.load_files, xml_loadfile.flags)
+        xml_loadfile.load_files = purge_files(xml_loadfile.load_files, xml_loadfile.flags, logger)
 
         if not xml_loadfile.load_files:
-            logging.warning("!!! No files to load")
+            logger.warning("!!! No files to load")
             sys.exit("*** No files to load")
 
     except (RuntimeError, TypeError, NameError, KeyError):
-        logging.error("*** %s occurred in Main purging files not selected ***", sys.exc_info()[0])
+        logger.error("*** %s occurred in Main purging files not selected ***", sys.exc_info()[0])
         sys.exit("*** Error when removing files from load list per XML")
 
     # Set up indices to process some maximum number of files at a time
@@ -158,7 +170,7 @@ def main(args):
                 current_files = xml_loadfile.load_files[first_file:mid_file + 1]
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s occurred in Main setting up loop ***", sys.exc_info()[0])
+            logger.error("*** %s occurred in Main setting up loop ***", sys.exc_info()[0])
             sys.exit("*** Error when setting up loop")
 
         #
@@ -167,7 +179,7 @@ def main(args):
         try:
 
             # instantiate a read data files object
-            file_data = ReadDataFiles()
+            file_data = ReadDataFiles(logger)
 
             # read in the data files, with options specified by XML flags
             file_data.read_data(xml_loadfile.flags,
@@ -177,13 +189,13 @@ def main(args):
             current_files = []
 
             if file_data.data_files.empty:
-                logging.warning("!!! No files to load in current set %s", str(set_count))
+                logger.warning("!!! No files to load in current set %s", str(set_count))
                 # move indices to the next set of files
                 first_file, mid_file, last_file = next_set(mid_file, last_file)
                 continue
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s occurred in Main reading data ***", sys.exc_info()[0])
+            logger.error("*** %s occurred in Main reading data ***", sys.exc_info()[0])
             sys.exit("*** Error when reading data files")
 
         #
@@ -199,7 +211,7 @@ def main(args):
 
                     #  if drop_indexes is set to true, drop the indexes
                     if xml_loadfile.flags["drop_indexes"]:
-                        sql_run.apply_indexes(True, sql_run.cur)
+                        sql_run.apply_indexes(True, sql_run.cur, logger)
 
                 # write the data file records out. put data file ids into other dataframes
                 write_file = WriteFileSql()
@@ -233,7 +245,7 @@ def main(args):
                 line_counts["MTD 3D Pair"] += len(file_data.mtd_3d_pair_data)
 
                 if file_data.data_files.empty:
-                    logging.warning("!!! No data to load in current set %s", str(set_count))
+                    logger.warning("!!! No data to load in current set %s", str(set_count))
                     # move indices to the next set of files
                     first_file, mid_file, last_file = next_set(mid_file, last_file)
 
@@ -244,7 +256,8 @@ def main(args):
                                                file_data.stat_data,
                                                tmp_dir,
                                                sql_run.cur,
-                                               sql_run.local_infile)
+                                               sql_run.local_infile,
+                                               logger)
 
                 if (not file_data.mode_cts_data.empty) or (not file_data.mode_obj_data.empty):
                     cts_lines = WriteModeSql()
@@ -254,7 +267,8 @@ def main(args):
                                               file_data.mode_obj_data,
                                               tmp_dir,
                                               sql_run.cur,
-                                              sql_run.local_infile)
+                                              sql_run.local_infile,
+                                              logger)
 
                 if not file_data.tcst_data.empty:
                     tcst_lines = WriteTcstSql()
@@ -263,7 +277,8 @@ def main(args):
                                                file_data.tcst_data,
                                                tmp_dir,
                                                sql_run.cur,
-                                               sql_run.local_infile)
+                                               sql_run.local_infile,
+                                               logger)
 
                 if (not file_data.mtd_2d_data.empty) or (not file_data.mtd_3d_single_data.empty) \
                         or (not file_data.mtd_3d_pair_data.empty):
@@ -275,7 +290,8 @@ def main(args):
                                              file_data.mtd_3d_pair_data,
                                              tmp_dir,
                                              sql_run.cur,
-                                             sql_run.local_infile)
+                                             sql_run.local_infile,
+                                             logger)
 
                 # Processing for the last set of data
                 if mid_file >= last_file:
@@ -293,7 +309,7 @@ def main(args):
 
                     #  if apply_indexes is set to true, load the indexes
                     if xml_loadfile.flags["apply_indexes"]:
-                        sql_run.apply_indexes(False, sql_run.cur)
+                        sql_run.apply_indexes(False, sql_run.cur, logger)
 
                     if sql_run.conn.open:
                         sql_run.sql_off(sql_run.conn, sql_run.cur)
@@ -302,7 +318,7 @@ def main(args):
             first_file, mid_file, last_file = next_set(mid_file, last_file)
 
         except (RuntimeError, TypeError, NameError, KeyError):
-            logging.error("*** %s occurred in Main writing data ***", sys.exc_info()[0])
+            logger.error("*** %s occurred in Main writing data ***", sys.exc_info()[0])
             sys.exit("*** Error when writing data to database")
 
     if not file_data.data_files.empty:
@@ -312,20 +328,20 @@ def main(args):
     load_time_end = time.perf_counter()
     load_time = timedelta(seconds=load_time_end - load_time_start)
 
-    logging.info("    >>> Total load time: %s", str(load_time))
+    logger.info("    >>> Total load time: %s", str(load_time))
     for k in line_counts:
-        logging.info("For %s Count %s", k, line_counts[k])
+        logger.info("For %s Count %s", k, line_counts[k])
 
     try:
-        logging.info("User name is: %s",  getpass.getuser())
+        logger.info("User name is: %s",  getpass.getuser())
     except:
-        logging.info("User name is not available")
+        logger.info("User name is not available")
 
-    logging.info("End time: %s\n", str(datetime.now()))
-    logging.info("--- *** --- End METdbLoad --- *** ---")
+    logger.info("End time: %s\n", str(datetime.now()))
+    logger.info("--- *** --- End METdbLoad --- *** ---")
 
 
-def print_version():
+def print_version(logger):
     """ Get version number from docs folder and print it
         Returns:
            N/A
@@ -335,11 +351,11 @@ def print_version():
         version_file = "{}/../../docs/version".format(base_dir)
         file = open(version_file, mode='r')
         code_version = str.strip(file.read())
-        logging.info("METdbload Version: %s", code_version)
+        logger.info("METdbload Version: %s", code_version)
 
     except (RuntimeError, TypeError, NameError, KeyError):
-        logging.error("*** %s occurred in print_version ***", sys.exc_info()[0])
-        logging.error("*** %s occurred in Main printing version ***", sys.exc_info()[0])
+        logger.error("*** %s occurred in print_version ***", sys.exc_info()[0])
+        logger.error("*** %s occurred in Main printing version ***", sys.exc_info()[0])
         sys.exit("*** Error in print version")
 
 
@@ -358,7 +374,7 @@ def next_set(mid_file, last_file):
     return first_file, mid_file, last_file
 
 
-def purge_files(load_files, xml_flags):
+def purge_files(load_files, xml_flags, logger):
     """ remove any files from load list that user has disallowed in XML tags
         Returns:
            List with files user wants to load
@@ -387,8 +403,8 @@ def purge_files(load_files, xml_flags):
                                     "3d_p" in item.lower())]
 
     except (RuntimeError, TypeError, NameError, KeyError):
-        logging.error("*** %s occurred in purge_files ***", sys.exc_info()[0])
-        logging.error("*** %s occurred in Main purging files not selected ***", sys.exc_info()[0])
+        logger.error("*** %s occurred in purge_files ***", sys.exc_info()[0])
+        logger.error("*** %s occurred in Main purging files not selected ***", sys.exc_info()[0])
         sys.exit("*** Error in purge files")
 
     return updated_list
@@ -402,7 +418,8 @@ if __name__ == '__main__':
     parser.add_argument("-index", action="store_true", help="Only process index, do not load data")
     parser.add_argument("tmpdir", nargs='*', default=tmp_dir,
                         help="Optional - when different directory wanted for tmp file")
-
+    parser.add_argument("--loglevel", default=None, type=str, choices={"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"},
+                        help="Optional - specify log level. One of: DEBUG, INFO, WARNING, ERROR, CRITICAL.")
     # get the command line arguments
     args = parser.parse_args()
 

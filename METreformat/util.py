@@ -42,19 +42,18 @@ def get_common_logger(log_level, log_filename):
                   'WARNING': logging.WARNING, 'ERROR': logging.ERROR,
                   'CRITICAL': logging.CRITICAL}
 
+    msg_fmt = '%(asctime)s||%(user)s||%(filename)s: %(funcName)s|| [%(levelname)s]: %(message)s'
+    date_fmt = '%Y%m%d %H:%M:%S'
+
     if log_filename.lower() == 'stdout':
         logging.basicConfig(level=log_levels[log_level],
-                            format='%(asctime)s||User:%('
-                                   'user)s||%(pathname)s: %(funcName)s|| [%(levelname)s]: %('
-                                   'message)s',
-                            datefmt='%Y-%m-%d %H:%M:%S',
+                            format=msg_fmt,
+                            datefmt=date_fmt,
                             stream=sys.stdout)
     else:
         logging.basicConfig(level=log_levels[log_level],
-                            format='%(asctime)s||User:%('
-                                   'user)s||%(pathname)s: %(funcName)s|| [%(levelname)s]: %('
-                                   'message)s',
-                            datefmt='%Y-%m-%d %H:%M:%S',
+                            format=msg_fmt,
+                            datefmt=date_fmt,
                             filename=log_filename,
                             filemode='w')
     common_logger = logging.getLogger(__name__)
