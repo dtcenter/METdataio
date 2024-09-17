@@ -15,6 +15,5 @@ source = [
     "METreformat/",
     ]
 omit = [
-    "*__init__.py",
     "METreformat/test/*"
 ]
