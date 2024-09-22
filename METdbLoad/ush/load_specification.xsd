@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <!--Type definitions -->
+    <xs:simpleType name="loadvalnameattrtype">
+        <!-- only met_tool is allowed/expected value -->
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="met_tool"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="truefalsetype">
+        <!--Checking for true or false values only (case-insensitive) -->
+        <xs:restriction base="xs:string">
+            <xs:pattern value="((t|T)(r|R)(u|U)(e|E))|((f|F)(a|A)(l|L)(s|S)(e|E))"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="usernametype">
+        <!--Limit the username to 32 characters (mysql maximum) -->
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[_-a-zA-z0-9]{3,32}"/>
+            <xs:maxLength value="32"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="hostnametype">
+        <!--Limit the hostname to 60 characters (mysql maximum) add 7 for port number -->
+        <xs:restriction base="xs:string">
+            <xs:pattern value="([_-a-zA-z0-9]{3,60}:\d+)"/>
+            <xs:maxLength value="67"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="dbnametype">
+        <!--Limit the  database name to max 124 characters based on Stack Overflow  -->
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[_-a-zA-z0-9]{3,124}"/>
+            <xs:maxLength value="124"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="pwdtype">
+        <!--Limit the password length  -->
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[_-a-zA-z0-9]{3,30}"/>
+            <xs:maxLength value="30"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="foldertype">
+        <!--Checking for folder template name, limit to max 100 characters -->
+        <xs:restriction base="xs:string">
+            <!-- Allow _, #, -, / in path -->
+            <xs:pattern value="[a-zA-z0-9_#\-\/]{8,4096}"/>
+            <!-- https://unix.stackexchange.com/questions/32795/what-is-the-maximum-allowed-filename-and-folder-size-with-ecryptfs -->
+            <xs:maxLength value="4096"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="mgmtsystype">
+        <!--Checking for mariadb|aurora|mysql values in management_system-->
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="mysql"/>
+            <xs:enumeration value="aurora"/>
+            <xs:enumeration value="mariadb"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="load_spec" type="load_specType"/>
+    <xs:complexType name="connectionType">
+        <xs:sequence>
+            <xs:element type="mgmtsystype" name="management_system"/>
+            <xs:element type="hostnametype" name="host"/>
+            <xs:element type="dbnametype" name="database"/>
+            <xs:element type="usernametype" name="user"/>
+            <xs:element type="pwdtype" name="password"/>
+        </xs:sequence>
+
+    </xs:complexType>
+    <xs:complexType name="fieldType">
+        <xs:sequence>
+           <xs:element name="val" maxOccurs="5">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="point_stat"/>
+                        <xs:enumeration value="grid_stat"/>
+                        <xs:enumeration value="ensemble_stat"/>
+                        <xs:enumeration value="stat_analysis"/>
+                        <xs:enumeration value="mode"/>
+                        <xs:enumeration value="wavelet_stat"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute type="loadvalnameattrtype" name="name"/>
+    </xs:complexType>
+    <xs:complexType name="load_valType">
+        <xs:sequence>
+            <xs:element type="fieldType" name="field"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="load_specType">
+        <xs:sequence>
+            <xs:element type="connectionType" name="connection"/>
+            <xs:element type="foldertype" name="folder_tmpl"/>
+            <xs:element type="xs:string" name="verbose"/>
+            <xs:element name="insert_size">
+                <xs:simpleType>
+                    <xs:restriction base="xs:positiveInteger">
+                        <xs:minInclusive value="1"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element type="truefalsetype" name="stat_header_db_check"/>
+            <xs:element type="truefalsetype" name="mode_header_db_check"/>
+            <xs:element type="truefalsetype" name="mtd_header_db_check"/>
+            <xs:element type="truefalsetype" name="drop_indexes"/>
+            <xs:element type="truefalsetype" name="apply_indexes"/>
+            <xs:element type="truefalsetype" name="load_stat"/>
+            <xs:element type="truefalsetype" name="load_mode"/>
+            <xs:element type="truefalsetype" name="load_mtd"/>
+            <xs:element type="truefalsetype" name="load_mpr"/>
+            <xs:element type="truefalsetype" name="load_orank"/>
+            <xs:element type="load_valType" name="load_val"/>
+
+            <xs:element type="xs:string" name="group"/>
+            <xs:element type="xs:string" name="description"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>
