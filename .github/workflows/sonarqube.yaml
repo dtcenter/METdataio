@@ -40,7 +40,16 @@ jobs:
   sonarqube:
     name: SonarQube Scan
     runs-on: ubuntu-latest
-
+    
+    services:
+      mariadb:
+        image: mariadb:latest
+        env:
+          MARIADB_ROOT_PASSWORD: root_password
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
+    
     steps:
 
     - name: Check if PR is from a fork
@@ -75,8 +84,7 @@ jobs:
 
     - name: Run Pytests
       run: |
-        coverage run --append -m pytest METreformat
-        coverage run --append -m pytest METreadnc
+        coverage run --append -m pytest
 
     - name: Output coverage report
       run: coverage report -m

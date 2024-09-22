@@ -76,9 +76,7 @@ jobs:
 
       - name: Test with pytest
         run: |
-          coverage run --append -m pytest METdbLoad/test
-          coverage run --append -m pytest METreformat
-          coverage run --append -m pytest METreadnc
+          coverage run --append -m pytest
           coverage report -m
           echo "Finished unit tests and coverage"
 

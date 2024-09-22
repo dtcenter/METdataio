@@ -85,6 +85,8 @@ def assert_count_rows(cur, table, expected_count):
             {
                 "mtd_2d_obj": 278,
                 "mtd_3d_obj_single": 8,
+                "mtd_3d_obj_pair": 4,
+                "mtd_header": 24,
             },
         ),
         (
@@ -128,9 +130,14 @@ def test_met_db_table_counts(
     expected_counts,
 ):
 
+    load_flags = {
+        "mode_header_db_check": "true",
+        "mtd_header_db_check": "true",
+    }
+
     test_args = dict_to_args(
         {
-            "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool)),
+            "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool, load_flags=load_flags)),
             "index": "true",
             "tmpdir": [str(tmp_path)],
             "loglevel": None,

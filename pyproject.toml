@@ -1,0 +1,19 @@
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = [
+    "METdbLoad/test",
+    "METreadnc/test",
+    "METreformat/test",
+]
+
+[tool.coverage.run]
+relative_files = true
+source = [
+    "METdbLoad/ush",
+    "METreadnc/util",
+    "METreformat/",
+    ]
+omit = [
+    "METreformat/test/*"
+]
