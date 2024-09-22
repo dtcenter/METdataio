@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:simpleType name="stringtype">
+       <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+
+<xs:simpleType name="inttype">
+    <!--Limit the insert size to integer -->
+  <xs:restriction base="xs:positiveInteger"/>
+</xs:simpleType>
+
+<xs:simpleType name="inserttype">
+    <!--Limit the insert size to integer -->
+  <xs:restriction base="xs:positiveInteger"/>
+
+</xs:simpleType>
+
+<xs:simpleType name="nametype">
+    <!--Limit the username, and database name to max 40 characters -->
+    <xs:restriction base="xs:string">
+        <xs:pattern value="[_-a-zA-z0-9]{3,40}"/>
+        <xs:maxLength value="40"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="pwdtype">
+    <!--Limit the password to max 25 characters, numbers and non-whitespace chars -->
+    <xs:restriction base="xs:string">
+        <xs:pattern value="[\S0-9]{3,25}"/>
+         <xs:maxLength value="25"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="hosttype">
+    <!--Limit to host name length and port number -->
+    <xs:restriction base="xs:string">
+       <xs:pattern value="[a-zA-z]{20}:\d{4,5}"/>
+         <xs:maxLength value="25"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="mgmtsystype">
+    <!--Checking for mariadb|aurora|mysql values in management_system-->
+    <xs:restriction base="xs:string">
+       <xs:pattern value="[a-zA-z]{4,7}"/>
+         <xs:maxLength value="7"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="foldertype">
+    <!--Checking for folder template name, limit to max 100 characters -->
+    <xs:restriction base="xs:string">
+        <!-- Allow _, #, -, / in path -->
+       <xs:pattern value="[a-zA-z0-9_#\-\/]{8,100}"/>
+        <!-- https://unix.stackexchange.com/questions/32795/what-is-the-maximum-allowed-filename-and-folder-size-with-ecryptfs -->
+         <xs:maxLength value="4096"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="truefalsetype">
+    <!--Checking for true or false values only (case-insensitive) -->
+    <xs:restriction base="xs:string">
+       <xs:pattern value="true|false"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<!-- complex types -->
+
+<xs:complexType name="connectiontype">
+    <xs:sequence>
+        <xs:element name="management_system" type="mgmtsystype"/>
+        <xs:element name="host" type="hosttype"/>
+        <xs:element name="database" type="nametype"/>
+        <xs:element name="user" type="nametype"/>
+        <xs:element name="password" type="pwdtype"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="loadvaltype">
+    <xs:sequence>
+         <xs:element name="field" type="stringtype"/>
+         <xs:sequence>
+            <xs:element name="val" maxOccurs="5" type="inttype"/>
+         </xs:sequence>
+    </xs:sequence>
+    <xs:attribute name="name" type="stringtype"/>
+
+
+
+
+</xs:complexType>
+
+<xs:complexType name="loadspectype">
+    <xs:sequence>
+        <xs:element name="connection" type="stringtype"/>
+        <xs:element name="folder_tmpl" type="foldertype"/>
+        <xs:element name="verbose" type="truefalsetype"/>
+        <xs:element name="insert_size" type="inserttype"/>
+        <xs:element name="stat_header_db_check" type="truefalsetype"/>
+        <xs:element name="mode_header_db_check" type="truefalsetype"/>
+        <xs:element name="mtd_header_db_check" type="truefalsetype"/>
+        <xs:element name="drop_indexes" type="truefalsetype"/>
+        <xs:element name="apply_indexes" type="truefalsetype"/>
+        <xs:element name="load_stat" type="truefalsetype"/>
+        <xs:element name="load_mode" type="truefalsetype"/>
+        <xs:element name="load_mtd" type="truefalsetype"/>
+        <xs:element name="load_mpr" type="truefalsetype"/>
+        <xs:element name="load_orank" type="truefalsetype"/>
+
+    </xs:sequence>
+</xs:complexType>
+
+
+
+
+
+</xs:schema>
+
