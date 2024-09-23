@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
+
+import os
+import pytest
+
 """Test reading XML file."""
+
+# Location of the XML specification files that are used to test XML validation
+TEST_XML_SPECIFICATION_FILEPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 def test_loadflags(tmp_path, get_xml_loadfile):
     """Read various flags from XML file."""
@@ -37,3 +44,43 @@ def test_insertsize(tmp_path, get_xml_loadfile):
     """Read insert_size from XML file."""
     XML_LOADFILE = get_xml_loadfile(tmp_path)
     assert XML_LOADFILE.insert_size == 1
+
+def test_validation_recursive_payload(get_specified_xml_loadfile):
+    """
+       Test validation against attempted recursive payload, ValueError should be raised for
+       the test_recursive_payload.xml XML specification file.
+    """
+    # Get the XML specification file that has a recursive payload
+    xml_spec_filename = "test_recursive_payload.xml"
+    xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
+    with pytest.raises(ValueError):
+        xml_load_file_obj.read_xml()
+
+def test_validation_large_payload(get_specified_xml_loadfile):
+    """
+       Test validation against attempted "large" payload, ValueError should be raised for
+       the test_size_payload.xml XML specification file.
+    """
+    # Get the XML specification file that has a recursive payload
+
+    xml_spec_filename = "test_size_payload.xml"
+    xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
+    with pytest.raises(ValueError):
+        xml_load_file_obj.read_xml()
+
+def test_validation_valid_xml(get_specified_xml_loadfile):
+    """
+       Test validation against valid/well-formed XML specification file.
+       ValueError should be NOT be raised for
+       the test_size_payload.xml XML specification file.
+    """
+    # Get the XML specification file that is well-formed/valid
+
+    xml_spec_filename = "test_load_specification.xml"
+    xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
+    try:
+        xml_load_file_obj.read_xml()
+    except ValueError:
+        msg = f"Unexpected ValueError when validating {os.path.join(TEST_XML_SPECIFICATION_FILEPATH,xml_spec_filename)}"
+        pytest.fail(msg)
+
