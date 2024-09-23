@@ -1,11 +1,14 @@
 from pathlib import Path
 from argparse import Namespace
+import os
 
 
 def abs_path(rel_path):
     """Turn a relative path into abs path"""
     return str(Path(str(Path(__file__).parents[2])) / rel_path)
 
+# XML Schema for the load specification XML
+LOAD_SPECIFICATION_SCHEMA = os.path.join(abs_path("METdbLoad/ush/"), "load_specification.xsd")
 
 # Use data from METreformat where available
 ENSEMBLE_STAT_DATA_DIR = abs_path("METreformat/test/data/ensemble_stat")
