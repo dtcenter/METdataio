@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 from METdataio.METdbLoad.ush.run_sql import RunSql
 from METdataio.METdbLoad.test.utils import (
     get_xml_test_file,
-    POINT_STAT_DATA_DIR,
+    POINT_STAT_DATA_DIR
 )
 from METdbLoad.ush.read_load_xml import XmlLoadFile
 
