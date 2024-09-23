@@ -10,7 +10,7 @@ from METdataio.METdbLoad.test.utils import (
     get_xml_test_file,
     POINT_STAT_DATA_DIR,
 )
-
+from read_load_xml import XmlLoadFile
 
 # add METdataio directory to path so packages can be found
 TOP_DIR = str(Path(__file__).parents[1])
@@ -130,3 +130,23 @@ def get_xml_loadfile():
 @pytest.fixture
 def mock_logger():
     return MagicMock()
+
+@pytest.fixture
+def get_specified_xml_loadfile( ) -> XmlLoadFile:
+    """
+       Retrieve the specified XML load specification filee. This is useful for using different XML
+       specification file for  validating against recursive payloads, large payloads, etc.
+    
+       Args:
+           xml_filename: The name of the XML file of interest
+       Returns:
+           XML_LOAD_FILE:  The XmlLoadFile instance corresponding to the XML specification file specified by path
+                           and filename
+    
+    """
+    def get_xml_spec_file(xml_path:str, xml_filename:str):
+        full_xml_filename = os.path.join(xml_path, xml_filename)
+        XML_LOAD_FILE = XmlLoadFile(full_xml_filename)
+
+        return XML_LOAD_FILE
+    return get_xml_spec_file
