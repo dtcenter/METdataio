@@ -1,0 +1,149 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <!-- Define special types used to impose size limitations on payload-->
+
+    <xs:simpleType name="inserttype">
+        <!-- only insert size of 1 -->
+        <xs:restriction base="xs:positiveInteger">
+            <xs:enumeration value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="truefalsetype">
+        <!--Checking for true or false values only (allow for case-insensitive) -->
+        <xs:restriction base="xs:string">
+                        <xs:pattern value="((t|T)(r|R)(u|U)(e|E))|((f|F)(a|A)(l|L)(s|S)(e|E))"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="usernametype">
+        <!--Limit the username to 32 characters (mysql maximum) -->
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[\s\-_a-zA-z0-9]{3,32}"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="hostnametype">
+        <!--Limit the hostname to 60 characters (mysql maximum) add 7 for port number -->
+        <xs:restriction base="xs:string">
+            <xs:pattern value="([.\-_a-zA-z0-9]{3,67}:\d+)"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="dbnametype">
+        <!--Limit the  database name to max 124 characters based on Stack Overflow  -->
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[\-_a-zA-z0-9]{3,124}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="pwdtype">
+        <!--Limit the password length  -->
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[\-_a-zA-z0-9]{3,30}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="foldertype">
+        <!--Checking for folder template name, limit to max 100 characters -->
+        <xs:restriction base="xs:string">
+            <!-- Allow _, #, -, / in path -->
+            <!-- https://unix.stackexchange.com/questions/32795/what-is-the-maximum-allowed-filename-and-folder-size-with-ecryptfs -->
+            <!--xs:pattern value="[a-zA-z0-9_#\-\/]{8,4096}"/-->
+            <xs:pattern value=".{3,4096}"/>
+
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="mgmtsystype">
+        <!--Checking for mariadb|aurora|mysql values in management_system-->
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="mysql"/>
+            <xs:enumeration value="aurora"/>
+            <xs:enumeration value="mariadb"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="limitedstringtype">
+        <!--Limit the database group and description  -->
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[\s._a-zA-z0-9]{1,300}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+
+    <!-- COMPLEX TYPES -->
+    <xs:element name="load_spec">
+        <xs:complexType>
+            <xs:all>
+                <xs:element name="connection">
+                    <xs:complexType>
+                        <xs:all>
+                            <xs:element type="mgmtsystype" name="management_system" minOccurs="0"/>
+                            <xs:element type="hostnametype" name="host"/>
+                            <xs:element type="dbnametype" name="database"/>
+                            <xs:element type="usernametype" name="user"/>
+                            <xs:element type="pwdtype" name="password"/>
+                            <xs:element type="truefalsetype" name="local_infile" minOccurs="0"/>
+                        </xs:all>
+                    </xs:complexType>
+                </xs:element>
+
+                <xs:element name="date_list" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element type="xs:int" name="start"/>
+                            <xs:element type="xs:int" name="end"/>
+                            <xs:element type="xs:int" name="inc"/>
+                            <xs:element type="xs:string" name="format"/>
+                        </xs:sequence>
+                        <xs:attribute type="xs:string" name="name"/>
+                    </xs:complexType>
+                </xs:element>
+
+                <xs:element type="foldertype" name="folder_tmpl" maxOccurs="1"/>
+                <xs:element type="truefalsetype" name="verbose" maxOccurs="1"/>
+                <xs:element type="xs:positiveInteger" name="insert_size" maxOccurs="1"/>
+                <xs:element type="truefalsetype" name="force_dup_file" minOccurs="0"/>
+                <xs:element type="truefalsetype" name="stat_header_db_check" minOccurs="0"/>
+                <xs:element type="truefalsetype" name="mode_header_db_check" minOccurs="0"/>
+                <xs:element type="truefalsetype" name="mtd_header_db_check" minOccurs="0"/>
+                <xs:element type="truefalsetype" name="drop_indexes" minOccurs="0"/>
+                <xs:element type="truefalsetype" name="apply_indexes" minOccurs="0"/>
+                <xs:element type="truefalsetype" name="load_stat" minOccurs="0"/>
+                <xs:element type="truefalsetype" name="load_mode" minOccurs="0"/>
+                <xs:element type="truefalsetype" name="load_mtd" minOccurs="0"/>
+                <xs:element type="truefalsetype" name="load_mpr" minOccurs="0"/>
+                <xs:element type="xs:string" name="group" minOccurs="0"/>
+                <xs:element type="xs:string" name="group" minOccurs="0"/>
+                <xs:element type="truefalsetype" name="load_orank" minOccurs="0"/>
+                <xs:element type="limitedstringtype" name="description" minOccurs="0"/>
+                <xs:element name="load_val">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="field" maxOccurs="50" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="date_list" minOccurs="0">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="xs:string">
+                                                        <xs:attribute type="xs:string" name="name"/>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element type="xs:string" name="val" maxOccurs="100" minOccurs="0"/>
+                                    </xs:sequence>
+                                    <xs:attribute type="xs:string" name="name" use="optional"/>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element type="xs:string" name="load_xml" minOccurs="0"/>
+                <xs:element type="xs:string" name="load_note" minOccurs="0"/>
+            </xs:all>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
