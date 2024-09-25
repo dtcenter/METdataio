@@ -3,6 +3,9 @@
 import os
 import pytest
 
+import utils
+from read_load_xml import XmlLoadFile
+
 """Test reading XML file."""
 
 # Location of the XML specification files that are used to test XML validation
@@ -48,7 +51,7 @@ def test_insertsize(tmp_path, get_xml_loadfile):
 def test_validation_recursive_payload(get_specified_xml_loadfile):
     """
        Test validation against attempted recursive payload, ValueError should be raised for
-       the test_recursive_payload.xml XML specification file.
+       the test_recursive_payload.xml XML-specification file.
     """
     # Get the XML specification file that has a recursive payload
     xml_spec_filename = "test_recursive_payload.xml"
@@ -62,21 +65,21 @@ def test_validation_large_payload(get_specified_xml_loadfile):
        the test_size_payload.xml XML specification file.
     """
     # Get the XML specification file that has a recursive payload
-
     xml_spec_filename = "test_size_payload.xml"
     xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
     with pytest.raises(ValueError):
         xml_load_file_obj.read_xml()
 
+
 def test_validation_valid_xml(get_specified_xml_loadfile):
     """
-       Test validation against valid/well-formed XML specification file.
+       Test validation against a real-world, valid XML specification file.
        ValueError should be NOT be raised for
-       the test_size_payload.xml XML specification file.
+       the full_example.xml specification file which has been used on real data.
     """
-    # Get the XML specification file that is well-formed/valid
+    # Get the XML specification file that has a recursive payload
 
-    xml_spec_filename = "test_load_specification.xml"
+    xml_spec_filename = "full_example.xml"
     xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
     try:
         xml_load_file_obj.read_xml()
