@@ -3,9 +3,6 @@
 import os
 import pytest
 
-import utils
-from read_load_xml import XmlLoadFile
-
 """Test reading XML file."""
 
 # Location of the XML specification files that are used to test XML validation
@@ -55,6 +52,19 @@ def test_validation_recursive_payload(get_specified_xml_loadfile):
     """
     # Get the XML specification file that has a recursive payload
     xml_spec_filename = "test_recursive_payload.xml"
+    xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
+    with pytest.raises(ValueError):
+        xml_load_file_obj.read_xml()
+
+
+def test_validation_recursive_load_val(get_specified_xml_loadfile):
+    """
+       Test validation against attempted recursive payload (multiple fields under load_val),
+       ValueError should be raised for
+       the test_recursive_payload.xml XML-specification file.
+    """
+    # Get the XML specification file that has a recursive payload
+    xml_spec_filename = "test_recursive_load_val_fields.xml"
     xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
     with pytest.raises(ValueError):
         xml_load_file_obj.read_xml()
