@@ -120,7 +120,7 @@
                 <xs:element name="load_val">
                     <xs:complexType>
                         <xs:sequence>
-                            <xs:element name="field">
+                            <xs:element name="field" maxOccurs="50" minOccurs="0">
                                 <xs:complexType>
                                     <xs:sequence>
                                         <xs:element name="date_list" minOccurs="0">
@@ -132,7 +132,7 @@
                                                 </xs:simpleContent>
                                             </xs:complexType>
                                         </xs:element>
-                                        <xs:element type="xs:string" name="val" maxOccurs="10" minOccurs="0"/>
+                                        <xs:element type="xs:string" name="val" maxOccurs="50" minOccurs="0"/>
                                     </xs:sequence>
                                     <xs:attribute type="xs:string" name="name" use="optional"/>
                                 </xs:complexType>
