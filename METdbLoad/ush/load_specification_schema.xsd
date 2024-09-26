@@ -120,7 +120,7 @@
                 <xs:element name="load_val">
                     <xs:complexType>
                         <xs:sequence>
-                            <xs:element name="field" maxOccurs="50" minOccurs="0">
+                            <xs:element name="field">
                                 <xs:complexType>
                                     <xs:sequence>
                                         <xs:element name="date_list" minOccurs="0">
