@@ -91,12 +91,16 @@ class XmlLoadFile:
             # Validate the XML file
             self.logger.info(f"Validating the {self.xmlfilename} against the {dbload_util.LOAD_SPECIFICATION_SCHEMA}")
 
-            if  self.validate_xml() is False:
+            if self.validate_xml() is False:
                 msg = (
-                    f"{self.xmlfilename} is not well-formed and may contain a recursive payload or an excessively large payload")
+                    f"{self.xmlfilename} is not valid and may contain a recursive payload or an excessively large payload")
                 self.logger.error(msg)
                 print(f"{msg}")
                 raise ValueError(msg)
+            else:
+               msg = (f"{self.xmlfilename} is valid ")
+               self.logger.info(msg)
+               print(f"{msg}")
 
             self.logger.info('Reading XML Load file')
             parser = etree.XMLParser(remove_comments=True, resolve_entities=False)
@@ -187,7 +191,7 @@ class XmlLoadFile:
         # self.logger.info(f"validating against schema: {os.path.dirname(os.path.abspath(__file__))}")
         start = datetime.datetime.now()
         self.logger.info(f"Validating against schema: {dbload_util.LOAD_SPECIFICATION_SCHEMA}")
-        xsd_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "load_specification.xsd")
+        xsd_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), dbload_util.LOAD_SPECIFICATION_SCHEMA)
         with open(xsd_file, 'rb') as schema_file:
             xmlschema_doc = etree.parse(schema_file)
             xmlschema = etree.XMLSchema(xmlschema_doc)
@@ -200,10 +204,12 @@ class XmlLoadFile:
         self.logger.info(f"Validation complete, took {total_time} seconds")
         if is_valid:
             self.logger.info(f"{self.xmlfilename} is valid")
-
+            print(f"xml file {self.xmlfilename} is valid against {schema_file}")
             return True
         else:
             self.logger.info(f"{self.xmlfilename} NOT VALID")
+            for error in xmlschema.error_log:
+                print(f"{error.message} at line: {error.line} and column: {error.column}")
             return False
 
     def read_file_info(self, root):
@@ -410,3 +416,9 @@ class XmlLoadFile:
             sys.exit("*** Error found while expanding XML folder templates!")
 
         return file_list
+
+if __name__ == "__main__":
+    # xml_file = "/Users/minnawin/feature_internal_56_METdataio_validate_payloads/METdataio/METdbLoad/test/valid_specification.xml"
+    xml_file = "/Users/minnawin/feature_internal_56_METdataio_validate_payloads/METdataio/METdbLoad/test/full_example.xml"
+    xlf = XmlLoadFile(xml_file)
+    xlf.read_xml()
