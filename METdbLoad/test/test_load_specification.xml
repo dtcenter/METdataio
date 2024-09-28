@@ -7,10 +7,9 @@
         <password>root_password</password>
     </connection>
 
-    <folder_tmpl>/METdataio/METreformat/test/data/point_stat</folder_tmpl>
+
     <verbose>true</verbose>
     <insert_size>1</insert_size>
-    <force_dup_file>false</force_dup_file>
     <stat_header_db_check>true</stat_header_db_check>
     <mode_header_db_check>false</mode_header_db_check>
     <mtd_header_db_check>false</mtd_header_db_check>
@@ -21,16 +20,13 @@
     <load_mtd>true</load_mtd>
     <load_mpr>true</load_mpr>
     <load_orank>true</load_orank>
-    <load_val>
-        <field name="met_tool">
-        <val>point_stat</val>
-        <val>grid_stat</val>
-        <val>ensemble_stat</val>
-        <val>wavelet_stat</val>
-        <val>mode</val>
-        <val>stat_analysis</val>
-        </field>
-    </load_val>
+    <force_dup_file>false</force_dup_file>
     <group>Testing</group>
     <description>testing DB load</description>
-    </load_spec>
+    <folder_tmpl>/METdataio/METreformat/test/data/{met_tool}</folder_tmpl>
+    <load_val>
+        <field name="met_tool">
+            <val>mode</val>
+        </field>
+    </load_val>
+</load_spec>
