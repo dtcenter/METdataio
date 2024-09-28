@@ -73,17 +73,17 @@ def populate_xml_load_spec(met_data_dir, met_tool, load_flags=DEFAULT_LOAD_FLAGS
         <local_infile>{local_infile}</local_infile>
     </connection>
 
-    <folder_tmpl>{met_data_dir}</folder_tmpl>
     <verbose>true</verbose>
     <insert_size>1</insert_size>
     {flags}
+    <group>Testing</group>
+    <description>testing with pytest</description>
+    <folder_tmpl>{met_data_dir}</folder_tmpl>
     <load_val>
         <field name="met_tool">
         <val>{met_tool}</val>
         </field>
     </load_val>
-    <group>Testing</group>
-    <description>testing with pytest</description>
     </load_spec>"""
 
 
