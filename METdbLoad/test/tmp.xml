@@ -1,0 +1,33 @@
+<load_spec>
+    <connection>
+        <management_system>mysql</management_system>
+        <host>localhost:3306</host>
+        <database>mv_test</database>
+        <user>root</user>
+        <password>root_password</password>
+        <local_infile>True</local_infile>
+    </connection>
+
+
+    <verbose>true</verbose>
+    <insert_size>1</insert_size>
+    <stat_header_db_check>true</stat_header_db_check>
+    <mode_header_db_check>false</mode_header_db_check>
+    <mtd_header_db_check>false</mtd_header_db_check>
+    <drop_indexes>false</drop_indexes>
+    <apply_indexes>false</apply_indexes>
+    <load_stat>true</load_stat>
+    <load_mode>true</load_mode>
+    <load_mtd>true</load_mtd>
+    <load_mpr>true</load_mpr>
+    <load_orank>true</load_orank>
+    <group>Testing</group>
+    <description>testing with pytest</description>
+    <folder_tmpl>/Users/minnawin/feature_internal_56_METdataio_validate_payloads/METdataio/METreformat/test/data/{met_tool}</folder_tmpl>
+    <load_val>
+        <field name="met_tool">
+            <val>point_stat</val>
+            <val>grod_stat</val>
+        </field>
+    </load_val>
+</load_spec>
