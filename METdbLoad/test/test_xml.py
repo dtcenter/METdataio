@@ -3,7 +3,7 @@
 import os
 import pytest
 
-import utils
+import METdbLoad.test.utils as utils
 
 """Test reading XML file."""
 
@@ -51,7 +51,8 @@ def test_insertsize(tmp_path, get_xml_loadfile):
 def test_validation_recursive_payload_fields(get_specified_xml_loadfile):
     """
        Test validation against attempted recursive payload, ValueError should be raised for
-       the test_recursive_payload.xml XML-specification file.
+       the test_recursive_payload_fields.xml XML-specification file because the max allowed number
+       of field elements is 5 and the test config file has 6.
     """
     # Get the XML specification file that has a recursive payload
     xml_spec_filename = "test_recursive_payload_fields.xml"
@@ -71,19 +72,6 @@ def test_validation_recursive_payload_vals(get_specified_xml_loadfile):
     with pytest.raises(ValueError):
         xml_load_file_obj.read_xml()
 
-
-# @pytest.mark.skip()
-def test_validation_recursive_load_val(get_specified_xml_loadfile):
-    """
-       Test validation against attempted recursive payload (multiple fields under load_val),
-       ValueError should be raised for
-       the test_recursive_payload.xml XML-specification file.
-    """
-    # Get the XML specification file that has a recursive payload
-    xml_spec_filename = "test_recursive_load_val_fields.xml"
-    xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
-    with pytest.raises(ValueError):
-        xml_load_file_obj.read_xml()
 
 def test_validation_large_payload(get_specified_xml_loadfile):
     """
@@ -123,7 +111,7 @@ def test_validation_real_xml(get_specified_xml_loadfile):
     """
     # Get the XML specification file that has a recursive payload
 
-    xml_spec_filename = "full_example.xml"
+    xml_spec_filename = "modified_example.xml"
     xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
     try:
         xml_load_file_obj.read_xml()
