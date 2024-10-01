@@ -29,7 +29,6 @@
   <load_val>
     <field name="fcst_init">
       <date_list name="folder_dates"/>
-
     </field>
     <field name="config">
       <val>HREF_lag_offset</val>
