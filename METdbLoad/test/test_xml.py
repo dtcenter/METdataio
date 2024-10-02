@@ -137,3 +137,20 @@ def test_tmp_xml(get_specified_xml_loadfile):
                f"schema {utils.LOAD_SPECIFICATION_SCHEMA}")
         pytest.fail(msg)
 
+def test_db_xml(get_specified_xml_loadfile):
+    """
+       Test validation against an XML specification file that is used in another test that compares two
+       databases.
+       ValueError should be NOT be raised for
+       the load_met_gha_prod specification file which has been used on real data.
+    """
+
+    xml_spec_filename = "load_met_gha_prod.xml"
+    xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
+    try:
+        xml_load_file_obj.read_xml()
+    except ValueError:
+        msg = (f"Unexpected ValueError when validating {os.path.join(TEST_XML_SPECIFICATION_FILEPATH,xml_spec_filename)} against "
+               f"schema {utils.LOAD_SPECIFICATION_SCHEMA}")
+        pytest.fail(msg)
+
