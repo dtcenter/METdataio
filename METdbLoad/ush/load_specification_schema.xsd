@@ -66,7 +66,7 @@
     <xs:simpleType name="limitedstringtype">
         <!--Limit the database group and description  -->
         <xs:restriction base="xs:string">
-            <xs:pattern value="[\s._a-zA-z0-9]{1,300}"/>
+            <xs:pattern value="[\s\-._a-zA-z0-9]{1,300}"/>
         </xs:restriction>
     </xs:simpleType>
 
