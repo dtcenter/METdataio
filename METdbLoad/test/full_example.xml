@@ -12,6 +12,12 @@
     <inc>86400</inc>
     <format>yyyyMMddHH</format>
   </date_list>
+   <date_list name="valid_dates">
+    <start>2022050100</start>
+    <end>2022051200</end>
+    <inc>0600</inc>
+    <format>yyyyMMddHH</format>
+  </date_list>
   
   <verbose>false</verbose>
   <insert_size>1</insert_size>
@@ -29,6 +35,9 @@
   <load_val>
     <field name="fcst_init">
       <date_list name="folder_dates"/>
+    </field>
+    <field name="valid_times">
+      <date_list name="valid_dates"/>
     </field>
     <field name="config">
       <val>HREF_lag_offset</val>
