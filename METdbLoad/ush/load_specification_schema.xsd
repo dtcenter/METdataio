@@ -88,7 +88,7 @@
                     </xs:complexType>
                 </xs:element>
 
-                <xs:element name="date_list" minOccurs="0">
+                <xs:element name="date_list" minOccurs="0" maxOccurs="5">
                     <xs:complexType>
                         <xs:sequence>
                             <xs:element type="xs:int" name="start"/>
