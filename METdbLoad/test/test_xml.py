@@ -91,10 +91,7 @@ def test_validation_simple_xml(get_specified_xml_loadfile):
        ValueError should be NOT be raised for
        the full_example.xml specification file which has been used on real data.
     """
-    # Get the XML specification file that has a recursive payload
 
-    # xml_spec_filename = "full_example.xml"
-    # xml_spec_filename = "modified_example.xml"
     xml_spec_filename = "test_load_specification.xml"
     xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
     try:
