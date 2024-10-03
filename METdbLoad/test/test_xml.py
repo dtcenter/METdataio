@@ -103,15 +103,15 @@ def test_validation_simple_xml(get_specified_xml_loadfile):
         msg = f"Unexpected ValueError when validating {os.path.join(TEST_XML_SPECIFICATION_FILEPATH,xml_spec_filename)}"
         pytest.fail(msg)
 
-def test_validation_real_xml(get_specified_xml_loadfile):
+@pytest.mark.parametrize("xmlconfig", ["modified_example.xml", "full_example.xml"])
+def test_validation_real_xml(get_specified_xml_loadfile, xmlconfig):
     """
        Test validation against an XML specification file that is in use by a project.
        ValueError should be NOT be raised for
-       the full_example.xml specification file which has been used on real data.
+       the specification file that has been used on real data.
     """
-    # Get the XML specification file that has a recursive payload
 
-    xml_spec_filename = "modified_example.xml"
+    xml_spec_filename = xmlconfig
     xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
     try:
         xml_load_file_obj.read_xml()
@@ -127,7 +127,6 @@ def test_tmp_xml(get_specified_xml_loadfile):
     """
     # Get the XML specification file that has a recursive payload
 
-    # xml_spec_filename = "full_example.xml"
     xml_spec_filename = "tmp.xml"
     xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
     try:
