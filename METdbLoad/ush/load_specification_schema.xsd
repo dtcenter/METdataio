@@ -20,27 +20,36 @@
     <xs:simpleType name="usernametype">
         <!--Limit the username to 32 characters (mysql maximum) -->
         <xs:restriction base="xs:string">
-            <xs:pattern value="[\s\-_a-zA-z0-9]{3,32}"/>
+            <xs:pattern value="[\s\-_a-zA-z0-9]+"/>
+            <xs:minLength value="3"/>
+            <xs:maxLength value="32"/>
         </xs:restriction>
     </xs:simpleType>
     <xs:simpleType name="hostnametype">
         <!--Limit the hostname to 60 characters (mysql maximum) add 7 for port number -->
         <xs:restriction base="xs:string">
-            <xs:pattern value="([.\-_a-zA-z0-9]{3,67}:\d+)"/>
+            <xs:pattern value="([.\-_a-zA-z0-9]+:\d+)"/>
+            <xs:minLength value="3"/>
+            <xs:maxLength value="67"/>
         </xs:restriction>
     </xs:simpleType>
 
     <xs:simpleType name="dbnametype">
         <!--Limit the  database name to max 124 characters based on Stack Overflow  -->
         <xs:restriction base="xs:string">
-            <xs:pattern value="[\-_a-zA-z0-9]{3,124}"/>
+            <xs:pattern value="[\-_a-zA-z0-9]+"/>
+            <xs:minLength value="3"/>
+            <xs:maxLength value="124"/>
         </xs:restriction>
     </xs:simpleType>
 
     <xs:simpleType name="pwdtype">
         <!--Limit the password length  -->
         <xs:restriction base="xs:string">
-            <xs:pattern value="[\-_a-zA-z0-9]{3,30}"/>
+            <xs:pattern value="[\-_a-zA-z0-9]+"/>
+            <xs:minLength value="3"/>
+            <xs:maxLength value="30"/>
+
         </xs:restriction>
     </xs:simpleType>
 
@@ -49,7 +58,9 @@
         <xs:restriction base="xs:string">
             <!-- Allow _, #, -, / in path -->
             <!-- https://unix.stackexchange.com/questions/32795/what-is-the-maximum-allowed-filename-and-folder-size-with-ecryptfs -->
-            <xs:pattern value=".{3,4096}"/>
+            <xs:pattern value=".+"/>
+            <xs:minLength value="3"/>
+            <xs:maxLength value="4096"/>
 
         </xs:restriction>
     </xs:simpleType>
@@ -66,7 +77,9 @@
     <xs:simpleType name="limitedstringtype">
         <!--Limit the database group and description  -->
         <xs:restriction base="xs:string">
-            <xs:pattern value="[\s\-._a-zA-z0-9]{1,300}"/>
+            <xs:pattern value="[\s\-._a-zA-z0-9]+"/>
+            <xs:minLength value="1"/>
+            <xs:maxLength value="300"/>
         </xs:restriction>
     </xs:simpleType>
 
