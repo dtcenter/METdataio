@@ -139,7 +139,7 @@ def test_db_xml(get_specified_xml_loadfile, xml_config):
        Test validation against an XML specification file that is used in another test that compares two
        databases.
        ValueError should be NOT be raised for
-       the load_met_gha_prod specification file which has been used on real data.
+       the load_met_gha_prod/new specification files which are used on real data.
     """
 
     xml_spec_filename = xml_config
