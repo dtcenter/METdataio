@@ -46,10 +46,8 @@
     <xs:simpleType name="pwdtype">
         <!--Limit the password length  -->
         <xs:restriction base="xs:string">
-            <xs:pattern value="[\-_a-zA-z0-9]+"/>
             <xs:minLength value="3"/>
             <xs:maxLength value="30"/>
-
         </xs:restriction>
     </xs:simpleType>
 
