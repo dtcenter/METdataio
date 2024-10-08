@@ -25,6 +25,7 @@ from METdbLoad.ush import constants as CN
 from METdbLoad.ush import DEFAULT_LOGLEVEL
 from METreformat.util import get_common_logger
 
+
 class RunSql:
     """ Class to connect and disconnect to/from a SQL database
         Returns:
@@ -32,14 +33,24 @@ class RunSql:
     """
 
     def __init__(self, logger=None):
-        # Default to False since it requires extra permission
-        self.local_infile = False
-        self.conn = None
-        self.cur = None
-        if logger is None:
-            self.logger = get_common_logger(DEFAULT_LOGLEVEL, 'stdout')
-        else:
-            self.logger = logger
+        try:
+            # Default to False since it requires extra permission
+            self.local_infile = False
+            self.conn = None
+            self.cur = None
+            if logger is None:
+                self.logger = get_common_logger(DEFAULT_LOGLEVEL, 'stdout')
+            else:
+                self.logger = logger
+        except:
+            if logger is None:
+                print(
+                    "*** %s occurred while initializing class RunSql ***", sys.exc_info()[0])
+            else:
+                self.logger = logger
+                self.logger.error(
+                    "*** %s occurred while initializing class RunSql ***", sys.exc_info()[0])
+            sys.exit("*** Error initializing class RunSql")
 
     def sql_on(self, connection):
         """ method to connect to a SQL database
@@ -50,12 +61,13 @@ class RunSql:
         if 'db_local_infile' in connection.keys() and connection['db_local_infile'].lower() == 'false':
             local_infile = False
         else:
-            # Default behaviour 
+            # Default behaviour
             local_infile = True
 
         try:
             if (not 'db_host' in connection) or (not 'db_user' in connection):
-                self.logger.error("XML Load file does not have enough connection tags")
+                self.logger.error(
+                    "XML Load file does not have enough connection tags")
                 sys.exit("*** Error when connecting to database")
 
             # Connect to the database using connection info from XML file
@@ -90,7 +102,6 @@ class RunSql:
             self.local_infile = 'OFF'
         self.logger.debug("local_infile is %s", self.local_infile)
 
-
     @staticmethod
     def sql_off(conn, cur):
         """ method to commit data and disconnect from a SQL database
@@ -120,8 +131,8 @@ class RunSql:
             return next_id
 
         except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
-            logger.error("*** %s in write_sql_data get_next_id ***", sys.exc_info()[0])
-
+            logger.error(
+                "*** %s in write_sql_data get_next_id ***", sys.exc_info()[0])
 
     @staticmethod
     def get_file_name(data_file_id, sql_cur, logger):
@@ -132,7 +143,8 @@ class RunSql:
         # get the filename
         try:
             file_name = None
-            query_for_name = "SELECT filename from data_file where data_file_id = " + str(data_file_id)
+            query_for_name = "SELECT filename from data_file where data_file_id = " + \
+                str(data_file_id)
             sql_cur.execute(query_for_name)
             result = sql_cur.fetchone()
             if result[0] is not None:
@@ -140,8 +152,9 @@ class RunSql:
             return file_name
 
         except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
-            logger.error("*** %s in write_sql_data get_file_name ***", sys.exc_info()[0])
-            
+            logger.error(
+                "*** %s in write_sql_data get_file_name ***", sys.exc_info()[0])
+
     @staticmethod
     def write_to_sql(raw_data, col_list, sql_table, sql_query, tmp_dir, sql_cur, local_infile, logger):
         """ given a dataframe of raw_data with specific columns to write to a sql_table,
@@ -166,11 +179,16 @@ class RunSql:
 
                 # only line_data has timestamps in dataframe - change to strings
                 if 'line_data' in sql_table:
-                    raw_data['fcst_valid_beg'] = raw_data['fcst_valid_beg'].astype(str)
-                    raw_data['fcst_valid_end'] = raw_data['fcst_valid_end'].astype(str)
-                    raw_data['fcst_init_beg'] = raw_data['fcst_init_beg'].astype(str)
-                    raw_data['obs_valid_beg'] = raw_data['obs_valid_beg'].astype(str)
-                    raw_data['obs_valid_end'] = raw_data['obs_valid_end'].astype(str)
+                    raw_data['fcst_valid_beg'] = raw_data['fcst_valid_beg'].astype(
+                        str)
+                    raw_data['fcst_valid_end'] = raw_data['fcst_valid_end'].astype(
+                        str)
+                    raw_data['fcst_init_beg'] = raw_data['fcst_init_beg'].astype(
+                        str)
+                    raw_data['obs_valid_beg'] = raw_data['obs_valid_beg'].astype(
+                        str)
+                    raw_data['obs_valid_end'] = raw_data['obs_valid_end'].astype(
+                        str)
                 elif sql_table in (CN.MODE_HEADER, CN.MTD_HEADER):
                     raw_data['fcst_valid'] = raw_data['fcst_valid'].astype(str)
                     raw_data['fcst_init'] = raw_data['fcst_valid'].astype(str)
@@ -180,7 +198,8 @@ class RunSql:
                 sql_cur.executemany(sql_query, dfile)
 
         except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
-            logger.error("*** %s in run_sql write_to_sql ***", sys.exc_info()[0])
+            logger.error("*** %s in run_sql write_to_sql ***",
+                         sys.exc_info()[0])
 
     @staticmethod
     def apply_indexes(drop, sql_cur, logger):
@@ -205,9 +224,11 @@ class RunSql:
 
         except (pymysql.OperationalError, pymysql.InternalError):
             if drop:
-                logger.error("*** Index to drop does not exist in run_sql apply_indexes ***")
+                logger.error(
+                    "*** Index to drop does not exist in run_sql apply_indexes ***")
             else:
-                logger.error("*** Index to add already exists in run_sql apply_indexes ***")
+                logger.error(
+                    "*** Index to add already exists in run_sql apply_indexes ***")
 
         apply_time_end = time.perf_counter()
         apply_time = timedelta(seconds=apply_time_end - apply_time_start)
