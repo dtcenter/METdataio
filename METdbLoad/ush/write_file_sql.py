@@ -193,7 +193,7 @@ class WriteFileSql:
                                                   CN.INS_DATA_FILES, tmp_dir, sql_cur, local_infile,
                                                   self.logger)
 
-             (RuntimeError, TypeError, NameError, KeyError):
+            except (RuntimeError, TypeError, NameError, KeyError):
                 self.logger.error(
                     "*** %s in write_file_sql ***", sys.exc_info()[0])
                 sys.exit("*** Error writing SQL")
