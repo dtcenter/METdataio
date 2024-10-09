@@ -116,7 +116,7 @@ def main():
 
         netcdf_data_set = file_reader.read_into_xarray(load_files)
 
-    except:
+    except RuntimeError:
         print(
             "*** %s occurred setting up read_netcdf ***", sys.exc_info()[0])
         sys.exit("*** Error setting up read_netcdf")
