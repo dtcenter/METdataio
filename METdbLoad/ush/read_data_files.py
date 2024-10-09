@@ -50,7 +50,7 @@ class ReadDataFiles:
                 self.logger = util.get_common_logger('DEBUG', full_logfile)
             else:
                 self.logger = logger
-        except RunTimeError:
+        except RuntimeError:
             if logger is None:
                 print(
                     "*** %s occurred while initializing class ReadDataFiles ***", sys.exc_info()[0])
