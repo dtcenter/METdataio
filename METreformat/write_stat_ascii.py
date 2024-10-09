@@ -58,7 +58,7 @@ class WriteStatAscii:
             self.logger = logger
             self.parms = parms
 
-        except:
+        except RuntimeError:
             self.logger = logger
             self.logger.error(
                 "*** %s occurred while initializing class WriteStatAscii ***", sys.exc_info()[0])
