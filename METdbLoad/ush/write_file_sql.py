@@ -40,7 +40,7 @@ class WriteFileSql:
                 self.logger = get_common_logger(DEFAULT_LOGLEVEL, 'stdout')
             else:
                 self.logger = logger
-        except:
+        except RuntimeError:
             if logger is None:
                 print(
                     "*** %s occurred while initializing class WriteFileSql ***", sys.exc_info()[0])
@@ -193,7 +193,7 @@ class WriteFileSql:
                                                   CN.INS_DATA_FILES, tmp_dir, sql_cur, local_infile,
                                                   self.logger)
 
-            except (RuntimeError, TypeError, NameError, KeyError):
+             (RuntimeError, TypeError, NameError, KeyError):
                 self.logger.error(
                     "*** %s in write_file_sql ***", sys.exc_info()[0])
                 sys.exit("*** Error writing SQL")
