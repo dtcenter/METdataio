@@ -76,8 +76,8 @@ def main(args):
 
         try:
             logger.info("User name is: %s",  getpass.getuser())
-        except:
-            logger.info("User name is not available")
+        except UserWarning:
+            logger.info("User Warning: User name is not available")
 
         # time execution
         load_time_start = time.perf_counter()
