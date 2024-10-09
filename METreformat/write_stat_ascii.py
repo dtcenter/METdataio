@@ -2043,7 +2043,7 @@ def main():
         # Create the log directory if it doesn't alreaedy exist
         try:
             os.makedirs(log_dir)
-        except:
+        except OSError:
             # ignore warning that is raised
             # when the directory already exists
             pass
@@ -2065,7 +2065,7 @@ def main():
         stat_lines_obj: WriteStatAscii = WriteStatAscii(parms, logger)
         # stat_lines_obj.write_stat_ascii(file_df, parms, logger)
         stat_lines_obj.write_stat_ascii(file_df, parms)
-    except:
+    except RuntimeError:
         print(
             "*** %s occurred setting up write_stat_ascii ***", sys.exc_info()[0])
         sys.exit("*** Error setting up write_stat_ascii")
