@@ -42,7 +42,7 @@ class RunSql:
                 self.logger = get_common_logger(DEFAULT_LOGLEVEL, 'stdout')
             else:
                 self.logger = logger
-        except:
+        except RuntimeError:
             if logger is None:
                 print(
                     "*** %s occurred while initializing class RunSql ***", sys.exc_info()[0])
