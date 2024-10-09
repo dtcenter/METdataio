@@ -36,7 +36,6 @@ from METdbLoad.ush.read_data_files import ReadDataFiles
 from METdbLoad.ush.read_load_xml import XmlLoadFile
 
 
-
 class WriteStatAscii:
     """ Class to write MET .stat files to an ASCII file that contains the reformatted input data
 
@@ -44,22 +43,26 @@ class WriteStatAscii:
            a Pandas dataframe and creates an ascii file with reformatted data.
     """
 
-
     def __init__(self, parms, logger):
 
-        # Set up logging
+        try:
+            # Set up logging
 
-        log_directory = parms['log_directory']
+            log_directory = parms['log_directory']
 
-        # Create log directory if it doesn't already exist.
-        log_filename = (str(parms['log_filename'])).upper()
-        if not os.path.exists(log_directory) and log_filename != 'STDOUT':
-            os.mkdir(parms['log_directory'])
+            # Create log directory if it doesn't already exist.
+            log_filename = (str(parms['log_filename'])).upper()
+            if not os.path.exists(log_directory) and log_filename != 'STDOUT':
+                os.mkdir(parms['log_directory'])
 
-        self.logger = logger
-        self.parms = parms
+            self.logger = logger
+            self.parms = parms
 
-
+        except RuntimeError:
+            self.logger = logger
+            self.logger.error(
+                "*** %s occurred while initializing class WriteStatAscii ***", sys.exc_info()[0])
+            sys.exit("*** Error initializing class WriteStatAscii")
 
     def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict) -> pd.DataFrame:
         """ For line types: FHO, CTC, CTS, SL1L2, ECNT, MCTS, and VCNT reformat the MET stat files (.stat) to another
@@ -118,9 +121,11 @@ class WriteStatAscii:
                     working_df = working_df.loc[(working_df['line_type'] == linetype_requested) |
                                                 (working_df['line_type'] == cn.TCMPR)]
                 else:
-                    working_df = working_df.loc[working_df['line_type'] == linetype_requested]
+                    working_df = working_df.loc[working_df['line_type']
+                                                == linetype_requested]
             else:
-                self.logger.error("Requested line type is currently not supported for reformatting")
+                self.logger.error(
+                    "Requested line type is currently not supported for reformatting")
                 raise ValueError("Requested line type ", linetype_requested,
                                  " is currently not supported for reformatting")
 
@@ -150,7 +155,8 @@ class WriteStatAscii:
             begin_reformat = time.perf_counter()
 
             try:
-                reformatted_df = self.process_by_stat_linetype(linetype_requested, working_df, is_aggregated)
+                reformatted_df = self.process_by_stat_linetype(
+                    linetype_requested, working_df, is_aggregated)
             except NotImplementedError:
                 sys.exit('NotImplementedError')
 
@@ -160,29 +166,32 @@ class WriteStatAscii:
             self.logger.info(msg)
 
             # Write out to the tab-separated text file
-            output_file = os.path.join(parms['output_dir'], parms['output_filename'])
+            output_file = os.path.join(
+                parms['output_dir'], parms['output_filename'])
             _: pd.DataFrame = reformatted_df.to_csv(output_file, index=None, sep='\t',
                                                     mode='a')
 
         except (TypeError, NameError, KeyError, NotImplementedError):
-            self.logger.error("*** %s in write_stat_ascii ***", sys.exc_info()[0])
+            self.logger.error(
+                "*** %s in write_stat_ascii ***", sys.exc_info()[0])
 
         write_time_end: float = time.perf_counter()
         write_time = write_time_end - write_time_start
 
-        self.logger.info("Total time to reformat and write ASCII: %s seconds", str(write_time))
+        self.logger.info(
+            "Total time to reformat and write ASCII: %s seconds", str(write_time))
 
         return reformatted_df
 
     def process_by_stat_linetype(self, linetype: str, stat_data: pd.DataFrame, is_aggregated=True):
         """
-        
+
            For MET .stat output, extract the relevant statistics information into the
            necessary format based on whether the data is already aggregated (via MET stat-analysis) or
            if the data is un-aggregated and requires the METcalcpy agg_stat module for performing the aggregation
            statistics calculations.  **NOTE** Support for reformatting into agg_stat's required input format is currently
            available for the *ECNT* linetype.  This support will be extended to the other supported linetypes. 
-           
+
 
         Args:
             @param linetype: The linetype of interest (i.e. CNT, CTS, FHO, TCMPR, etc.)
@@ -214,63 +223,72 @@ class WriteStatAscii:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_fho(stat_data)
             else:
-                linetype_data: pd.DataFrame = self.process_fho_for_agg(stat_data)
+                linetype_data: pd.DataFrame = self.process_fho_for_agg(
+                    stat_data)
 
         # CNT Continuous Statistics
         elif linetype == cn.CNT:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_cnt(stat_data)
             else:
-                linetype_data: pd.DataFrame = self.process_cnt_for_agg(stat_data)
+                linetype_data: pd.DataFrame = self.process_cnt_for_agg(
+                    stat_data)
 
         # VCNT Continuous Statistics
         elif linetype == cn.VCNT:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_vcnt(stat_data)
             else:
-                linetype_data: pd.DataFrame = self.process_vcnt_for_agg(stat_data)
+                linetype_data: pd.DataFrame = self.process_vcnt_for_agg(
+                    stat_data)
 
         # CTC Contingency Table Counts
         elif linetype == cn.CTC:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_ctc(stat_data)
             else:
-                linetype_data: pd.DataFrame = self.process_ctc_for_agg(stat_data)
+                linetype_data: pd.DataFrame = self.process_ctc_for_agg(
+                    stat_data)
 
         # CTS Contingency Table Statistics
         elif linetype == cn.CTS:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_cts(stat_data)
             else:
-                linetype_data: pd.DataFrame = self.process_cts_for_agg(stat_data)
+                linetype_data: pd.DataFrame = self.process_cts_for_agg(
+                    stat_data)
 
         # MCTS Contingency Table Statistics
         elif linetype == cn.MCTS:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_mcts(stat_data)
             else:
-                linetype_data: pd.DataFrame = self.process_mcts_for_agg(stat_data)
+                linetype_data: pd.DataFrame = self.process_mcts_for_agg(
+                    stat_data)
 
         # SL1L2 Scalar Partial sums
         elif linetype == cn.SL1L2:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_sl1l2(stat_data)
             else:
-                linetype_data: pd.DataFrame = self.process_sl1l2_for_agg(stat_data)
+                linetype_data: pd.DataFrame = self.process_sl1l2_for_agg(
+                    stat_data)
 
         # VL1L2 Scalar Partial sums
         elif linetype == cn.VL1L2:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_vl1l2(stat_data)
             else:
-                linetype_data: pd.DataFrame = self.process_vl1l2_for_agg(stat_data)
+                linetype_data: pd.DataFrame = self.process_vl1l2_for_agg(
+                    stat_data)
 
         # ECNT Ensemble Continuous statistics
         elif linetype == cn.ECNT:
             if is_aggregated:
                 linetype_data: pd.DataFrame = self.process_ecnt(stat_data)
             else:
-                linetype_data: pd.DataFrame = self.process_ecnt_for_agg(stat_data)
+                linetype_data: pd.DataFrame = self.process_ecnt_for_agg(
+                    stat_data)
 
         # PCT
         elif linetype == cn.PCT:
@@ -340,10 +358,12 @@ class WriteStatAscii:
         total_number_variable_columns = num_thresh * num_repeating_col_labels + 1
 
         # Add 1 for the TOTAL column to get the total number of columns for this line type
-        total_number_relevant_columns = cn.NUM_STATIC_PCT_COLS + total_number_variable_columns + 1
+        total_number_relevant_columns = cn.NUM_STATIC_PCT_COLS + \
+            total_number_variable_columns + 1
 
         # Get a list of names of the columns that correspond to the PCT linetype for this data
-        only_relevant_columns = stat_data_copy.columns.tolist()[0:total_number_relevant_columns]
+        only_relevant_columns = stat_data_copy.columns.tolist()[
+            0:total_number_relevant_columns]
 
         filtered_df = stat_data_copy[only_relevant_columns]
         headers = filtered_df.columns
@@ -359,14 +379,16 @@ class WriteStatAscii:
         gc.collect()
 
         # Replace the first two numbered labels (following the LINETYPE column) with the TOTAL and N_THRESH labels
-        working_df.rename(columns={'0': 'total', cn.LINE_VAR_COUNTER[cn.PCT]: 'n_thresh'}, inplace=True)
+        working_df.rename(
+            columns={'0': 'total', cn.LINE_VAR_COUNTER[cn.PCT]: 'n_thresh'}, inplace=True)
 
         # Relabel the remaining numbered column headers
         last_column_name = len(working_df.columns) - cn.NUM_STATIC_PCT_COLS
 
         # The THRESH_n column is the last column
         thresh_n_col_name = 'thresh_' + str(num_thresh + 1)
-        working_df.rename(columns={str(last_column_name): thresh_n_col_name}, inplace=True)
+        working_df.rename(
+            columns={str(last_column_name): thresh_n_col_name}, inplace=True)
 
         # Relabel the repeating columns (THRESH_i, OY_i, ON_i)
         # column names are numbered '1','2','3',...,etc. Give them descriptive labels: thresh_1, oy_1, on_1, etc.
@@ -377,11 +399,13 @@ class WriteStatAscii:
             for column in cn.LC_PCT_VARIABLE_HEADERS:
                 column_name = str(column_name_value)
                 column_label = "{label}_{idx}".format(label=column, idx=i)
-                working_df.rename(columns={column_name: column_label}, inplace=True)
+                working_df.rename(
+                    columns={column_name: column_label}, inplace=True)
                 column_name_value += 1
 
             # Add a list used to facilitate creating the value_i column when reformatting.
-            ith_value_label.append("{label}_{idx}".format(label="value", idx=i))
+            ith_value_label.append(
+                "{label}_{idx}".format(label="value", idx=i))
 
         # Create a dataframe consisting only of the value_1, ..., value_n values and their corresponding index values
         # and concat to the working_df.
@@ -409,7 +433,8 @@ class WriteStatAscii:
         # Reindex working_df to match the value_df index. This ensures correct concatenation of
         # the working_df with the value_df
         working_df_reindexed = working_df.reset_index(drop=False)
-        working_df_reindexed = pd.concat([working_df_reindexed, value_df], axis=1)
+        working_df_reindexed = pd.concat(
+            [working_df_reindexed, value_df], axis=1)
 
         # Clean up working_df dataframe, it is no longer needed
         del working_df
@@ -457,8 +482,10 @@ class WriteStatAscii:
         common_list.append('n_thresh')
         df_thresh = working_copy_df.melt(id_vars=common_list, value_vars=thresh_cols, var_name='thresh',
                                          value_name='thresh_i')
-        df_oy = working_copy_df.melt(id_vars=common_list, value_vars=oy_cols, var_name='oy', value_name='oy_i')
-        df_on = working_copy_df.melt(id_vars=common_list, value_vars=on_cols, var_name='on', value_name='on_i')
+        df_oy = working_copy_df.melt(
+            id_vars=common_list, value_vars=oy_cols, var_name='oy', value_name='oy_i')
+        df_on = working_copy_df.melt(
+            id_vars=common_list, value_vars=on_cols, var_name='on', value_name='on_i')
         df_values = working_copy_df.melt(id_vars=common_list, value_vars=i_value, var_name='values',
                                          value_name='i_value')
 
@@ -470,11 +497,16 @@ class WriteStatAscii:
 
         # Reindex to use the common columns before concatenating the melted dataframes to avoid duplication of
         # common columns.
-        df_thresh_reindex = df_thresh.set_index(common_list, drop=True, append=False, inplace=False)
-        df_oy_reindex = df_oy.set_index(common_list, drop=True, append=False, inplace=False)
-        df_on_reindex = df_on.set_index(common_list, drop=True, append=False, inplace=False)
-        df_values_reindex = df_values.set_index(common_list, drop=True, append=False, inplace=False)
-        reformatted_df = pd.concat([df_thresh_reindex, df_oy_reindex, df_on_reindex, df_values_reindex], axis=1)
+        df_thresh_reindex = df_thresh.set_index(
+            common_list, drop=True, append=False, inplace=False)
+        df_oy_reindex = df_oy.set_index(
+            common_list, drop=True, append=False, inplace=False)
+        df_on_reindex = df_on.set_index(
+            common_list, drop=True, append=False, inplace=False)
+        df_values_reindex = df_values.set_index(
+            common_list, drop=True, append=False, inplace=False)
+        reformatted_df = pd.concat(
+            [df_thresh_reindex, df_oy_reindex, df_on_reindex, df_values_reindex], axis=1)
 
         # clean up
         del working_copy_df
@@ -525,10 +557,12 @@ class WriteStatAscii:
         num_rank: int = int(stat_data_copy.iloc[0][cn.NUM_STATIC_RHIST_COLS])
 
         # Add 1 for the TOTAL column to get the total number of columns for this line type
-        total_number_relevant_columns = cn.NUM_STATIC_RHIST_COLS + num_rank * num_repeating_col_labels + 1
+        total_number_relevant_columns = cn.NUM_STATIC_RHIST_COLS + \
+            num_rank * num_repeating_col_labels + 1
 
         # Get a list of names of the columns that correspond to the RHIST linetype for this data
-        only_relevant_columns = stat_data_copy.columns.tolist()[0:total_number_relevant_columns]
+        only_relevant_columns = stat_data_copy.columns.tolist()[
+            0:total_number_relevant_columns]
 
         filtered_df = stat_data_copy[only_relevant_columns]
         headers = filtered_df.columns
@@ -544,7 +578,8 @@ class WriteStatAscii:
         gc.collect()
 
         # Replace the first two numbered labels (following the LINETYPE column) with the TOTAL and N_RANK labels
-        working_df.rename(columns={'0': 'total', cn.LINE_VAR_COUNTER[cn.RHIST]: 'n_rank'}, inplace=True)
+        working_df.rename(
+            columns={'0': 'total', cn.LINE_VAR_COUNTER[cn.RHIST]: 'n_rank'}, inplace=True)
 
         # Relabel the repeating columns (RANK_1, ..., RANK_n)
         # column names are numbered '1','2','3',...,etc. by METdbLoad.
@@ -556,11 +591,13 @@ class WriteStatAscii:
             for column in cn.LC_RHIST_VARIABLE_HEADERS:
                 column_name = str(column_name_value)
                 column_label = "{label}_{idx}".format(label=column, idx=i)
-                working_df.rename(columns={column_name: column_label}, inplace=True)
+                working_df.rename(
+                    columns={column_name: column_label}, inplace=True)
                 column_name_value += 1
 
             # Add a list used to facilitate creating the value_i column when reformatting.
-            ith_value_label.append("{label}_{idx}".format(label="value", idx=i))
+            ith_value_label.append(
+                "{label}_{idx}".format(label="value", idx=i))
 
         # Create a dataframe consisting only of the value_1, ..., value_n values and their corresponding index values
         # and concat to the working_df.
@@ -588,7 +625,8 @@ class WriteStatAscii:
         # Reindex working_df to match the value_df index. This ensures correct concatenation of
         # the working_df with the value_df
         working_df_reindexed = working_df.reset_index(drop=False)
-        working_df_reindexed = pd.concat([working_df_reindexed, value_df], axis=1)
+        working_df_reindexed = pd.concat(
+            [working_df_reindexed, value_df], axis=1)
 
         # Clean up working_df dataframe, it is no longer needed
         del working_df
@@ -622,7 +660,8 @@ class WriteStatAscii:
         # Now apply melt to get the rank_i and i_value columns
         # include the n_rank column for indexing.
         common_list.append('n_rank')
-        df_rank = working_copy_df.melt(id_vars=common_list, value_vars=rank_cols, var_name='rank', value_name='rank_i')
+        df_rank = working_copy_df.melt(
+            id_vars=common_list, value_vars=rank_cols, var_name='rank', value_name='rank_i')
         df_values = working_copy_df.melt(id_vars=common_list, value_vars=i_value, var_name='values',
                                          value_name='i_value')
 
@@ -632,9 +671,12 @@ class WriteStatAscii:
 
         # Reindex to use the common columns before concatenating the melted dataframes to avoid duplication of
         # common columns.
-        df_rank_reindex = df_rank.set_index(common_list, drop=True, append=False, inplace=False)
-        df_values_reindex = df_values.set_index(common_list, drop=True, append=False, inplace=False)
-        reformatted_df = pd.concat([df_rank_reindex, df_values_reindex], axis=1)
+        df_rank_reindex = df_rank.set_index(
+            common_list, drop=True, append=False, inplace=False)
+        df_values_reindex = df_values.set_index(
+            common_list, drop=True, append=False, inplace=False)
+        reformatted_df = pd.concat(
+            [df_rank_reindex, df_values_reindex], axis=1)
 
         # clean up
         del working_copy_df
@@ -686,7 +728,7 @@ class WriteStatAscii:
         # Subset original dataframe to another dataframe consisting of only the FHO
         # line type.
         fho_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                               fho_columns_to_use]
+                                                                                  fho_columns_to_use]
 
         # Add the stat columns header names for the FHO line type
         fho_columns: List[str] = cn.FHO_FULL_HEADER
@@ -759,7 +801,7 @@ class WriteStatAscii:
 
         # Subset original dataframe to one containing only the CNT data
         cnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                               cnt_columns_to_use]
+                                                                                  cnt_columns_to_use]
 
         # Add the stat columns for the CNT line type
         cnt_columns: List[str] = cn.FULL_CNT_HEADER
@@ -855,7 +897,7 @@ class WriteStatAscii:
 
         # Subset original dataframe to one containing only the VCNT data
         vcnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                                vcnt_columns_to_use]
+                                                                                   vcnt_columns_to_use]
 
         # Add the stat columns for the CNT line type
         vcnt_columns: List[str] = cn.FULL_VCNT_HEADER
@@ -950,7 +992,7 @@ class WriteStatAscii:
 
         # Subset original dataframe to one containing only the CTC data
         ctc_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                               ctc_columns_to_use]
+                                                                                  ctc_columns_to_use]
 
         # Add the stat columns header names for the CTC line type
         ctc_columns: List[str] = cn.CTC_HEADERS
@@ -1017,7 +1059,7 @@ class WriteStatAscii:
 
         # Subset original dataframe to one containing only the CTS data
         cts_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                               cts_columns_to_use]
+                                                                                  cts_columns_to_use]
 
         # Add all the columns header names for the CTS line type
         cts_columns: List[str] = cn.CTS_SPECIFIC_HEADERS
@@ -1114,7 +1156,7 @@ class WriteStatAscii:
 
         # Subset original dataframe to one containing only the CTS data
         mcts_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                                mcts_columns_to_use]
+                                                                                   mcts_columns_to_use]
 
         # Add all the columns header names for the MCTS line type
         mcts_columns: List[str] = cn.MCTS_SPECIFIC_HEADERS
@@ -1208,7 +1250,7 @@ class WriteStatAscii:
 
         # Subset original dataframe to one containing only the Sl1L2 data
         sl1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                                 sl1l2_columns_to_use]
+                                                                                    sl1l2_columns_to_use]
 
         # Add the stat columns header names for the SL1L2 line type
         sl1l2_columns: List[str] = cn.SL1L2_HEADERS
@@ -1272,7 +1314,7 @@ class WriteStatAscii:
 
         # Subset original dataframe to one containing only the Sl1L2 data
         vl1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                                 vl1l2_columns_to_use]
+                                                                                    vl1l2_columns_to_use]
 
         # Add the stat columns header names for the SL1L2 line type
         vl1l2_columns: List[str] = cn.VL1L2_HEADERS
@@ -1336,7 +1378,7 @@ class WriteStatAscii:
 
         # Subset original dataframe to one containing only the ECNT data
         ecnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                                ecnt_columns_to_use]
+                                                                                   ecnt_columns_to_use]
 
         # Add the stat columns header names for the ECNT line type
         ecnt_columns: List[str] = cn.ECNT_HEADERS
@@ -1411,7 +1453,7 @@ class WriteStatAscii:
 
         # Subset original dataframe to one containing only the ECNT data
         ecnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                                ecnt_columns_to_use]
+                                                                                   ecnt_columns_to_use]
 
         # Replace the column numbers with the name of the corresponding statistic as specified in MET
         # User's Guide for the ECNT linetype in the ensemble stat table.
@@ -1424,7 +1466,8 @@ class WriteStatAscii:
         # each ECNT-specific statistic.  This will result in a very large dataframe.
         linetype_str = linetype.upper() + '_'
         ecnt_headers = cn.LC_ECNT_SPECIFIC
-        renamed_ecnt = [linetype_str + cur_hdr.upper() for cur_hdr in ecnt_headers]
+        renamed_ecnt = [linetype_str + cur_hdr.upper()
+                        for cur_hdr in ecnt_headers]
 
         # Create a list of dataframes, each corresponding to the ECNT statistics, then merge them
         # all into one final dataframe.
@@ -1438,7 +1481,8 @@ class WriteStatAscii:
         # Merge all the statistics dataframes into one, then add the
         # stat_value column. Initialize the stat_values to NaN/NA.  These
         # values will be filled by the METcalcpy agg_stat calculation.
-        merged_dfs: pd.DataFrame = pd.concat(dfs_to_merge, axis=0, ignore_index=True)
+        merged_dfs: pd.DataFrame = pd.concat(
+            dfs_to_merge, axis=0, ignore_index=True)
         merged_dfs['stat_value'] = np.nan
         merged_dfs.replace('N/A', pd.NA)
 
@@ -1549,7 +1593,8 @@ class WriteStatAscii:
         # Join the TCMPR and TCDIAG dataframes into one and do some cleaning up of columns
         uc_long_header_tcst = [hdr.upper() for hdr in cn.LONG_HEADER_TCST]
         common_headers = uc_long_header_tcst[0:len(uc_long_header_tcst) - 1]
-        full_df = pd.merge(reformatted_tcmpr, all_tcdiag_reformatted, on=common_headers, how='inner')
+        full_df = pd.merge(
+            reformatted_tcmpr, all_tcdiag_reformatted, on=common_headers, how='inner')
 
         # Clean up extraneous columns:
         #   TOTAL_x and TOTAL_y are identical, drop TOTAL_y and rename TOTAL_x to TOTAL
@@ -1557,16 +1602,17 @@ class WriteStatAscii:
         cleanup_df = full_df.copy(deep=True)
         cleanup_df.drop('TOTAL_y', axis=1, inplace=True)
         cleanup_df.drop('LINE_TYPE_x', axis=1, inplace=True)
-        cleanup_df.rename({'TOTAL_x': 'TOTAL', 'LINE_TYPE_y': 'LINE_TYPE'}, axis=1, inplace=True)
+        cleanup_df.rename(
+            {'TOTAL_x': 'TOTAL', 'LINE_TYPE_y': 'LINE_TYPE'}, axis=1, inplace=True)
 
         end_tcdiag = time.perf_counter()
         time_to_process_tcdiag = end_tcdiag - begin_tcdiag
-        self.logger.info(f"Total time for processing the TCDiag matched pair linetype: {time_to_process_tcdiag} seconds")
+        self.logger.info(
+            f"Total time for processing the TCDiag matched pair linetype: {time_to_process_tcdiag} seconds")
 
         return cleanup_df
 
     def reformat_tcdiag(self, tcdiag_df: pd.DataFrame) -> pd.DataFrame:
-
         """
             Takes a TCDiag dataframe and reformats it by
             replacing the VALUE_i column with the value of the corresponding DIAG_i
@@ -1589,7 +1635,8 @@ class WriteStatAscii:
         """
 
         begin_reformat = time.perf_counter()
-        self.logger.info("Reformat the TCDiag dataframe based on the DIAG_SOURCE ")
+        self.logger.info(
+            "Reformat the TCDiag dataframe based on the DIAG_SOURCE ")
         n_diag_col_name = cn.LINE_VAR_COUNTER[cn.TCDIAG]
         ds_df = tcdiag_df.copy(deep=True)
 
@@ -1629,7 +1676,8 @@ class WriteStatAscii:
             diag_name = diag_names[0]
 
             # Replace the VALUE_i column corresponding to the DIAG_i with the name of the diagnostic
-            ds_df.rename({start_value: diag_name}, axis='columns', inplace=True)
+            ds_df.rename({start_value: diag_name},
+                         axis='columns', inplace=True)
             diag_to_drop.append(start_diag)
             next_diag = str(int(start_diag) + 2)
             next_value = str(int(start_value) + 2)
@@ -1649,15 +1697,20 @@ class WriteStatAscii:
         # for shear magnitude
         reformatted_cols = reformatted.columns.to_list()
         if 'SHR_MAG' in reformatted_cols:
-            reformatted.rename({'SHR_MAG': cn.TCDIAG_COMMON_NAMES['SHR_MAG']}, axis='columns', inplace=True)
+            reformatted.rename(
+                {'SHR_MAG': cn.TCDIAG_COMMON_NAMES['SHR_MAG']}, axis='columns', inplace=True)
         elif 'SHRD' in reformatted_cols:
-            reformatted.rename({'SHRD': cn.TCDIAG_COMMON_NAMES['SHRD']}, axis='columns', inplace=True)
+            reformatted.rename(
+                {'SHRD': cn.TCDIAG_COMMON_NAMES['SHRD']}, axis='columns', inplace=True)
         if 'LAND' in reformatted_cols:
-            reformatted.rename({'LAND': cn.TCDIAG_COMMON_NAMES['LAND']}, axis='columns', inplace=True)
+            reformatted.rename(
+                {'LAND': cn.TCDIAG_COMMON_NAMES['LAND']}, axis='columns', inplace=True)
         elif 'DTL' in reformatted_cols:
-            reformatted.rename({'DTL': cn.TCDIAG_COMMON_NAMES['DTL']}, axis='columns', inplace=True)
+            reformatted.rename(
+                {'DTL': cn.TCDIAG_COMMON_NAMES['DTL']}, axis='columns', inplace=True)
         if 'STM_SPD' in reformatted_cols:
-            reformatted.rename({'STM_SPD': cn.TCDIAG_COMMON_NAMES['STM_SPD']}, axis='columns', inplace=True)
+            reformatted.rename(
+                {'STM_SPD': cn.TCDIAG_COMMON_NAMES['STM_SPD']}, axis='columns', inplace=True)
 
         # Clean up intermediate dataframes
         del ds_df
@@ -1665,7 +1718,8 @@ class WriteStatAscii:
 
         end_reformat = time.perf_counter()
         time_to_reformat = end_reformat - begin_reformat
-        self.logger.info(f"Finished reformatting TCDiag matched pair output in {time_to_reformat} seconds")
+        self.logger.info(
+            f"Finished reformatting TCDiag matched pair output in {time_to_reformat} seconds")
 
         return reformatted
 
@@ -1702,7 +1756,8 @@ class WriteStatAscii:
 
         end_reformat = time.perf_counter()
         reformat_time = end_reformat - begin_reformat
-        self.logger.info("Reformatting the TCMPR dataframe took {reformat_time} seconds")
+        self.logger.info(
+            "Reformatting the TCMPR dataframe took {reformat_time} seconds")
 
         return tcmpr_relevant
 
@@ -1747,7 +1802,7 @@ class WriteStatAscii:
         # Subset the original dataframe to another dataframe consisting of only the MPR
         # line type.  The MPR specific columns will only have numbers at this point.
         mpr_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                                   mpr_columns_to_use]
+                                                                                  mpr_columns_to_use]
 
         # Add the stat columns header names for the MPR line type
         mpr_columns: List[str] = cn.MPR_HEADERS
@@ -1788,16 +1843,16 @@ class WriteStatAscii:
         # key-value structure with variables in one column and their corresponding
         # values in another column). Omit the matched pair index.
         variables_to_transform = list(cn.LC_MPR_SPECIFIC)[:]
-        self.logger.info(f"Variables to transform from wide to long: {cn.LC_MPR_SPECIFIC[1:]} ")
+        self.logger.info(
+            f"Variables to transform from wide to long: {cn.LC_MPR_SPECIFIC[1:]} ")
 
         melted: pd.DataFrame = pd.melt(mpr_df_copy, id_vars=columns_to_use[1:28],
-                                              value_vars=variables_to_transform,
-                                              var_name='stat_name',
-                                              value_name='stat_value',
-                                              ignore_index=True)
+                                       value_vars=variables_to_transform,
+                                       var_name='stat_name',
+                                       value_name='stat_value',
+                                       ignore_index=True)
 
         linetype_data = melted.copy(deep=True)
-
 
         # The MPR line type doesn't have the bcl and bcu stat values; set these to NA
         na_column: List[str] = ['NA' for _ in range(0, linetype_data.shape[0])]
@@ -1814,7 +1869,6 @@ class WriteStatAscii:
         _ = gc.collect()
 
         return linetype_data
-
 
     def rename_confidence_level_columns(self, confidence_level_columns: List[str]) -> \
             List[str]:
@@ -1838,7 +1892,8 @@ class WriteStatAscii:
         renamed: List[str] = []
 
         for cur_col in confidence_level_columns:
-            match = re.match(r'(.+)_(BCL|bcl|BCU|bcu|NCL|ncl|NCU|ncu)', cur_col)
+            match = re.match(
+                r'(.+)_(BCL|bcl|BCU|bcu|NCL|ncl|NCU|ncu)', cur_col)
             if match:
                 rearranged = match.group(2) + '_' + match.group(1)
                 renamed.append(rearranged.upper())
@@ -1971,42 +2026,49 @@ def main():
        stat_ncl, and stat_ncu columns.
     '''
 
-    # Acquire the output file name and output directory information and location of
-    # the xml specification file
-    config_file: str = util.read_config_from_command_line()
-    with open(config_file, 'r') as stream:
-        try:
-            parms: dict = yaml.load(stream, Loader=yaml.FullLoader)
-            pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
-        except yaml.YAMLError:
-            sys.exit(1)
-
-    log_dir = parms['log_directory']
-
-    # Create the log directory if it doesn't alreaedy exist
     try:
-        os.makedirs(log_dir)
-    except:
-        # ignore warning that is raised
-        # when the directory already exists
-        pass
+        # Acquire the output file name and output directory information and location of
+        # the xml specification file
+        config_file: str = util.read_config_from_command_line()
+        with open(config_file, 'r') as stream:
+            try:
+                parms: dict = yaml.load(stream, Loader=yaml.FullLoader)
+                pathlib.Path(parms['output_dir']).mkdir(
+                    parents=True, exist_ok=True)
+            except yaml.YAMLError:
+                sys.exit(1)
 
-    full_log_filename = os.path.join(log_dir, parms['log_filename'])
-    logger = util.get_common_logger(parms['log_level'],full_log_filename)
+        log_dir = parms['log_directory']
 
-    file_df: pd.DataFrame = read_input(parms, logger)
+        # Create the log directory if it doesn't alreaedy exist
+        try:
+            os.makedirs(log_dir)
+        except OSError:
+            # ignore warning that is raised
+            # when the directory already exists
+            pass
 
-    # Check if the output file already exists, if so, delete it to avoid
-    # appending output from subsequent runs into the same file.
-    existing_output_file = os.path.join(parms['output_dir'], parms['output_filename'])
-    if os.path.exists(existing_output_file):
-        logger.info("Output file already exists, removing this file.")
-        os.remove(existing_output_file)
+        full_log_filename = os.path.join(log_dir, parms['log_filename'])
+        logger = util.get_common_logger(parms['log_level'], full_log_filename)
 
-    # Write stat file in ASCII format
-    stat_lines_obj: WriteStatAscii = WriteStatAscii(parms, logger)
-    # stat_lines_obj.write_stat_ascii(file_df, parms, logger)
-    stat_lines_obj.write_stat_ascii(file_df, parms)
+        file_df: pd.DataFrame = read_input(parms, logger)
+
+        # Check if the output file already exists, if so, delete it to avoid
+        # appending output from subsequent runs into the same file.
+        existing_output_file = os.path.join(
+            parms['output_dir'], parms['output_filename'])
+        if os.path.exists(existing_output_file):
+            logger.info("Output file already exists, removing this file.")
+            os.remove(existing_output_file)
+
+        # Write stat file in ASCII format
+        stat_lines_obj: WriteStatAscii = WriteStatAscii(parms, logger)
+        # stat_lines_obj.write_stat_ascii(file_df, parms, logger)
+        stat_lines_obj.write_stat_ascii(file_df, parms)
+    except RuntimeError:
+        print(
+            "*** %s occurred setting up write_stat_ascii ***", sys.exc_info()[0])
+        sys.exit("*** Error setting up write_stat_ascii")
 
 
 if __name__ == "__main__":
