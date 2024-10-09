@@ -72,7 +72,7 @@ class XmlLoadFile:
                 self.logger = util.get_common_logger('DEBUG', log_filename)
             else:
                 self.logger = logger
-        except:
+        except RuntimeError:
             if logger is None:
                 print(
                     "*** %s occurred while initializing class XmlLoadFile ***", sys.exc_info()[0])
