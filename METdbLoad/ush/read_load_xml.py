@@ -18,12 +18,12 @@ Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 import sys
 import os
 import datetime
-import io
 from pathlib import Path
 import pandas as pd
 from lxml import etree
 import METreformat.util as util
 from METdbLoad.ush import constants as CN
+from lxml import etree
 from METdbLoad.test import utils as dbload_util
 
 
@@ -69,6 +69,7 @@ class XmlLoadFile:
 
             self.load_files = []
             self.line_types = []
+
             if logger is None:
                 log_filename = os.path.join(os.getcwd(), __name__ + "_log.txt")
                 self.logger = util.get_common_logger('DEBUG', log_filename)
@@ -95,6 +96,12 @@ class XmlLoadFile:
             self.logger.debug("[--- Start read_xml ---]")
 
             try:
+
+                # check for existence of XML file
+                if not Path(self.xmlfilename).is_file():
+                    sys.exit("*** XML file " + self.xmlfilename +
+                             " can not be found!")
+
                 # Validate the XML file
                 self.logger.info(
                     f"Validating the {self.xmlfilename} against the {dbload_util.LOAD_SPECIFICATION_SCHEMA}")
@@ -106,14 +113,9 @@ class XmlLoadFile:
                     print(f"{msg}")
                     raise ValueError(msg)
                 else:
-                    msg = (f"{self.xmlfilename} is valid ")
+                    msg = f"{self.xmlfilename} is valid "
                     self.logger.info(msg)
                     print(f"{msg}")
-
-                # check for existence of XML file
-                if not Path(self.xmlfilename).is_file():
-                    sys.exit("*** XML file " + self.xmlfilename +
-                             " can not be found!")
 
                 # parse the XML file
                 self.logger.info('Reading XML Load file')
