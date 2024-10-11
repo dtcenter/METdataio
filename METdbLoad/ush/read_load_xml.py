@@ -460,9 +460,3 @@ class XmlLoadFile:
             sys.exit("*** Error found while expanding XML folder templates!")
 
         return file_list
-
-if __name__ == "__main__":
-    # xml_file = "/Users/minnawin/feature_internal_56_METdataio_validate_payloads/METdataio/METdbLoad/test/valid_specification.xml"
-    xml_file = "/Users/minnawin/feature_internal_56_METdataio_validate_payloads/METdataio/METdbLoad/test/full_example.xml"
-    xlf = XmlLoadFile(xml_file)
-    xlf.read_xml()
