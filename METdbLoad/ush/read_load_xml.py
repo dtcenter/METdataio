@@ -17,11 +17,14 @@ Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 
 import sys
 import os
+import datetime
 from pathlib import Path
 import pandas as pd
 from lxml import etree
 import METreformat.util as util
 from METdbLoad.ush import constants as CN
+from lxml import etree
+from METdbLoad.test import utils as dbload_util
 
 
 class XmlLoadFile:
@@ -98,6 +101,21 @@ class XmlLoadFile:
                 if not Path(self.xmlfilename).is_file():
                     sys.exit("*** XML file " + self.xmlfilename +
                              " can not be found!")
+
+                # Validate the XML file
+                self.logger.info(
+                    f"Validating the {self.xmlfilename} against the {dbload_util.LOAD_SPECIFICATION_SCHEMA}")
+
+                if self.validate_xml() is False:
+                    msg = (
+                        f"{self.xmlfilename} is not valid and may contain a recursive payload or an excessively large payload")
+                    self.logger.error(msg)
+                    print(f"{msg}")
+                    raise ValueError(msg)
+                else:
+                    msg = f"{self.xmlfilename} is valid "
+                    self.logger.info(msg)
+                    print(f"{msg}")
 
                 # parse the XML file
                 self.logger.info('Reading XML Load file')
@@ -187,6 +205,40 @@ class XmlLoadFile:
             self.logger.error(
                 "*** %s occurred in read_xml function ***", sys.exc_info()[0])
             sys.exit("*** Error reading XML")
+
+    def validate_xml(self):
+        """
+           Validate the XML specification file against the XML schema, which validates the payload, checking
+           for excessive payload size and recursive payloads.
+
+           Args: None
+
+           Returns: True if valid, False otherwise
+        """
+        # Load the schema file, which resides in the same directory as this module
+        # self.logger.info(f"validating against schema: {os.path.dirname(os.path.abspath(__file__))}")
+        start = datetime.datetime.now()
+        self.logger.info(f"Validating against schema: {dbload_util.LOAD_SPECIFICATION_SCHEMA}")
+        xsd_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), dbload_util.LOAD_SPECIFICATION_SCHEMA)
+        with open(xsd_file, 'rb') as schema_file:
+            xmlschema_doc = etree.parse(schema_file)
+            xmlschema = etree.XMLSchema(xmlschema_doc)
+
+        xml_document = etree.parse(self.xmlfilename)
+        # Validate the XML document against the schema
+        is_valid = xmlschema.validate(xml_document)
+
+        total_time = datetime.datetime.now() - start
+        self.logger.info(f"Validation complete, took {total_time} seconds")
+        if is_valid:
+            self.logger.info(f"{self.xmlfilename} is valid")
+            print(f"xml file {self.xmlfilename} is valid against {schema_file}")
+            return True
+        else:
+            self.logger.info(f"{self.xmlfilename} NOT VALID")
+            for error in xmlschema.error_log:
+                print(f"{error.message} at line: {error.line} and column: {error.column}")
+            return False
 
     def read_file_info(self, root):
         """! Gather info on file template, fill-in values, and dates

@@ -1,11 +1,14 @@
 from pathlib import Path
 from argparse import Namespace
+import os
 
 
 def abs_path(rel_path):
     """Turn a relative path into abs path"""
     return str(Path(str(Path(__file__).parents[2])) / rel_path)
 
+# XML Schema for the load specification XML
+LOAD_SPECIFICATION_SCHEMA = os.path.join(abs_path("METdbLoad/ush/"), "load_specification_schema.xsd")
 
 # Use data from METreformat where available
 ENSEMBLE_STAT_DATA_DIR = abs_path("METreformat/test/data/ensemble_stat")
@@ -70,17 +73,17 @@ def populate_xml_load_spec(met_data_dir, met_tool, load_flags=DEFAULT_LOAD_FLAGS
         <local_infile>{local_infile}</local_infile>
     </connection>
 
-    <folder_tmpl>{met_data_dir}</folder_tmpl>
     <verbose>true</verbose>
     <insert_size>1</insert_size>
     {flags}
+    <group>Testing</group>
+    <description>testing with pytest</description>
+    <folder_tmpl>{met_data_dir}</folder_tmpl>
     <load_val>
         <field name="met_tool">
         <val>{met_tool}</val>
         </field>
     </load_val>
-    <group>Testing</group>
-    <description>testing with pytest</description>
     </load_spec>"""
 
 
@@ -99,6 +102,7 @@ def get_xml_test_file(tmp_path, met_data_dir, met_tool, load_flags={}, local_inf
     xml_path = tmp_path / "test_load_specification.xml"
     with open(xml_path, "w") as text_file:
         text_file.write(populate_xml_load_spec(met_data_dir, met_tool, load_flags, local_infile))
+
     return xml_path
 
 

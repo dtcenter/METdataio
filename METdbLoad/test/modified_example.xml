@@ -1,0 +1,58 @@
+<load_spec>
+  <connection>
+    <host>mohawk.rap.ucar.edu:3306</host>
+    <database>mv_rtps_href_spring_2022</database>
+    <user>mvuser</user>
+    <password>mvuser</password>
+  </connection>
+  
+  <date_list name="folder_dates">
+    <start>2022050100</start>
+    <end>2022051200</end>
+    <inc>86400</inc>
+    <format>yyyyMMddHH</format>
+  </date_list>
+  
+  <verbose>false</verbose>
+  <insert_size>1</insert_size>
+  <stat_header_db_check>False</stat_header_db_check>
+  <mode_header_db_check>false</mode_header_db_check>
+  <drop_indexes>FALSE</drop_indexes>
+  <apply_indexes>true</apply_indexes>
+  <load_stat>True</load_stat>
+  <load_mode>false</load_mode>
+  <load_mpr>false</load_mpr>
+  <group>Regional Ensemble</group>
+
+  <folder_tmpl>/var/autofs/mnt/mandan_d2/projects/RRFS/prototype/met_out/{config}/{mem}/{fcst_init}/{met_out}</folder_tmpl>
+  
+  <load_val>
+    <field name="config">
+      <val>HREF_lag_offset</val>
+      <val>RTPS</val>
+    </field>
+    <field name="mem">
+      <val>mem01</val>
+      <val>mem02</val>
+      <val>mem03</val>
+      <val>mem04</val>
+      <val>mem05</val>
+      <val>mem06</val>
+      <val>mem07</val>
+      <val>mem08</val>
+      <val>mem09</val>
+      <val>mem10</val>
+    </field>
+    <field name="met_out">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+     <field name="fcst_init">
+      <date_list name="folder_dates"/>
+     </field>
+  </load_val>
+  
+  <load_xml>true</load_xml>
+  <load_note>Load HREF and RTPS data for Spring 2022.</load_note>
+  
+</load_spec>

@@ -1,0 +1,130 @@
+<load_spec>
+    <connection>
+        <management_system>mariadb</management_system>
+        <host>localhost:3306</host>
+        <database>mv_test</database>
+        <user>root</user>
+        <password>root_password</password>
+    </connection>
+
+    <verbose>true</verbose>
+    <insert_size>1</insert_size>
+    <stat_header_db_check>True</stat_header_db_check>
+    <mode_header_db_check>false</mode_header_db_check>
+    <mtd_header_db_check>false</mtd_header_db_check>
+    <drop_indexes>false</drop_indexes>
+    <apply_indexes>false</apply_indexes>
+    <load_stat>true</load_stat>
+    <load_mode>true</load_mode>
+    <load_mtd>true</load_mtd>
+    <load_mpr>true</load_mpr>
+    <load_orank>true</load_orank>
+    <group>Testing</group>
+    <description>testing DB load</description>
+
+    <folder_tmpl>/METdataio/METreformat/test/data/{config}/{mem}/{met_out}/{text}/{blah}/{foo}</folder_tmpl>
+    <load_val>
+     <field name="configx">
+       <val>HREF_lag_offset</val>
+        <val>RTPS</val>
+      </field>
+        <field name="configy">
+       <val>HREF_lag_offset</val>
+        <val>RTPS</val>
+      </field>
+    <field name="mexm">
+      <val>mem01</val>
+      <val>mem02</val>
+      <val>mem03</val>
+      <val>mem04</val>
+      <val>mem05</val>
+      <val>mem06</val>
+      <val>mem07</val>
+      <val>mem08</val>
+      <val>mem09</val>
+      <val>mem10</val>
+    </field>
+    <field name="met_out">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+    <field name="textx">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+    <field name="blahx">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+    <field name="foox">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+         <field name="blah1">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+    <field name="foo1">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+             <field name="blah11">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+    <field name="foo11">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+<field name="configa">
+       <val>HREF_lag_offset</val>
+        <val>RTPS</val>
+      </field>
+    <field name="mema">
+      <val>mem01</val>
+      <val>mem02</val>
+      <val>mem03</val>
+      <val>mem04</val>
+      <val>mem05</val>
+      <val>mem06</val>
+      <val>mem07</val>
+      <val>mem08</val>
+      <val>mem09</val>
+      <val>mem10</val>
+    </field>
+    <field name="met_outa">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+    <field name="texta">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+    <field name="blah">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+    <field name="foo">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+         <field name="blah10">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+    <field name="foo10">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+             <field name="blah111">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+    <field name="foo111">
+      <val>grid_stat_cmn</val>
+      <val>point_stat_cmn</val>
+    </field>
+
+    </load_val>
+
+    </load_spec>

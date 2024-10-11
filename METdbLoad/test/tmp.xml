@@ -1,10 +1,11 @@
 <load_spec>
     <connection>
-        <management_system>mariadb</management_system>
+        <management_system>mysql</management_system>
         <host>localhost:3306</host>
         <database>mv_test</database>
         <user>root</user>
         <password>root_password</password>
+        <local_infile>True</local_infile>
     </connection>
 
 
@@ -20,13 +21,13 @@
     <load_mtd>true</load_mtd>
     <load_mpr>true</load_mpr>
     <load_orank>true</load_orank>
-    <force_dup_file>false</force_dup_file>
     <group>Testing</group>
-    <description>testing DB load</description>
-    <folder_tmpl>/METdataio/METreformat/test/data/{met_tool}</folder_tmpl>
+    <description>testing with pytest</description>
+    <folder_tmpl>/Users/minnawin/feature_internal_56_METdataio_validate_payloads/METdataio/METreformat/test/data/{met_tool}</folder_tmpl>
     <load_val>
         <field name="met_tool">
-            <val>mode</val>
+            <val>point_stat</val>
+            <val>grod_stat</val>
         </field>
     </load_val>
 </load_spec>
