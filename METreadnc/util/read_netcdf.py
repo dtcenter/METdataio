@@ -14,8 +14,8 @@ import argparse
 import pandas as pd
 import xarray as xr
 import yaml
-#Setting PYTHONPATH to METcalcpy
-#or pip install . in the directory METcalcpy makes this the better import
+# Setting PYTHONPATH to METcalcpy
+# or pip install . in the directory METcalcpy makes this the better import
 from metcalcpy.util.read_env_vars_in_config import parse_config
 
 
@@ -27,9 +27,9 @@ class ReadNetCDF:
 
     def __init__(self):
         self.pandas_data = pd.DataFrame()
-        self.xarray_data = [] 
+        self.xarray_data = []
 
-    def readYAMLConfig(self,configFile):
+    def readYAMLConfig(self, configFile):
         """ Returns a file or list of files
 
         Args:
@@ -44,10 +44,9 @@ class ReadNetCDF:
         # Use a configure file parser that handles environment variables
         files_dict = parse_config(configFile)
 
-        #parse_config returns a dictionary, read_data_files wants a list
+        # parse_config returns a dictionary, read_data_files wants a list
         files = files_dict['files']
         return files
-
 
     def read_into_pandas(self, load_files) -> pd.DataFrame:
         """ Read in data files as a list specified in yaml config or
@@ -68,7 +67,7 @@ class ReadNetCDF:
         elif isinstance(load_files, str):
             # single file specified
             file_data = xr.open_dataset(load_files)
-            df =  file_data.to_dataframe().reset_index()
+            df = file_data.to_dataframe().reset_index()
         return df
 
     def read_into_xarray(self, load_files) -> list:
@@ -99,24 +98,29 @@ def main():
     list of xarray Datasets and/or a pandas DataFrame
     """
 
-    file_reader = ReadNetCDF()
+    try:
+        file_reader = ReadNetCDF()
 
-    # Reading in the configuration file
-    parser = argparse.ArgumentParser(description='Read in config file')
-    parser.add_argument('Path', metavar='yaml_config_file', type=str,
-                         help='the full path to the YAML config file')
-    args = parser.parse_args()
-    specified_config_file = args.Path
-    load_files = file_reader.readYAMLConfig(specified_config_file)
+        # Reading in the configuration file
+        parser = argparse.ArgumentParser(description='Read in config file')
+        parser.add_argument('Path', metavar='yaml_config_file', type=str,
+                            help='the full path to the YAML config file')
+        args = parser.parse_args()
+        specified_config_file = args.Path
+        load_files = file_reader.readYAMLConfig(specified_config_file)
 
-    #Pandas dataframes are much larger than xarrays
-    #The read_into_pandas should be commented out if you are testing this
-    #on very large files
-    netcdf_data_frame = file_reader.read_into_pandas(load_files)
+        # Pandas dataframes are much larger than xarrays
+        # The read_into_pandas should be commented out if you are testing this
+        # on very large files
+        netcdf_data_frame = file_reader.read_into_pandas(load_files)
 
-    netcdf_data_set = file_reader.read_into_xarray(load_files)
+        netcdf_data_set = file_reader.read_into_xarray(load_files)
+
+    except RuntimeError:
+        print(
+            "*** %s occurred setting up read_netcdf ***", sys.exc_info()[0])
+        sys.exit("*** Error setting up read_netcdf")
 
 
 if __name__ == "__main__":
     main()
-
