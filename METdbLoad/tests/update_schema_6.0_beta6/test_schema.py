@@ -14,8 +14,8 @@ from dataclasses import make_dataclass
 
 
 # Make sure the database name matches with the one you created on the database host
-CONST_LOAD_DB_CMD = "use mv_mpr_orank"
-TEST_DB = "mv_mpr_orank"
+CONST_LOAD_DB_CMD = "use mv_mpr_orank_seeps"
+TEST_DB = "mv_mpr_orank_seeps"
 
 @pytest.fixture
 def setup_db():
@@ -76,6 +76,7 @@ def test_db_created(setup_db):
     finally:
       setup_db.close()
 
+
 def test_tables_created(setup_db):
     
     # connect to the database and verify the MPR and ORANK tables exist
@@ -97,6 +98,7 @@ def test_tables_created(setup_db):
 
     finally:
       setup_db.close()
+
 
 def test_mpr_columns(setup_db):
    # log into the database and verify the renamed columns are in the
@@ -123,6 +125,7 @@ def test_mpr_columns(setup_db):
     finally:
         setup_db.close()
 
+
 def test_orank_columns(setup_db):
    # log into the database and verify the renamed and new columns are in the
    # list_data_orank database table, and the previous/replaced columns no longer
@@ -141,6 +144,40 @@ def test_orank_columns(setup_db):
             assert 'obs_climo_stdev' in list_of_rows
             assert 'fcst_climo_mean' in list_of_rows
             assert 'fcst_climo_stdev' in list_of_rows
+
+    finally:
+        setup_db.close()
+
+def test_seeps_columns(setup_db):
+   # log into the database and verify the renamed SEEPS columns are in the
+   # list_data_seeps database table, and the previous/replaced columns no longer
+   # exist.
+
+    try:
+        with setup_db.cursor() as cursor:
+            cursor.execute(CONST_LOAD_DB_CMD)
+            check_columns_exist = "desc line_data_seeps;"
+            cursor.execute(check_columns_exist)
+
+            # Get all rows
+            rows = cursor.fetchall()
+            list_of_rows = [r[0] for r in rows]
+
+            # Verify newly renamed columns exist in the updated data
+            assert 'odfl' in list_of_rows
+            assert 'odfh' in list_of_rows
+            assert 'olfd' in list_of_rows
+            assert 'olfh' in list_of_rows
+            assert 'ohfd' in list_of_rows
+            assert 'ohfl' in list_of_rows
+
+            # Verify that remaining columns are unchanged in the updated data
+            assert 'pf1' in list_of_rows
+            assert 'pf2' in list_of_rows
+            assert 'pf3' in list_of_rows
+            assert 'pv1' in list_of_rows
+            assert 'pv2' in list_of_rows
+            assert 'pv3' in list_of_rows
 
     finally:
         setup_db.close()
