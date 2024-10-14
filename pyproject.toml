@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "metdataio"
-dynamic = ["dependencies"]
+#dynamic = ["dependencies"]
 version = "3.0.0-beta6-dev"
 description = "METplus component that loads data into a database"
 authors = [
@@ -33,8 +33,8 @@ METdbLoad = [
   "ush/load_specification_schema.xsd",
 ]
 
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
+#[tool.setuptools.dynamic]
+#dependencies = {file = ["requirements.txt"]}
 
 [tool.pytest.ini_options]
 addopts = "-q"
