@@ -19,7 +19,7 @@ METdataio Version 3.0.0 Beta 6 Release Notes (20241017)
   .. dropdown:: Enhancements
 
      * Improve error messages for when multiple files are not loaded (`#35 <https://github.com/dtcenter/METdataio/issues/35>`_)
-     * Improve logging for 5 STIGS (`METplus-Internal#45 <https://github.com/dtcenter/METplus-Internal/issues/45>`_))
+     * Improve logging for 5 STIGS (`METplus-Internal#45 <https://github.com/dtcenter/METplus-Internal/issues/45>`_)
      * Improve error handling and testing (`METplus-Internal#50 <https://github.com/dtcenter/METplus-Internal/issues/50>`_)
      * Validation against recursive payloads, oversized payloads and overlong element names (`METplus-Internal#56 <https://github.com/dtcenter/METplus-Internal/issues/56>`_)
      * Add the user ID to the log output at beginning and end of each logging session (`#202 <https://github.com/dtcenter/METdataio/issues/202>`_)
