@@ -207,6 +207,7 @@ beta5 - Database Schema
 -----------------------
 
 Changes were made to MET version 12.0.0 for following linetypes (addition of the TOTAL_DIR column):
+
   * VL1L2
   * VAL1L2
   * VCNT
