@@ -9,7 +9,7 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
-METdataio Version 3.0.0 Beta 6 Release Notes (20241016)
+METdataio Version 3.0.0 Beta 6 Release Notes (20241017)
 -------------------------------------------------------
 
   .. dropdown:: New Functionality
@@ -18,9 +18,12 @@ METdataio Version 3.0.0 Beta 6 Release Notes (20241016)
 
   .. dropdown:: Enhancements
 
+     * Improve error messages for when multiple files are not loaded (`#35 <https://github.com/dtcenter/METdataio/issues/35>`_)
+     * Improve logging for 5 STIGS (`METplus-Internal#45 <https://github.com/dtcenter/METplus-Internal/issues/45>`_))
+     * Improve error handling and testing (`METplus-Internal#50 <https://github.com/dtcenter/METplus-Internal/issues/50>`_)
+     * Validation against recursive payloads, oversized payloads and overlong element names (`METplus-Internal#56 <https://github.com/dtcenter/METplus-Internal/issues/56>`_)
      * Add the user ID to the log output at beginning and end of each logging session (`#202 <https://github.com/dtcenter/METdataio/issues/202>`_)
      * **Update database to load 7 new MODE CTS statistics** (`#226 <https://github.com/dtcenter/METdataio/issues/226>`_)
-     * Improve error messages for when multiple files are not loaded (`#35 <https://github.com/dtcenter/METdataio/issues/35>`_)
      * **Enhance METdataio schema to handle new/modified MPR and ORANK columns introduced for MET-12.0.0-beta6** (`#320 <https://github.com/dtcenter/METdataio/issues/320>`_)
      * **Update the MPR reformatting in METreformat due to added columns in MET-12.0.0-beta6** (`#321 <https://github.com/dtcenter/METdataio/issues/321>`_)
      * **Modify the column names for the existing SEEPS line type in the database schema** (`#335 <https://github.com/dtcenter/METdataio/issues/335>`_)
@@ -28,10 +31,12 @@ METdataio Version 3.0.0 Beta 6 Release Notes (20241016)
   .. dropdown:: Internal
 
      * Consider using only .yml or only .yaml extensions (`#272 <https://github.com/dtcenter/METdataio/issues/272>`_)
+     * Create additional tests to METdataio to increase code coverage (`#318 <https://github.com/dtcenter/METdataio/issues/318>`_)
+     * Skip SonarQube scan for PR from fork and allow compare_db workflow from fork (`PR #327 <https://github.com/dtcenter/METdataio/pull/327>`_)
 
   .. dropdown:: Bugfixes
 
-     None
+     * Bugfix: Schema file missing on install (`PR #341 <https://github.com/dtcenter/METdataio/pull/341>`_)
 		
 METdataio Version 3.0.0 Beta 5 Release Notes (20240630)
 -------------------------------------------------------
@@ -165,14 +170,44 @@ METdataio Version 3.0.0 Beta 1 Release Notes (20230915)
 METdataio Upgrade Instructions
 ==============================
 
-Database Schema upgrade instructions
-------------------------------------
+beta6
+-----
+
+The following changes were made in MET version 12.0.0 for the following linetypes:
+
+  * for the MPR linetype:
+  
+    * the renaming of the climo_mean column to obs_climo_mean
+    * the renaming of the climo_stdev column to obs_climo_stdev
+    * the renaming of the climo_cdf column to obs_climo_cdf 
+    * the addition of the fcst_climo_mean column
+    * the addition of the fcst_climo_stdev column
+
+  * for the ORANK linetype:
+  
+    * the renaming of the climo_mean column to obs_climo_mean
+    * the renaming of the climo_stdev column to obs_climo_stdev
+    * the addition of the fcst_climo_mean column
+    * the addition of the fcst_climo_stdev column
+
+  * for the SEEPS linetype:
+
+    * the renaming of the s12 column fo odfl
+    * the renaming of the s13 column to odfh
+    * the renaming of the s21 column to olfd
+    * the renaming of the s23 column to olfh
+    * the renaming of the s31 column to ohfd
+    * the renaming of the s32 column to ohfl
+
+The ALTER TABLE mysql/mariadb commands are available in the **METdataio/METdbLoad/sql/updates/update_for_6_0_beta6.sql**
+file. Refer to the appropriate documentation to use the proper database syntax to update existing tables. 
+
+      
+beta5 - Database Schema
+-----------------------
 
 Changes were made to MET version 12.0.0 for following linetypes (addition of the TOTAL_DIR column):
   * VL1L2
   * VAL1L2
   * VCNT
 
-The database schema requires updating, please follow these instructions in the Contributor's Guide:
-
-`Update the Database Schema <https://metdataio.readthedocs.io/en/develop/Contributors_Guide/update_database_schema.html>`_
