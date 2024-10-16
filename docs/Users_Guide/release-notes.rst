@@ -212,3 +212,6 @@ Changes were made to MET version 12.0.0 for following linetypes (addition of the
   * VAL1L2
   * VCNT
 
+The ALTER TABLE mysql/mariadb commands are available in the **METdataio/METdbLoad/sql/updates/update_for_6_0_beta5.sql**
+file. Refer to the appropriate documentation to use the proper database syntax to update existing tables. 
+
