@@ -9,6 +9,30 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
+METdataio Version 3.0.0 Beta 6 Release Notes (20241016)
+-------------------------------------------------------
+
+  .. dropdown:: New Functionality
+
+     None
+
+  .. dropdown:: Enhancements
+
+     * Add the user ID to the log output at beginning and end of each logging session (`#202 <https://github.com/dtcenter/METdataio/issues/202>`_)
+     * **Update database to load 7 new MODE CTS statistics** (`#226 <https://github.com/dtcenter/METdataio/issues/226>`_)
+     * Improve error messages for when multiple files are not loaded (`#35 <https://github.com/dtcenter/METdataio/issues/35>`_)
+     * **Enhance METdataio schema to handle new/modified MPR and ORANK columns introduced for MET-12.0.0-beta6** (`#320 <https://github.com/dtcenter/METdataio/issues/320>`_)
+     * **Update the MPR reformatting in METreformat due to added columns in MET-12.0.0-beta6** (`#321 <https://github.com/dtcenter/METdataio/issues/321>`_)
+     * **Modify the column names for the existing SEEPS line type in the database schema** (`#335 <https://github.com/dtcenter/METdataio/issues/335>`_)
+		
+  .. dropdown:: Internal
+
+     * Consider using only .yml or only .yaml extensions (`#272 <https://github.com/dtcenter/METdataio/issues/272>`_)
+
+  .. dropdown:: Bugfixes
+
+     None
+		
 METdataio Version 3.0.0 Beta 5 Release Notes (20240630)
 -------------------------------------------------------
 
@@ -36,14 +60,11 @@ METdataio Version 3.0.0 Beta 5 Release Notes (20240630)
 
 
 
-
 METdataio Version 3.0.0 Beta 4 Release Notes (20240417)
 -------------------------------------------------------
 
 
-
   .. dropdown:: New Functionality
-
 
 
   .. dropdown:: Enhancements
