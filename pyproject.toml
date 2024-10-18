@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "metdataio"
 #dynamic = ["dependencies"]
-version = "3.0.0-beta6-dev"
+version = "3.0.0-rc1-dev"
 description = "METplus component that loads data into a database"
 authors = [
     {name = "METplus"},
