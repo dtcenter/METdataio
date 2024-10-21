@@ -2,13 +2,17 @@
 Background
 **********
 
-The METdbLoad module provides support for inserting MET output data into the database.
+The METdbLoad module provides support for inserting MET output data into a relational database
+(mysql, mariadb, or aurora).
 
-Before using the METdbLoad module, the database must exist and have the proper permissions
-(i.e. grant privileges to insert, delete, update, and index).  A schema file, *mv_mysql.sql* is available in the
-METdataio/METdbLoad/sql/ directory for importing into the database.
+Before using the METdbLoad module, the database **must** exist and have the proper permissions
+(i.e. grant privileges to insert, delete, update, and index).  Next, use *mv_mysql.sql* and the mysql command
+line client (https://dev.mysql.com/doc/refman/en/mysql.html) to create the tables corresponding to the MET line types.
+The *mv_mysql.sql* file is located in the METdataio/METdbLoad/sql/ directory.
 
 The METdbLoad script *met_db_load.py* performs the loading of data based on settings in an XML specification file.
+The XML specification file contains database connection information, the location of data to be loaded, and other
+settings relevant to the type of data that is being loaded.
 
 In the METdataio/METdbLoad/sql/scripts directory, there are two configuration files:
 

@@ -73,10 +73,10 @@ Foundation (NSF).
    overview
    release-notes
    installation
-   common
    load_data
    read_nc
    reformat_stat_data
+   
 
 
 Indices and tables
