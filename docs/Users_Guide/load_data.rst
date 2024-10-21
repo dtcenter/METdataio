@@ -143,9 +143,6 @@ into the database to METdbload. It is an XML file whose top-level
 tag is <load_spec> and it contains the following elements, divided into
 functional sections:
 
-  * **<connection>:** Please reference the :numref:`common` documentation.
-
-  * **<date_list>:** Please reference the :numref:`common` documentation.
 
   * **<load_stat>:** **TRUE** or **FALSE**, this option indicates whether or
     not to load STAT data.
