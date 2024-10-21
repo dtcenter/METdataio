@@ -68,7 +68,7 @@ Foundation (NSF).
 
 .. toctree::
    :titlesonly:
-   :numbered: 4
+   :numbered: 6
 
    overview
    release-notes
