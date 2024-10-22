@@ -21,31 +21,34 @@ Below is an example setup on CentOS.
 
 1. Install mariadb-server: 
 .. code-block:: console
-  $ sudo yum install mariadb-server
+
+    $ sudo yum install mariadb-server
 
 2. start mariadb and change the root password. Note that by default there is no password for the root user:
 .. code-block:: console
-  $ sudo mariadb -u root -p
-  [MariaDB]> ALTER USER 'root'@'localhost' IDENTIFIED BY 'root_password';
-  [MariaDB]> exit;
+
+    $ sudo mariadb -u root -p
+    [MariaDB]> ALTER USER 'root'@'localhost' IDENTIFIED BY 'root_password';
+    [MariaDB]> exit;
 
 3. start the mariadb service:
 .. code-block:: console
-  $ sudo systemctl start mariadb
 
+    $ sudo systemctl start mariadb
 
 Running Tests
 =============
 
 Tests can be run using `pytest`. If required, you can install using either `conda install pytest` or `pip install pytest`.
 .. code-block:: console
-  $ pytest METdbLoad/test/
+
+    $ pytest METdbLoad/test/
 
 To check test coverage `conda install pytest-cov`, and using the `--cov` commands. For example:
 
 .. code-block:: console
-  $ pytest METdbLoad/test/ --cov METdbLoad/ush/ --cov-report term-missing
 
+    $ pytest METdbLoad/test/ --cov METdbLoad/ush/ --cov-report term-missing
 
 Writing Tests
 =============
