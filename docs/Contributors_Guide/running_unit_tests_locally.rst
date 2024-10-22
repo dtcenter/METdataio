@@ -14,7 +14,7 @@ a `mysql` or `mariadb` service running and setup with an appropriate user. Altho
 Database Setup
 ==============
 
-The setup of `mariadb` will be different depending on the operating system you are running, and the available priviledges. If you encounter issues it is recommended you consult your system administrator
+The setup of `mariadb` will be different depending on the operating system you are running, and the available privileges. If you encounter issues it is recommended you consult your system administrator
 for support appropriate to your system and environment. For up to date instructions on installing mariadb consult the `MariaDB docs <mariadb.org>`_ or the `MariaDB GitHub page <https://github.com/MariaDB/>`_.
 
 Below is an example setup on CentOS.
