@@ -1,3 +1,40 @@
+[build-system]
+requires = [
+    "setuptools",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "metdataio"
+#dynamic = ["dependencies"]
+version = "3.0.0-rc1-dev"
+description = "METplus component that loads data into a database"
+authors = [
+    {name = "METplus"},
+]
+requires-python = ">=3.10.4"
+readme = "README.md"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/dtcenter/METdataio"
+
+[tool.setuptools.packages]
+find = {include = ["METdbLoad*", "METreadnc*", "METreformat*"]}
+
+[tool.setuptools.package-data]
+METdbLoad = [
+  "ush/load_specification_schema.xsd",
+]
+
+#[tool.setuptools.dynamic]
+#dependencies = {file = ["requirements.txt"]}
 
 [tool.pytest.ini_options]
 addopts = "-q"

@@ -72,6 +72,7 @@ Foundation (NSF).
 
 
    update_database_schema
+   running_unit_tests_locally
 
 
 Indices and tables
