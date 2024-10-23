@@ -1,11 +1,11 @@
 <load_spec>
   <connection>
-    <host>your-host:###</host>
-    <database>your-database-name</database>
-    <user>your-dbusername</user>
-    <password>your-dbpassword</password>
+    <host>yourhost:1234</host>
+    <database>your_database_name</database>
+    <user>your_db_username</user>
+    <password>your_password</password>
   </connection>
-
+  
   <date_list name="folder_dates">
     <start>2022050100</start>
     <end>2022051200</end>
@@ -18,7 +18,7 @@
     <inc>0600</inc>
     <format>yyyyMMddHH</format>
   </date_list>
-
+  
   <verbose>false</verbose>
   <insert_size>1</insert_size>
   <stat_header_db_check>False</stat_header_db_check>
@@ -30,8 +30,8 @@
   <load_mpr>false</load_mpr>
   <group>Regional Ensemble</group>
 
-  <folder_tmpl>/your-path-to/{config}/{fcst_init}/{mem}/metprd/{met_out}/</folder_tmpl>
-
+  <folder_tmpl>/var/autofs/mnt/hostmachine/projects/RRFS/prototype/met_out/{config}/{fcst_init}/{mem}/metprd/{met_out}/</folder_tmpl>
+  
   <load_val>
     <field name="fcst_init">
       <date_list name="folder_dates"/>
@@ -59,9 +59,15 @@
       <val>grid_stat_cmn</val>
       <val>point_stat_cmn</val>
     </field>
+    <line_type>
+      <val>CNT</val>
+      <val>ORANK</val>
+      <val>SEEPS_MPR</val>
+      <val>ME</val>
+    </line_type>
   </load_val>
-
+  
   <load_xml>true</load_xml>
   <load_note>Load HREF and RTPS data for Spring 2022.</load_note>
-
+  
 </load_spec>
