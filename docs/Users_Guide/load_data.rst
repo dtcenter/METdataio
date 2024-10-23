@@ -10,100 +10,277 @@ Before using the METdbLoad module, the database **must** exist and have the prop
 line client (https://dev.mysql.com/doc/refman/en/mysql.html) to create the tables corresponding to the MET line types.
 The *mv_mysql.sql* file is located in the METdataio/METdbLoad/sql/ directory.
 
-The METdbLoad script *met_db_load.py* performs the loading of data based on settings in an XML specification file.
+The METdbLoad script *met_db_load.py* performs loading of data based on settings in an XML specification file.
 The XML specification file contains database connection information, the location of data to be loaded, and other
-settings relevant to the type of data that is being loaded.
+settings relevant to the type of data that is being loaded. The XML specification is validated against a schema to check
+that the file is valid.  This validation is necessary to prevent extremely large payloads or recursive
+payloads that can compromise the loading of data.
+The elements in the XML specification file **must** adhere to the **order specified** by the
+XML schema and conform to size and number of element limitations.
 
-In the METdataio/METdbLoad/sql/scripts directory, there are two configuration files:
+.. dropdown:: This is an **example XML specification file** that is **valid**:
 
-  * db_load_specification.xml
+    .. literalinclude:: ../../METdbLoad/test/Examples/example_load_specification.xml
 
-  * data_loading_config.yaml
 
-The *db_load_specification.xml* is a template XML specification file, and *data_loading_config.yaml*
-is a template YAML configuration file.  The *data_loading_config.yaml* file contains
-information about the database (username, password, database name, etc.). This information is used by the
-*generate_xml_spec.py* script to generate the XML specification file which is then used to load data into the database.
 
-Generate the XML Specification File
+.. dropdown:: This is the **XML schema** that is used to **validate the XML specification file**:
+
+    .. literalinclude:: ../../METdbLoad/ush/load_specification_schema.xsd
+
+Create the XML Specification File
 ===================================
 
-Copy the *data_loading_config.yaml* file to a secure location in your workspace, as this file will contain the username
-and password to the database. **Do not put this file where it can be read by anyone who should not have access to this
-information.**
+The XML specification file contains the database connection information, data file location, and instructions for
+loading the data into the database.
+
+
+Create your own XML specification file by copying the example specification file
+*METdataio/METdbLoad/test/Examples/example_load_specification.xml* file to a
+location in your workspace. This  file will contain the username and password to the database.
+
+**Do not put this XML specification file where it can be read by anyone who should not have access to this information.**
 
 .. code-block:: ini
 
-   cp data_loading_config.yaml /path-to-your-dir/
+   cp $METDATAIO_HOME/METdbLoad/test/Examples/example_load_specification.xml  path-to-your-dir/load_specification.xml
 
+
+$METDATAIO is the path to the location of the cloned or forked METdataio source code.
 Replace the *path-to-your-dir* with the actual path to where this file is to be saved.
 
-Change directory to the location where the *data_loading_config.yaml* file was copied.
+Change directory to the location where the *example_load_specification.xml* file was copied. Make the necessary edits
+to the required elements and delete any optional, unused/irrelevant elements.
 
-Open the data_loading_config.yaml file:
+.. dropdown:: The following is an explanation of the required and optional elements and any limitations
 
-.. literalinclude:: ../../METdbLoad/sql/scripts/data_loading_config.yaml
+  *These are element names. The XML angle brackets (<>) as seen in the XML specification file are omitted*
 
-Update the database information with information relevant to the database you are using:
+   **load_spec**
+      - **mandatory**
+      - top-level tag
 
-  * dbname
+    *The following elements pertain to logging into the database*
+      **connection**
+         - **mandatory**
+         - tag for connection information
 
-  * username
+         **management_system**
+         - **optional**
+         - indicates which database is in use
+         - recognized/expected values are one of the following:
 
-  * password
+             - aurora
+             - mysql
+             - mariadb
 
-  * host
+         - delete this element if not using
 
-  * port
+         **host**
+           - **mandatory**
+           - name of host/machine where database is installed
+           - format is *hostname*:*port number*
+           - minimum number of characters is 3
+           - maximum number of characters is 67
+           - allowable characters (combinations of any of these):
+
+            - upper and lower alphabetical characters (English)
+            - digits 0-9
+            - ., -, _ (period, dash, underscore)
+
+         **database**
+          - **mandatory**
+          - name of the database
+          - maximum number of characters for database name is 124
+          - allowable characters (combination of any of these):
+            - _,- (underscore, dash)
+            - upper and lower case alphabetical characters (English)
+            - digits 0-9
 
 
-Update the path to the schema location, provide the full path to the *mv_sql_mysql.sql* schema file:
+         **user**
+          - **mandatory**
+          - user name
+          - minimum number of characters is 3
+          - maximum number of characters is 32
+          - allowable characters (combination of any of these):
 
-  * schema_location
+            - upper and lower case alphabetical characters (English)
+            - digits 0-9
+            - _,- (underscore, dash)
 
-Provide the name and full path to the *db_load_specification.xml* template file, this will be updated
-with the settings in this YAML configuration to create a new XML specification file using these settings:
+         **password**
+          - **mandatory**
+          - the password to access the database
+          - minimum number of characters is 3
+          - maximum number of characters is 30
+          - all characters are allowed
 
-  * xml_specification
 
-Provide the group and description.  The databases in METviewer are grouped, provide the name of the appropriate
-group and a brief description of the database in which the data is to be loaded:
+         **local_infile**
+          - **optional**
+          - argument passed into 3rd party Python library pymysql
 
-  * group
+            - for establishing a connection to a MySQL server
+            - indicate whether the input file is local
+            - default is False
+            - enables use of the LOAD DATA LOCAL command
 
-  * description
+          - Accepted value:
+            - Boolean value: True or False
 
-Provide the full path to the directory where the MET data to be loaded is saved:
+              - True if loading local data
+              - False otherwise
 
-  * data_dir
+          - delete this element if loading of local data is not needed
 
-Indicate which data types are to be loaded by setting the appropriate settings to True:
+            - METdataio sets default to False if this element is absent
 
-  * load_stat
+    *The following elements are used to define the format of multiple input data directories that are organized by datetime*
+     **date_list**
+       - **optional**
+       - only necessary when input data is organized based on datetime
+       - omit date_list entries if data resides in a singular directory
+       - multiple date_list elements are allowed
 
-  * load_mode
+         - maximum number of date_lists is 5
+         - differentiate different date_list definitions by the *name* attribute (i.e. name=)
 
-  * load_mtd
+        **start**
+          - **mandatory**  if date_list is being used
+          - start datetime
 
-  * load_mpr
 
-  * load_orank
+        **end**
+          - **mandatory** if date_list is being used
+          - end datetime
 
-Generate the new XML specification file by running the following:
+        **inc**
+          - **mandatory**  if date_list is being used
+          - increment/step size between start and end time
 
-.. code-block:: ini
+             - Example, if 6-hour increment:
+             - set inc to 0600
+             - <inc>0600</inc>
 
-   cd path-to-METdataio-source/METdataio/METdbLoad/sql/scripts
+        **format**
+          - **mandatory** if date_list is being used
+          - format of the datetime
 
-   *Replace path-to-METdataio-source to the location where the METdataio source code is saved.
+            - Example, if 4 digit year month day hour:
+               - <format>yyyyMMddHH</format>
 
-   python generate_xml_spec.py path-to/data_loading_config.yaml
+    *The following elements define various flags*
 
-   *Replace the path-to with the path to the directory you created to store the copy of the data_loading_config.yaml
-   file as specified earlier.
+     **verbose**
+       - **mandatory**
+       -  indicates the desired volume of output from the load module
 
-A new XML specification file *load_met.xml*, will be generated and saved in the
-same directory where the YAML configuration file was copied.
+              - TRUE resulting in more information
+              - FALSE resulting in less information
+
+     **insert_size**
+      - **mandatory**
+      - An integer indicating the number of MET output file rows inserted with each INSERT statement
+
+          - This value is most often 1
+
+     **stat_header_db_check**
+       - **optional**
+       - indicate whether a database query check for stat header information should be performed
+       - True or False (case insensitive)
+
+         - **WARNING** enabling this feature (i.e. set to True) could significantly increase load time
+
+     **mode_header_db_check**
+       - **optional**
+       - indicate whether a database query check for the MODE header information should be performed
+       - True or False (case insensitive)
+
+         - **WARNING** enabling this feature (i.e. set to True) could significantly increase load time
+
+     **mtd_header_db_check**
+       - **optional**
+       - indicate whether a database query check for the MODE TD header information should be performed
+       - True or False (case insensitive)
+
+         - **WARNING** enabling this feature (i.e. set to True) could significantly increase load time
+
+
+     **drop_indexes**
+       - **optional**
+       - indicate whether to drop database indexes before loading new data
+       - True or False (case insensitive)
+
+     **apply_indexes**
+       - **optional**
+       - indicate whether to apply database indexes
+       - True or False (case insensitive)
+
+     **load_stat**
+       - **optional**
+       - indicate whether or not to load STAT data
+       - True or False (case insensitive)
+
+     **load_mode**
+       - **optional**
+       - indicate whether or not to load MODE data
+       - True or False (case insensitive)
+
+     **load_mtd**
+       - **optional**
+       - indicate whether or not to load MODE TD (MODE Time Domain) data
+       - True or False (case insensitive)
+
+     **load_mpr**
+       - **optional**
+       - indicate whether or not to load MPR (matched pair) data
+       - True or False (case insensitive)
+
+     **load_orank**
+       - **optional**
+       - indicate whether or not to load ORANK (observed rank) data
+       - True or False (case insensitive)
+
+     **force_dup_file**
+       - **optional**
+       - indicate whether or not to force load paths/files that already exist
+       - True or False (case insensitive)
+
+    *The following elements indicate which group the database should be assigned and a description*
+     **group**
+       - **optional**
+       - if undefined, the database will be placed under the NO GROUP group
+       - minimum number of characters is 1
+       - maximum number of characters is 300
+       - acceptable characters (English), any combination:
+
+         - upper and/or lower case alphabetic characters
+         - any digits 0-9
+         - _, . , - (underscore, period, dash)
+
+     **description**
+       - **optional**
+       - description of the data in the database
+       - minimum number of characters is 1
+       - maximum number of characters is 300
+       - acceptable characters (English), any combination:
+
+         - upper and/or lower case alphabetic characters
+         - any digits 0-9
+         - _, . , - (underscore, period, dash)
+
+    *The following defines the location of the input data to be loaded into the database*
+
+     **folder_tmpl**
+      - **mandatory**
+      - only one folder template element is permitted
+
+        **field**
+
+
+
+
 
 Load Data
 =========
@@ -128,7 +305,7 @@ The usage statement:
 
   INFO:root:--- *** --- Start METdbLoad --- *** ---
 
-  usage: met_db_load.py [-h] [-index] xmlfile [tmpdir [tmpdir ...]]
+  usage: python met_db_load.py [-h] [-index] xmlfile [tmpdir [tmpdir ...]]
 
   positional arguments:
     xmlfile     Please provide required xml load_spec filename
