@@ -1,6 +1,8 @@
 import pytest
-from unittest.mock import patch
+import sys
+from unittest.mock import patch, MagicMock
 from METdbLoad.ush.met_db_load import main as load_main
+from METdbLoad.ush.met_db_load import purge_files, parse_args, next_set, print_version
 from METdbLoad.ush.run_sql import RunSql
 from METdbLoad.test.utils import dict_to_args
 
@@ -109,9 +111,9 @@ def assert_count_rows(cur, table, expected_count):
         (
             RHIST_DATA_DIR,
             "ensemble_stat",
-                        {
+            {
                 "line_data_rhist": 2,
-                "line_data_rhist_rank":22,
+                "line_data_rhist_rank": 22,
                 "line_data_phist": 2,
                 "line_data_phist_bin": 40,
                 "line_data_ecnt": 2,
@@ -137,7 +139,11 @@ def test_met_db_table_counts(
 
     test_args = dict_to_args(
         {
-            "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool, load_flags=load_flags)),
+            "xmlfile": str(
+                get_xml_test_file(
+                    tmp_path, met_data_dir, met_tool, load_flags=load_flags
+                )
+            ),
             "index": "true",
             "tmpdir": [str(tmp_path)],
             "loglevel": None,
@@ -148,6 +154,148 @@ def test_met_db_table_counts(
 
     for table, expected_count in expected_counts.items():
         assert_count_rows(testRunSql.cur, table, expected_count)
+
+
+@pytest.mark.parametrize(
+    "met_data_dir, met_tool, expected_counts",
+    [
+        (
+            GRID_STAT_DATA_DIR,
+            "grid_stat",
+            {
+                "line_data_eclv": 9,
+                "line_data_fho": 9,
+                "line_data_eclv_pnt": 171,
+                "line_data_cts": 9,
+                "line_data_ctc": 9,
+                "line_data_cnt": 3,
+            },
+        ),
+        (
+            MTD_DATA_DIR,
+            "mtd",
+            {
+                "mtd_2d_obj": 278,
+                "mtd_3d_obj_single": 8,
+                "mtd_3d_obj_pair": 4,
+                "mtd_header": 24,
+            },
+        ),
+        (
+            MODE_DATA_DIR,
+            "mtd",
+            {
+                "mode_cts": 2,
+                "mode_obj_pair": 5,
+                "mode_obj_single": 6,
+            },
+        ),
+    ],
+)
+def test_met_db_table_dups(
+    emptyDB,
+    testRunSql,
+    tmp_path,
+    met_data_dir,
+    met_tool,
+    expected_counts,
+):
+
+    load_flags = {
+        "mode_header_db_check": "true",
+        "mtd_header_db_check": "true",
+        "force_dup_file": "false",
+    }
+    test_args = dict_to_args(
+        {
+            "xmlfile": str(
+                get_xml_test_file(
+                    tmp_path, met_data_dir, met_tool, load_flags=load_flags
+                )
+            ),
+            "index": "true",
+            "tmpdir": [str(tmp_path)],
+            "loglevel": None,
+        }
+    )
+
+    load_main(test_args)
+    # load again to check duplicates aren't loaded in db
+    load_main(test_args)
+
+    for table, expected_count in expected_counts.items():
+        assert_count_rows(testRunSql.cur, table, expected_count)
+
+
+@pytest.mark.parametrize(
+    "met_data_dir, met_tool, expected_counts",
+    [
+        (
+            GRID_STAT_DATA_DIR,
+            "grid_stat",
+            {
+                "line_data_eclv": 9,
+                "line_data_fho": 9,
+                "line_data_eclv_pnt": 171,
+                "line_data_cts": 9,
+                "line_data_ctc": 9,
+                "line_data_cnt": 3,
+            },
+        ),
+        (
+            MTD_DATA_DIR,
+            "mtd",
+            {
+                "mtd_2d_obj": 278,
+                "mtd_3d_obj_single": 8,
+                "mtd_3d_obj_pair": 4,
+                "mtd_header": 24 / 2,  # header not duplicated
+            },
+        ),
+        (
+            MODE_DATA_DIR,
+            "mtd",
+            {
+                "mode_cts": 2,
+                "mode_obj_pair": 5,
+                "mode_obj_single": 6,
+            },
+        ),
+    ],
+)
+def test_met_db_table_dups_allowed(
+    emptyDB,
+    testRunSql,
+    tmp_path,
+    met_data_dir,
+    met_tool,
+    expected_counts,
+):
+
+    load_flags = {
+        "mode_header_db_check": "true",
+        "mtd_header_db_check": "true",
+        "force_dup_file": "true",
+    }
+    test_args = dict_to_args(
+        {
+            "xmlfile": str(
+                get_xml_test_file(
+                    tmp_path, met_data_dir, met_tool, load_flags=load_flags
+                )
+            ),
+            "index": "true",
+            "tmpdir": [str(tmp_path)],
+            "loglevel": None,
+        }
+    )
+
+    load_main(test_args)
+    # load again to add duplicates
+    load_main(test_args)
+
+    for table, expected_count in expected_counts.items():
+        assert_count_rows(testRunSql.cur, table, expected_count * 2)
 
 
 def test_met_db_indexes(
@@ -168,7 +316,7 @@ def test_met_db_indexes(
             ),
             "index": "false",
             "tmpdir": [str(tmp_path)],
-            "loglevel": None
+            "loglevel": None,
         }
     )
 
@@ -192,9 +340,10 @@ def test_met_db_indexes(
         with patch.object(RunSql, "apply_indexes", side_effect=KeyError):
             load_main(test_args)
 
+
 @pytest.mark.parametrize(
-        "met_data_dir, met_tool, expected_counts, local_infile",
-        [
+    "met_data_dir, met_tool, expected_counts, local_infile",
+    [
         (
             POINT_STAT_DATA_DIR,
             "point_stat",
@@ -206,7 +355,7 @@ def test_met_db_indexes(
                 "line_data_cnt": 10,
                 "line_data_vl1l2": 1,
             },
-            'false',
+            "false",
         ),
         (
             POINT_STAT_DATA_DIR,
@@ -219,7 +368,7 @@ def test_met_db_indexes(
                 "line_data_cnt": 10,
                 "line_data_vl1l2": 1,
             },
-            'true',
+            "true",
         ),
         (
             MTD_DATA_DIR,
@@ -228,25 +377,31 @@ def test_met_db_indexes(
                 "mtd_2d_obj": 278,
                 "mtd_3d_obj_single": 8,
             },
-            'false',
+            "false",
         ),
         (
-        MTD_DATA_DIR,
+            MTD_DATA_DIR,
             "mtd",
             {
                 "mtd_2d_obj": 278,
                 "mtd_3d_obj_single": 8,
             },
-            'true',
+            "true",
         ),
-        ],
+    ],
 )
-def test_local_in_file(emptyDB, testRunSql, tmp_path, met_data_dir, met_tool, expected_counts, local_infile):
+def test_local_in_file(
+    emptyDB, testRunSql, tmp_path, met_data_dir, met_tool, expected_counts, local_infile
+):
     """check we get the same result when local_file is on or off"""
 
     test_args = dict_to_args(
         {
-            "xmlfile": str(get_xml_test_file(tmp_path, met_data_dir, met_tool, local_infile=local_infile)),
+            "xmlfile": str(
+                get_xml_test_file(
+                    tmp_path, met_data_dir, met_tool, local_infile=local_infile
+                )
+            ),
             "index": "false",
             "tmpdir": [str(tmp_path)],
             "loglevel": None,
@@ -257,3 +412,147 @@ def test_local_in_file(emptyDB, testRunSql, tmp_path, met_data_dir, met_tool, ex
 
     for table, expected_count in expected_counts.items():
         assert_count_rows(testRunSql.cur, table, expected_count)
+
+
+def test_empty_files(tmp_path):
+    """Junk files shouldn't cause an error when running load_main"""
+
+    met_data_dir = tmp_path / "empty_files_test"
+    met_data_dir.mkdir()
+
+    open(met_data_dir / "mtd_empty_2d.txt", "a").close()
+    with open(met_data_dir / "mtd_bad_header_3d.txt", "w") as f:
+        f.write("SOME HEADER INFO\n")
+
+    with open(met_data_dir / "mtd_good_header_bad_data_3d.txt", "w") as f:
+        f.write(
+            "VERSION  MODEL  DESC  FCST_LEAD       FCST_VALID  OBS_LEAD        OBS_VALID  T_DELTA  FCST_T_BEG  FCST_T_END  FCST_RAD  FCST_THR  OBS_T_BEG  OBS_T_END  OBS_RAD  OBS_THR  FCST_VAR  FCST_UNITS  FCST_LEV  OBS_VAR  OBS_UNITS  OBS_LEV    OBJECT_ID   OBJECT_CAT  SPACE_CENTROID_DIST  TIME_CENTROID_DELTA  AXIS_DIFF  SPEED_DELTA  DIRECTION_DIFF  VOLUME_RATIO  START_TIME_DELTA  END_TIME_DELTA  INTERSECTION_VOLUME  DURATION_DIFF  INTEREST\n 1    2   3   xxx"
+        )
+
+    with open(met_data_dir / "grid_stat_header_only.stat", "w") as f:
+        f.write(
+            "VERSION MODEL DESC FCST_LEAD FCST_VALID_BEG  FCST_VALID_END  OBS_LEAD OBS_VALID_BEG   OBS_VALID_END   FCST_VAR FCST_UNITS   FCST_LEV OBS_VAR OBS_UNITS    OBS_LEV  OBTYPE VX_MASK INTERP_MTHD INTERP_PNTS FCST_THRESH         OBS_THRESH          COV_THRESH ALPHA LINE_TYPE\n"
+        )
+
+    test_args = dict_to_args(
+        {
+            "xmlfile": str(
+                get_xml_test_file(
+                    tmp_path,
+                    met_data_dir,
+                    "mtd",
+                )
+            ),
+            "index": "false",
+            "tmpdir": [str(tmp_path)],
+            "loglevel": None,
+        }
+    )
+
+    load_main(test_args)
+
+
+def test_print_version():
+    mock_logger = MagicMock()
+    print_version(mock_logger)
+    assert mock_logger.info.called_once
+    assert mock_logger.info.call_args[0][0].startswith("METdbload Version:")
+
+    with pytest.raises(SystemExit):
+        with patch("os.path.dirname", side_effect=TypeError):
+            print_version(mock_logger)
+    assert mock_logger.error.call_count == 2
+
+
+@pytest.mark.parametrize(
+    "mid,last,expected",
+    [
+        (99, 100, (100, 100, 100)),
+        (99, 347, (100, 200, 347)),
+        (99, 147, (100, 147, 147)),
+    ],
+)
+def test_next_set(mid, last, expected):
+    assert next_set(mid, last) == expected
+
+
+@pytest.mark.parametrize(
+    "xml_flags,expected",
+    [
+        (
+            {
+                "load_stat": False,
+                "load_mode": False,
+                "load_mtd": False,
+            },
+            [],
+        ),
+        (
+            {
+                "load_stat": True,
+                "load_mode": False,
+                "load_mtd": False,
+            },
+            ["test.stat", "test.vsdb"],
+        ),
+        (
+            {
+                "load_stat": False,
+                "load_mode": True,
+                "load_mtd": True,
+            },
+            [
+                "test_cts.txt",
+                "test_obj.txt",
+                "test_2d.txt",
+                "test_3d_s.txt",
+                "test_3d_p.txt",
+            ],
+        ),
+    ],
+)
+def test_purge_files(xml_flags, expected):
+    load_files = [
+        "test.stat",
+        "test.vsdb",
+        "test_cts.txt",
+        "test_obj.txt",
+        "test_2d.txt",
+        "test_3d_s.txt",
+        "test_3d_p.txt",
+    ]
+
+    mock_logger = MagicMock()
+
+    actual = purge_files(load_files, xml_flags, mock_logger)
+    assert expected == actual
+
+
+def test_purge_files_raises():
+    mock_logger = MagicMock()
+    with pytest.raises(SystemExit):
+        purge_files([], {}, mock_logger)
+    assert mock_logger.error.call_count == 2
+
+
+def test_parse_args():
+    good_args = [
+        "met_db_load.py",
+        "-index",
+        "test/test_load_specification.xml",
+        "--loglevel",
+        "ERROR",
+    ]
+    bad_args = ["met_db_load.py", "-f", "test/test_load_specification.xml"]
+
+    # should run without error
+    with patch.object(sys, "argv", good_args):
+        args = parse_args()
+        assert args.index
+        assert args.xmlfile == "test/test_load_specification.xml"
+        assert args.loglevel == "ERROR"
+
+    # produces error
+    with pytest.raises(SystemExit):
+        with patch.object(sys, "argv", bad_args):
+            parse_args()
