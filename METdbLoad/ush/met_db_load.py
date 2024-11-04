@@ -427,7 +427,7 @@ def purge_files(load_files, xml_flags, logger):
                                     "3d_s" in item.lower() or
                                     "3d_p" in item.lower())]
 
-    except (RuntimeError, TypeError, NameError, KeyError):
+    except (RuntimeError, TypeError, NameError, KeyError) as e:
         logger.error("*** %s occurred in purge_files ***", sys.exc_info()[0])
         logger.error(
             "*** %s occurred in Main purging files not selected ***", sys.exc_info()[0])
@@ -436,7 +436,7 @@ def purge_files(load_files, xml_flags, logger):
     return updated_list
 
 
-if __name__ == '__main__':
+def parse_args():
     try:
         parser = argparse.ArgumentParser()
         # Allow user to choose dir for tmp files - default to user home
@@ -450,10 +450,11 @@ if __name__ == '__main__':
         parser.add_argument("--loglevel", default=None, type=str, choices={"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"},
                             help="Optional - specify log level. One of: DEBUG, INFO, WARNING, ERROR, CRITICAL.")
         # get the command line arguments
-        args = parser.parse_args()
+        return parser.parse_args()
     except:
-        print(
-            "*** %s occurred setting up met_db_load ***", sys.exc_info()[0])
+        print("*** An error occurred parsing command line args ***")
         sys.exit("*** Error setting up met_db_load")
 
-    main(args)
+
+if __name__ == '__main__':
+    main(parse_args())
