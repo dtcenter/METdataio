@@ -5,21 +5,8 @@
     <user>your_db_username</user>
     <password>your_password</password>
   </connection>
-  
-  <date_list name="folder_dates">
-    <start>2022050100</start>
-    <end>2022051200</end>
-    <inc>86400</inc>
-    <format>yyyyMMddHH</format>
-  </date_list>
-   <date_list name="valid_dates">
-    <start>2022050100</start>
-    <end>2022051200</end>
-    <inc>0600</inc>
-    <format>yyyyMMddHH</format>
-  </date_list>
-  
-  <verbose>false</verbose>
+
+  <verbose>true</verbose>
   <insert_size>1</insert_size>
   <stat_header_db_check>False</stat_header_db_check>
   <mode_header_db_check>false</mode_header_db_check>
@@ -31,48 +18,12 @@
   <group>Regional Ensemble</group>
 
   <load_files>
-    <file>/var/autofs/mnt/first_model.stat</file>
-    <file>/var/autofs/mnt/model_run1/file_1.stat</file>
-    <file>/var/autofs/mnt/model_run2/file_2.stat</file>
+    <file>/met_out/mode/mode_MASK_POLY_300000L_20120410_180000V_060000A_cts.txt</file>
+    <file>/met_out/rhist/ensemble_stat_RRFS_GEFS_GF.SPP.SPPT_RETOP_MRMS_20220507_120000V.stat</file>
   </load_files>
 
-
-  <load_val>
-    <field name="fcst_init">
-      <date_list name="folder_dates"/>
-    </field>
-    <field name="valid_times">
-      <date_list name="valid_dates"/>
-    </field>
-    <field name="config">
-      <val>HREF_lag_offset</val>
-      <val>RTPS</val>
-    </field>
-    <field name="mem">
-      <val>mem01</val>
-      <val>mem02</val>
-      <val>mem03</val>
-      <val>mem04</val>
-      <val>mem05</val>
-      <val>mem06</val>
-      <val>mem07</val>
-      <val>mem08</val>
-      <val>mem09</val>
-      <val>mem10</val>
-    </field>
-    <field name="met_out">
-      <val>grid_stat_cmn</val>
-      <val>point_stat_cmn</val>
-    </field>
-    <line_type>
-      <val>CNT</val>
-      <val>ORANK</val>
-      <val>SEEPS_MPR</val>
-      <val>ME</val>
-    </line_type>
-  </load_val>
   
   <load_xml>true</load_xml>
-  <load_note>Load HREF and RTPS data for Spring 2022.</load_note>
+  <load_note>Load MODE and RHIST for load_files.</load_note>
   
 </load_spec>

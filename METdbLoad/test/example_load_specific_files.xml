@@ -5,8 +5,8 @@
     <user>your_db_username</user>
     <password>your_password</password>
   </connection>
-  
-  <verbose>false</verbose>
+
+  <verbose>true</verbose>
   <insert_size>1</insert_size>
   <stat_header_db_check>False</stat_header_db_check>
   <mode_header_db_check>false</mode_header_db_check>
@@ -18,14 +18,12 @@
   <group>Regional Ensemble</group>
 
   <load_files>
-    <file>/var/autofs/mnt/first_model.stat</file>
-    <file>/var/autofs/mnt/model_run1/file_1.stat</file>
-    <file>/var/autofs/mnt/model_run2/file_2.stat</file>
+    <file>/met_out/mode/mode_MASK_POLY_300000L_20120410_180000V_060000A_cts.txt</file>
+    <file>/met_out/rhist/ensemble_stat_RRFS_GEFS_GF.SPP.SPPT_RETOP_MRMS_20220507_120000V.stat</file>
   </load_files>
 
-
-
+  
   <load_xml>true</load_xml>
-  <load_note>Load HREF and RTPS data for Spring 2022.</load_note>
+  <load_note>Load MODE and RHIST for load_files.</load_note>
   
 </load_spec>
