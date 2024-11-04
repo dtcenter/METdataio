@@ -6,19 +6,6 @@
     <password>your_password</password>
   </connection>
   
-  <date_list name="folder_dates">
-    <start>2022050100</start>
-    <end>2022051200</end>
-    <inc>86400</inc>
-    <format>yyyyMMddHH</format>
-  </date_list>
-   <date_list name="valid_dates">
-    <start>2022050100</start>
-    <end>2022051200</end>
-    <inc>0600</inc>
-    <format>yyyyMMddHH</format>
-  </date_list>
-  
   <verbose>false</verbose>
   <insert_size>1</insert_size>
   <stat_header_db_check>False</stat_header_db_check>
@@ -37,41 +24,7 @@
   </load_files>
 
 
-  <load_val>
-    <field name="fcst_init">
-      <date_list name="folder_dates"/>
-    </field>
-    <field name="valid_times">
-      <date_list name="valid_dates"/>
-    </field>
-    <field name="config">
-      <val>HREF_lag_offset</val>
-      <val>RTPS</val>
-    </field>
-    <field name="mem">
-      <val>mem01</val>
-      <val>mem02</val>
-      <val>mem03</val>
-      <val>mem04</val>
-      <val>mem05</val>
-      <val>mem06</val>
-      <val>mem07</val>
-      <val>mem08</val>
-      <val>mem09</val>
-      <val>mem10</val>
-    </field>
-    <field name="met_out">
-      <val>grid_stat_cmn</val>
-      <val>point_stat_cmn</val>
-    </field>
-    <line_type>
-      <val>CNT</val>
-      <val>ORANK</val>
-      <val>SEEPS_MPR</val>
-      <val>ME</val>
-    </line_type>
-  </load_val>
-  
+
   <load_xml>true</load_xml>
   <load_note>Load HREF and RTPS data for Spring 2022.</load_note>
   
