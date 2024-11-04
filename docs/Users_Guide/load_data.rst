@@ -39,15 +39,16 @@ Create your own XML specification file by copying the example specification file
 *METdataio/METdbLoad/test/Examples/example_load_specification.xml* file to a
 location in your workspace. This  file will contain the username and password to the database.
 
-**Do not put this XML specification file where it can be read by anyone who should not have access to this information.**
+**Do not save this XML specification file where it can be read by anyone who should not have access to this information.**
 
 .. code-block:: ini
 
    cp $METDATAIO_HOME/METdbLoad/test/Examples/example_load_specification.xml  path-to-your-dir/load_specification.xml
 
 
-$METDATAIO is the path to the location of the cloned or forked METdataio source code.
-Replace the *path-to-your-dir* with the actual path to where this file is to be saved.
+- $METDATAIO is the path to the location of the cloned or forked METdataio source code.
+
+- Replace the *path-to-your-dir* with the actual path to where this file is to be saved.
 
 Change directory to the location where the *example_load_specification.xml* file was copied. Make the necessary edits
 to the required elements and delete any optional, unused/irrelevant elements.
@@ -56,58 +57,65 @@ to the required elements and delete any optional, unused/irrelevant elements.
 
   *These are element names. The XML angle brackets (<>) as seen in the XML specification file are omitted*
 
-   **load_spec**
+
+    .. dropdown::   load_spec
+
       - **mandatory**
-      - top-level tag
+      - top-level tag/element
+      - container for other elements that define connection information, flags, data input, etc.
 
     *The following elements pertain to logging into the database*
-      **connection**
-         - **mandatory**
-         - tag for connection information
+         .. dropdown:: connection
 
-         **management_system**
-         - **optional**
-         - indicates which database is in use
-         - recognized/expected values are one of the following:
+            - **mandatory**
+            - tag for connection information
 
-             - aurora
-             - mysql
-             - mariadb
+         .. dropdown:: management_system
 
-         - delete this element if not using
+            - **optional**
+            - indicates which database is in use
+            - recognized/expected values are one of the following:
 
-         **host**
-           - **mandatory**
-           - name of host/machine where database is installed
-           - format is *hostname*:*port number*
-           - minimum number of characters is 3
-           - maximum number of characters is 67
-           - allowable characters (combinations of any of these):
+                - aurora
+                - mysql
+                - mariadb
 
-            - upper and lower alphabetical characters (English)
-            - digits 0-9
-            - ., -, _ (period, dash, underscore)
+            - delete this element if not using
 
-         **database**
-          - **mandatory**
-          - name of the database
-          - maximum number of characters for database name is 124
-          - allowable characters (combination of any of these):
-            - _,- (underscore, dash)
-            - upper and lower case alphabetical characters (English)
-            - digits 0-9
+         .. dropdown::  host
 
+              - **mandatory**
+              - name of host/machine where database is installed
+              - format is *hostname*:*port number*
+              - minimum number of characters is 3
+              - maximum number of characters is 67
+              - allowable characters (combinations of any of these):
 
-         **user**
-          - **mandatory**
-          - user name
-          - minimum number of characters is 3
-          - maximum number of characters is 32
-          - allowable characters (combination of any of these):
+               - upper and lower alphabetical characters (English)
+               - digits 0-9
+               - ., -, _ (period, dash, underscore)
 
-            - upper and lower case alphabetical characters (English)
-            - digits 0-9
-            - _,- (underscore, dash)
+         .. dropdown :: database
+
+            - **mandatory**
+            - name of the database
+            - maximum number of characters for database name is 124
+            - allowable characters (combination of any of these):
+               - _,- (underscore, dash)
+               - upper and lower case alphabetical characters (English)
+               - digits 0-9
+
+         .. dropdown:: user
+
+            - **mandatory**
+            - user name
+            - minimum number of characters is 3
+            - maximum number of characters is 32
+            - allowable characters (combination of any of these):
+
+               - upper and lower case alphabetical characters (English)
+               - digits 0-9
+               - _,- (underscore, dash)
 
          **password**
           - **mandatory**
@@ -115,7 +123,6 @@ to the required elements and delete any optional, unused/irrelevant elements.
           - minimum number of characters is 3
           - maximum number of characters is 30
           - all characters are allowed
-
 
          **local_infile**
           - **optional**
@@ -149,7 +156,6 @@ to the required elements and delete any optional, unused/irrelevant elements.
         **start**
           - **mandatory**  if date_list is being used
           - start datetime
-
 
         **end**
           - **mandatory** if date_list is being used
@@ -206,7 +212,6 @@ to the required elements and delete any optional, unused/irrelevant elements.
 
          - **WARNING** enabling this feature (i.e. set to True) could significantly increase load time
 
-
      **drop_indexes**
        - **optional**
        - indicate whether to drop database indexes before loading new data
@@ -250,6 +255,7 @@ to the required elements and delete any optional, unused/irrelevant elements.
     *The following elements indicate which group the database should be assigned and a description*
      **group**
        - **optional**
+       - the name of the database group (databases are grouped in METviewer: e.g. Test,
        - if undefined, the database will be placed under the NO GROUP group
        - minimum number of characters is 1
        - maximum number of characters is 300
@@ -261,7 +267,7 @@ to the required elements and delete any optional, unused/irrelevant elements.
 
      **description**
        - **optional**
-       - description of the data in the database
+       - description of the database
        - minimum number of characters is 1
        - maximum number of characters is 300
        - acceptable characters (English), any combination:

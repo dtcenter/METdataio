@@ -134,8 +134,8 @@ def mock_logger():
 @pytest.fixture
 def get_specified_xml_loadfile( ) -> XmlLoadFile:
     """
-       Retrieve the specified XML load specification filee. This is useful for using different XML
-       specification file for  validating against recursive payloads, large payloads, etc.
+       Retrieve the specified XML load specification file. This is useful for using different XML
+       specification file for validating against recursive payloads, large payloads, etc.
     
        Args:
            xml_filename: The name of the XML file of interest
