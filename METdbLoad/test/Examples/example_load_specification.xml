@@ -30,7 +30,7 @@
   <load_mpr>false</load_mpr>
   <group>Regional Ensemble</group>
 
-  <folder_tmpl>/var/autofs/mnt/hostmachine/projects/RRFS/prototype/met_out/{config}/{fcst_init}/{mem}/metprd/{met_out}/</folder_tmpl>
+  <folder_tmpl>/var/autofs/mnt/hostmachine/projects/RRFS/prototype/met_out/{config}/{fcst_init}/{mem}/{valid_times}/metprd/{met_out}/</folder_tmpl>
   
   <load_val>
     <field name="fcst_init">
