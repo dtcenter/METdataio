@@ -55,7 +55,7 @@ to the required elements and delete any optional, unused/irrelevant elements.
 
 .. dropdown:: The following is an explanation of the required and optional elements and any limitations
 
-  *These are element names. The XML angle brackets (<>) as seen in the XML specification file are omitted*
+  *These are element names. The XML angle brackets (<>) as seen in the XML specification file are omitted for simplicity*
 
 
     .. dropdown::   load_spec
@@ -70,184 +70,204 @@ to the required elements and delete any optional, unused/irrelevant elements.
             - **mandatory**
             - tag for connection information
 
-         .. dropdown:: management_system
+           .. dropdown:: management_system
 
-            - **optional**
-            - indicates which database is in use
-            - recognized/expected values are one of the following:
+              - **optional**
+              - indicates which database is in use
+              - recognized/expected values are one of the following:
 
-                - aurora
-                - mysql
-                - mariadb
+                  - aurora
+                  - mysql
+                  - mariadb
 
-            - delete this element if not using
+              - delete this element if not using
 
-         .. dropdown::  host
+           .. dropdown::  host
+
+                - **mandatory**
+                - name of host/machine where database is installed
+                - format is *hostname*:*port number*
+                - minimum number of characters is 3
+                - maximum number of characters is 67
+                - allowable characters (combinations of any of these):
+
+                 - upper and lower alphabetical characters (English)
+                 - digits 0-9
+                 - ., -, _ (period, dash, underscore)
+
+           .. dropdown:: database
 
               - **mandatory**
-              - name of host/machine where database is installed
-              - format is *hostname*:*port number*
+              - name of the database
+              - maximum number of characters for database name is 124
+              - allowable characters (combination of any of these):
+                 - _,- (underscore, dash)
+                 - upper and lower case alphabetical characters (English)
+                 - digits 0-9
+
+           .. dropdown:: user
+
+              - **mandatory**
+              - user name
               - minimum number of characters is 3
-              - maximum number of characters is 67
-              - allowable characters (combinations of any of these):
+              - maximum number of characters is 32
+              - allowable characters (combination of any of these):
 
-               - upper and lower alphabetical characters (English)
-               - digits 0-9
-               - ., -, _ (period, dash, underscore)
+                 - upper and lower case alphabetical characters (English)
+                 - digits 0-9
+                 - _,- (underscore, dash)
 
-         .. dropdown :: database
+           .. dropdown::  password
 
-            - **mandatory**
-            - name of the database
-            - maximum number of characters for database name is 124
-            - allowable characters (combination of any of these):
-               - _,- (underscore, dash)
-               - upper and lower case alphabetical characters (English)
-               - digits 0-9
+             - **mandatory**
+             - the password to access the database
+             - minimum number of characters is 3
+             - maximum number of characters is 30
+             - all characters are allowed
 
-         .. dropdown:: user
+           .. dropdown:: local_infile
 
-            - **mandatory**
-            - user name
-            - minimum number of characters is 3
-            - maximum number of characters is 32
-            - allowable characters (combination of any of these):
+             - **optional**
+             - argument passed into 3rd party Python library pymysql
 
-               - upper and lower case alphabetical characters (English)
-               - digits 0-9
-               - _,- (underscore, dash)
+               - for establishing a connection to a MySQL server
+               - indicate whether the input file is local
+               - default is False
+               - enables use of the LOAD DATA LOCAL command
 
-         **password**
-          - **mandatory**
-          - the password to access the database
-          - minimum number of characters is 3
-          - maximum number of characters is 30
-          - all characters are allowed
+               - Accepted value:
+                 - Boolean value: True or False
 
-         **local_infile**
-          - **optional**
-          - argument passed into 3rd party Python library pymysql
+                   - True if loading local data
+                   - False otherwise
 
-            - for establishing a connection to a MySQL server
-            - indicate whether the input file is local
-            - default is False
-            - enables use of the LOAD DATA LOCAL command
+               - delete this element if loading of local data is not needed
 
-          - Accepted value:
-            - Boolean value: True or False
+                  - METdataio sets default to False if this element is absent
 
-              - True if loading local data
-              - False otherwise
+    *The following elements are used to define the format of multiple input data directories that are (optionally) organized by datetime*
+         .. dropdown:: date_list
 
-          - delete this element if loading of local data is not needed
+            - **optional**
+            - only necessary when input data is organized based on datetime
+            - omit date_list entries if data resides in a singular directory
+            - multiple date_list elements are allowed
 
-            - METdataio sets default to False if this element is absent
+              - maximum number of date_lists is 5
+              - differentiate different date_list definitions by the *name* attribute (i.e. name=)
 
-    *The following elements are used to define the format of multiple input data directories that are organized by datetime*
-     **date_list**
-       - **optional**
-       - only necessary when input data is organized based on datetime
-       - omit date_list entries if data resides in a singular directory
-       - multiple date_list elements are allowed
+          .. dropdown:: start
 
-         - maximum number of date_lists is 5
-         - differentiate different date_list definitions by the *name* attribute (i.e. name=)
+              - **mandatory**  if date_list is being used
+              - start datetime
 
-        **start**
-          - **mandatory**  if date_list is being used
-          - start datetime
+          .. dropdown:: end
 
-        **end**
-          - **mandatory** if date_list is being used
-          - end datetime
+             - **mandatory** if date_list is being used
+             - end datetime
 
-        **inc**
-          - **mandatory**  if date_list is being used
-          - increment/step size between start and end time
+          .. dropdown:: inc
 
-             - Example, if 6-hour increment:
-             - set inc to 0600
-             - <inc>0600</inc>
+             - **mandatory**  if date_list is being used
+             - increment/step size between start and end time
 
-        **format**
-          - **mandatory** if date_list is being used
-          - format of the datetime
+               - Example, if 6-hour increment:
+               - set inc to 0600
+               - <inc>0600</inc>
 
-            - Example, if 4 digit year month day hour:
-               - <format>yyyyMMddHH</format>
+          .. dropdown:: format
+
+             - **mandatory** if date_list is being used
+             - format of the datetime
+
+               - Example, if 4 digit year month day hour:
+                  - <format>yyyyMMddHH</format>
 
     *The following elements define various flags*
 
-     **verbose**
-       - **mandatory**
-       -  indicates the desired volume of output from the load module
+     .. dropdown:: verbose
+
+          - **mandatory**
+          -  indicates the desired volume of output from the load module
 
               - TRUE resulting in more information
               - FALSE resulting in less information
 
-     **insert_size**
-      - **mandatory**
-      - An integer indicating the number of MET output file rows inserted with each INSERT statement
+     .. dropdown:: insert_size
 
-          - This value is most often 1
+          - **mandatory**
+          - An integer indicating the number of MET output file rows inserted with each INSERT statement
 
-     **stat_header_db_check**
-       - **optional**
-       - indicate whether a database query check for stat header information should be performed
-       - True or False (case insensitive)
+            - This value is most often 1
 
-         - **WARNING** enabling this feature (i.e. set to True) could significantly increase load time
+     .. dropdown:: stat_header_db_check
 
-     **mode_header_db_check**
+         - **optional**
+         - indicate whether a database query check for stat header information should be performed
+         - True or False (case insensitive)
+
+           - **WARNING** enabling this feature (i.e. set to True) could significantly increase load time
+
+     .. dropdown:: mode_header_db_check
+
        - **optional**
        - indicate whether a database query check for the MODE header information should be performed
        - True or False (case insensitive)
 
          - **WARNING** enabling this feature (i.e. set to True) could significantly increase load time
 
-     **mtd_header_db_check**
+     .. dropdown:: **mtd_header_db_check**
+
        - **optional**
        - indicate whether a database query check for the MODE TD header information should be performed
        - True or False (case insensitive)
 
          - **WARNING** enabling this feature (i.e. set to True) could significantly increase load time
 
-     **drop_indexes**
+     .. dropdown::  drop_indexes
+
        - **optional**
        - indicate whether to drop database indexes before loading new data
        - True or False (case insensitive)
 
-     **apply_indexes**
+     .. dropdown:: apply_indexes
+
        - **optional**
        - indicate whether to apply database indexes
        - True or False (case insensitive)
 
-     **load_stat**
+     .. dropdown:: load_stat
+
        - **optional**
        - indicate whether or not to load STAT data
        - True or False (case insensitive)
 
-     **load_mode**
+     .. dropdown:: load_mode
+
        - **optional**
        - indicate whether or not to load MODE data
        - True or False (case insensitive)
 
-     **load_mtd**
+     .. dropdown:: load_mtd
+
        - **optional**
        - indicate whether or not to load MODE TD (MODE Time Domain) data
        - True or False (case insensitive)
 
-     **load_mpr**
+     .. dropdown:: load_mpr
+
        - **optional**
        - indicate whether or not to load MPR (matched pair) data
        - True or False (case insensitive)
 
-     **load_orank**
+     .. dropdown:: load_orank
+
        - **optional**
        - indicate whether or not to load ORANK (observed rank) data
        - True or False (case insensitive)
 
-     **force_dup_file**
+     .. dropdown:: force_dup_file
+
        - **optional**
        - indicate whether or not to force load paths/files that already exist
        - True or False (case insensitive)
