@@ -33,17 +33,14 @@
   <folder_tmpl>/var/autofs/mnt/hostmachine/projects/RRFS/prototype/met_out/{config}/{fcst_init}/{mem}/{valid_times}/metprd/{met_out}/</folder_tmpl>
   
   <load_val>
-    <field name="fcst_init">
-      <date_list name="folder_dates"/>
-    </field>
-    <field name="valid_times">
-      <date_list name="valid_dates"/>
-    </field>
     <field name="config">
       <val>HREF_lag_offset</val>
       <val>RTPS</val>
     </field>
-    <field name="mem">
+    <field name="fcst_init">
+      <date_list name="folder_dates"/>
+    </field>
+       <field name="mem">
       <val>mem01</val>
       <val>mem02</val>
       <val>mem03</val>
@@ -54,6 +51,9 @@
       <val>mem08</val>
       <val>mem09</val>
       <val>mem10</val>
+    </field>
+    <field name="valid_times">
+      <date_list name="valid_dates"/>
     </field>
     <field name="met_out">
       <val>grid_stat_cmn</val>
