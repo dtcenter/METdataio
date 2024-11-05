@@ -20,7 +20,15 @@ XML schema and conform to size and number of element limitations.
 
 .. dropdown:: This is an **example XML specification file** that is **valid**:
 
+    For defining data organized by dates using the folder_tmpl element:
+
     .. literalinclude:: ../../METdbLoad/test/Examples/example_load_specification.xml
+
+.. dropdown:: This is another **example XML specification file** that is **valid**:
+
+    For specifying a list of input data files using the load_files element:
+
+    .. literalinclude:: ../../METdbLoad/test/Examples/example_load_specific_files.xml
 
 
 
@@ -57,6 +65,10 @@ to the required elements and delete any optional, unused/irrelevant elements.
 
   *These are element names. The XML angle brackets (<>) as seen in the XML specification file are omitted for simplicity*
 
+  **!!!NOTE!!!**
+
+  The **order of the elements** in the XML specification file is crucial. **DO NOT** modify the order of the following elements.
+  Indentation is used to indicate hierarchical relationships between elements.
 
     .. dropdown::   load_spec
 
@@ -65,6 +77,7 @@ to the required elements and delete any optional, unused/irrelevant elements.
       - container for other elements that define connection information, flags, data input, etc.
 
     *The following elements pertain to logging into the database*
+
          .. dropdown:: connection
 
             - **mandatory**
@@ -146,15 +159,34 @@ to the required elements and delete any optional, unused/irrelevant elements.
                   - METdataio sets default to False if this element is absent
 
     *The following elements are used to define the format of multiple input data directories that are (optionally) organized by datetime*
+
          .. dropdown:: date_list
 
             - **optional**
-            - only necessary when input data is organized based on datetime
+            - for describing data organized in datetime subdirectories
             - omit date_list entries if data resides in a singular directory
             - multiple date_list elements are allowed
 
               - maximum number of date_lists is 5
               - differentiate different date_list definitions by the *name* attribute (i.e. name=)
+
+                **Example**:
+
+               /var/autofs/mnt/hostmachine/projects/RRFS/prototype/met_out/{config}/{fcst_init}/{mem}/{valid_times}/metprd/{met_out}
+
+                  - the *fcst_init* and *valid_times* subdirectories are based on datetime
+                  - assign the fcst_init subdirectory to a descriptively named date_list attribute:
+
+                        e.g. <date_list name="folder_dates">
+
+                        - this attribute name will be used in the load_val element within the folder_tmpl element to describe the
+                          {fcst_init} subdirectory template
+
+                  - assign the valid_times subdirectory to a descriptively named date_list attribute:
+
+                        e.g. <date_list name="valid_dates">
+
+                        - this attribute name will be used in the load_val element within the folder_tmpl element to describe the {valid_times} subdirectory template
 
           .. dropdown:: start
 
@@ -180,7 +212,7 @@ to the required elements and delete any optional, unused/irrelevant elements.
              - **mandatory** if date_list is being used
              - format of the datetime
 
-               - Example, if 4 digit year month day hour:
+               - For example, to specify 4 digit year, 2 digit month, 2 digit day, and 2 digit hour:
                   - <format>yyyyMMddHH</format>
 
     *The following elements define various flags*
@@ -216,7 +248,7 @@ to the required elements and delete any optional, unused/irrelevant elements.
 
          - **WARNING** enabling this feature (i.e. set to True) could significantly increase load time
 
-     .. dropdown:: **mtd_header_db_check**
+     .. dropdown:: mtd_header_db_check
 
        - **optional**
        - indicate whether a database query check for the MODE TD header information should be performed
@@ -273,9 +305,11 @@ to the required elements and delete any optional, unused/irrelevant elements.
        - True or False (case insensitive)
 
     *The following elements indicate which group the database should be assigned and a description*
-     **group**
+
+     .. dropdown::  group
+
        - **optional**
-       - the name of the database group (databases are grouped in METviewer: e.g. Test,
+       - the name of the database group (databases are grouped in METviewer: e.g. Testing)
        - if undefined, the database will be placed under the NO GROUP group
        - minimum number of characters is 1
        - maximum number of characters is 300
@@ -285,7 +319,8 @@ to the required elements and delete any optional, unused/irrelevant elements.
          - any digits 0-9
          - _, . , - (underscore, period, dash)
 
-     **description**
+     .. dropdown::  description
+
        - **optional**
        - description of the database
        - minimum number of characters is 1
@@ -296,15 +331,140 @@ to the required elements and delete any optional, unused/irrelevant elements.
          - any digits 0-9
          - _, . , - (underscore, period, dash)
 
-    *The following defines the location of the input data to be loaded into the database*
+    *The following defines the location of the input data to be loaded into the database based on data organized by datetime (and any other criteria)*
 
-     **folder_tmpl**
-      - **mandatory**
-      - only one folder template element is permitted
+     .. dropdown:: folder_tmpl
 
-        **field**
+        - **mandatory** only if data is organized in directories that can be described by templates
+        - only one folder template element is permitted (i.e. only one <folder_tmpl> ... </folder_tmpl> )
+        - **NOTE** the *date_list* element **MUST BE DEFINED** (see above in the *date_list* description) if any subdirectories are based on datetime
+
+        *Specify the directory where the data is located in one of the following methods:*
+
+          .. dropdown:: Using value templates for directories:
+
+            Example:
+
+            **/var/autofs/mnt/hostmachine/projects/RRFS/prototype/met_out/{config}/{fcst_init}/{mem}/{valid_times}/metprd/{met_out}**
+
+              - data is organized into various directories based on datetime, and other criteria
+
+              - use { } around "variable" names (in XML, these indicate attribute value templates)
+
+                **config**, **fcst_init**, **mem**, **valid_times**, and **met_out** are attribute value template values that *must* be defined under the load_val element (for more details, refer to the *load_val* description below)
+
+          .. dropdown:: Specify a single directory where all data reside:
+
+            Example:
+
+             **/var/autofs/mnt/hostmachine/projects/RRFS/prototype/met_out/mem00/metprd/all_runs**
+
+               - **all** datafiles are located under this directory (indicate the full path)
+
+      .. dropdown:: load_val
+
+        - **optional** if *folder_tmpl* specifies a single directory where all data resides
+
+        - **mandatory** if folder_tmpl has datetime subdirectories
+           - *field* sub-elements correspond to each attribute value template (i.e. variable names enclosed in {})
 
 
+        .. dropdown:: field
+
+          - **mandatory** if *folder_tmpl* has subdirectories that are datetimes
+          - each *field* element defines the attribute value template in the directory structure (i.e. the variable inside the {})
+          - *field* elements can have one or more *val* sub-elements that can specify more subdirectories
+          - *field* elements can have one or more *date_list* sub-elements for subdirectories that are datetimes
+
+          *For this folder_tmpl example:*
+
+           **/var/autofs/mnt/hostmachine/projects/RRFS/prototype/met_out/{config}/{fcst_init}/{mem}/{valid_times}/metprd/{met_out}**
+
+            *The following are the name attributes for the field* element for the above example:
+
+            .. dropdown:: config
+
+              - corresponds to the {config} template:
+
+                 <field name="config">
+
+               .. dropdown:: val
+
+                 - for defining non-datetime subdirectories
+
+                   - maximum number of *val* elements is 100
+
+                 e.g.:
+                     <field name="config">
+
+                       <val>HREF_lag_offset</val>
+
+                       <val>RTPS</val>
+
+                     </field>
+
+            .. dropdown:: fcst_init
+
+               - corresponds to the {fcst_init} template:
+
+                  <field name="fcst_init">
+
+              .. dropdown:: date_list
+
+                  - the *name* attribute corresponds to one of the *date_list* attribute names
+
+                    - in this case, this corresponds to the *folder_dates* attribute name:
+
+                        <date_list name="folder_dates">
+
+                           <start>2022050100</start>
+                           <end>2022051200</end>
+                           <inc>86400</inc>
+                           <format>yyyyMMddHH</format>
+
+                        </date_list>
+
+
+                    if *fcst_init* subdirectory is based on the *date_list* named *folder_dates*
+
+                    then the following is expected
+
+                       <field name="fcst_init">
+
+                            <date_list name="folder_dates"/>
+
+                       </field>
+
+            .. dropdown:: mem
+
+              - corresponds to the {mem} template:
+
+                 <field name="mem">
+
+                - *val* element to specify subdirectories that are NOT datetimes
+
+                  - maximum number of vals: 100
+
+            .. dropdown:: valid_times
+
+                - since this is a datetime subdirectory, a *date_list* element is expected
+                   - <date_list name="valid_dates"/>
+                   - the "valid_dates" name attribute value matches what is defined in the *date_list* element at the top of the XML specification file
+
+            .. dropdown:: met_out
+
+               .. dropdown:: val
+
+                  - one or more *val* elements
+                  - define any other subdirectories that are NOT datetimes
+
+
+
+    *The following defines the location of specific input data files to be loaded into the database*
+
+      .. dropdown:: load_files
+
+        - **mandatory** if specifying individual data file(s)
 
 
 
@@ -347,58 +507,7 @@ tag is <load_spec> and it contains the following elements, divided into
 functional sections:
 
 
-  * **<load_stat>:** **TRUE** or **FALSE**, this option indicates whether or
-    not to load STAT data.
 
-  * **<load_mode>:** **TRUE** or **FALSE**, this option indicates whether or
-    not to load MODE data.
-
-  * **<load_mtd>:** **TRUE** or **FALSE**, this option indicates whether or
-    not to load MODE TD data.
-
-  * **<load_mpr>:** **TRUE** or **FALSE**, this option indicates whether or not
-    to load matched pair data.
-
-  * **<load_orank>:** **TRUE** or **FALSE**, this option indicates whether or
-    not to load observed rank data.
-
-  * **<force_dup_file>:** **TRUE** or **FALSE**, this option indicates whether
-    or not to force load paths/files that are already present.
-
-  * **<verbose>:** **TRUE** or **FALSE**, this option indicates the desired
-    volume of output from the load module, with TRUE resulting in more
-    information and FALSE resulting in less information.
-
-  * **<insert_size>:** An integer indicating the number of MET output file rows
-    that are inserted with each INSERT statement. This value is most often 1.
-
-  * **<stat_header_db_check>:** **TRUE** or **FALSE**, this option indicates
-    whether a database query check for stat header information should be
-    performed - **WARNING:** enabling this feature could significantly
-    increase load time.
-
-    **NOTE:** **<stat_header_table_check>** has been removed; remove it
-    from the XML load specification document.
-
-  * **<mode_header_db_check>:** **TRUE** or **FALSE**, this option indicates
-    whether a database query check for MODE header information should be
-    performed - **WARNING:** enabling this feature could significantly
-    increase load time.
-
-  * **<mtd_header_db_check>:** **TRUE** or **FALSE**, this option indicates
-    whether a database query check for MODE TD header information should
-    be performed - **WARNING:** enabling this feature could significantly
-    increase load time.
-
-  * **<drop_indexes>:** **TRUE** or **FALSE**, this option indicates whether
-    database indexes should be dropped prior to loading new data.
-
-  * **<load_indexes>:** **TRUE** or **FALSE**, this option indicates whether
-    database indexes should be created after loading new data.
-
-  * **<group>:** The name of the group for the user interface.
-
-  * **<description>:** A short description of the database.
 
     * **<load_files>:** A list structure containing individual MET output
       files to load into the database.
@@ -408,28 +517,17 @@ functional sections:
 
     * **<file>:** Contains a single MET output file to load.
 
-  * **<folder_tmpl>:** A template string describing the file structure of
-    the input MET files, which is populated with values specified in
-    the **<load_val>** tag structure.
 
-    * **<load_val>:** A tree structure containing values used to populate
-      the **<folder_tmpl>** template.
 
-      * **<field>:** A template value, its name is specified by the attribute
-	name, and its values are specified by its children **<val>** tags.
+      * **<field>:** A template value, its name is specified by the attribute	name, and its values are specified by its children **<val>** tags.
 
-        * **<val>:** A single template value which will slot into the template
-	  in the value specified by the parent field's name.
+        * **<val>:** A single template value which will slot into the template	  in the value specified by the parent field's name.
 
-        * **<date_list>:** Specifies a previously declared **<date_list>**
-	  element, using the name attribute, which represents a list of dates
-	  in a particular format.
+        * **<date_list>:** Specifies a previously declared **<date_list>**	  element, using the name attribute, which represents a list of dates	  in a particular format.
 
-      * **<line_type>:** A list structure containing the MET output file line
-	types to load. If omitted, all line types are loaded.
+      * **<line_type>:** A list structure containing the MET output file line	types to load. If omitted, all line types are loaded.
 
-        * **<val>:** Contains a single MET output file line type to be loaded,
-	  for example, CNT.
+        * **<val>:** Contains a single MET output file line type to be loaded,	  for example, CNT.
 
     * **<load_note>:** If present, creates a record in the instance_info
       database database table with a note containing the body of this tag
@@ -438,100 +536,14 @@ functional sections:
       not to save the load xml; only effective if **<load_note>** is present
       - default: TRUE
 
-  **Note**
-  If <folder_tmpl> is used, at least one <load_val> entry should be present.
-  For example, if the path is:
-
-  .. code-block:: XML
-
-    <folder_tmpl>/path/to/data</folder_tmpl>
-
-  change it to
-
-  .. code-block:: XML
-
-    <folder_tmpl>/path/to/{type}</folder_tmpl>
-    <load_val>
-       <field name="type">
-          <val>data</val>
-       </field>
-    </load_val>
 
 
-Additional Loading Options
---------------------------
-
-The load_met.xml specification file created above loads the entire dataset specified in the data_dir setting in the
-YAML config file, data_loading_config.yaml.
-
-A subset of the data can be selected by date and field names (i.e. by model, valid_time, vx_mask, etc.).
-The load_met.xml specification file can be further modified to accomplish this by adding the date_list and
-field_name elements to the XML specification file.
-
-Here is a simple example:
-
-.. code-block:: XML
-
-  <load_spec>
-    <connection>
-      <host>kemosabe:3306</host>
-      <database>mv_db_hwt</database>
-      <user>pgoldenb</user>
-      <password>pgoldenb</password>
-    </connection>
-
-    <date_list name="folder_dates">
-      <start>2010051914</start>
-      <end>2010051915</end>
-      <inc>3600</inc>
-      <format>yyyyMMddHH</format>
-    </date_list>
 
 
-    <verbose>false</verbose>
-    <insert_size>1</insert_size>
-    <mode_header_db_check>true</mode_header_db_check>
-    <drop_indexes>false</drop_indexes>
-    <apply_indexes>true</apply_indexes>
-    <group>Group name</group>
-    <load_stat>true</load_stat>
-    <load_mode>true</load_mode>
-    <load_mtd>true</load_mtd>
-    <load_mpr>false</load_mpr>
-
-    <folder_tmpl>/d1/data/{model}/{vx_mask}/{valid_time}</folder_tmpl>
-    <load_val>
-      <field name="model">
-        <val>arw</val>
-        <val>nmm</val>
-      </field>
-
-      <field name="valid_time">
-        <date_list name="folder_dates"/>
-      </field>
-
-      <field name="vx_mask">
-         <val>FULL</val>
-         <val>SWC</val>
-      </field>
-    </load_val>
-  </load_spec>
 
 
-In this example, the load module would attempt to load any files with the
-suffix .stat in the following folders.
 
-.. code-block:: ini
 
-  /d1/data/arw/FULL/2010051914
-  /d1/data/arw/SWC/2010051914
-  /d1/data/nmm/FULL/2010051914
-  /d1/data/nmm/SWC/2010051914
-  /d1/data/arw/FULL/2010051915
-  /d1/data/arw/SWC/2010051915
-  /d1/data/nmm/FULL/2010051915
-  /d1/data/nmm/SWC/2010051915
-  ...
 
 Troubleshooting
 ---------------
