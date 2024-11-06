@@ -91,7 +91,8 @@ expand). Remember to update the username and password that is applicable to your
 
   ..note::
 
-  The **order of the elements** in the XML specification file is crucial. **DO NOT** modify the order of the following elements.
+    
+    The **order of the elements** in the XML specification file is crucial. **DO NOT** modify the order of the following elements.
   Indentation is used to indicate hierarchical relationships between elements.
 
     .. dropdown::   load_spec
