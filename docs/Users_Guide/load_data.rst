@@ -45,7 +45,7 @@ XML schema and conform to size and number of element limitations.
 
 
 
-.. dropdown:: This is the **XML schema** that is used to **validate the XML specification file**:
+.. dropdown:: The **XML schema** that is used to **validate the XML specification file**
 
     .. literalinclude:: ../../METdbLoad/ush/load_specification_schema.xsd
 
