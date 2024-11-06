@@ -636,7 +636,7 @@ expand). Remember to update the username and password that is applicable to your
          <load_xml>true</load_xml>
 
 
-    *The following allows one to create a note into the instance_info database table*
+    *The following allows one to create a note into the instance_info database table.*
 
      .. dropdown:: load_note
 
