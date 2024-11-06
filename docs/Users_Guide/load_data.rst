@@ -730,7 +730,7 @@ Troubleshooting
   * - Solution:
     - This error is typically encountered when one of the following conditions exist as a result of failing the XML validation step:
 
-         - the order of the elements in your XML specification file is inconsistent with the order expected
+         - the order of the elements in the XML specification file is inconsistent with the order expected
          - your XML specification file is missing one or more mandatory elements
          - one or more elements has exceeded size limits specified in the XML schema
          - there are additional XML elements that are not expected
