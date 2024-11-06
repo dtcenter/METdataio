@@ -183,7 +183,7 @@ expand). Remember to update the username and password that is applicable to your
 
                   - METdataio sets default to False if this element is absent
 
-    *The following elements are used to define the format of multiple input data directories that are (optionally) organized by datetime*
+    *The following elements are used to define the format of multiple input data directories that are (optionally) organized by datetime.*
 
          .. dropdown:: date_list
 
