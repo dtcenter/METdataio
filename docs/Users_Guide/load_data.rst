@@ -331,11 +331,13 @@ to the required elements and delete any optional, unused/irrelevant elements.
          - any digits 0-9
          - _, . , - (underscore, period, dash)
 
+    **Determine whether to use folder_tmpl or load_files to define where your input data resides (descriptions below):**
+
     *The following defines the location of the input data to be loaded into the database based on data organized by datetime (and any other criteria)*
 
      .. dropdown:: folder_tmpl
 
-        - **mandatory** only if data is organized in directories that are described by templates or if all data resides under one directory
+        - for data in subdirectories that are datetimes *OR* data that resides under one directory
         - only one folder template element is permitted (i.e. only one <folder_tmpl> ... </folder_tmpl> )
         - **NOTE** the *date_list* element **MUST BE DEFINED** (see above in the *date_list* description) if **any subdirectories are based on datetime**
 
@@ -546,7 +548,25 @@ to the required elements and delete any optional, unused/irrelevant elements.
 
       .. dropdown:: load_files
 
-        - **mandatory** if specifying individual data file(s)
+        - for specifying the location of individual data files that are in different directories
+
+        .. dropdown:: file
+
+           - **mandatory** for defining location of specific data files
+
+             - maximum number of data files: 200
+
+             Example:
+
+                <load_files>
+
+                    <file>/met_out/mode/mode_MASK_POLY_300000L_20120410_180000V_060000A_cts.txt</file>
+
+                    <file>/met_out/rhist/ensemble_stat_RRFS_GEFS_GF.SPP.SPPT_RETOP_MRMS_20220507_120000V.stat</file>
+
+                </load_files>
+
+
 
 
 
