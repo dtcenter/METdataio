@@ -70,7 +70,7 @@ as this file contains the database password.**
 
 - $METDATAIO is the path to the location of the cloned or forked METdataio source code.
 
-- Replace the *path-to-your-dir* with the actual path to where this file is to be saved.
+- Replace the *path-to-your-dir* with the actual path to where this file will be saved.
 
 Change directory to the location where the *example_load_specification.xml* file was copied.
 
