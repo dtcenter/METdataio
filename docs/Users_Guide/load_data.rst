@@ -731,6 +731,6 @@ Troubleshooting
          - the order of the elements in your XML specification file is inconsistent with the order expected
          - your XML specification file is missing one or more mandatory elements
          - one or more elements has exceeded size limits specified in the XML schema
-         - you have addition XML elements that are not expected
+         - there are additional XML elements that are not expected
 
        **Refer to the section **Create the XML Specification File** to verify that your XML specification file is correct.**
