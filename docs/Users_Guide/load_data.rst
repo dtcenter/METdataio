@@ -30,6 +30,7 @@ that the file is valid.  This validation is necessary to prevent extremely large
 payloads that can compromise the loading of data.
 The elements in the XML specification file **must** adhere to the **order specified** by the
 XML schema and conform to size and number of element limitations.
+Click to expand the example XML specifications and the XML validation schema below.
 
 .. dropdown:: An **example XML specification file** that is **valid**
 
