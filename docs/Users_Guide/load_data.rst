@@ -329,7 +329,7 @@ expand). Remember to update the username and password that is applicable to your
        - indicate whether or not to force load paths/files that already exist
        - True or False (case insensitive)
 
-    *The following elements indicate which group the database should be assigned and a description*
+    *The following elements indicate which group the database should be assigned and a description.*
 
      .. dropdown::  group
 
