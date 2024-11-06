@@ -654,8 +654,8 @@ Load Data
 Now the MET data can be loaded in the database using the *met_db_load.py* script in the path-to-METdataio-source/METdbLoad/ush
 directory.  The *path-to-METdataio-source* is the directory where the METdataio source code is saved.
 
-**NOTE**
-   **Only data files with the *.stat* extension will be loaded**
+.. note::
+ Only data files with the *.stat* extension will be loaded
 
 
 .. dropdown:: The usage statement for met_db_load.py:
