@@ -358,7 +358,7 @@ expand). Remember to update the username and password that is applicable to your
 
     **Determine whether to use folder_tmpl or load_files to define where your input data resides (descriptions below):**
 
-    *The following defines the location of the input data to be loaded into the database based on data organized by datetime (and any other criteria)*
+    *The following defines the location of the input data to be loaded into the database based on data organized by datetime (and any other criteria).*
 
      .. dropdown:: folder_tmpl
 
