@@ -101,7 +101,7 @@ expand). Remember to update the username and password that is applicable to your
       - top-level tag/element
       - container for other elements that define connection information, flags, data input, etc.
 
-    *The following elements pertain to logging into the database*
+    *The following elements pertain to logging into the database.*
 
          .. dropdown:: connection
 
