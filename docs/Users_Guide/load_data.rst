@@ -85,15 +85,15 @@ Using a text editor of your choice, make the necessary edits
 to the required elements and delete any optional, unused/irrelevant elements, based on the explanation below (click to
 expand). Remember to update the username and password that is applicable to your database.
 
+
+.. note::
+ The **order of the elements** in the XML specification file is crucial. **DO NOT** modify the order of the described elements (below).
+
+
+
 .. dropdown:: The following is an explanation of the required and optional elements and any limitations
 
-  *These are element names. The XML angle brackets (<>) as seen in the XML specification file are omitted for simplicity*
-
-  ..note::
-
-    
-    The **order of the elements** in the XML specification file is crucial. **DO NOT** modify the order of the following elements.
-    Indentation is used to indicate hierarchical relationships between elements.
+  *These are element names. The XML angle brackets (<>) as seen in the XML specification file are omitted for simplicity. Indentation is used to indicate hierarchical relationships between elements.*
 
     .. dropdown::   load_spec
 
@@ -358,7 +358,7 @@ expand). Remember to update the username and password that is applicable to your
 
     **Determine whether to use folder_tmpl or load_files to define where your input data resides (descriptions below):**
 
-    *The following defines the location of the input data to be loaded into the database based on data organized by datetime (and any other criteria).*
+    *The following defines the location of the input data to be loaded into the database based on data organized by datetime (and/or any other criteria).*
 
      .. dropdown:: folder_tmpl
 
@@ -402,13 +402,13 @@ expand). Remember to update the username and password that is applicable to your
           - each *field* element defines the attribute value template in the directory structure (i.e. the variable inside the {})
             - *val* elements that can specify more subdirectories
 
-              - optional
+              - **optional**
               - necessary when specifying subdirectories that are not datetimes (e.g. /path-to/model_A/air_quality/)
               - maximum number of val elements: 100
 
             - *date_list* elements for subdirectories that are datetimes
 
-              - optional
+              - **optional**
               - mandatory when subdirectories are datetimes (e.g. /path-to/20240101/model/)
               - maximum number of date_list elements: 5
 
@@ -515,7 +515,7 @@ expand). Remember to update the username and password that is applicable to your
 
                    <field name="valid_times">
 
-                .. dropdown:: valid_times
+                .. dropdown:: date_list
 
                    - the *name* attribute corresponds to one of the *date_list* attribute names
 
