@@ -37,7 +37,7 @@ XML schema and conform to size and number of element limitations.
 
     .. literalinclude:: ../../METdbLoad/test/Examples/example_load_specification.xml
 
-.. dropdown:: This is another **example XML specification file** that is **valid**:
+.. dropdown:: Another **example XML specification file** that is **valid**
 
     For specifying a list of input data files using the load_files element:
 
