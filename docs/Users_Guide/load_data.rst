@@ -569,7 +569,7 @@ expand). Remember to update the username and password that is applicable to your
 
 
 
-    *The following defines the location of specific input data files to be loaded into the database*
+    *The following defines the location of specific input data files to be loaded into the database.*
 
      .. dropdown:: load_files
 
