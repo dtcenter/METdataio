@@ -335,9 +335,9 @@ to the required elements and delete any optional, unused/irrelevant elements.
 
      .. dropdown:: folder_tmpl
 
-        - **mandatory** only if data is organized in directories that can be described by templates
+        - **mandatory** only if data is organized in directories that are described by templates or if all data resides under one directory
         - only one folder template element is permitted (i.e. only one <folder_tmpl> ... </folder_tmpl> )
-        - **NOTE** the *date_list* element **MUST BE DEFINED** (see above in the *date_list* description) if any subdirectories are based on datetime
+        - **NOTE** the *date_list* element **MUST BE DEFINED** (see above in the *date_list* description) if **any subdirectories are based on datetime**
 
         *Specify the directory where the data is located in one of the following methods:*
 
@@ -366,19 +366,28 @@ to the required elements and delete any optional, unused/irrelevant elements.
         - **optional** if *folder_tmpl* specifies a single directory where all data resides
 
         - **mandatory** if folder_tmpl has datetime subdirectories
-           - *field* sub-elements correspond to each attribute value template (i.e. variable names enclosed in {})
+           - *field* elements correspond to each attribute value template (i.e. variable names enclosed in {})
 
 
         .. dropdown:: field
 
           - **mandatory** if *folder_tmpl* has subdirectories that are datetimes
           - each *field* element defines the attribute value template in the directory structure (i.e. the variable inside the {})
-          - *field* elements can have one or more *val* sub-elements that can specify more subdirectories
-          - *field* elements can have one or more *date_list* sub-elements for subdirectories that are datetimes
+            - *val* elements that can specify more subdirectories
 
-          *For this folder_tmpl example:*
+              - optional
+              - necessary when specifying subdirectories that are not datetimes (e.g. /path-to/model_A/air_quality/)
+              - maximum number of val elements: 100
 
-           **/var/autofs/mnt/hostmachine/projects/RRFS/prototype/met_out/{config}/{fcst_init}/{mem}/{valid_times}/metprd/{met_out}**
+            - *date_list* elements for subdirectories that are datetimes
+
+              - optional
+              - mandatory when subdirectories are datetimes (e.g. /path-to/20240101/model/)
+              - maximum number of date_list elements: 5
+
+          *For this folder_tmpl example, which has datetime subdirectories:*
+
+           .. dropdown:: /var/autofs/mnt/hostmachine/projects/RRFS/prototype/met_out/{config}/{fcst_init}/{mem}/{valid_times}/metprd/{met_out}
 
             *The following are the name attributes for the field* element for the above example:
 
@@ -413,27 +422,26 @@ to the required elements and delete any optional, unused/irrelevant elements.
 
                   - the *name* attribute corresponds to one of the *date_list* attribute names
 
-                    - in this case, this corresponds to the *folder_dates* attribute name:
+                      <field name="fcst_init">
 
-                        <date_list name="folder_dates">
+                            **<date_list name="folder_dates"/>**
+
+                       </field>
+
+                    .. dropdown:: The "folder_dates" name attribute was assigned in the date_list portion of the XML specification file
+
+                        **<date_list name="folder_dates">**
 
                            <start>2022050100</start>
+
                            <end>2022051200</end>
+
                            <inc>86400</inc>
+
                            <format>yyyyMMddHH</format>
 
                         </date_list>
 
-
-                    if *fcst_init* subdirectory is based on the *date_list* named *folder_dates*
-
-                    then the following is expected
-
-                       <field name="fcst_init">
-
-                            <date_list name="folder_dates"/>
-
-                       </field>
 
             .. dropdown:: mem
 
@@ -441,22 +449,96 @@ to the required elements and delete any optional, unused/irrelevant elements.
 
                  <field name="mem">
 
-                - *val* element to specify subdirectories that are NOT datetimes
+              .. dropdown:: val
 
-                  - maximum number of vals: 100
+                 - for defining non-datetime subdirectories
+
+                   - maximum number of *val* elements is 100
+
+                    e.g.:
+
+                      <field name="mem">
+
+                            <val>mem01</val>
+
+                            <val>mem02</val>
+
+                            <val>mem03</val>
+
+                            <val>mem04</val>
+
+                            <val>mem05</val>
+
+                            <val>mem06</val>
+
+                            <val>mem07</val>
+
+                            <val>mem08</val>
+
+                            <val>mem09</val>
+
+                            <val>mem10</val>
+
+                       </field>
+
 
             .. dropdown:: valid_times
 
-                - since this is a datetime subdirectory, a *date_list* element is expected
-                   - <date_list name="valid_dates"/>
-                   - the "valid_dates" name attribute value matches what is defined in the *date_list* element at the top of the XML specification file
+                - corresponds to the {valid_times} template:
+
+                   <field name="valid_times">
+
+                .. dropdown:: valid_times
+
+                   - the *name* attribute corresponds to one of the *date_list* attribute names
+
+                       <field name="valid_times">
+
+                        **<date_list name="valid_dates">**
+
+                       </field>
+
+                      .. dropdown:: the "valid_dates" name attribute value was assigned in the date_list portion of the XML specification file
+
+                             **<date_list name="valid_dates">**
+
+                                 <start>2022050100</start>
+
+                                 <end>2022051200</end>
+
+                                 <inc>0600</inc>
+
+                                 <format>yyyyMMddHH</format>
+
+                             </date_list>
 
             .. dropdown:: met_out
 
+               - corresponds to the {met_out} template
+
+
+
                .. dropdown:: val
 
-                  - one or more *val* elements
-                  - define any other subdirectories that are NOT datetimes
+                   - for defining non-datetime subdirectories
+
+                     - maximum number of *val* elements is 100
+
+                    e.g.:
+
+                       <field name="met_out">
+
+                         <val>grid_stat_cmn</val>
+
+                         <val>point_stat_cmn</val>
+
+                       </field>
+
+          *For this folder_tmpl example, which has all the data under one directory (no datetime subdirectories):*
+
+            .. dropdown:: /var/autofs/mnt/hostmachine/projects/RRFS/prototype/met_out/metprd/point_stat
+
+
 
 
 
