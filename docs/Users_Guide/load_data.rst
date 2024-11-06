@@ -735,4 +735,4 @@ Troubleshooting
          - one or more elements has exceeded size limits specified in the XML schema
          - there are additional XML elements that are not expected
 
-       **Refer to the section **Create the XML Specification File** to verify that your XML specification file is correct.**
+       **Refer to the section **Create the XML Specification File** to verify that the XML specification file is correct.**
