@@ -31,7 +31,7 @@ payloads that can compromise the loading of data.
 The elements in the XML specification file **must** adhere to the **order specified** by the
 XML schema and conform to size and number of element limitations.
 
-.. dropdown:: This is an **example XML specification file** that is **valid**:
+.. dropdown:: An **example XML specification file** that is **valid**
 
     For defining data organized by dates using the folder_tmpl element:
 
