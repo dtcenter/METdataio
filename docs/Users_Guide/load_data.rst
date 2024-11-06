@@ -591,7 +591,7 @@ expand). Remember to update the username and password that is applicable to your
 
                 </load_files>
 
-    *The following describe the linetypes to load*
+    *The following describe the linetypes to load.*
 
      .. dropdown:: line_type
 
