@@ -2,7 +2,7 @@
 Background
 **********
 
-The METdbLoad module provides support for inserting MET output data into a relational database
+The METdbLoad module provides support for inserting MET output data (as .stat files) into a relational database
 (mysql, mariadb, or aurora).
 
 Before using the METdbLoad module, the database **must** exist and have the proper permissions
@@ -45,9 +45,10 @@ loading the data into the database.
 
 Create your own XML specification file by copying the example specification file
 *METdataio/METdbLoad/test/Examples/example_load_specification.xml* file to a
-location in your workspace. This  file will contain the username and password to the database.
+location in your workspace.
 
-**Do not save this XML specification file where it can be read by anyone who should not have access to this information.**
+**Do not save this XML specification file where it can be read by anyone who should not have access to this information,
+as this file contains the database password.**
 
 .. code-block:: ini
 
@@ -58,8 +59,17 @@ location in your workspace. This  file will contain the username and password to
 
 - Replace the *path-to-your-dir* with the actual path to where this file is to be saved.
 
-Change directory to the location where the *example_load_specification.xml* file was copied. Make the necessary edits
-to the required elements and delete any optional, unused/irrelevant elements.
+Change directory to the location where the *example_load_specification.xml* file was copied.
+
+.. code-block:: ini
+
+   cd path-to-your-dir/load_specification.xml
+
+- replace *path-to-your-dir* with the full path where you are saving the XML specification file
+
+Using a text editor of your choice, make the necessary edits
+to the required elements and delete any optional, unused/irrelevant elements, based on the explanation below (click to
+expand). Remember to update the username and password that is applicable to your database.
 
 .. dropdown:: The following is an explanation of the required and optional elements and any limitations
 
@@ -546,7 +556,7 @@ to the required elements and delete any optional, unused/irrelevant elements.
 
     *The following defines the location of specific input data files to be loaded into the database*
 
-      .. dropdown:: load_files
+     .. dropdown:: load_files
 
         - for specifying the location of individual data files that are in different directories
 
@@ -566,8 +576,61 @@ to the required elements and delete any optional, unused/irrelevant elements.
 
                 </load_files>
 
+    *The following describe the linetypes to load*
+
+     .. dropdown:: line_type
+
+        - **optional**
+        - which MET output linetypes to load
+        - if omitted, then **all linetypes** will be loaded
+        - maximum number of line_type elements: 1
+
+         *val* element defines which MET output linetypes to load
+
+        .. dropdown:: val
+
+          - the MET output linetype
+
+            - linetype name (refer to the MET User's Guide for a complete list of linetypes)
 
 
+              Example:
+
+                   <line_type>
+
+                        <val>ECNT</val>
+
+                        <val>VL1L2</val>
+
+                        <val>SAL1L2</val>
+
+                   </line_type>
+
+    *The following option allows one to indicate whether to save the XML commands into the database*
+
+     .. dropdown:: load_xml
+
+         - **optional**
+         - Option to save the XML  into the database
+         - Only takes effect when the *load_note* element is present
+         - Acceptable values: TRUE or FALSE (case-insensitive)
+         - Default value: TRUE
+
+         Example:
+
+         <load_xml>true</load_xml>
+
+
+    *The following allows one to create a note into the instance_info database table*
+
+     .. dropdown:: load_note
+
+         - **optional**
+         - Add a descriptive "note" into the database
+
+         Example:
+
+         <load_note>Load HREF and RTPS data from Spring 2022</load_note>
 
 
 Load Data
@@ -576,71 +639,39 @@ Load Data
 Now the MET data can be loaded in the database using the *met_db_load.py* script in the path-to-METdataio-source/METdbLoad/ush
 directory.  The *path-to-METdataio-source* is the directory where the METdataio source code is saved.
 
+**NOTE**
+   **Only data files with the *.stat* extension will be loaded**
+
+
+.. dropdown:: The usage statement for met_db_load.py:
+
+    .. code-block:: ini
+
+       INFO:root:--- *** --- Start METdbLoad --- *** ---
+
+       usage: python met_db_load.py [-h] [-index] xmlfile [tmpdir [tmpdir ...]]
+
+       positional arguments:
+         xmlfile     Please provide required xml load_spec filename
+         tmpdir      Optional - when different directory wanted for tmp file
+
+       optional arguments:
+         -h, --help  show this help message and exit
+
+         -index      Only process index, do not load data
+
+
 .. code-block:: ini
 
   cd /path-to-METdataio-source/METdataio/METdbLoad/ush
 
-  * Replace path-to-METdataio-source to the location where the METdataio source code is saved.
+  python met_db_load.py /path-to/load_specification.xml
 
-  python met_db_load.py /path-to/load_met.xml
+- Replace *path-to-METdataio-source* to the location where the METdataio source code is saved.
+- Replace the *path-to* with the location where the load_specification.xml XML specification file was saved.
 
-  * Replace the path-to with the location where the load_met.xml file was saved.  This is the same directory
-    you created to save the copy of the data_loading_config.yaml file.
-
-The usage statement:
-
-.. code-block:: ini
-
-  INFO:root:--- *** --- Start METdbLoad --- *** ---
-
-  usage: python met_db_load.py [-h] [-index] xmlfile [tmpdir [tmpdir ...]]
-
-  positional arguments:
-    xmlfile     Please provide required xml load_spec filename
-    tmpdir      Optional - when different directory wanted for tmp file
-
-  optional arguments:
-    -h, --help  show this help message and exit
-    -index      Only process index, do not load data
-
-The **xmlfile** is the XML specification file that passes information about the MET output files to load
-into the database to METdbload. It is an XML file whose top-level
-tag is <load_spec> and it contains the following elements, divided into
-functional sections:
-
-
-
-
-    * **<load_files>:** A list structure containing individual MET output
-      files to load into the database.
-
-    * **</load_files>:** Follows the list of files after the previous
-      tag, to end the list.
-
-    * **<file>:** Contains a single MET output file to load.
-
-
-
-      * **<field>:** A template value, its name is specified by the attribute	name, and its values are specified by its children **<val>** tags.
-
-        * **<val>:** A single template value which will slot into the template	  in the value specified by the parent field's name.
-
-        * **<date_list>:** Specifies a previously declared **<date_list>**	  element, using the name attribute, which represents a list of dates	  in a particular format.
-
-      * **<line_type>:** A list structure containing the MET output file line	types to load. If omitted, all line types are loaded.
-
-        * **<val>:** Contains a single MET output file line type to be loaded,	  for example, CNT.
-
-    * **<load_note>:** If present, creates a record in the instance_info
-      database database table with a note containing the body of this tag
-
-    * **<load_xml>:   TRUE** or **FALSE**, this option indicates whether or
-      not to save the load xml; only effective if **<load_note>** is present
-      - default: TRUE
-
-
-
-
+Refer to the section **Create the XML Specification File** and expand the drop-down instructions
+"The following is an explanation of the required and optional elements and any limitations" for details on what is expected in your XML specification file.
 
 
 
@@ -677,3 +708,16 @@ Troubleshooting
 
   * - Solution:
     - This error is caused when attempting to load data into a database that does not exist.  You will need to create the database, set up the appropriate privileges as outlined above, and load the schema using the mv_mysql.sql file.
+
+  * -  Error:
+    -  /full-path-to/xyz.xml is not valid and may contain a recursive payload or an excessively large payload
+
+  * - Solution:
+    - This error is typically encountered when one of the following conditions exist as a result of failing the XML validation step:
+
+         - the order of the elements in your XML specification file is inconsistent with the order expected
+         - your XML specification file is missing one or more mandatory elements
+         - one or more elements has exceeded size limits specified in the XML schema
+         - you have addition XML elements that are not expected
+
+       **Refer to the section **Create the XML Specification File** to verify that your XML specification file is correct.**
