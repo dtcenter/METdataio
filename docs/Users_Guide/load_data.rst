@@ -621,7 +621,7 @@ expand). Remember to update the username and password that is applicable to your
 
                    </line_type>
 
-    *The following option allows one to indicate whether to save the XML commands into the database*
+    *The following option allows one to indicate whether to save the XML commands into the database.*
 
      .. dropdown:: load_xml
 
