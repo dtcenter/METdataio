@@ -78,7 +78,7 @@ Change directory to the location where the *example_load_specification.xml* file
 
    cd path-to-your-dir/load_specification.xml
 
-- replace *path-to-your-dir* with the full path where you are saving the XML specification file
+- Replace *path-to-your-dir* with the full path where the XML specification file will be saved.
 
 Using a text editor of your choice, make the necessary edits
 to the required elements and delete any optional, unused/irrelevant elements, based on the explanation below (click to
