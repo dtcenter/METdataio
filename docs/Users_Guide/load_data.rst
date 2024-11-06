@@ -10,6 +10,19 @@ Before using the METdbLoad module, the database **must** exist and have the prop
 line client (https://dev.mysql.com/doc/refman/en/mysql.html) to create the tables corresponding to the MET line types.
 The *mv_mysql.sql* file is located in the METdataio/METdbLoad/sql/ directory.
 
+.. dropdown:: Create MET linetype tables
+
+ mysql -udbuser -pdbpasswd dbtable_name</path-to-METdataio/METdbLoad/sql/mv_mysql.sql
+
+    - Replace *dbuser* with the username
+
+    - Replace *dbpasswd* with the password
+
+    - Replace *path-to-METdataio* with the path where the METdataio source code is saved
+
+
+
+
 The METdbLoad script *met_db_load.py* performs loading of data based on settings in an XML specification file.
 The XML specification file contains database connection information, the location of data to be loaded, and other
 settings relevant to the type of data that is being loaded. The XML specification is validated against a schema to check
