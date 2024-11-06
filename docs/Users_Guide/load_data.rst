@@ -89,7 +89,7 @@ expand). Remember to update the username and password that is applicable to your
 
   *These are element names. The XML angle brackets (<>) as seen in the XML specification file are omitted for simplicity*
 
-  **!!!NOTE!!!**
+  ..note::
 
   The **order of the elements** in the XML specification file is crucial. **DO NOT** modify the order of the following elements.
   Indentation is used to indicate hierarchical relationships between elements.
