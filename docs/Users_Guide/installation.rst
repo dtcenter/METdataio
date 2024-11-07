@@ -45,32 +45,13 @@ Installation
 Download
 --------
 
-Download METdataio into an installation directory.  Programs can be run from
-the ush subdirectory.
+Download the latest release:
 
 .. code-block:: ini
 
-  git clone https://github.com/dtcenter/METdataio [install]/METdataio
-  cd [install]/METdataio/METdbLoad/ush
+  git clone https://github.com/dtcenter/METdataio
 
-Create Database
----------------
+.. note::
 
-Data must be loaded into a database which has the prefix \'\mv_\'\,
-e.g. mv_met_data. This database must be structured with the METviewer
-mv_mysql.sql schema:
+  Programs can be run from the METdbLoad/ush subdirectory.
 
-.. code-block:: ini
-
-  cd [install]/metviewer
-  mysql -u[db_username] -p[db_password] -e'create database [db_name];'
-  mysql -u[db_username] -p[db_password] [db_name] < sql/mv_mysql.sql
-
-
-Create an XML load specification document which contains information about your
-MET data. Run METdbload using the XML load specification as input (called
-[load_xml] here) and monitor progress:
-
-.. code-block:: ini
-
-  python met_db_load.py [load_xml] [optional redirection of output, e.g. &> log/load_[date].log &]'
