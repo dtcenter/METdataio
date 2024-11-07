@@ -30,7 +30,6 @@ mv_mysql.sql schema:
 
 - Replace *db_name* with the appropriate database name that begins with **mv** (e.g. mv_xyz )
 
-- Repace *database* with the database name
 
 
 .. note::
