@@ -23,11 +23,12 @@ mv_mysql.sql schema:
   mysql -u[db_username] -p[db_password] -e'create database [db_name];'
   mysql -u[db_username] -p[db_password] [db_name] < sql/mv_mysql.sql
 
-    - Replace *db_usenamer* with the username
 
-    - Replace *db_passwd* with the password
+- Replace *db_usenamer* with the username
 
-    - Replace *db_name* with the appropriate database name that begins with **mv** (e.g. mv_xyz )
+- Replace *db_passwd* with the password
+
+- Replace *db_name* with the appropriate database name that begins with **mv** (e.g. mv_xyz )
 
 
 .. note::
