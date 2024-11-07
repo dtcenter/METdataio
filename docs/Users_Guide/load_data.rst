@@ -1,36 +1,59 @@
-**********
-Background
-**********
+***************
+Using METdbLoad
+***************
 
 The METdbLoad module provides support for inserting MET output data (as .stat files) into a relational database
 (mysql, mariadb, or aurora).
 
+
+Create Database
+---------------
+
 Before using the METdbLoad module, the database **must** exist and have the proper permissions
-(i.e. grant privileges to insert, delete, update, and index).  Next, use *mv_mysql.sql* and the mysql command
-line client (https://dev.mysql.com/doc/refman/en/mysql.html) to create the tables corresponding to the MET line types.
-The *mv_mysql.sql* file is located in the METdataio/METdbLoad/sql/ directory.
+(i.e. grant privileges to insert, delete, update, and index).
+
+
+Data must be loaded into a database which has the prefix \'\mv_\'\,
+(e.g. mv_met_data). This database must be structured with the METviewer
+mv_mysql.sql schema:
+
+.. code-block:: ini
+
+  cd [install]/metviewer
+  mysql -u[db_username] -p[db_password] -e'create database [db_name];'
+  mysql -u[db_username] -p[db_password] [db_name] < sql/mv_mysql.sql
+
+    - Replace *db_usenamer* with the username
+
+    - Replace *db_passwd* with the password
+
+    - Replace *db_name* with the appropriate database name that begins with **mv** (e.g. mv_xyz )
+
+
+.. note::
+ Use the mysql command line client (https://dev.mysql.com/doc/refman/en/mysql.html) to run the above instructions.
+
+ The *mv_mysql.sql* file is located in the METdataio/METdbLoad/sql/ directory.
 
 .. dropdown:: Create MET linetype tables
 
- mysql -udbuser -pdbpasswd dbtable_name</path-to-METdataio/METdbLoad/sql/mv_mysql.sql
+ mysql -udbuser -pdbpasswd dbtable_name < /path-to-METdataio/METdbLoad/sql/mv_mysql.sql
 
-    - Replace *dbuser* with the username
 
-    - Replace *dbpasswd* with the password
 
     - Replace *path-to-METdataio* with the path where the METdataio source code is saved
+    - Note the use of the redirection symbol '<' in the command
 
+Create an XML Load Specification Document
+-----------------------------------------
 
-
-
-The METdbLoad script *met_db_load.py* performs loading of data based on settings in an XML specification file.
-The XML specification file contains database connection information, the location of data to be loaded, and other
-settings relevant to the type of data that is being loaded. The XML specification is validated against a schema to check
+The XML load specification document contains information about the MET data, database connection information, and the location of data to be loaded.
+This is used by the METdbLoad script *met_db_load.py* to load the MET data. The XML load specification is validated against a schema to check
 that the file is valid.  This validation is necessary to prevent extremely large payloads or recursive
 payloads that can compromise the loading of data.
-The elements in the XML specification file **must** adhere to the **order specified** by the
+The elements in the XML load specification file **must** adhere to the **order specified** by the
 XML schema and conform to size and number of element limitations.
-Click to expand the example XML specifications and the XML validation schema below.
+Click to expand the example XML load specifications and the XML validation schema below.
 
 .. dropdown:: An **example XML specification file** that is **valid**
 
@@ -53,13 +76,12 @@ Click to expand the example XML specifications and the XML validation schema bel
 Create the XML Specification File
 ===================================
 
-The XML specification file contains the database connection information, data file location, and instructions for
+The XML load specification file contains the database connection information, data file location, and other instructions for
 loading the data into the database.
 
 
-Create your own XML specification file by copying the example specification file
-*METdataio/METdbLoad/test/Examples/example_load_specification.xml* file to a
-location in your workspace.
+Create the  XML load specification file by copying the example specification file
+*METdataio/METdbLoad/test/Examples/example_load_specification.xml* file to the workspace location.
 
 **Do not save this XML specification file where it can be read by anyone who should not have access to this information,
 as this file contains the database password.**
@@ -81,19 +103,18 @@ Change directory to the location where the *example_load_specification.xml* file
 
 - Replace *path-to-your-dir* with the full path where the XML specification file will be saved.
 
-Using a text editor of your choice, make the necessary edits
-to the required elements and delete any optional, unused/irrelevant elements, based on the explanation below (click to
-expand). Remember to update the username and password that is applicable to your database.
+Make the necessary edits to the required elements and delete any optional, unused/irrelevant elements, based on the explanation below (click to
+expand). Remember to update the username and password that is applicable to the database.
 
 
 .. note::
- The **order of the elements** in the XML specification file is crucial. **DO NOT** modify the order of the described elements (below).
+ The **order of the elements** in the XML load specification file is crucial. **DO NOT** modify the order of the described elements (below).
 
 
 
 .. dropdown:: The following is an explanation of the required and optional elements and any limitations
 
-  *These are element names. The XML angle brackets (<>) as seen in the XML specification file are omitted for simplicity. Indentation is used to indicate hierarchical relationships between elements.*
+  *These are element names. The XML angle brackets (<>) as seen in the XML load specification file are omitted for simplicity. Indentation is used to indicate hierarchical relationships between elements.*
 
     .. dropdown::   load_spec
 
@@ -356,7 +377,7 @@ expand). Remember to update the username and password that is applicable to your
          - any digits 0-9
          - _, . , - (underscore, period, dash)
 
-    **Determine whether to use folder_tmpl or load_files to define where your input data resides (descriptions below):**
+    **Determine whether to use folder_tmpl or load_files to define where the input data resides (descriptions below):**
 
     *The following defines the location of the input data to be loaded into the database based on data organized by datetime (and/or any other criteria).*
 
@@ -455,7 +476,7 @@ expand). Remember to update the username and password that is applicable to your
 
                        </field>
 
-                    .. dropdown:: The "folder_dates" name attribute was assigned in the date_list portion of the XML specification file
+                    .. dropdown:: The "folder_dates" name attribute was assigned in the date_list portion of the XML load specification file
 
                         **<date_list name="folder_dates">**
 
@@ -525,7 +546,7 @@ expand). Remember to update the username and password that is applicable to your
 
                        </field>
 
-                      .. dropdown:: the "valid_dates" name attribute value was assigned in the date_list portion of the XML specification file
+                      .. dropdown:: the "valid_dates" name attribute value was assigned in the date_list portion of the XML load specification file
 
                              **<date_list name="valid_dates">**
 
@@ -682,11 +703,17 @@ directory.  The *path-to-METdataio-source* is the directory where the METdataio 
 
   python met_db_load.py /path-to/load_specification.xml
 
+If logging is desired, redirect output to a log file (via &> command):
+
+.. code-block:: ini
+
+  python met_db_load.py /path-to/load_specification.xml  &> log/your_logname.log &
+
 - Replace *path-to-METdataio-source* to the location where the METdataio source code is saved.
-- Replace the *path-to* with the location where the load_specification.xml XML specification file was saved.
+- Replace the *path-to* with the location where the load_specification.xml XML load specification file was saved.
 
 Refer to the section **Create the XML Specification File** and expand the drop-down instructions
-"The following is an explanation of the required and optional elements and any limitations" for details on what is expected in your XML specification file.
+"The following is an explanation of the required and optional elements and any limitations" for details on what is expected in the XML load specification file.
 
 
 
@@ -730,9 +757,9 @@ Troubleshooting
   * - Solution:
     - This error is typically encountered when one of the following conditions exist as a result of failing the XML validation step:
 
-         - the order of the elements in the XML specification file is inconsistent with the order expected
-         - the XML specification file is missing one or more mandatory elements
+         - the order of the elements in the XML load specification file is inconsistent with the order expected
+         - the XML load specification file is missing one or more mandatory elements
          - one or more elements has exceeded size limits specified in the XML schema
          - there are additional XML elements that are not expected
 
-       **Refer to the section **Create the XML Specification File** to verify that the XML specification file is correct.**
+       **Refer to the section **Create the XML Load Specification File** to verify that the XML load specification file is correct.**
