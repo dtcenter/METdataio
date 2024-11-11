@@ -43,6 +43,9 @@ mv_mysql.sql schema:
 
 
 
+    - Replace *dbuser* with the username
+    - Replace *dbpasswd* with the password
+    - Replace *dbtable_name* with the appropriate database name that begins with **mv** (e.g. mv_xyz )
     - Replace *path-to-METdataio* with the path where the METdataio source code is saved
     - Note the use of the redirection symbol '<' in the command
 
