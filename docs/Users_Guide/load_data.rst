@@ -98,7 +98,7 @@ as this file contains the database password.**
 
 - $METDATAIO_HOME is the path to the location of the cloned or forked METdataio source code.
 
-- Replace the *path-to-your-dir* with the path to the location of the cloned or forked METdataio source code.
+- Replace the *path-to-your-dir* with the actual path to where this file will be saved.
 
 Change directory to the location where the *example_load_specification.xml* file was copied.
 
@@ -714,7 +714,7 @@ If logging is desired, redirect output to a log file (via &> command):
 
   python met_db_load.py /path-to/load_specification.xml  &> log/your_logname.log &
 
-- Replace *path-to-METdataio-source* to the location where the METdataio source code is saved.
+- Replace *path-to-METdataio-source* to the path to the location of the cloned or forked METdataio source code.
 - Replace the *path-to* with the location where the load_specification.xml XML load specification file was saved.
 
 Refer to the section **Create the XML Specification File** and expand the drop-down instructions
