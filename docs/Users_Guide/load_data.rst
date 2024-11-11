@@ -93,7 +93,7 @@ as this file contains the database password.**
    cp $METDATAIO_HOME/METdbLoad/test/Examples/example_load_specification.xml  path-to-your-dir/load_specification.xml
 
 
-- $METDATAIO is the path to the location of the cloned or forked METdataio source code.
+- $METDATAIO_HOME is the path to the location of the cloned or forked METdataio source code.
 
 - Replace the *path-to-your-dir* with the actual path to where this file will be saved.
 
