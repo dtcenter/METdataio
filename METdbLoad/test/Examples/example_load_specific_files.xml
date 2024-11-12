@@ -1,0 +1,29 @@
+<load_spec>
+  <connection>
+    <host>yourhost:1234</host>
+    <database>your_database_name</database>
+    <user>your_db_username</user>
+    <password>your_password</password>
+  </connection>
+
+  <verbose>true</verbose>
+  <insert_size>1</insert_size>
+  <stat_header_db_check>False</stat_header_db_check>
+  <mode_header_db_check>false</mode_header_db_check>
+  <drop_indexes>FALSE</drop_indexes>
+  <apply_indexes>true</apply_indexes>
+  <load_stat>True</load_stat>
+  <load_mode>false</load_mode>
+  <load_mpr>false</load_mpr>
+  <group>Regional Ensemble</group>
+
+  <load_files>
+    <file>/met_out/mode/mode_MASK_POLY_300000L_20120410_180000V_060000A_cts.txt</file>
+    <file>/met_out/rhist/ensemble_stat_RRFS_GEFS_GF.SPP.SPPT_RETOP_MRMS_20220507_120000V.stat</file>
+  </load_files>
+
+  
+  <load_xml>true</load_xml>
+  <load_note>Load MODE and RHIST for load_files.</load_note>
+  
+</load_spec>

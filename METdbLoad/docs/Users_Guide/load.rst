@@ -79,18 +79,18 @@ increase load time.
 **<drop_indexes>:** **TRUE** or **FALSE**, this option indicates whether
 database indexes should be dropped prior to loading new data.
 
-**<load_indexes>:** **TRUE** or **FALSE**, this option indicates whether
+**<apply_indexes>:** **TRUE** or **FALSE**, this option indicates whether
 database indexes should be created after loading new data.
 
 **<group>:** The name of the group for the user interface.
 
 **<description>:** A short description of the database.
 
-| **<load_files>:** A list structure containing individual MET output files to load into the database.
-|
-| **</load_files>:** Follows the list of files after the previous tag, to end the list.
+|**<load_files>:** A list structure containing individual MET output files to load into the database.
+|   **<file>:** Contains a single MET output file to load.
+|**</load_files>:** Follows the list of files after the previous tag, to end the list.
 
-| **<file>:** Contains a single MET output file to load.
+|
 
 **<folder_tmpl>:** A template string describing the file structure of
 the input MET files, which is populated with values specified in
