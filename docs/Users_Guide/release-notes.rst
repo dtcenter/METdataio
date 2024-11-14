@@ -9,6 +9,26 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
+METdataio Version 3.0.0 RC1 Release Notes (20241114)
+-------------------------------------------------------
+
+  .. dropdown:: New Functionality
+   
+     None
+
+  .. dropdown:: Enhancements
+
+     * Generate User's Documentation for XML specification file (`#337 <https://github.com/dtcenter/METdataio/issues/337>`_)
+
+
+  .. dropdown:: Internal
+
+     None
+
+  .. dropdown:: Bugfixes
+
+     None
+
 METdataio Version 3.0.0 Beta 6 Release Notes (20241017)
 -------------------------------------------------------
 
