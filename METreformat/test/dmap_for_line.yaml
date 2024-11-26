@@ -1,0 +1,22 @@
+# Configuration settings for reformatting MET .stat output to format for METplotpy
+
+# True if the input .stat file already contains aggregated statistics (i.e. output from MET stat-analysis
+# has been applied to MET .stat output from point-stat, grid-stat, or ensemble-stat).
+input_stats_aggregated: True
+
+output_dir: ./output
+output_filename: reformatted_dmap_for_line_data.txt
+keep_all_cols: False
+
+input_data_dir: ./data/grid_stat/dmap
+
+# Set to log_filename to STDOUT/stdout if no log file is to be saved
+log_directory: ./output
+log_filename: dmap_for_line_log.txt
+
+# most verbose is debug, less verbose is error
+log_level: DEBUG
+
+# Currently support FHO, CTC, CTS, CNT, SL1L2, VL1L2, PCT, MCTC, VCNT, ECNT, RHIST, TCDiag, MPR, and DMAP line types
+line_type: DMAP
+
