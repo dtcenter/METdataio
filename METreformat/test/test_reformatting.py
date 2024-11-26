@@ -1112,9 +1112,7 @@ def test_dmap_for_scatter():
         nightly regression tests.
 
         Verify that the columns in the reformatted file are consistent with the
-        original data which has all header columns.  The header columns are present
-        because the MET tool that generated this output was set up to generate individual
-        linetype files.
+        original data which has all header columns (some are labelled, other are numbered).
 
         Args:
 
@@ -1185,8 +1183,90 @@ def test_dmap_for_scatter():
     assert expected_beta_value == reformatted_beta_value
 
 
+def test_dmap_for_lineplot():
+    """
+        Use one of the DMAP linetype files found in the MET
+        nightly regression tests. The reformatted data is suitable for line plots and contour plots.
+
+        Verify that the columns in the reformatted file are consistent with the
+        original data which has all header columns.  Some header columns are labelled
+        with the column names specified in the MET User's Guide, others are labelled with
+        numbers.
+
+        Args:
+
+        Returns:
+
+            None passes or fails
+    """
+
+    stat_data, config = setup_test("dmap_for_line.yaml")
+    wsa = WriteStatAscii(config, logger)
+    reformatted_df = wsa.process_dmap(stat_data)
+
+    # Verify that the reformatting is correctly maintaining the row values with the associated header
+    # Specify the row corresponding to the DMAP line_type, model FCST, TMP, FULL vx_mask, and the fcst_thresh '<300'
+    working_df = stat_data[(stat_data['model'] == 'FCST') & (stat_data['line_type'] == 'DMAP') & (stat_data['fcst_var'] == 'TMP' )
+    & (stat_data['vx_mask'] =='FULL') & (stat_data['fcst_thresh'] == "<300")]
+
+    # Retrieve the total, fy, baddeley, hausdorff, med_min, g, gbeta, and beta_value values from the input MET data
+    # print(f"columns in working df: {working_df.columns.to_list()}").  Convert the resulting Series into a list,
+    # this will be a list with only one element.
+
+    expected_vals: dict = {}
+    expected_total = list(working_df.loc[1:, '0'])[0]
+    expected_fy = list(working_df.loc[1:, '1'])[0]
+    expected_baddeley = list(working_df.loc[1:, '4'])[0]
+    expected_hausdorff = list(working_df.loc[1:, '5'])[0]
+    expected_med_min = list(working_df.loc[1:, '8'])[0]
+    expected_g = list(working_df.loc[1:, '21'])[0]
+    expected_gbeta = list(working_df.loc[1:, '22'])[0]
+    expected_beta_value = list(working_df.loc[1:, '23'])[0]
+
+    # Store all these expected values into a dictionary
+    expected_vals['total'] = expected_total
+    expected_vals['fy'] = expected_fy
+    expected_vals['baddeley'] = expected_baddeley
+    expected_vals['hausdorff'] = expected_hausdorff
+    expected_vals['med_min'] = expected_med_min
+    expected_vals['g'] = expected_g
+    expected_vals['beta_value'] = expected_beta_value
+
+    # Retrieve the same values from the reformatted data.
+    # Store the values in a dictionary:
+    reformatted_vals: dict = {}
+    reformatted_working = reformatted_df[(reformatted_df['model'] == 'FCST') & (reformatted_df['vx_mask'] == "FULL") &
+                                         (reformatted_df['fcst_var'] == 'TMP') &
+                                         (reformatted_df['fcst_thresh'] == '<300')]
+    reformatted_total = list(reformatted_working['total'])[0]
+    reformatted_vals['total'] = reformatted_total
+
+    # Subset by stat_name to get a Series, then subset by the appropriate stat_value (as a list of one element)
+    # reformatted_fy_series: pd.Series  = reformatted_working[reformatted_working['stat_name'] == 'fy']
+    # reformatted_fy = list(reformatted_fy_series['stat_value'])[0]
+    # reformatted_vals['reformatted_fy'] = reformatted_fy
+    values_of_interest = ['fy', 'baddeley', 'hausdorff', 'med_min', 'g', 'gbeta', 'beta_value']
+
+    k_vals = []
+    for vals in values_of_interest:
+        stat_names_series: pd.Series = reformatted_working[reformatted_working['stat_name'] == vals]
+        reformatted_val_of_interest = list(stat_names_series['stat_value'])
+        reformatted_val = reformatted_val_of_interest[0]
+        reformatted_vals[vals] = reformatted_val
+
+    print(f"\nexpected values: {expected_vals}")
+    print(f"\nvalues: {reformatted_vals}")
+    # Compare the expected values with the reformatted values
+    for cur_key in expected_vals.keys():
+        assert expected_vals[cur_key] == reformatted_vals[cur_key]
 
 
+    # number of rows of data corresponding to the above criteria should be equal to the number of DMAP columns as
+    # specified in the MET User's Guide: Table 12.7 Format information for DMAP (Distance Map) output line type
+    # (excluding the linetype and total columns)
+    expected_num_rows = len(list(cn.DMAP_SPECIFIC))
+    reformatted_num_rows = len(reformatted_working['stat_name'])
+    assert expected_num_rows == reformatted_num_rows
 
 
 
