@@ -17,6 +17,6 @@ log_filename: dmap_for_scatter_log.txt
 # most verbose is debug, less verbose is error
 log_level: DEBUG
 
-# Currently support FHO, CTC, CTS, CNT, SL1L2, VL1L2, PCT, MCTC, VCNT, ECNT, RHIST, TCDiag, and MPR line types
+# Currently support FHO, CTC, CTS, CNT, SL1L2, VL1L2, PCT, MCTC, VCNT, ECNT, RHIST, TCDiag, MPR, and DMAP line types
 line_type: DMAP
 
