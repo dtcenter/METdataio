@@ -574,7 +574,7 @@ def test_point_stat_mcts_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
-@pytest.mark.skip("Doesn't work with new ECNT data with new columms")
+# @pytest.mark.skip("Doesn't work with new ECNT data with new columms")
 def test_ensemble_stat_ecnt_consistency():
     '''
            For the data frame for the
@@ -1103,4 +1103,96 @@ def test_mpr_for_climo_data():
     reformatted_col_headers = reformatted_df.columns.to_list()
     for cur_col in reformatted_col_headers:
         assert cur_col in reformatted_col_headers
+
+
+
+def test_dmap_for_scatter():
+    """
+        Use one of the DMAP linetype files found in the MET
+        nightly regression tests.
+
+        Verify that the columns in the reformatted file are consistent with the
+        original data which has all header columns.  The header columns are present
+        because the MET tool that generated this output was set up to generate individual
+        linetype files.
+
+        Args:
+
+        Returns:
+
+            None passes or fails
+    """
+
+    stat_data, config = setup_test("dmap_for_scatter.yaml")
+    wsa = WriteStatAscii(config, logger)
+    reformatted_df = wsa.process_dmap(stat_data)
+
+    # Verify that all the DMAP and common headers are present in the reformatted output file.
+    expected_headers:list = list(cn.DMAP_HEADERS)
+    actual_headers:list = reformatted_df.columns.to_list()
+
+    # Remove the Idx column from the actual_headers list
+    actual_headers.pop(0)
+    # print(f"expected headers: {expected_headers}")
+    # print(f"actual headers: {actual_headers}")
+
+    # Verify that the expected number of headers exist in the reformatted data
+    assert len(expected_headers) == len(actual_headers)
+
+    # verify that the headers in the reformatted data are an exact match to expected DMAP headers
+    for hdr in actual_headers:
+        assert hdr in expected_headers
+
+    # Verify that the reformatting is correctly maintaining the row values with the associated header
+    # Specify the row corresponding to the DMAP line_type, model FCST, TMP, FULL vx_mask, and the fcst_thresh '<300'
+    working_df = stat_data[(stat_data['model'] == 'FCST') & (stat_data['line_type'] == 'DMAP') & (stat_data['fcst_var'] == 'TMP' )
+    & (stat_data['vx_mask'] =='FULL') & (stat_data['fcst_thresh'] == "<300")]
+
+    # Retrieve the total, fy, baddeley, hausdorff, med_min, g, gbeta, and beta_value values from the input MET data
+    # print(f"columns in working df: {working_df.columns.to_list()}").  Convert the resulting Series into a list,
+    # this will be a list with only one element.
+    expected_total = list(working_df.loc[1:, '0'])[0]
+    expected_fy = list(working_df.loc[1:, '1'])[0]
+    expected_baddeley = list(working_df.loc[1:, '4'])[0]
+    expected_hausdorff = list(working_df.loc[1:, '5'])[0]
+    expected_med_min = list(working_df.loc[1:, '8'])[0]
+    expected_g = list(working_df.loc[1:, '21'])[0]
+    expected_gbeta = list(working_df.loc[1:, '22'])[0]
+    expected_beta_value = list(working_df.loc[1:, '23'])[0]
+
+
+    # Retrieve the values corresponding to the same criteria in the reformatted data and verify these are consistent
+    # with the values above.
+    specific_reformatted = reformatted_df[(reformatted_df['model'] == 'FCST') & (reformatted_df['fcst_var'] == 'TMP') &
+                             (reformatted_df['vx_mask'] == 'FULL') & (reformatted_df['fcst_thresh'] == '<300')]
+    reformatted_total = list(specific_reformatted['total'])[0]
+    reformatted_fy = list(specific_reformatted['fy'])[0]
+    reformatted_baddeley = list(specific_reformatted['baddeley'])[0]
+    reformatted_hausdorff = list(specific_reformatted['hausdorff'])[0]
+    reformatted_med_min = list(specific_reformatted['med_min'])[0]
+    reformatted_g = list(specific_reformatted['g'])[0]
+    reformatted_gbeta = list(specific_reformatted['gbeta'])[0]
+    reformatted_beta_value = list(specific_reformatted['beta_value'])[0]
+
+    # Compare the values between the input MET data and the reformatted data
+    assert expected_total == reformatted_total
+    assert expected_fy == reformatted_fy
+    assert expected_baddeley == reformatted_baddeley
+    assert expected_hausdorff == reformatted_hausdorff
+    assert expected_med_min == reformatted_med_min
+    assert expected_g == reformatted_g
+    assert expected_gbeta == reformatted_gbeta
+    assert expected_beta_value == reformatted_beta_value
+
+
+
+
+
+
+
+
+
+
+
+
 
