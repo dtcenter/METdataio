@@ -6,7 +6,7 @@ input_stats_aggregated: True
 
 output_dir: ./output
 output_filename: reformatted_mpr_for_scatter_regression_data.txt
-keep_all_mpr_cols: True
+keep_all_cols: True
 
 input_data_dir: ./data/mpr/from_regression_data/
 
