@@ -133,11 +133,11 @@ def test_tmp_xml(get_specified_xml_loadfile):
                f"schema {utils.LOAD_SPECIFICATION_SCHEMA}")
         pytest.fail(msg)
 
-@pytest.mark.parametrize("xml_config", ["load_met_gha_prod.xml", "load_met_gha_new.xml"])
+@pytest.mark.parametrize("xml_config", ["load_met_gha_prod.xml", "load_met_gha_new.xml", "example_load_specific_files.xml"])
 def test_db_xml(get_specified_xml_loadfile, xml_config):
     """
-       Test validation against an XML specification file that is used in another test that compares two
-       databases.
+       Test validation against XML specification files used in another test that compares two
+       databases and an XML specification file that explicitly lists specific files to load.
        ValueError should be NOT be raised for
        the load_met_gha_prod/new specification files which are used on real data.
     """

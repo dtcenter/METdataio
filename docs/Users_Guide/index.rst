@@ -68,15 +68,15 @@ Foundation (NSF).
 
 .. toctree::
    :titlesonly:
-   :numbered: 4
+   :numbered: 6
 
    overview
    release-notes
    installation
-   common
    load_data
    read_nc
    reformat_stat_data
+   
 
 
 Indices and tables

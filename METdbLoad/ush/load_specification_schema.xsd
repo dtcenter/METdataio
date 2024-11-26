@@ -136,9 +136,18 @@
 
                 <xs:element type="limitedstringtype" name="group" minOccurs="0"/>
                 <xs:element type="limitedstringtype" name="description" minOccurs="0"/>
-                <xs:element type="foldertmpl" name="folder_tmpl"/>
 
-                <xs:element name="load_val" minOccurs="1">
+                <xs:element name="load_files" minOccurs="0">
+                   <xs:complexType>
+                       <xs:sequence>
+                          <xs:element type="xs:string" name="file" minOccurs="1" maxOccurs="200"/>
+                       </xs:sequence>
+                   </xs:complexType>
+                </xs:element>
+
+                <xs:element type="foldertmpl" name="folder_tmpl" minOccurs="0"/>
+
+                <xs:element name="load_val" minOccurs="0">
                     <xs:complexType>
                         <xs:sequence>
                             <xs:element name="field" minOccurs="0" maxOccurs="20">
