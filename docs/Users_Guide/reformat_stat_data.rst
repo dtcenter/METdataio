@@ -283,7 +283,7 @@ Description of Formats:
 -----------------------
 
 The reformatted data contains new columns, based on the type of
-plot and line type.  Formats fall into six categories:
+plot and line type.  Formats fall into the following categories:
 
     .. dropdown::  by statistic name, statistic value and confidence values
 
@@ -331,56 +331,110 @@ plot and line type.  Formats fall into six categories:
               - table 13.1 (ensemble-stat)
 
 
-         **Unformatted example:**
+         .. dropdown:: Unformatted example:
 
             .. literalinclude:: ./figure/grid_stat_FV3_core_lsm1_020000L_20190521_020000V.stat
 
-            - In this example:
+         - In this example:
 
-             - each row represents unique data (tidy data)
-             - the number of columns is different for each row, due to each row representing a different linetype
-             - numerous columns are unlabelled
-
-
-         **Reformatted example (truncated):**
+           - each row represents unique data (tidy data)
+           - the number of columns is different for each row, due to each row representing a different linetype
+             (e.g. DMAP, NBRTC)
+           - numerous columns are unlabelled
 
 
+         .. dropdown:: Reformatted example (truncated):
 
             ..  literalinclude:: ./figure/reformatted_dmap_for_lineplot_output.txt
 
 
-        -  In this example:
+         -  In this example:
 
-          - multiple rows have duplicate values, resulting in more rows (longer data)
-          - note that for the rows containing the first **fy** and **oy** stat_names, the common stat columns of
-            version,..., linetype, and total are the same.  The unique data has been replicated and separated
-            based on stat_name and stat_value.
+            - reformatted data file contains only one linetype (in this example DMAP), as requested in the configuration file
+
+            - multiple rows have duplicate common stat column values, resulting in more rows
+
+              - note that for the rows containing the first **fy** and **oy** stat_names, the common stat columns of
+                version,..., linetype, and total are the same.  The unique data has been replicated and separated
+                based on stat_name and stat_value.
+
+    .. dropdown::  by all common stat columns AND linetype-specific columns from MET
+
+       - Needed by the following plot types in METplotpy:
+
+         - **scatter** plot
+
+         - useful for the **MPR** and **DMAP** linetypes
+
+         - specify whether to keep all original linetype-specific columns in the configuration file
+
+           - set the **keep_all_cols** to True
+
+         - unlabelled columns in the original .stat file are placed under the linetype-specific column names
+
+           - refer to the MET User's Guide for point-stat, grid-stat, and ensemble-stat for the column names
+
+
+       - The original format is converted from wide format (where each row corresponds to a unique
+         set of common stat column values) to longer format (where there are multiple rows
+         corresponding to the same common stat column values).
+
+           - The common stat columns are common to all line types for point-stat, grid-stat, and ensemble-stat (model, vx mask, description, fcst lead, etc.)
+             as described in the MET User's Guide:
+
+              - table 11.1 (point-stat)
+              - table 12.1 (grid-stat)
+              - table 13.1 (ensemble-stat)
+
+
+         .. dropdown:: Unformatted example:
+
+            .. literalinclude:: ./figure/grid_stat_FV3_core_lsm1_020000L_20190521_020000V.stat
+
+         - In this example:
+
+           - each row represents unique data (tidy data)
+           - the number of columns is different for each row, due to each row representing a different linetype
+             (e.g. DMAP, NBRTC)
+           - numerous columns are unlabelled
+
+
+         .. dropdown:: Reformatted example (truncated):
+
+            ..  literalinclude:: ./figure/dmap_for_scatter.data
+
+         -  In this example:
+
+            - reformatted data file contains only one linetype (in this example DMAP), as requested in the configuration file
+            - the common stat columns are present, in addition to all the linetype-specific columns
+            - first column is an index value created during the reformatting process
+            - each row represents unique data (tidy data)
 
 
     .. dropdown::  by threshold values
 
-     - The PCT linetype contains threshold values
+       - The PCT linetype contains threshold values
 
-     - Needed by the **ROC diagram** plot type in METplotpy
+       - Needed by the **ROC diagram** plot type in METplotpy
 
-     - The reformatted .stat file contains the following columns (in addition
-       to the common stat columns):
+       - The reformatted .stat file contains the following columns (in addition
+         to the common stat columns):
 
-        - thresh_i
+         - thresh_i
            - the ith probability threshold value (repeated)
 
-        - oy_i
-            - number of observations *yes* when forecast is between the ith and i+1th
-              probability threshold
+         - oy_i
+           - number of observations *yes* when forecast is between the ith and i+1th probability threshold
 
-        - on_i
-            - number of observations when *no* forecast is between the ith and i+1th
-              probability threshold
+         - on_i
+           - number of observations when *no* forecast is between the ith and i+1th probability threshold
+
+         - i_value
+           - indicates the value number, corresponding to the ith value of thresh_i, oy_i, and on_i
 
        - The PCT line type consists of a **variable** number of unlabelled columns/headers
          corresponding to THRESH_i, OY_i, and ON_i, as described in the MET User's Guide:
          https://met.readthedocs.io/en/latest/Users_Guide/.
-
 
       -  The columns corresponding to OY_1, OY_2, ,,,. OY_m (where *m*
          is the THRESH_ith value) are **unlabelled** when generated by the MET tool.
@@ -395,13 +449,42 @@ plot and line type.  Formats fall into six categories:
              - The thresh_i column consists of the threshold values for the threshold number defined in the i_value column.
              - The oy_i and on_i columns contain the OY_i and ON_i values from the .stat data.
 
+         .. dropdown:: Unreformatted example (truncated):
+
+            .. literalinclude:: ./figure/point_stat_RRFS_GEFS_GF.SPP.SPPT_prob_ADPSFC_NDAS_000000L_20220506_000000V.stat
+
+         - In this example:
+
+             - each row represents unique data (tidy data)
+             - the number of columns is different for each row, due to each row representing a different linetype
+               (e.g. PCT, PSTD, PJC, PRC)
+             - numerous columns are unlabelled
+
+         .. dropdown:: Reformatted example (truncated):
+
+                       .. literalinclude:: ./figure/roc_pct.data
+
+         -  In this example:
+
+                          - all columns are now labelled and only PCT linetype data is present
+                            (as requested in the configuration file)
+                          - numerous rows were removed from the example for simplicity
+                          - numbers on the far left correspond to index values used in reformatting the original data
+                          - TMP forecast variable rows used in the example, other forecast variables were manually
+                            removed from the output file
+                          - numerous rows have the same common stat columns (i.e. version, ..., interp_mthd),
+                            the same line_type, and total value
+
+                               - the data is organized by thresh_i, oy_i, on_i, and i_value using the criteria describe
+                                 above
+
 
     .. dropdown::  by ranked data values
 
        - Needed by the **rank histogram** plot type in METplotpy
 
        - The reformatted .stat file contains these columns (in addition to the
-         common stat columns):
+         common stat columns and RHIST-specific columns):
 
          - rank_i
 
@@ -411,6 +494,32 @@ plot and line type.  Formats fall into six categories:
 
            - the rank number
 
+        .. dropdown:: Unformatted example (truncated):
+
+            .. literalinclude:: ./figure/ensemble_stat_RRFS_GEFS_GF.SPP.SPPT_ADPSFC_NDAS_20220506_000000V.stat
+
+        - In this example:
+
+          - each row represents unique data (tidy data)
+          - the number of columns is different for each row, due to each row representing a different linetype
+            (e.g. ECNT, RHIST, PHIST, RELP, SSVAR)
+          - numerous columns are unlabelled
+
+
+        .. dropdown:: Reformatted example (truncated):
+
+            .. literalinclude:: ./figure/rhist.data
+
+        - In this example:
+
+          - each row represents only RHIST linetype data (as requested in the configuration file)
+          - all columns are labelled
+          - an additional column (first column) corresponds to index values created in the reformatting process
+          - there are numerous rows with the same common stat values (model,...,total)
+            - with data separated by rank_i and i_values
+
+
+
 
 
     .. dropdown::  by matched pair data
@@ -419,10 +528,13 @@ plot and line type.  Formats fall into six categories:
           - scatter
           - line
 
-         
+
+
+
 
     .. dropdown::  by TC (Tropical Cyclone) matched pair data
     .. dropdown::  for computing aggregation statistics using METcalcpy
+
 
 
 
