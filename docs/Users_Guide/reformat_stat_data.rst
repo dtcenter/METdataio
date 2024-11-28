@@ -66,7 +66,7 @@ command line.
             - point-stat
             - grid-stat
 
-          Used by the following plot types:
+         Used by the following METplotpy plot types:
             - line
             - bar
             - box
@@ -85,7 +85,7 @@ command line.
             - point-stat
             - grid-stat
 
-         Used by the following plot types:
+        Used by the following METplotpy plot types:
             - line
             - bar
             - box
@@ -103,7 +103,7 @@ command line.
             - point-stat
             - grid-stat
 
-          Used by the following plot types:
+         Used by the following METplotpy plot types:
             - line
             - bar
             - box
@@ -121,7 +121,7 @@ command line.
             - point-stat
             - grid-stat
 
-         Used by the following plot types:
+        Used by the following METplotpy plot types:
             - line
             - bar
             - box
@@ -139,7 +139,7 @@ command line.
             - point-stat
             - grid-stat
 
-         Used by the following plot types:
+        Used by the following METplotpy plot types:
             - line
             - bar
             - box
@@ -157,7 +157,7 @@ command line.
             - point-stat
             - grid-stat
 
-         Used by the following plot types:
+        Used by the following METplotpy plot types:
             - line
             - bar
             - box
@@ -175,7 +175,7 @@ command line.
             - point-stat
             - ensemble-stat
 
-         Used by the following plot types:
+        Used by the following METplotpy plot types:
             - line (for ensemble spread-skill plots)
 
      .. dropdown:: MCTS
@@ -185,7 +185,7 @@ command line.
          From MET tools:
             - point-stat
 
-         Used by the following plot types:
+        Used by the following METplotpy plot types:
             - line
             - bar
             - box
@@ -203,7 +203,7 @@ command line.
             - point-stat
             - grid-stat
 
-         Used by the following plot types:
+        Used by the following METplotpy plot types:
             - line
             - bar
             - box
@@ -222,7 +222,7 @@ command line.
             - grid-stat
             - ensemble_stat
 
-         Used by the following plot types:
+        Used by the following METplotpy plot types:
             - ROC diagram (Receiver Operator Curve)
 
 
@@ -233,17 +233,18 @@ command line.
          From MET tools:
             - ensemble-stat
 
-         Used by the following plot types:
+        Used by the following METplotpy plot types:
             - rank histogram (rhist)
 
-     .. dropdown::  TCMPR
+     .. dropdown::  TCDIAG (with TCMPR)
 
+         **Tropcial Cyclone Diagnostics**
          **Tropical Cyclone Matched Pairs**
 
-         From MET tools:
+         From MET tool:
             - tc-pairs
 
-         Used by the following plot types:
+        Used by the following METplotpy plot types:
             - TCMPR (Tropical Cyclone Matched Pair) plots:
 
             - mean line plot
@@ -262,7 +263,7 @@ command line.
             - point-stat
             - grid-stat
 
-         Used by the following plot types:
+        Used by the following METplotpy plot types:
             - line
             - scatter
 
@@ -273,7 +274,7 @@ command line.
          From MET tools:
             - grid-stat
 
-         Used by the following plot types:
+        Used by the following METplotpy plot types:
             - line
             - contour
             - scatter
@@ -331,11 +332,12 @@ plot and line type.  Formats fall into the following categories:
               - table 13.1 (ensemble-stat)
 
 
-         .. dropdown:: Unformatted example:
+
+         .. dropdown:: Unformatted Example:
 
             .. literalinclude:: ./figure/grid_stat_FV3_core_lsm1_020000L_20190521_020000V.stat
 
-         - In this example:
+         - In the unformatted example:
 
            - each row represents unique data (tidy data)
            - the number of columns is different for each row, due to each row representing a different linetype
@@ -343,12 +345,12 @@ plot and line type.  Formats fall into the following categories:
            - numerous columns are unlabelled
 
 
-         .. dropdown:: Reformatted example (truncated):
+         .. dropdown:: Reformatted Example (truncated):
 
             ..  literalinclude:: ./figure/reformatted_dmap_for_lineplot_output.txt
 
 
-         -  In this example:
+         -  In the reformatted example:
 
             - reformatted data file contains only one linetype (in this example DMAP), as requested in the configuration file
 
@@ -360,19 +362,17 @@ plot and line type.  Formats fall into the following categories:
 
     .. dropdown::  by all common stat columns AND linetype-specific columns from MET
 
-       - Needed by the following plot types in METplotpy:
+       - Used by the following plot types and linetypes in METplotpy:
 
          - **scatter** plot
 
-         - useful for the **MPR** and **DMAP** linetypes
+           - **MPR** linetype
+           - **DMAP** linetype
 
-         - specify whether to keep all original linetype-specific columns in the configuration file
-
-           - set the **keep_all_cols** to True
 
          - unlabelled columns in the original .stat file are placed under the linetype-specific column names
 
-           - refer to the MET User's Guide for point-stat, grid-stat, and ensemble-stat for the column names
+           - refer to the MET User's Guide for point-stat, grid-stat, ensemble-stat, and tc-pairs  for the column names
 
 
        - The original format is converted from wide format (where each row corresponds to a unique
@@ -387,11 +387,11 @@ plot and line type.  Formats fall into the following categories:
               - table 13.1 (ensemble-stat)
 
 
-         .. dropdown:: Unformatted example:
+         .. dropdown:: Unformatted Examples:
 
             .. literalinclude:: ./figure/grid_stat_FV3_core_lsm1_020000L_20190521_020000V.stat
 
-         - In this example:
+         - In the unformatted example:
 
            - each row represents unique data (tidy data)
            - the number of columns is different for each row, due to each row representing a different linetype
@@ -399,11 +399,11 @@ plot and line type.  Formats fall into the following categories:
            - numerous columns are unlabelled
 
 
-         .. dropdown:: Reformatted example (truncated):
+         .. dropdown:: Reformatted Example (truncated):
 
             ..  literalinclude:: ./figure/dmap_for_scatter.data
 
-         -  In this example:
+         -  In the reformatted example:
 
             - reformatted data file contains only one linetype (in this example DMAP), as requested in the configuration file
             - the common stat columns are present, in addition to all the linetype-specific columns
@@ -453,18 +453,18 @@ plot and line type.  Formats fall into the following categories:
 
             .. literalinclude:: ./figure/point_stat_RRFS_GEFS_GF.SPP.SPPT_prob_ADPSFC_NDAS_000000L_20220506_000000V.stat
 
-         - In this example:
+         - In the unformatted example:
 
              - each row represents unique data (tidy data)
              - the number of columns is different for each row, due to each row representing a different linetype
                (e.g. PCT, PSTD, PJC, PRC)
              - numerous columns are unlabelled
 
-         .. dropdown:: Reformatted example (truncated):
+         .. dropdown:: Reformatted Example (truncated):
 
                        .. literalinclude:: ./figure/roc_pct.data
 
-         -  In this example:
+         -  In the reformatted example:
 
                           - all columns are now labelled and only PCT linetype data is present
                             (as requested in the configuration file)
@@ -494,11 +494,11 @@ plot and line type.  Formats fall into the following categories:
 
            - the rank number
 
-        .. dropdown:: Unformatted example (truncated):
+        .. dropdown:: Unformatted Example (truncated):
 
             .. literalinclude:: ./figure/ensemble_stat_RRFS_GEFS_GF.SPP.SPPT_ADPSFC_NDAS_20220506_000000V.stat
 
-        - In this example:
+        - In the unformatted example:
 
           - each row represents unique data (tidy data)
           - the number of columns is different for each row, due to each row representing a different linetype
@@ -506,11 +506,11 @@ plot and line type.  Formats fall into the following categories:
           - numerous columns are unlabelled
 
 
-        .. dropdown:: Reformatted example (truncated):
+        .. dropdown:: Reformatted Example (truncated):
 
             .. literalinclude:: ./figure/rhist.data
 
-        - In this example:
+        - In the reformatted example:
 
           - each row represents only RHIST linetype data (as requested in the configuration file)
           - all columns are labelled
@@ -519,20 +519,108 @@ plot and line type.  Formats fall into the following categories:
             - with data separated by rank_i and i_values
 
 
+    .. dropdown:: by specific linetype: TCDIAG
+
+       - **TCDIAG** linetype
+
+             - generated by the MET tc-pairs tool
+             - refer to MET User's Guide table 24.1 for the common stat columns for all tc-pairs output
+             - refer to MET User's Guide table 24.3 for the TCDIAG columns
+             - TCMPR line is always generated by MET tc-pairs
+             - TCDIAG line is included when diagnostics are requested in the MET config file
+
+
+       - Used to generate **TCMPR** plots
+
+           - the available TCMPR plot types in METplotpy:
+
+             - mean line plot
+             - median line plot
+             - boxplot
+             - relative performance plot
+             - rank plot
+             - mean skill line plot
+             - median skill line plot
+
+       - The reformatted data consolidates the TCDIAG line with its corresponding TCMPR line, containing the following
+         columns:
+
+         - Common TCDIAG stats columns (Table 24.1 in MET User's Guide)
+         - TCMPR stats columns (Table 24.2 in MET User's Guide)
+         - TCDIAG stats columns (Table 24.3 in MET User's Guide)
+
+
+       .. dropdown:: Unformatted Example:
+
+          .. literalinclude:: ./figure/al092022_20220926_DIAGNOSTICS.tcst
+
+       - In the unformatted example:
+
+         - The TCDIAG line is directly below its corresponding TCMPR line
+         - TCDIAG columns are **not** in separate columns, they are located under existing TCMPR columns:
+
+            - The INDEX column contains the INDEX value of the corresponding TCMPR line
+              (this will be the line above the TCDIAG line)
+
+            - The following existing TCMPR columns are "re-used":
+
+              - The TCMPR **LEVEL** column corresponds to the TCDIAG **DIAG_SOURCE** column
+              - DIAG_SOURCE identifies the diagnostics data source
+
+              - The TCMPR **WATCH_WARN** column corresponds to the TCDIAG **TRACK_SOURCE** column
+              - TRACK_SOURCE is the ATCF ID of the track data used to define the diagnostics
+
+              - The TCMPR **INITIALS** column corresponds to the TCDIAG **FIELD_SOURCE** column
+              - The FIELD_SOURCE is a description of gridded field data source used to define the diagnostics
+
+              - The TCMPR **ALAT** column corresponds to the TCDIAG **N_DIAG** column
+              - N_DIAG provides the number of the storm diagnostic name and value columns
+
+              - The remaining TCMPR columns are "re-used" by TCDIAG to define each DIAG_i value followed by its corresponding
+                VALUE_i
 
 
 
-    .. dropdown::  by matched pair data
 
-       - Needed by the following plot types:
-          - scatter
-          - line
+      .. dropdown:: Reformatted Example:
+
+         .. literalinclude:: ./figure/tcmpr_reformatted.txt
+
+      - In the reformatted example:
+
+       - The data corresponds to the TCDIAG data consolidated with the corresponding TCMPR line
+       - The unlabelled first column contains index values created during the reformatting process
+       - The LINE_TYPE column is now located AFTER the last TCMPR column (i.e. MAX_WIND_STDEV)
+       - The INDEX_PAIRS column corresponds to the INDEX column of TCDIAG (Table 24.3 of the MET User's Guide)
+         - renamed INDEX_PAIRS to **differentiate it from the INDEX column of TCMPR**
+       - The DIAG_SOURCE for this data is from CIRA_DIAG_RT
+       - The N_DIAG column indicates the number of diagnostics for this line/row of data:
+
+         - Inspecting the first row of data, the N_DIAG column has a value of **4**:
+
+           - **Four** storm diagnostics columns with values are found:
+
+             - SHEAR_MAGNITUDE
+             - STORM_SPEED
+             - TPW
+             - DIST_TO_LAND
+
+         - Inspecting the 24th line (the first row with DIAG_SOURCE=SHIPS_DIAG_RT), the N_DIAG column has a value of **3**:
+
+           - **Three** storm diagnostics columns with values are found:
+
+             - SHEAR_MAGNITUDE
+             - DIST_TO_LAND
+             - PW01
 
 
 
 
 
-    .. dropdown::  by TC (Tropical Cyclone) matched pair data
+
+
+
+
     .. dropdown::  for computing aggregation statistics using METcalcpy
 
 
@@ -547,33 +635,6 @@ calculating aggregation statistics**. Support for other linetypes will be added 
 The reformatted .stat file now replaces the unlabelled columns with the corresponding ECNT statistic values
 specified in
 `Table 13.2 of the MET User's Guide <https://met.readthedocs.io/en/develop/Users_Guide/ensemble-stat.html#id2>`_.
-
-
-**Reformatting for generating TCMPR plots**
-
-The **TCDIAG linetype**, that also has corresponding TCMPR linetype data, is reformatted by consolidating
-the TCMPR columns with the TCDIAG columns.  The reformatted data does not need to have aggregate statistics computed and
-can be used by the TCMPR plots (e.g. point, boxplot) to generate time series plots and box plots. Refer to
-the METplotpy User's Guide for information on using the TCMPR plotter.
-
-
-
-
-**Reformatting for scatter plots**
-
-The METplotpy scatter plots support plotting of any column of data in the input file against
-any other column (useful in visualizing relationships between variables). The MPR output is reformatted to
-consist of the labelled headers of the original MET output when the **keep_all_mpr_cols** setting is
-set to *True*. This is the format needed to generate scatter plots.
-
-Refer to MET User's Guide table 11.20 for more information on the MPR linetype.
-
-*NOTE:*
-When **keep_all_mpr_cols** is set to *False*, the MPR output is reformatted to collect the MPR specific
-columns to the stat_name and stat_value columns, with additional confidence
-limit columns (stat_ncl/ncu, stat_bcl/bcu).  This format is consistent with
-the format required for generating a line plot using METplotpy from the command line.
-
 
 
 
