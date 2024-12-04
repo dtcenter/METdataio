@@ -1,8 +1,9 @@
 # Configuration settings for reformatting MET .stat output to format for METplotpy
 
 # if .stat file input already contains aggregated statistics (i.e. output from MET stat-analysis
-# has been applied to MET .stat output from point-stat, grid-stat, or ensemble-stat).
-input_stats_aggregated: False
+# has been applied to MET .stat output from point-stat, grid-stat, or ensemble-stat), or if 
+# no agg stats are needed via METcalcpy, set to True.
+input_stats_aggregated: True
 
 output_dir: ./output
 output_filename: tc_pairs_reformatted_tc_diag.tcst
