@@ -574,7 +574,6 @@ def test_point_stat_mcts_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
-# @pytest.mark.skip("Doesn't work with new ECNT data with new columms")
 def test_ensemble_stat_ecnt_consistency():
     '''
            For the data frame for the
@@ -599,43 +598,52 @@ def test_ensemble_stat_ecnt_consistency():
     ecnt_columns: List[str] = cn.ECNT_HEADERS
     ecnt_df.columns: List[str] = ecnt_columns
 
-    # get the value of the record corresponding to line_type ECNT, total number of
-    # pairs, obs_var,
-    # obs_lev, and fcst_thresh, for the MAE statistic.
-    total = str(1125)
-    obs_var = 'APCP_24'
-    obs_level = 'A24'
-    obs_lead = 0
-    fcst_thresh = 'NA'
-    vx_mask = 'FULL'
-    interp_mthd = 'NEAREST'
-    expected_df: pd.DataFrame = ecnt_df.loc[(ecnt_df['total'] == total) & (ecnt_df[
-                                                                               'obs_var'] == obs_var) &
-                                            (ecnt_df['obs_lev'] == obs_level) &
-                                            (ecnt_df['obs_lead'] == obs_lead) &
-                                            (ecnt_df['vx_mask'] == vx_mask) &
-                                            (ecnt_df['interp_mthd'] == interp_mthd)]
-    expected_row: pd.Series = expected_df.iloc[0]
-    expected_name: str = "ME"
-    expected_val: float = expected_row.loc[expected_name]
-    me_val = float(0.97455)
-    assert me_val == float(expected_val)
+    # For the first row of data, get the value of the record corresponding to line_type ECNT, total number of
+    # pairs, obs_var, obs_lev, and fcst_thresh, for the MAE statistic.
+    total:str = str(stat_data.iloc[0]['0'])
+    obs_var:str = stat_data.iloc[0]['obs_var']
+    obs_level:str = stat_data.iloc[0]['obs_lev']
+    fcst_lead:int = stat_data.iloc[0]['fcst_lead']
+    vx_mask:str = stat_data.iloc[0]['vx_mask']
+    interp_mthd:str = stat_data.iloc[0]['interp_mthd']
+    n_ens:int = int(float(stat_data.iloc[0]['1']))
+    crps:float = float(stat_data.iloc[0]['2'])
+    ign:float = float(stat_data.iloc[0]['4'])
 
+    # Save the n_ens, crps, and ign values in a dictionary for comparison against the reformatted values
+    expected_dict = {}
+    expected_dict['N_ENS'] = n_ens
+    expected_dict['CRPS'] = crps
+    expected_dict['IGN'] = ign
+
+    expected_df: pd.DataFrame = ecnt_df[(ecnt_df['total'] == str(total)) &
+                                            (ecnt_df['obs_var'] == str(obs_var)) &
+                                            (ecnt_df['obs_lev'] == str(obs_level)) &
+                                            (ecnt_df['fcst_lead'] == (fcst_lead)) &
+                                            (ecnt_df['vx_mask'] == str(vx_mask)) &
+                                            (ecnt_df['interp_mthd'] == str(interp_mthd))]
+
+    # Check for consistency in N_ENS, CRPS and IGN values
     wsa = WriteStatAscii(config, logger)
     reshaped_df = wsa.process_ecnt(stat_data)
-    actual_df: pd.DataFrame = reshaped_df.loc[
-        (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
-        (reshaped_df['obs_lev'] == obs_level) &
-        (reshaped_df['obs_lead'] == obs_lead) &
-        (reshaped_df['vx_mask'] == vx_mask) &
-        (reshaped_df['fcst_thresh'] == fcst_thresh) &
-        (reshaped_df['stat_name'] == expected_name)]
-    actual_row: pd.Series = actual_df.iloc[0]
-    actual_value: float = actual_row['stat_value']
 
-    # Checking for consistency between the reformatted/reshaped data and the
-    # "original" data.
-    assert expected_val == actual_value
+    expected_name_list = expected_dict.keys()
+    for expected_name in expected_name_list:
+      expected_val = expected_df[expected_name][0]
+
+      actual_df: pd.DataFrame = reshaped_df[
+        ((reshaped_df['total']) == str(total)) &
+        (reshaped_df['obs_var'] == str(obs_var)) &
+        (reshaped_df['obs_lev'] == str(obs_level)) &
+        (reshaped_df['fcst_lead'] == int(fcst_lead)) &
+        (reshaped_df['vx_mask'] == str(vx_mask)) &
+        (reshaped_df['stat_name']==expected_name)]
+      actual_stat_value = (actual_df['stat_value'].to_list())[0]
+
+
+      # Checking for consistency between the reformatted/reshaped data and the
+      # "original" data.
+      assert actual_stat_value == expected_val
 
     # Check for any all expected values in the stat_name column
     ecnt_stats = cn.ECNT_STATISTICS_HEADERS
@@ -647,15 +655,6 @@ def test_ensemble_stat_ecnt_consistency():
             num_matches += 1
 
     assert num_matches == num_ecnt_headers
-
-    # Check for some expected values in the reformatted dataframe for the
-    # row where VX_MASK = FULL and TOTAL=1125
-    expected_rmse = 12.52909
-    actual_rmse_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['stat_name'] == 'RMSE') &
-                                                   (reshaped_df['vx_mask'] == 'FULL') &
-                                                   (reshaped_df['total'] == '1125')]
-    # print(f"RMSE from reformatted: {actual_rmse_df} of type {type(actual_rmse_df)}")
-    assert str(actual_rmse_df.iloc[0].stat_value) == str(expected_rmse)
 
 
 def test_pct_consistency():
@@ -727,6 +726,7 @@ def test_rhist_consistency():
 
     wsa = WriteStatAscii(config, logger)
     reshaped_df = wsa.process_rhist(stat_data)
+
     # Verify that the following values are found for the rows with these columns + values (corresponding to the
     # last row of data in the raw RHIST input dataframe):
     fcst_lead = 280000
@@ -847,6 +847,7 @@ def test_tcdiag_from_tcpairs():
     stat_data, config = setup_test('test_reformat_tcdiag.yaml', is_tcst=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_tcdiag(stat_data)
+    reformatted_df.to_csv("./tcmpr_reformatted.txt", sep="\t")
 
     # Compare original data (read in from METdbLoad) to reformatted
 
@@ -1124,6 +1125,7 @@ def test_dmap_for_scatter():
     stat_data, config = setup_test("dmap_for_scatter.yaml")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_dmap(stat_data)
+    reformatted_df.to_csv("./dmap_for_scatter.data", sep="\t")
 
     # Verify that all the DMAP and common headers are present in the reformatted output file.
     expected_headers:list = list(cn.DMAP_HEADERS)
@@ -1267,12 +1269,3 @@ def test_dmap_for_lineplot():
     expected_num_rows = len(list(cn.DMAP_SPECIFIC))
     reformatted_num_rows = len(reformatted_working['stat_name'])
     assert expected_num_rows == reformatted_num_rows
-
-
-
-
-
-
-
-
-
