@@ -65,13 +65,16 @@ class WriteStatAscii:
             sys.exit("*** Error initializing class WriteStatAscii")
 
     def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict) -> pd.DataFrame:
-        """ For line types: FHO, CTC, CTS, SL1L2, ECNT, MCTS, and VCNT reformat the MET stat files (.stat) to another
-            ASCII file with stat_name, stat_value,
+        """ For line types: FHO, CTC, CTS, SL1L2, ECNT, MCTS, VCNT, MPR (line plot), and DMAP (line plot)
+            reformat the MET stat files (.stat) to another ASCII file with stat_name, stat_value,
             stat_bcl, stat_bcu, stat_ncl, and stat_ncu columns, converting the
             original data file from wide form to long form. For TCDiag line type, the
             MET .tcst stat files (from TC-Pairs) are converted
             to an ASCII file with the original TC-Pairs columns with the corresponding TC-Diag columns.
 
+            !!!!!!!!!!
+            !!!NOTE!!!
+            !!!!!!!!!!
             For line types such as PCT: specific reformatting is required, based on the type of plot that is utilizing
             that data.
 
@@ -106,7 +109,7 @@ class WriteStatAscii:
             # ----------------------------------
             supported_linetypes = [cn.FHO, cn.CNT, cn.VCNT, cn.CTC,
                                    cn.CTS, cn.MCTS, cn.SL1L2, cn.ECNT, cn.PCT,
-                                   cn.RHIST, cn.TCDIAG, cn.MPR]
+                                   cn.RHIST, cn.TCDIAG, cn.MPR, cn.DMAP]
 
             # Different formats based on the line types. Most METplotpy plots accept the long format where
             # all stats are under the stat_name and stat_value columns and the confidence limits under the
@@ -218,6 +221,8 @@ class WriteStatAscii:
                 reformatted with columns corresponding to the linetype's statistics names.
         """
 
+        linetype_data = pd.DataFrame()
+
         # FHO forecast, hit rate, observation rate
         if linetype == cn.FHO:
             if is_aggregated:
@@ -313,6 +318,10 @@ class WriteStatAscii:
             # code in METcalcpy agg_stat.py for MPR.
             linetype_data: pd.DataFrame = self.process_mpr(stat_data)
 
+        elif linetype == cn.DMAP:
+            # no need to support further formatting for agg_stat.  No code in METcalcpy's
+            # agg_stat.py for DMAP
+            linetype_data: pd.DataFrame = self.process_dmap(stat_data)
         else:
             return None
 
@@ -1431,7 +1440,7 @@ class WriteStatAscii:
                  'bias_ratio', 'n_ge_obs', 'me_ge_obs',
                  'n_lt_obs', 'me_lt_obs'
 
-             In addition, create a stat_name column with  ECNT_<stat> (where stat is the name of the statistic)
+             In addition, create a stat_name column with  ECNT_<stat> (where stat is the name of the stat
              This format is *required* for using the METcalcpy agg_stat.py module to calculate aggregation
              statistics.
 
@@ -1766,9 +1775,9 @@ class WriteStatAscii:
              Retrieve the MPR line type data and reshape it to replace the original
              columns (based on column number) into
              stat_name, stat_value, stat_bcl, stat_bcu, stat_ncu, and stat_ncl if the
-             keep_all_mpr_cols setting is False.
+             keep_all_cols setting is False.
 
-             If keep_all_mpr_cols is set to True, merge the reformatted/reshaped MPR
+             If keep_all_cols is set to True, merge the reformatted/reshaped MPR
              data with the original MET output to use the output by both the METplotpy
              line plot and the METplotpy scatter plot.
 
@@ -1816,14 +1825,11 @@ class WriteStatAscii:
         # Work on a copy of the mpr_df dataframe to avoid a possible PerformanceWarning
         # message due to a fragmented dataframe.
         mpr_df_copy = mpr_df.copy()
-        # DEBUG REMOVE ME WHEN DONE
-        mpr_df_copy.to_csv("./mpr_df_orig.txt", sep='\t', index=False)
-        # DEBUG END
         mpr_df_copy.insert(loc=0, column='Idx', value=idx)
 
         # if reformatting for a scatter plot, only return all the original columns,
         # maintaining the 'tidy' format provided by the MET tool.
-        if self.parms['keep_all_mpr_cols'] is True:
+        if self.parms['keep_all_cols'] is True:
             return mpr_df_copy
 
         # Use pandas 'melt' to reshape the data frame from wide to long shape (i.e.
@@ -1869,6 +1875,118 @@ class WriteStatAscii:
         _ = gc.collect()
 
         return linetype_data
+
+
+    def process_dmap(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+             Retrieve the DMAP line type data and reshape it to replace the original
+             columns (based on column number) into
+             stat_name, stat_value, stat_bcl, stat_bcu, stat_ncu, and stat_ncl if the
+             keep_all_cols setting is False.
+
+             If keep_all_cols is set to True, merge the reformatted/reshaped DMAP
+             data with the original MET output to use the output by the METplotpy
+             line and contour plot and the METplotpy scatter plot. If keep_all_cols is False, then
+             the output data can only be used for the line and contour plots.  The line plot and contour
+             plots only require the
+
+             Arguments:
+             @param stat_data: The dataframe containing the data from
+             the MET .stat file.
+
+             Returns:
+             linetype_data:  The dataframe with the reshaped data for the DMAP line type
+         """
+
+        # Extract the stat_names and stat_values for this line type:
+        # TOTAL, FY, OY, FBIAS, BADDELEY, HAUSDORFF, MED_FO, MED_OF, MED_MIN,
+        # MED_MAX, FOM_FO, FOM_OF, FOM_MIN, FOM_MAX, FOM_MEAN, ZHU_FO, ZHU_OF,
+        # ZHU_MIN, ZHU_MAX, G, GBETA, BETA_VALUE
+        #  (these will be the names under the stat name column).
+        # There are no corresponding xyz_bcl, xyz_bcu,
+        # xyz_ncl, and xyz_ncu values where xyz = stat name, these columns will be
+        # created with NA values.
+
+        #
+        # Subset the stat_data dataframe into a smaller data frame containing only
+        # the DMAP line type with all its columns (some of which may be unlabelled
+        # if there were other linetypes in the input file).
+        #
+
+        # Relevant columns for the DMAP line type
+        linetype: str = cn.DMAP
+        end = cn.NUM_STAT_DMAP_COLS
+        dmap_columns_to_use: List[str] = \
+            np.arange(0, end).tolist()
+
+        # Subset the original dataframe to another dataframe consisting of only the DMAP
+        # line type.  The DMAP specific columns will only have numbers at this point.
+        dmap_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+                                                                                  dmap_columns_to_use]
+
+        # Add the stat columns header names for the DMAP line type
+        dmap_columns: List[str] = cn.DMAP_HEADERS
+        dmap_df.columns: List[str] = dmap_columns
+
+        # Create another index column to preserve the index values from the stat_data
+        # dataframe (ie the dataframe
+        # containing the original data from the MET output file).
+        idx = list(dmap_df.index)
+
+        # Work on a copy of the dmap_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        dmap_df_copy = dmap_df.copy()
+        dmap_df_copy.insert(loc=0, column='Idx', value=idx)
+
+        # if reformatting for a scatter plot, only return all the original columns,
+        # maintaining the 'tidy' format provided by the MET tool.
+        if self.parms['keep_all_cols'] is True:
+            return dmap_df_copy
+
+        # Use pandas 'melt' to reshape the data frame from wide to long shape (i.e.
+        # collecting the fy, oy, fbias, baddeley,..., and beta_value
+        # values and putting them under the column 'stat_value'
+        # corresponding to the 'stat_name' column
+        # containing the names FY, OY, ..., and BETA_VALUE columns.
+
+        # columns that we don't want to change (the last eleven columns are the stat
+        # columns of interest,
+        # we want to capture that information into the stat_name and stat_values
+        # columns)
+        columns_to_use: List[str] = dmap_df_copy.columns[0:].tolist()
+        self.logger.info(f"Columns to use: {columns_to_use} ")
+
+        # variables to transform from wide to long (i.e. organize into
+        # key-value structure with variables in one column and their corresponding
+        # values in another column). Omit the matched pair index.
+        variables_to_transform = list(cn.LC_DMAP_SPECIFIC)[:]
+        self.logger.info(
+            f"Variables to transform from wide to long: {cn.LC_DMAP_SPECIFIC[1:]} ")
+
+        melted: pd.DataFrame = pd.melt(dmap_df_copy, id_vars=columns_to_use[1:27],
+                                       value_vars=variables_to_transform,
+                                       var_name='stat_name',
+                                       value_name='stat_value',
+                                       ignore_index=True)
+
+        linetype_data = melted.copy(deep=True)
+
+        # The MPR line type doesn't have the bcl and bcu stat values; set these to NA
+        na_column: List[str] = ['NA' for _ in range(0, linetype_data.shape[0])]
+
+        linetype_data['stat_ncl']: pd.Series = na_column
+        linetype_data['stat_ncu']: pd.Series = na_column
+        linetype_data['stat_bcl']: pd.Series = na_column
+        linetype_data['stat_bcu']: pd.Series = na_column
+
+        # clean up all the intermediate dataframes
+        del dmap_df
+        del dmap_df_copy
+        del melted
+        _ = gc.collect()
+
+        return linetype_data
+
 
     def rename_confidence_level_columns(self, confidence_level_columns: List[str]) -> \
             List[str]:
