@@ -1,4 +1,4 @@
-input_stats_aggregated: True
+input_stats_aggregated: False
 output_dir: ../output
 output_filename: ensemble_stat_ecnt_for_agg.data
 line_type: ECNT
