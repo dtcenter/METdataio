@@ -47,10 +47,10 @@ def assert_count_rows(cur, table, expected_count):
             ENSEMBLE_STAT_DATA_DIR,
             "ensemble_stat",
             {
-                "line_data_orank": 1426,
+                "line_data_orank": 1921,
                 "line_data_phist_bin": 180,
                 "line_data_rhist_rank": 84,
-                "line_data_phist": 9,
+                "line_data_phist": 18,
             },
         ),
         (
