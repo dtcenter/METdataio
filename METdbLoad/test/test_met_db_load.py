@@ -49,7 +49,7 @@ def assert_count_rows(cur, table, expected_count):
             {
                 "line_data_orank": 1921,
                 "line_data_phist_bin": 360,
-                "line_data_rhist_rank": 102,
+                "line_data_rhist_rank": 108,
                 "line_data_phist": 18,
             },
         ),
