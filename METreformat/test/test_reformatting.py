@@ -779,36 +779,46 @@ def test_ecnt_reformat_for_agg():
        :return:  None
        '''
 
-    # Original reformatted data
+    # Original unreformatted data
     stat_data, config = setup_test('ECNT_for_agg.yaml')
 
+    # Reformatted data
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_ecnt_for_agg(stat_data)
 
-    ExpectedValues = namedtuple('ExpectedValues', 'total, n_ens, crps')
+    # Check that the reformatting worked and produced results (i.e. a dataframe with more than 0 rows)
+    assert (reformatted_df.shape[0] > 0)
 
-    total_vals = [1125, 503]
-    n_ens_vals = [6.0, 6.0]
-    crps_vals = [8.21904, 0.1367]
-    expected_values = []
-    zipped = zip(total_vals, n_ens_vals, crps_vals)
-    zipped_list = list(zipped)
-    for cur in zipped_list:
-        expected_values.append(ExpectedValues(*cur))
+    ExpectedValues = namedtuple('ExpectedValues', 'total, n_ens, crps, ign')
 
-    ref1: pd.Series = reformatted_df.loc[reformatted_df['total'] == str(expected_values[0].total)]
-    ref2: pd.Series = reformatted_df.loc[reformatted_df['total'] == str(expected_values[1].total)]
+    # Get the values from the first row of the raw data, these are expected values.
+    expected_total = stat_data.iloc[0]['0']
+    expected_n_ens = stat_data.iloc[0]['1']
+    expected_crps = stat_data.iloc[0]['2']
+    expected_ign = stat_data.iloc[0]['4']
 
-    # Verify that we still have a row of ECNT linetype data with the original total values of 1125 and 503
-    assert ref1 is not None and ref2 is not None
+    prefix = 'ECNT_'
+    expected_ecnt_cols = []
+    for expected in cn.LC_ECNT_SPECIFIC:
+        # convert the columns to upper case
+        expected_ecnt_cols.append(prefix + expected.upper())
 
-    # Verify that the values for crps and n_ens are consistent with the original input data.
-    assert float(ref1['crps'].iloc[0]) == expected_values[0].crps
-    assert float(ref2['crps'].iloc[0]) == expected_values[1].crps
-    assert ref1['n_ens'].iloc[0] == expected_values[0].n_ens
-    assert ref2['n_ens'].iloc[0] == expected_values[1].n_ens
+    # Verify that all the expected ECNT_ prefixed columns are present in the reformatted data
+    stat_names = reformatted_df['stat_name'].unique().tolist()
+    for cur_stat in stat_names:
+        assert cur_stat in expected_ecnt_cols
 
-    # Verify that all the expected columns are present: ECNT headers and the stat_name and stat_value
+    specific_vals: pd.Series = reformatted_df[(reformatted_df['total'] == expected_total) &
+                                          (reformatted_df['n_ens'] == expected_n_ens) &
+                                          (reformatted_df['crps'] == expected_crps) &
+                                          (reformatted_df['ign'] == expected_ign)
+                                          ]
+    # The subsetting above should result in a unique result with the same number of rows as ECNT columns
+    expected_number_rows = len(expected_ecnt_cols)
+    assert expected_number_rows == specific_vals.shape[0]
+
+    # Verify that all the expected columns are present: ECNT headers and the added  stat_name and stat_value columns are
+    # present
     ecnt_headers = list(cn.ECNT_HEADERS)
     ecnt_headers_lc = [hdr.lower() for hdr in ecnt_headers]
     added_headers = ['stat_name', 'stat_value']
