@@ -789,8 +789,6 @@ def test_ecnt_reformat_for_agg():
     # Check that the reformatting worked and produced results (i.e. a dataframe with more than 0 rows)
     assert (reformatted_df.shape[0] > 0)
 
-    ExpectedValues = namedtuple('ExpectedValues', 'total, n_ens, crps, ign')
-
     # Get the values from the first row of the raw data, these are expected values.
     expected_total = stat_data.iloc[0]['0']
     expected_n_ens = stat_data.iloc[0]['1']
