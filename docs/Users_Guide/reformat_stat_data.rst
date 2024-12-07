@@ -580,8 +580,6 @@ plot and line type.  Formats fall into the following categories:
                 VALUE_i
 
 
-
-
       .. dropdown:: Reformatted Example:
 
          .. literalinclude:: ./figure/tcmpr_reformatted.txt
@@ -614,29 +612,75 @@ plot and line type.  Formats fall into the following categories:
              - PW01
 
 
+    .. dropdown::  by specific linetype: ECNT
 
+       - The ECNT linetype (from the MET ensemble-stat tool) can be reformatted to contain all the ECNT statistic values specified in `Table 13.2 of the MET User's Guide <https://met.readthedocs.io/en/develop/Users_Guide/ensemble-stat.html#id2>`_.
 
+            - in addition, the following values are separated into additional columns:
 
+              - stat_name
+              - stat_value
+              - stat_ncl
 
+                - lower level normal confidence limit
 
+              - stat_ncu
 
+                - upper level normal confidence limit
 
-    .. dropdown::  for computing aggregation statistics using METcalcpy
+              - stat_bcl
 
+                - lower level bootstrap confidence limit
 
+              - stat_bcu
 
+                - upper level bootstrap confidence limit
 
+       .. dropdown:: Reformatted Example (no aggregation statistics step needed):
 
-**Reformatting for computing aggregation statistics with METcalcpy agg_stat**
+          .. literalinclude:: ./figure/ecnt_reformatted.data
 
-The **ECNT linetype** is currently the only linetype with support for reformatting the **METcalcpy to be used for
-calculating aggregation statistics**. Support for other linetypes will be added in the future.
+          In the example above:
 
-The reformatted .stat file now replaces the unlabelled columns with the corresponding ECNT statistic values
-specified in
-`Table 13.2 of the MET User's Guide <https://met.readthedocs.io/en/develop/Users_Guide/ensemble-stat.html#id2>`_.
+          - the statistics are separated into stat_name and stat_value columns
+          - the statistic names under the stat_name column correspond to the ECNT column names specified in the MET
+            User's Guide
+          - the corresponding statistics value is located under the stat_value column
+          - if confidence limits are available, they are located under their corresponding column:
 
+            - stat_ncl
+            - stat_ncu
+            - stat_bcl
+            - stat_bcu
 
+       - Some plots require aggregation statistics (i.e. mean, sum, confidence levels, etc.)
+
+         - an example of when aggregation statistics are needed is when using the METplotpy line plot to generate an
+           ensemble spread skill plot that consists of ratio lines (e.g. ECNT spread_plus_oerr/rmse)
+
+         - the METcalcpy agg_stat.py module can be used to calculate these aggregation statistics, but requires
+           all the ECNT statistic values specified in `Table 13.2 of the MET User's Guide <https://met.readthedocs.io/en/develop/Users_Guide/ensemble-stat.html#id2>`_
+           in addition to a stat_name column and stat_value column
+
+           - the stat_name column contains all the ECNT statistic names pre-pended with **ECNT_**:
+
+             - RMSE is replaced by ECNT_RMSE
+             - SPREAD_PLUS_OERR is replaced by ECNT_SPREAD_PLUS_OERR
+             - ... etc.
+
+           - the stat_value column is empty and will be populated by the METcalcpy agg_stat.py module with the
+             computed aggregate statistic value
+
+         .. dropdown:: Reformatted Example (for input to METcalcpy agg_stat.py)
+
+            .. literalinclude:: ./figure/reformatted_ecnt_for_agg_stat.data
+
+            In the example above:
+
+            - all ECNT columns are present, as specified in the MET User's Guide
+            - the statistics under the stat_name column correspond to the header names specified in the MET User's Guide,
+              pre-pended with **ECNT_**
+            - the stat_value column is empty
 
 
 Required Components
@@ -655,84 +699,90 @@ METdbLoad modules are used to find and collect data from the individual .stat fi
 one data structure.  The input .stat files must all reside under one directory. The path to this
 input data is specified in a YAML configuration file.
 
-The YAML configuration file is also used to indicate the name and
+The YAML configuration file also indicates the name and
 location of the output file, logging information (filename, log level),
-and the line type to read in and reformat:
+and the line type to reformat.
 
-.. literalinclude:: ../../../METdataio/METreformat/reformat_stat.yaml
-
-Copy this custom config file from the directory where the source code
+Copy the reformat_stat.yaml config file from the directory where the source code
 was saved to the working directory.
 
-**Modify the YAML configuration file**
+.. dropdown:: Modify the reformat_stat.yaml configuration file (click to view config file)
 
-Edit the reformat_stat.yaml config file:
-.. literalinclude:: ../../../METdataio/METreformat/reformat_stat.yaml
+    .. literalinclude:: ../../../METdataio/METreformat/reformat_stat.yaml
 
-Refer to the following details for each of the mandatory settings in the configuration file.
+    Refer to the following details for each of the mandatory settings in the configuration file.
 
-.. dropdown:: Definition of Mandatory Config Settings
+    .. dropdown:: Definition of Mandatory Config Settings
 
-  **input_stats_aggregated**
-    * By default, this is set to True to:
-       -indicate that the input data has been processed by the MET stat-analysis
-        tool to calculate aggregation statistics
+       .. dropdown:: input_stats_aggregated
 
-        or
+            - By default, this is set to **True** to:
+              -indicate that the input data has been processed by the MET stat-analysis
+              tool to calculate aggregation statistics
 
-       -if the data of interest does not require calculation of aggregation statistics. This
-         reformatted data can be used as input to the appropriate METplotpy plotting script.
-    * Set this to False if aggregation statistics need to be calculated by the METcalcpy agg_stat module.
+               **or**
 
-  **input_data_dir**
-    * The full path (no environment variables) to the directory that contains all the input .stat files from the MET point-stat, grid-stat, or ensemble-stat tool
-    * If data is distributed among numerous directories, they will need to be consolidated into one directory
+             - if the data of interest does *not* require calculation of aggregation statistics. This
+               reformatted data can be used as input to the appropriate METplotpy plotting script.
+
+            - Otherwise, set this to *False* if aggregation statistics need to be calculated (METcalcpy agg_stat module).
+
+       .. dropdown:: input_data_dir
+
+         - The full path (no environment variables) to the directory that contains all the input .stat files from the MET point-stat, grid-stat, or ensemble-stat tool
+         - If data is distributed among numerous directories, they will need to be consolidated into one directory
     
-  **output_dir**
-    * The full path (no environment variables) to the directory where the reformatted file will be saved
+       .. dropdown:: output_dir
 
-  **output_filename**
-    * The name of the output file
-    * **NOTE**: save with .data extension if this is to be used for plotting using METplotpy
-    * If reformatting is run successively without removing an existing output file of the same name, the existing file
-      will be overwritten.
+         - The full path (no environment variables) to the directory where the reformatted file will be saved
 
-  **log_filename**
-    * The name of the log file
-    * Set to STDOUT or stdout (case insensitive) if no log file is to be saved
+       .. dropdown:: output_filename
 
-  **log_dir**
-    * The full path to the directory (no environment variables) where the log file is to be saved
+         - The name of the output file
+         - **NOTE**: save with .data extension if this is to be used for plotting using METplotpy
+         - If reformatting is run successively without removing an existing output file of the same name, the existing file
+           will be overwritten.
+
+       .. dropdown:: log_filename
+
+         - The name of the log file
+         - Set to STDOUT or stdout (case insensitive) if no log file is to be saved
+
+       .. dropdown:: log_dir
+
+         - The full path to the directory (no environment variables are supported) where the log file is to be saved
   
-  **log_level**
-    * The verbosity of the logging: INFO, DEBUG, WARNING, ERROR
-    * INFO is the most verbose, ERROR is least verbose
+       .. dropdown:: log_level
 
-  **line_type**
-    * The line type to be reformatted
-    * Currently supported line types are:
+         - The verbosity of the logging: INFO, DEBUG, WARNING, ERROR
+         - INFO is the most verbose, ERROR is least verbose
 
-      * FHO
-      * CNT
-      * CTC
-      * CTS
-      * SL1L2
-      * VL1L2
-      * ECNT
-      * MCTS
-      * VCNT
-      * RHIST
-      * PCT
-      * TCDIAG
-      * MPR
+       .. dropdown:: line_type
 
-  **#####################**
-  **FOR MPR LINETYPE ONLY**
-  **#####################**
+         - The line type to be reformatted
+         - Currently supported line types are:
 
-  **keep_all_mpr_cols**
-    * For reformatting of MPR only
-    * True if reformatting for scatter plot, False otherwise
+           * FHO
+           * CNT
+           * CTC
+           * CTS
+           * SL1L2
+           * VL1L2
+           * ECNT
+           * MCTS
+           * VCNT
+           * RHIST
+           * PCT
+           * TCDIAG
+           * MPR
+           * DMAP
+
+       .. dropdown:: keep_all_cols
+
+         - relevant for reformatting MPR or DMAP linetypes only
+         - True if reformatting for scatter plot, False otherwise
+         - For scatter plots, all column names are needed but the stat_name, stat_value, and confidence limits are not
+           needed
 
 Example
 =======
@@ -760,8 +810,7 @@ Example
    setenv WORKING_DIR /path/to/working_dir
 
 
-
-- **NOTE**: Do NOT use environment variables for /path/to, specify the actual path.
+.. note::  Do NOT use environment variables for /path/to, specify the actual path.
 
 - set the PYTHONPATH:
 
@@ -780,7 +829,7 @@ Generate the reformatted file:
 ------------------------------
 
    - place the .stat/.tcst data of interest (output from MET tool) into a single directory
-     * NOTE*: This may require  reorganization of data that is distributed over numerous directories into
+     * NOTE*: This may require reorganization of data that is distributed over numerous directories into
      a single directory.
 
    - modify the **reformat_stat.yaml** file, indicating the *input directory*,
@@ -791,6 +840,16 @@ Generate the reformatted file:
 
 .. code-block:: ini
 
-   python $BASE_DIR/METreformat/write_stat_ascii.py $WORKING_DIR/*line_type*_stat.yaml
+   python $BASE_DIR/METreformat/write_stat_ascii.py $WORKING_DIR/reformat_stat.yaml
+
+   - if preferred, the reformat_stat.yaml name can be saved under a different name (e.g. to reflect line type, etc.)
+
+      - for example:
+
+          - ecnt_stat.yaml (for reformatting the ECNT linetype data)
+          - tcdiag_stat.yaml (for reformatting the TCDiag linetype data)
+
+
+
 
 - A text file will be created in the output directory with the file name that was specified in the yaml file.
