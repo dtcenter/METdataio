@@ -829,27 +829,42 @@ Generate the reformatted file:
 ------------------------------
 
    - place the .stat/.tcst data of interest (output from MET tool) into a single directory
-     * NOTE*: This may require reorganization of data that is distributed over numerous directories into
-     a single directory.
 
-   - modify the **reformat_stat.yaml** file, indicating the *input directory*,
-     *output directory*, *output file name*, *line stat to reformat*, and
-     *logging settings* (log level, log filename, log directory). Refer to the
-     **Definition of Configuration Settings** above for a description of each setting.
+     .. note::
 
+          This requires data to be located in a single directory.  If data is distributed over numerous directories, they will need to be reorganized under a single directory.
+
+
+   - modify the **reformat_stat.yaml** file (refer to instructions above in section 6.2 **Required Components**)
+
+        - specify the *input_stats_aggregated* to indicate
+
+          - if the input MET data is generated from stat-analysis
+          - **or no further aggregation statistics** are needed via METcalcpy agg_stat module
+
+        - specify the *input directory*
+        - specify the *output directory*
+        - specify the *output file name*
+        - specify the *line stat to reformat*
+        - specify the *logging settings*:
+
+          - log level
+          - log filename
+          - log directory
+        - specify *keep_all_cols*
+
+           - relevant only for the MPR and DMAP linetypes
+
+     Refer to the
+     **Definition of Mandatory Config Settings** pull-down under the **Modify the reformat_stat.yaml configuration file**
+     in section **6.2 Required Components** (above)
+
+**Run the following command from the command line:**
 
 .. code-block:: ini
 
+
    python $BASE_DIR/METreformat/write_stat_ascii.py $WORKING_DIR/reformat_stat.yaml
-
-   - if preferred, the reformat_stat.yaml name can be saved under a different name (e.g. to reflect line type, etc.)
-
-      - for example:
-
-          - ecnt_stat.yaml (for reformatting the ECNT linetype data)
-          - tcdiag_stat.yaml (for reformatting the TCDiag linetype data)
-
-
 
 
 - A text file will be created in the output directory with the file name that was specified in the yaml file.
