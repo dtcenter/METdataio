@@ -171,7 +171,7 @@ command line.
 
         **Ensemble Continuous Statistics**
 
-         From MET tools:
+        From MET tools:
             - point-stat
             - ensemble-stat
 
