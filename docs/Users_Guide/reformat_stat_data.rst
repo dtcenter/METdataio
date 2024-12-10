@@ -230,7 +230,7 @@ command line.
 
         **Ranked Histogram Counts**
 
-         From MET tools:
+        From MET tools:
             - ensemble-stat
 
         Used by the following METplotpy plot types:
