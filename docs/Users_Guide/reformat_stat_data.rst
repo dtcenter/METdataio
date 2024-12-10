@@ -241,7 +241,7 @@ command line.
         **Tropcial Cyclone Diagnostics**
         **Tropical Cyclone Matched Pairs**
 
-         From MET tool:
+        From MET tool:
             - tc-pairs
 
         Used by the following METplotpy plot types:
