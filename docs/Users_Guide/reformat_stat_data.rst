@@ -169,7 +169,7 @@ command line.
 
      .. dropdown:: ECNT
 
-         **Ensemble Continuous Statistics**
+        **Ensemble Continuous Statistics**
 
          From MET tools:
             - point-stat
