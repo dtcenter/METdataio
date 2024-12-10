@@ -199,7 +199,7 @@ command line.
 
         **Vector Continuous Statistics**
 
-         From MET tools:
+        From MET tools:
             - point-stat
             - grid-stat
 
