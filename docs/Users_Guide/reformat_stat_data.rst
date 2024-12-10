@@ -257,7 +257,7 @@ command line.
 
      .. dropdown:: MPR
 
-         **Matched Pair data**
+        **Matched Pair data**
 
          From MET tools:
             - point-stat
