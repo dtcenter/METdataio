@@ -151,7 +151,7 @@ command line.
 
      .. dropdown:: VL1L2
 
-         **Vector L1L2 Partial Sums**
+        **Vector L1L2 Partial Sums**
 
          From MET tools:
             - point-stat
