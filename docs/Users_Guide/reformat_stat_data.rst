@@ -228,7 +228,7 @@ command line.
 
      .. dropdown::  RHIST
 
-         **Ranked Histogram Counts**
+        **Ranked Histogram Counts**
 
          From MET tools:
             - ensemble-stat
