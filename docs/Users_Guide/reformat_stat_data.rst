@@ -269,7 +269,7 @@ command line.
 
      .. dropdown:: DMAP
 
-         **Distance Map Statistics**
+        **Distance Map Statistics**
 
          From MET tools:
             - grid-stat
