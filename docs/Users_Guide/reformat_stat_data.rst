@@ -215,7 +215,7 @@ command line.
 
      .. dropdown:: PCT
 
-         **Contingency Table counts for Probabilistic forecasts**
+        **Contingency Table counts for Probabilistic forecasts**
 
          From MET tools:
             - point-stat
