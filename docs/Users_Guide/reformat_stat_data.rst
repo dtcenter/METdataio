@@ -9,7 +9,7 @@ Description
 The METreformat module provides support for reformatting/rearranging MET .stat/.tcst output into METplotpy-readable
 input formats.  The formats vary, based on the plot type (e.g. a histogram plot requires ranks and values column data,
 whereas a line plot will need statistic name and statistic value columns). The MET .stat/.tcst ASCII output generated
-by MET tools such as the point-stat, grid-stat, ensemble-stat, and tc-pairs tools may contain ASCII columnar data
+by MET tools such as the Point-Stat, Grid-Stat, Ensemble-Stat, and TC-Pairs tools may contain ASCII columnar data
 from multiple line types (determined by settings in the MET configuration file).
 
 .. note ::
