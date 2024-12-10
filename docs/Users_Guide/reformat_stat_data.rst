@@ -238,7 +238,7 @@ command line.
 
      .. dropdown::  TCDIAG (with TCMPR)
 
-         **Tropcial Cyclone Diagnostics**
+        **Tropcial Cyclone Diagnostics**
          **Tropical Cyclone Matched Pairs**
 
          From MET tool:
