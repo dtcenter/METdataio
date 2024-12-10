@@ -63,8 +63,8 @@ command line.
           **Forecast, Hit, Observation Rates**
 
           From MET tools:
-            - point-stat
-            - grid-stat
+            - Point-Stat
+            - Grid-Stat
 
          Used by the following METplotpy plot types:
             - line
@@ -82,8 +82,8 @@ command line.
          **Continuous Statistics**
 
          From MET tools:
-            - point-stat
-            - grid-stat
+            - Point-Stat
+            - Grid-Stat
 
         Used by the following METplotpy plot types:
             - line
@@ -100,8 +100,8 @@ command line.
           **Contingency Table Counts**
 
           From MET tools:
-            - point-stat
-            - grid-stat
+            - Point-Stat
+            - Grid-Stat
 
          Used by the following METplotpy plot types:
             - line
@@ -118,8 +118,8 @@ command line.
          **Contingency Table Statistics**
 
          From MET tools:
-            - point-stat
-            - grid-stat
+            - Point-Stat
+            - Grid-Stat
 
         Used by the following METplotpy plot types:
             - line
@@ -136,8 +136,8 @@ command line.
          **Scalar L1L2 Partial Sums**
 
         From MET tools:
-            - point-stat
-            - grid-stat
+            - Point-Stat
+            - Grid-Stat
 
         Used by the following METplotpy plot types:
             - line
@@ -154,8 +154,8 @@ command line.
         **Vector L1L2 Partial Sums**
 
         From MET tools:
-            - point-stat
-            - grid-stat
+            - Point-Stat
+            - Grid-Stat
 
         Used by the following METplotpy plot types:
             - line
@@ -172,8 +172,8 @@ command line.
         **Ensemble Continuous Statistics**
 
         From MET tools:
-            - point-stat
-            - ensemble-stat
+            - Point-Stat
+            - Ensemble-Stat
 
         Used by the following METplotpy plot types:
             - line (for ensemble spread-skill plots)
@@ -183,7 +183,7 @@ command line.
         **Multi-category Contingency Table Statistics**
 
         From MET tools:
-            - point-stat
+            - Point-Stat
 
         Used by the following METplotpy plot types:
             - line
@@ -200,8 +200,8 @@ command line.
         **Vector Continuous Statistics**
 
         From MET tools:
-            - point-stat
-            - grid-stat
+            - Point-Stat
+            - Grid-Stat
 
         Used by the following METplotpy plot types:
             - line
@@ -218,9 +218,9 @@ command line.
         **Contingency Table counts for Probabilistic forecasts**
 
         From MET tools:
-            - point-stat
-            - grid-stat
-            - ensemble_stat
+            - Point-Stat
+            - Grid-Stat
+            - Ensemble-Stat
 
         Used by the following METplotpy plot types:
             - ROC diagram (Receiver Operator Curve)
@@ -231,7 +231,7 @@ command line.
         **Ranked Histogram Counts**
 
         From MET tools:
-            - ensemble-stat
+            - Ensemble-Stat
 
         Used by the following METplotpy plot types:
             - rank histogram (rhist)
@@ -242,7 +242,7 @@ command line.
         **Tropical Cyclone Matched Pairs**
 
         From MET tool:
-            - tc-pairs
+            - TC-Pairs
 
         Used by the following METplotpy plot types:
             - TCMPR (Tropical Cyclone Matched Pair) plots:
@@ -260,8 +260,8 @@ command line.
         **Matched Pair data**
 
         From MET tools:
-            - point-stat
-            - grid-stat
+            - Point-Stat
+            - Grid-Stat
 
         Used by the following METplotpy plot types:
             - line
@@ -272,7 +272,7 @@ command line.
         **Distance Map Statistics**
 
         From MET tools:
-            - grid-stat
+            - Grid-Stat
 
         Used by the following METplotpy plot types:
             - line
@@ -327,9 +327,9 @@ plot and line type.  Formats fall into the following categories:
            - The common stat columns are common to all line types for point-stat, grid-stat, and ensemble-stat (model, vx mask, description, fcst lead, etc.)
              as described in the MET User's Guide:
 
-              - table 11.1 (point-stat)
-              - table 12.1 (grid-stat)
-              - table 13.1 (ensemble-stat)
+              - table 11.1 (Point-Stat)
+              - table 12.1 (Grid-Stat)
+              - table 13.1 (Ensemble-Stat)
 
 
 
@@ -382,9 +382,9 @@ plot and line type.  Formats fall into the following categories:
            - The common stat columns are common to all line types for point-stat, grid-stat, and ensemble-stat (model, vx mask, description, fcst lead, etc.)
              as described in the MET User's Guide:
 
-              - table 11.1 (point-stat)
-              - table 12.1 (grid-stat)
-              - table 13.1 (ensemble-stat)
+              - table 11.1 (Point-Stat)
+              - table 12.1 (Grid-Stat)
+              - table 13.1 (Ensemble-Stat)
 
 
          .. dropdown:: Unformatted Examples:
