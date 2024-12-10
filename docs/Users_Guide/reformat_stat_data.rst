@@ -182,7 +182,7 @@ command line.
 
          **Multi-category Contingency Table Statistics**
 
-         From MET tools:
+        From MET tools:
             - point-stat
 
         Used by the following METplotpy plot types:
