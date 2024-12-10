@@ -180,7 +180,7 @@ command line.
 
      .. dropdown:: MCTS
 
-         **Multi-category Contingency Table Statistics**
+        **Multi-category Contingency Table Statistics**
 
         From MET tools:
             - point-stat
