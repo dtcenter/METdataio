@@ -217,7 +217,7 @@ command line.
 
         **Contingency Table counts for Probabilistic forecasts**
 
-         From MET tools:
+        From MET tools:
             - point-stat
             - grid-stat
             - ensemble_stat
