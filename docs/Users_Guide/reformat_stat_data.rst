@@ -18,7 +18,7 @@ from multiple line types, as determined by settings in the MET configuration fil
 
 MET .stat and .tcst files can be comprised of numerous rows of data with different number of columns. This is a
 result of requesting multiple linetypes in a MET configuration file (e.g. requesting .
-All MET .stat line types have common columns (refer to table 11.1 in the MET User's Guide) that are labelled
+All MET .stat line types have common columns (refer to `Table 11.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/point-stat.html#id5>`_ in the MET User's Guide) that are labelled
 (i.e. the columns have headers/names).  The remaining columns
 are unlabelled.  When the stat output from the MET point-stat, grid-stat, ensemble-stat, or tc-pairs tools are
 reformatted, these unlabelled columns are rearranged into a format appropriate
