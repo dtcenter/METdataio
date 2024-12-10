@@ -271,7 +271,7 @@ command line.
 
         **Distance Map Statistics**
 
-         From MET tools:
+        From MET tools:
             - grid-stat
 
         Used by the following METplotpy plot types:
