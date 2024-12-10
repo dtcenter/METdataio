@@ -259,7 +259,7 @@ command line.
 
         **Matched Pair data**
 
-         From MET tools:
+        From MET tools:
             - point-stat
             - grid-stat
 
