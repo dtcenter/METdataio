@@ -153,7 +153,7 @@ command line.
 
         **Vector L1L2 Partial Sums**
 
-         From MET tools:
+        From MET tools:
             - point-stat
             - grid-stat
 
