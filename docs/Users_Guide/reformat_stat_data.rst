@@ -750,13 +750,14 @@ was saved to the working directory.
        .. dropdown:: input_stats_aggregated
 
             * By default, this is set to **True** to:
-              *indicate that the input data has been processed by the MET Stat-Analysis
-              tool to calculate aggregation statistics
+
+              * indicate that the input data has been processed by the MET Stat-Analysis
+                tool to calculate aggregation statistics
 
                **or**
 
-             * if the data of interest does *not* require calculation of aggregation statistics. This
-               reformatted data can be used as input to the appropriate METplotpy plotting script.
+              * if the data of interest does *not* require calculation of aggregation statistics. This
+                reformatted data can be used as input to the appropriate METplotpy plotting script.
 
             * Otherwise, set this to *False* if aggregation statistics need to be calculated (METcalcpy agg_stat module).
 
