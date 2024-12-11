@@ -327,9 +327,9 @@ plot and line type.  Formats fall into the following categories:
            - The common stat columns are common to all line types for point-stat, grid-stat, and ensemble-stat (model, vx mask, description, fcst lead, etc.)
              as described in the MET User's Guide:
 
-              -  `Table 11.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/point-stat.html#id1>`_ (point-stat)(Point-Stat)
-              -  `Table 12.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/grid-stat.html#id1>`_ (grid-stat)(Grid-Stat)
-              -  `Table 13.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/ensemble-stat.html#id1>`_ (ensemble-stat)(Ensemble-Stat)
+              -  `Point-Stat Table 11.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/point-stat.html#id1>`_ (Point-Stat)
+              -  `Grid-Stat Table 12.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/grid-stat.html#id1>`_ (Grid-Stat)
+              -  `Ensemble-Stat Table 13.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/ensemble-stat.html#id1>`_ (Ensemble-Stat)
 
 
 
@@ -382,9 +382,9 @@ plot and line type.  Formats fall into the following categories:
            - The common stat columns are common to all line types for point-stat, grid-stat, and ensemble-stat (model, vx mask, description, fcst lead, etc.)
              as described in the MET User's Guide:
 
-              - table 11.1 (Point-Stat)
-              - table 12.1 (Grid-Stat)
-              - table 13.1 (Ensemble-Stat)
+              -  `MET Point-Stat: Table 11.1  <https://met.readthedocs.io/en/main_v12.0/Users_Guide/point-stat.html#id1>`_ (Point-Stat)
+              -  `MET Grid-Stat: Table 12.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/grid-stat.html#id1>`_  (Grid-Stat)
+              -  `MET Ensemble-Stat: Table 13.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/ensemble-stat.html#id1>`_ (Ensemble-Stat)
 
 
          .. dropdown:: Unformatted Examples:
