@@ -20,7 +20,7 @@ MET .stat and .tcst files can be comprised of numerous rows of data with differe
 result of requesting multiple linetypes in a MET configuration file (e.g. requesting .
 All MET .stat line types have common columns (refer to `Table 11.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/point-stat.html#id5>`_ in the MET User's Guide) that are labelled
 (i.e. the columns have headers/names).  The remaining columns
-are unlabelled.  When the stat output from the MET point-stat, grid-stat, ensemble-stat, or tc-pairs tools are
+are unlabelled.  When the stat output from the MET Point-Stat, Grid-Stat, Ensemble-Stat, or TC-Pairs tools are
 reformatted, these unlabelled columns are rearranged into a format appropriate
 for the METplotpy plot of interest (based on the *line_type* setting in the YAML configuration file).
 
