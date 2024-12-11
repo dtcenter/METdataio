@@ -451,15 +451,19 @@ plot and line type.  Formats fall into the following categories:
          to the common stat columns):
 
          * thresh_i
+	   
            * the ith probability threshold value (repeated)
 
          * oy_i
+	   
            * number of observations *yes* when forecast is between the ith and i+1th probability threshold
 
          * on_i
+	   
            * number of observations when *no* forecast is between the ith and i+1th probability threshold
 
          * i_value
+	   
            * indicates the value number, corresponding to the ith value of thresh_i, oy_i, and on_i
 
        * The PCT line type consists of a **variable** number of unlabelled columns/headers
@@ -611,63 +615,63 @@ plot and line type.  Formats fall into the following categories:
                 VALUE_i
 
 
-      .. dropdown:: Reformatted Example:
+       .. dropdown:: Reformatted Example:
 
-         .. literalinclude:: ./figure/tcmpr_reformatted.txt
+          .. literalinclude:: ./figure/tcmpr_reformatted.txt
 
-      * In the reformatted example:
+       * In the reformatted example:
 
-       * The data corresponds to the TCDIAG data consolidated with the corresponding TCMPR line
-       * The unlabelled first column contains index values created during the reformatting process
-       * The LINE_TYPE column is now located AFTER the last TCMPR column (i.e. MAX_WIND_STDEV)
-       * The INDEX_PAIRS column corresponds to the INDEX column of TCDIAG (Table 24.3 of the MET User's Guide)
+         * The data corresponds to the TCDIAG data consolidated with the corresponding TCMPR line
+         * The unlabelled first column contains index values created during the reformatting process
+         * The LINE_TYPE column is now located AFTER the last TCMPR column (i.e. MAX_WIND_STDEV)
+         * The INDEX_PAIRS column corresponds to the INDEX column of TCDIAG (Table 24.3 of the MET User's Guide)
 	 
-         * renamed INDEX_PAIRS to **differentiate it from the INDEX column of TCMPR**
+           * renamed INDEX_PAIRS to **differentiate it from the INDEX column of TCMPR**
 	   
-       * The DIAG_SOURCE for this data is from CIRA_DIAG_RT
-       * The N_DIAG column indicates the number of diagnostics for this line/row of data:
+         * The DIAG_SOURCE for this data is from CIRA_DIAG_RT
+         * The N_DIAG column indicates the number of diagnostics for this line/row of data:
 
-         * Inspecting the first row of data, the N_DIAG column has a value of **4**:
+           * Inspecting the first row of data, the N_DIAG column has a value of **4**:
 
-           * **Four** storm diagnostics columns with values are found:
+             * **Four** storm diagnostics columns with values are found:
 
-             * SHEAR_MAGNITUDE
-             * STORM_SPEED
-             * TPW
-             * DIST_TO_LAND
+               * SHEAR_MAGNITUDE
+               * STORM_SPEED
+               * TPW
+               * DIST_TO_LAND
 
-         * Inspecting the 24th line (the first row with DIAG_SOURCE=SHIPS_DIAG_RT), the N_DIAG column has a value of **3**:
+           * Inspecting the 24th line (the first row with DIAG_SOURCE=SHIPS_DIAG_RT), the N_DIAG column has a value of **3**:
 
-           * **Three** storm diagnostics columns with values are found:
+             * **Three** storm diagnostics columns with values are found:
 
-             * SHEAR_MAGNITUDE
-             * DIST_TO_LAND
-             * PW01
+               * SHEAR_MAGNITUDE
+               * DIST_TO_LAND
+               * PW01
 
 
     .. dropdown::  by specific linetype: ECNT
 
        * The ECNT linetype (from the MET ensemble-stat tool) can be reformatted to contain all the ECNT statistic values specified in `Table 13.2 of the MET User's Guide <https://met.readthedocs.io/en/develop/Users_Guide/ensemble-stat.html#id2>`_.
 
-            * in addition, the following values are separated into additional columns:
+         * in addition, the following values are separated into additional columns:
 
-              * stat_name
-              * stat_value
-              * stat_ncl
+           * stat_name
+           * stat_value
+           * stat_ncl
 
-                * lower level normal confidence limit
+             * lower level normal confidence limit
 
-              * stat_ncu
+           * stat_ncu
 
-                * upper level normal confidence limit
+             * upper level normal confidence limit
 
-              * stat_bcl
+           * stat_bcl
 
-                * lower level bootstrap confidence limit
+             * lower level bootstrap confidence limit
 
-              * stat_bcu
+           * stat_bcu
 
-                * upper level bootstrap confidence limit
+             * upper level bootstrap confidence limit
 
        .. dropdown:: Reformatted Example (no aggregation statistics step needed):
 
@@ -704,16 +708,16 @@ plot and line type.  Formats fall into the following categories:
            * the stat_value column is empty and will be populated by the METcalcpy agg_stat.py module with the
              computed aggregate statistic value
 
-         .. dropdown:: Reformatted Example (for input to METcalcpy agg_stat.py)
+       .. dropdown:: Reformatted Example (for input to METcalcpy agg_stat.py)
 
-            .. literalinclude:: ./figure/reformatted_ecnt_for_agg_stat.data
+          .. literalinclude:: ./figure/reformatted_ecnt_for_agg_stat.data
 
-            In the example above:
+       In the example above:
 
-            * all ECNT columns are present, as specified in the MET User's Guide
-            * the statistics under the stat_name column correspond to the header names specified in the MET User's Guide,
-              pre-pended with **ECNT_**
-            * the stat_value column is empty
+         * all ECNT columns are present, as specified in the MET User's Guide
+         * the statistics under the stat_name column correspond to the header names specified in the MET User's Guide,
+           pre-pended with **ECNT_**
+         * the stat_value column is empty
 
 
 Required Components
