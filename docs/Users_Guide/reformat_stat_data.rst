@@ -7,7 +7,7 @@ Description
 ===========
 
 The METreformat module provides support for reformatting/rearranging MET .stat/.tcst output into METplotpy-readable
-input formats.  The formats vary, based on the plot type.  For example, a histogram plot requires ranks and values column data,
+input formats.  The formats vary, based on the linetype data and desired plot.  For example, a histogram plot requires ranks and values column data,
 whereas a line plot will need statistic name and statistic value columns. The MET .stat/.tcst ASCII output generated
 by MET tools such as the Point-Stat, Grid-Stat, Ensemble-Stat, and TC-Pairs tools may contain ASCII columnar data
 from multiple line types, as determined by settings in the MET configuration file.
@@ -16,14 +16,11 @@ from multiple line types, as determined by settings in the MET configuration fil
   Currently, there are MET linetypes that **do not** have reformatter support.  When an unsupported linetype
   is requested, an appropriate error message will be generated.
 
-MET .stat and .tcst files can be comprised of numerous rows of data with different number of columns. This is a
-result of requesting multiple linetypes in a MET configuration file (e.g. requesting .
-All MET .stat line types have common columns
-(refer to `Table 11.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/point-stat.html#id5>`_
-in the MET User's Guide) that are labelled (i.e. the columns have headers/names).  The remaining columns
+All MET .stat line types have common columns (refer to `Table 11.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/point-stat.html#id5>`_ in the MET User's Guide) that are labelled
+(i.e. the columns have headers/names).  The remaining columns
 are unlabelled.  When the stat output from the MET Point-Stat, Grid-Stat, Ensemble-Stat, or TC-Pairs tools are
 reformatted, these unlabelled columns are rearranged into a format appropriate
-for the METplotpy plot of interest, based on the *line_type* setting in the YAML configuration file.
+for the METplotpy plot of interest and on the *line_type* data.
 
 The format of input data used by the METplotpy plots is influenced by METviewer.
 When generating plots in METviewer, the MET .stat input data is first loaded into the
@@ -50,7 +47,7 @@ reformatting to calculate aggregation statistics (i.e. total, mean, median, conf
 intervals for a specific statistic, etc.). Not all data requires the calculation of
 aggregation statistics (e.g. histogram plots).
 
-Plots that are generated from the command line require a YAML configuration file. The .stat output from the Point-Stat,
+Plots that are generated from the command line require a YAML configuration file. The .stat/.tcst output from the Point-Stat,
 Grid-Stat, Ensemble-Stat, or TC-Pairs tool must be reformatted before invoking the METplotpy scripts from the
 command line.
 
@@ -64,12 +61,12 @@ command line.
          **Forecast, Hit, Observation Rates**
 
          From MET tools:
-	 
+
            * Point-Stat
            * Grid-Stat
 
          Used by the following METplotpy plot types:
-	 
+
            * line
            * bar
            * box
@@ -85,7 +82,7 @@ command line.
         **Continuous Statistics**
 
         From MET tools:
-	
+
           * Point-Stat
           * Grid-Stat
 
@@ -105,12 +102,12 @@ command line.
          **Contingency Table Counts**
 
          From MET tools:
-	 
+
            * Point-Stat
            * Grid-Stat
 
          Used by the following METplotpy plot types:
-	 
+
            * line
            * bar
            * box
@@ -125,12 +122,12 @@ command line.
         **Contingency Table Statistics**
 
         From MET tools:
-	
+
           * Point-Stat
           * Grid-Stat
 
         Used by the following METplotpy plot types:
-	
+
           * line
           * bar
           * box
@@ -145,12 +142,12 @@ command line.
         **Scalar L1L2 Partial Sums**
 
         From MET tools:
-	
+
           * Point-Stat
           * Grid-Stat
 
         Used by the following METplotpy plot types:
-	
+
           * line
           * bar
           * box
@@ -165,12 +162,12 @@ command line.
         **Vector L1L2 Partial Sums**
 
         From MET tools:
-	
+
           * Point-Stat
           * Grid-Stat
 
         Used by the following METplotpy plot types:
-	
+
           * line
           * bar
           * box
@@ -185,12 +182,12 @@ command line.
         **Ensemble Continuous Statistics**
 
         From MET tools:
-	
+
           * Point-Stat
           * Ensemble-Stat
 
         Used by the following METplotpy plot types:
-	
+
           * line (for ensemble spread-skill plots)
 
      .. dropdown:: MCTS
@@ -198,11 +195,11 @@ command line.
         **Multi-category Contingency Table Statistics**
 
         From MET tools:
-	
+
           * Point-Stat
 
         Used by the following METplotpy plot types:
-	
+
           * line
           * bar
           * box
@@ -217,12 +214,12 @@ command line.
         **Vector Continuous Statistics**
 
         From MET tools:
-	
+
           * Point-Stat
           * Grid-Stat
 
         Used by the following METplotpy plot types:
-	
+
           * line
           * bar
           * box
@@ -237,13 +234,13 @@ command line.
         **Contingency Table counts for Probabilistic forecasts**
 
         From MET tools:
-	
+
           * Point-Stat
           * Grid-Stat
           * Ensemble-Stat
 
         Used by the following METplotpy plot types:
-	
+
           * ROC diagram (Receiver Operator Curve)
 
 
@@ -252,11 +249,11 @@ command line.
         **Ranked Histogram Counts**
 
         From MET tools:
-	
+
           * Ensemble-Stat
 
         Used by the following METplotpy plot types:
-	
+
           * rank histogram (rhist)
 
      .. dropdown::  TCDIAG (with TCMPR)
@@ -265,11 +262,11 @@ command line.
       | **Tropical Cyclone Matched Pairs**
 
         From MET tool:
-	
+
           * TC-Pairs
 
         Used by the following METplotpy plot types:
-	
+
           * TCMPR (Tropical Cyclone Matched Pair) plots:
 
             * mean line plot
@@ -285,12 +282,12 @@ command line.
         **Matched Pair data**
 
         From MET tools:
-	
+
           * Point-Stat
           * Grid-Stat
 
         Used by the following METplotpy plot types:
-	
+
           * line
           * scatter
 
@@ -299,11 +296,11 @@ command line.
         **Distance Map Statistics**
 
         From MET tools:
-	
+
           * Grid-Stat
 
         Used by the following METplotpy plot types:
-	
+
           * line
           * contour
           * scatter
@@ -451,19 +448,19 @@ plot and line type.  Formats fall into the following categories:
          to the common stat columns):
 
          * thresh_i
-	   
+
            * the ith probability threshold value (repeated)
 
          * oy_i
-	   
+
            * number of observations *yes* when forecast is between the ith and i+1th probability threshold
 
          * on_i
-	   
+
            * number of observations when *no* forecast is between the ith and i+1th probability threshold
 
          * i_value
-	   
+
            * indicates the value number, corresponding to the ith value of thresh_i, oy_i, and on_i
 
        * The PCT line type consists of a **variable** number of unlabelled columns/headers
@@ -550,7 +547,7 @@ plot and line type.  Formats fall into the following categories:
           * all columns are labelled
           * an additional column (first column) corresponds to index values created in the reformatting process
           * there are numerous rows with the same common stat values (model,...,total)
-	    
+
             * with data separated by rank_i and i_values
 
 
@@ -625,9 +622,9 @@ plot and line type.  Formats fall into the following categories:
          * The unlabelled first column contains index values created during the reformatting process
          * The LINE_TYPE column is now located AFTER the last TCMPR column (i.e. MAX_WIND_STDEV)
          * The INDEX_PAIRS column corresponds to the INDEX column of TCDIAG (Table 24.3 of the MET User's Guide)
-	 
+
            * renamed INDEX_PAIRS to **differentiate it from the INDEX column of TCMPR**
-	   
+
          * The DIAG_SOURCE for this data is from CIRA_DIAG_RT
          * The N_DIAG column indicates the number of diagnostics for this line/row of data:
 
@@ -719,7 +716,7 @@ plot and line type.  Formats fall into the following categories:
            pre-pended with **ECNT_**
          * the stat_value column is empty
 
-.. _required-components:	   
+.. _required-components:
 
 Required Components
 ===================
