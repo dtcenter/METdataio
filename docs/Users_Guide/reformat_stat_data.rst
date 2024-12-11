@@ -431,7 +431,7 @@ plot and line type.  Formats fall into the following categories:
 
          .. dropdown:: Reformatted Example (truncated):
 
-            ..  literalinclude:: ./figure/dmap_for_scatter.data
+            .. literalinclude:: ./figure/dmap_for_scatter.data
 
          *  In the reformatted example:
 
@@ -492,7 +492,7 @@ plot and line type.  Formats fall into the following categories:
 
          .. dropdown:: Reformatted Example (truncated):
 
-                       .. literalinclude:: ./figure/roc_pct.data
+            .. literalinclude:: ./figure/roc_pct.data
 
          *  In the reformatted example:
 
