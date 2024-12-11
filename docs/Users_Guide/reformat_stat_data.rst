@@ -377,7 +377,7 @@ plot and line type.  Formats fall into the following categories:
 
          .. dropdown:: Reformatted Example (truncated):
 
-            ..  literalinclude:: ./figure/reformatted_dmap_for_lineplot_output.txt
+            .. literalinclude:: ./figure/reformatted_dmap_for_lineplot_output.txt
 
 
          *  In the reformatted example:
