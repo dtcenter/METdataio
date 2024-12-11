@@ -719,6 +719,7 @@ plot and line type.  Formats fall into the following categories:
            pre-pended with **ECNT_**
          * the stat_value column is empty
 
+.. _required-components:	   
 
 Required Components
 ===================
@@ -817,7 +818,7 @@ was saved to the working directory.
 
        .. dropdown:: keep_all_cols
 
-         * relevant for reformatting MPR or DMAP linetypes only
+         * Relevant for reformatting MPR or DMAP linetypes only
          * True if reformatting for scatter plot, False otherwise
          * For scatter plots, all column names are needed but the stat_name, stat_value, and confidence limits are not
            needed
@@ -825,55 +826,55 @@ was saved to the working directory.
 Example
 =======
 
-* set up a base directory, where the METdataio source code is located
+* Set up a base directory, where the METdataio source code is located:
 
-.. code-block:: ini
+  .. code-block:: ini
 
-   bash:
-   export BASE_DIR=/path/to/METdataio
+    bash:
+    export BASE_DIR=/path/to/METdataio
 
-   csh:
-   setenv BASE_DIR /path/to/METdataio
+    csh:
+    setenv BASE_DIR /path/to/METdataio
 
-* replace /path/to with an actual path
+* Replace /path/to with an actual path.
 
-* set up a working directory, where the YAML config file will be located
+* Set up a working directory, where the YAML config file will be located:
 
-.. code-block:: ini
+  .. code-block:: ini
 
-   bash:
-   export WORKING_DIR=/path/to/working_dir
+    bash:
+    export WORKING_DIR=/path/to/working_dir
 
-   csh:
-   setenv WORKING_DIR /path/to/working_dir
+    csh:
+    setenv WORKING_DIR /path/to/working_dir
 
 
 .. note::  Do NOT use environment variables for /path/to, specify the actual path.
 
-* set the PYTHONPATH:
+* Set the PYTHONPATH:
 
 
-.. code-block:: ini
+  .. code-block:: ini
 
-  bash
-  export PYTHONPATH=$BASE_DIR:/$BASE_DIR/METdbLoad:$BASE_DIR/METdbLoad/ush:$BASE_DIR/METreformat
+    bash
+    export PYTHONPATH=$BASE_DIR:/$BASE_DIR/METdbLoad:$BASE_DIR/METdbLoad/ush:$BASE_DIR/METreformat
 
-  csh
-  setenv PYTHONPATH $BASE_DIR:/$BASE_DIR/METdbLoad:$BASE_DIR/METdbLoad/ush:$BASE_DIR/METreformat
+    csh
+    setenv PYTHONPATH $BASE_DIR:/$BASE_DIR/METdbLoad:$BASE_DIR/METdbLoad/ush:$BASE_DIR/METreformat
 
 
 
 Generate the reformatted file:
 ------------------------------
 
-   * place the .stat/.tcst data of interest (output from MET tool) into a single directory
+  * Place the .stat/.tcst data of interest (output from MET tool) into a single directory.
 
-     .. note::
+    .. note::
 
-          This requires data to be located in a single directory.  If data is distributed over numerous directories, they will need to be reorganized under a single directory.
+      This requires data to be located in a single directory.  If data is distributed over numerous directories, they will need to be reorganized under a single directory.
 
 
-   * modify the **reformat_stat.yaml** file (refer to instructions above in section 6.2 **Required Components**)
+   * Modify the **reformat_stat.yaml** file (refer to instructions above in :ref:`required-components`).
 
         * specify the *input_stats_aggregated* to indicate
 
@@ -895,7 +896,7 @@ Generate the reformatted file:
 
      Refer to the
      **Definition of Mandatory Config Settings** pull-down under the **Modify the reformat_stat.yaml configuration file**
-     in section **6.2 Required Components** (above)
+     in :ref:`required-components` (above)
 
 **Run the following command from the command line:**
 
