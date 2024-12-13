@@ -1,7 +1,8 @@
 # Configuration settings for reformatting MET .stat output to format for METplotpy
 
 # if .stat file input already contains aggregated statistics (i.e. output from MET stat-analysis
-# has been applied to MET .stat output from point-stat, grid-stat, or ensemble-stat).
+# has been applied to MET .stat output from point-stat, grid-stat, or ensemble-stat), or if 
+# no agg stats are needed via METcalcpy, set to True.
 input_stats_aggregated: True
 
 output_dir: ./output
@@ -18,3 +19,6 @@ log_level: DEBUG
 
 # Currently support FHO, CTC, CTS, CNT, SL1L2, VL1L2, PCT, MCTC, VCNT, ECNT, RHIST, and TCDIAG line types
 line_type: TCDIAG
+
+# Only relevant for DMAP and MPR linetype data
+keep_all_cols: False

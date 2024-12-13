@@ -1319,7 +1319,7 @@ CREATE_INDEXES_QUERIES = \
      "fcst_init_beg)"]
 
 #
-# Used by MET reformatter
+# Used by METdataio reformatter
 # 1 more than the MET User's Guide to
 # account for the FCST_INIT_BEG
 #
@@ -1336,6 +1336,7 @@ NUM_STAT_CTS_COLS = 122
 NUM_STAT_MCTC_COLS = 28
 NUM_STAT_MCTS_COLS = 45
 NUM_STAT_MPR_COLS = 40
+NUM_STAT_DMAP_COLS =49
 # Number of columns BEFORE the "variable" fields (i.e. VERSION, MODEL, ..., LINETYPE), including the
 # FCST_INIT_BEG column .
 # For PCT the "variable" fields are N_THRESH, THRESH_i, OY_i, ON_i,..., THRESH_N, where the
@@ -1693,5 +1694,14 @@ LC_MPR_SPECIFIC = ['index', 'obs_sid', 'obs_lat', 'obs_lon', 'obs_lvl',
                    'fcst_climo_mean', 'fcst_climo_stdev']
 
 MPR_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_MPR_SPECIFIC]
-
 MPR_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + LC_MPR_SPECIFIC
+
+
+# DMAP
+LC_DMAP_SPECIFIC =  ['fy', 'oy', 'fbias', 'baddeley', 'hausdorff',
+                          'med_fo', 'med_of', 'med_min', 'med_max', 'med_mean',
+                          'fom_fo', 'fom_of', 'fom_min', 'fom_max', 'fom_mean',
+                          'zhu_fo', 'zhu_of', 'zhu_min', 'zhu_max', 'zhu_mean',
+                          'g', 'gbeta', 'beta_value']
+DMAP_SPECIFIC = [cur_stat_header.upper() for cur_stat_header in LC_DMAP_SPECIFIC]
+DMAP_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + LC_DMAP_SPECIFIC
