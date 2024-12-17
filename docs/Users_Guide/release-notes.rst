@@ -9,6 +9,25 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
+METdataio Version 3.0.0 Release Notes (20241217)
+------------------------------------------------
+
+  .. dropdown:: New Functionality
+
+     None
+
+  .. dropdown:: Enhancements
+
+     None
+
+  .. dropdown:: Internal
+
+     None
+
+  .. dropdown:: Bugfixes
+ 
+     None
+
 METdataio Version 3.0.0 RC1 Release Notes (20241114)
 -------------------------------------------------------
 
