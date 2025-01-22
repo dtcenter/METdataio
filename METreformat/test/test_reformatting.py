@@ -1141,8 +1141,6 @@ def test_dmap_for_scatter():
 
     # Remove the Idx column from the actual_headers list
     actual_headers.pop(0)
-    # print(f"expected headers: {expected_headers}")
-    # print(f"actual headers: {actual_headers}")
 
     # Verify that the expected number of headers exist in the reformatted data
     assert len(expected_headers) == len(actual_headers)
