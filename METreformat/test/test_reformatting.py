@@ -1228,7 +1228,6 @@ def test_dmap_for_lineplot():
     expected_hausdorff = list(working_df.loc[1:, '5'])[0]
     expected_med_min = list(working_df.loc[1:, '8'])[0]
     expected_g = list(working_df.loc[1:, '21'])[0]
-    expected_gbeta = list(working_df.loc[1:, '22'])[0]
     expected_beta_value = list(working_df.loc[1:, '23'])[0]
 
     # Store all these expected values into a dictionary
@@ -1255,7 +1254,6 @@ def test_dmap_for_lineplot():
     # reformatted_vals['reformatted_fy'] = reformatted_fy
     values_of_interest = ['fy', 'baddeley', 'hausdorff', 'med_min', 'g', 'gbeta', 'beta_value']
 
-    k_vals = []
     for vals in values_of_interest:
         stat_names_series: pd.Series = reformatted_working[reformatted_working['stat_name'] == vals]
         reformatted_val_of_interest = list(stat_names_series['stat_value'])
