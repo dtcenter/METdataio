@@ -54,7 +54,8 @@ Download the latest release:
 Instructions for installing the metdataio package locally
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
- * Activate the conda environment.
+ * Activate the conda environment.  
+   Please change 'your-conda-env-name' to the correct location.
 
     .. code-block:: ini
 
@@ -104,9 +105,9 @@ Or
 
 This will ensure that all available METdataio code will be loaded.
 
-**$SRC** - represents the path to the METdataio code.
+**$SRC** - Represents the path to the METdataio code.
 
-**${PYTHONPATH}** - corresponds to existing paths that are already defined.
+**${PYTHONPATH}** - Corresponds to existing paths that are already defined.
 
 
 .. note::
