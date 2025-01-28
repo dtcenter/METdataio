@@ -92,7 +92,7 @@ Add the following to the existing **PYTHONPATH**:
 
   bash:
 
-  export PYTHONPATH=${PYTHONPATH):$SRC/METdataio:$SRC/METdataio/METdbLoad:$SRC/METdataio/METdbLoad/ush:$SRC/METdataio/METreformat:$SRC/METdataio/METreadnc
+  export PYTHONPATH=${PYTHONPATH}:$SRC/METdataio:$SRC/METdataio/METdbLoad:$SRC/METdataio/METdbLoad/ush:$SRC/METdataio/METreformat:$SRC/METdataio/METreadnc
 
 Or
 
@@ -104,7 +104,7 @@ Or
 
 This will ensure that all available METdataio code will be loaded.
 
-**SRC** - represents the path to the METdataio code.
+**$SRC** - represents the path to the METdataio code.
 
 **${PYTHONPATH}** - corresponds to existing paths that are already defined.
 
