@@ -5,18 +5,18 @@
 input_stats_aggregated: True 
 
 output_dir: ./output
-output_filename: reformatted_mpr_climo_data.txt
-keep_all_cols: False
+output_filename: reformatted_dmap_data_for_scatter.txt
+keep_all_cols: True
 
-input_data_dir: ./data/mpr/climo_data/
+input_data_dir: ./data/grid_stat/dmap
 
 # Set to log_filename to STDOUT/stdout if no log file is to be saved
 log_directory: ./output
-log_filename: mpr_climo_log.txt
+log_filename: dmap_for_scatter_log.txt
 
 # most verbose is debug, less verbose is error
 log_level: DEBUG
 
-# Currently support FHO, CTC, CTS, CNT, SL1L2, VL1L2, PCT, MCTC, VCNT, ECNT, RHIST, TCDiag, and MPR line types
-line_type: MPR
+# Currently support FHO, CTC, CTS, CNT, SL1L2, VL1L2, PCT, MCTC, VCNT, ECNT, RHIST, TCDiag, MPR, and DMAP line types
+line_type: DMAP
 

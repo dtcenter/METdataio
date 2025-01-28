@@ -574,7 +574,6 @@ def test_point_stat_mcts_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
-@pytest.mark.skip("Doesn't work with new ECNT data with new columms")
 def test_ensemble_stat_ecnt_consistency():
     '''
            For the data frame for the
@@ -599,43 +598,52 @@ def test_ensemble_stat_ecnt_consistency():
     ecnt_columns: List[str] = cn.ECNT_HEADERS
     ecnt_df.columns: List[str] = ecnt_columns
 
-    # get the value of the record corresponding to line_type ECNT, total number of
-    # pairs, obs_var,
-    # obs_lev, and fcst_thresh, for the MAE statistic.
-    total = str(1125)
-    obs_var = 'APCP_24'
-    obs_level = 'A24'
-    obs_lead = 0
-    fcst_thresh = 'NA'
-    vx_mask = 'FULL'
-    interp_mthd = 'NEAREST'
-    expected_df: pd.DataFrame = ecnt_df.loc[(ecnt_df['total'] == total) & (ecnt_df[
-                                                                               'obs_var'] == obs_var) &
-                                            (ecnt_df['obs_lev'] == obs_level) &
-                                            (ecnt_df['obs_lead'] == obs_lead) &
-                                            (ecnt_df['vx_mask'] == vx_mask) &
-                                            (ecnt_df['interp_mthd'] == interp_mthd)]
-    expected_row: pd.Series = expected_df.iloc[0]
-    expected_name: str = "ME"
-    expected_val: float = expected_row.loc[expected_name]
-    me_val = float(0.97455)
-    assert me_val == float(expected_val)
+    # For the first row of data, get the value of the record corresponding to line_type ECNT, total number of
+    # pairs, obs_var, obs_lev, and fcst_thresh, for the MAE statistic.
+    total:str = str(stat_data.iloc[0]['0'])
+    obs_var:str = stat_data.iloc[0]['obs_var']
+    obs_level:str = stat_data.iloc[0]['obs_lev']
+    fcst_lead:int = stat_data.iloc[0]['fcst_lead']
+    vx_mask:str = stat_data.iloc[0]['vx_mask']
+    interp_mthd:str = stat_data.iloc[0]['interp_mthd']
+    n_ens:int = int(float(stat_data.iloc[0]['1']))
+    crps:float = float(stat_data.iloc[0]['2'])
+    ign:float = float(stat_data.iloc[0]['4'])
 
+    # Save the n_ens, crps, and ign values in a dictionary for comparison against the reformatted values
+    expected_dict = {}
+    expected_dict['N_ENS'] = n_ens
+    expected_dict['CRPS'] = crps
+    expected_dict['IGN'] = ign
+
+    expected_df: pd.DataFrame = ecnt_df[(ecnt_df['total'] == str(total)) &
+                                            (ecnt_df['obs_var'] == str(obs_var)) &
+                                            (ecnt_df['obs_lev'] == str(obs_level)) &
+                                            (ecnt_df['fcst_lead'] == (fcst_lead)) &
+                                            (ecnt_df['vx_mask'] == str(vx_mask)) &
+                                            (ecnt_df['interp_mthd'] == str(interp_mthd))]
+
+    # Check for consistency in N_ENS, CRPS and IGN values
     wsa = WriteStatAscii(config, logger)
     reshaped_df = wsa.process_ecnt(stat_data)
-    actual_df: pd.DataFrame = reshaped_df.loc[
-        (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
-        (reshaped_df['obs_lev'] == obs_level) &
-        (reshaped_df['obs_lead'] == obs_lead) &
-        (reshaped_df['vx_mask'] == vx_mask) &
-        (reshaped_df['fcst_thresh'] == fcst_thresh) &
-        (reshaped_df['stat_name'] == expected_name)]
-    actual_row: pd.Series = actual_df.iloc[0]
-    actual_value: float = actual_row['stat_value']
 
-    # Checking for consistency between the reformatted/reshaped data and the
-    # "original" data.
-    assert expected_val == actual_value
+    expected_name_list = expected_dict.keys()
+    for expected_name in expected_name_list:
+      expected_val = expected_df[expected_name][0]
+
+      actual_df: pd.DataFrame = reshaped_df[
+        ((reshaped_df['total']) == str(total)) &
+        (reshaped_df['obs_var'] == str(obs_var)) &
+        (reshaped_df['obs_lev'] == str(obs_level)) &
+        (reshaped_df['fcst_lead'] == int(fcst_lead)) &
+        (reshaped_df['vx_mask'] == str(vx_mask)) &
+        (reshaped_df['stat_name']==expected_name)]
+      actual_stat_value = (actual_df['stat_value'].to_list())[0]
+
+
+      # Checking for consistency between the reformatted/reshaped data and the
+      # "original" data.
+      assert actual_stat_value == expected_val
 
     # Check for any all expected values in the stat_name column
     ecnt_stats = cn.ECNT_STATISTICS_HEADERS
@@ -647,15 +655,6 @@ def test_ensemble_stat_ecnt_consistency():
             num_matches += 1
 
     assert num_matches == num_ecnt_headers
-
-    # Check for some expected values in the reformatted dataframe for the
-    # row where VX_MASK = FULL and TOTAL=1125
-    expected_rmse = 12.52909
-    actual_rmse_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['stat_name'] == 'RMSE') &
-                                                   (reshaped_df['vx_mask'] == 'FULL') &
-                                                   (reshaped_df['total'] == '1125')]
-    # print(f"RMSE from reformatted: {actual_rmse_df} of type {type(actual_rmse_df)}")
-    assert str(actual_rmse_df.iloc[0].stat_value) == str(expected_rmse)
 
 
 def test_pct_consistency():
@@ -727,6 +726,7 @@ def test_rhist_consistency():
 
     wsa = WriteStatAscii(config, logger)
     reshaped_df = wsa.process_rhist(stat_data)
+
     # Verify that the following values are found for the rows with these columns + values (corresponding to the
     # last row of data in the raw RHIST input dataframe):
     fcst_lead = 280000
@@ -779,36 +779,44 @@ def test_ecnt_reformat_for_agg():
        :return:  None
        '''
 
-    # Original reformatted data
+    # Original unreformatted data
     stat_data, config = setup_test('ECNT_for_agg.yaml')
 
+    # Reformatted data
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_ecnt_for_agg(stat_data)
 
-    ExpectedValues = namedtuple('ExpectedValues', 'total, n_ens, crps')
+    # Check that the reformatting worked and produced results (i.e. a dataframe with more than 0 rows)
+    assert (reformatted_df.shape[0] > 0)
 
-    total_vals = [1125, 503]
-    n_ens_vals = [6.0, 6.0]
-    crps_vals = [8.21904, 0.1367]
-    expected_values = []
-    zipped = zip(total_vals, n_ens_vals, crps_vals)
-    zipped_list = list(zipped)
-    for cur in zipped_list:
-        expected_values.append(ExpectedValues(*cur))
+    # Get the values from the first row of the raw data, these are expected values.
+    expected_total = stat_data.iloc[0]['0']
+    expected_n_ens = stat_data.iloc[0]['1']
+    expected_crps = stat_data.iloc[0]['2']
+    expected_ign = stat_data.iloc[0]['4']
 
-    ref1: pd.Series = reformatted_df.loc[reformatted_df['total'] == str(expected_values[0].total)]
-    ref2: pd.Series = reformatted_df.loc[reformatted_df['total'] == str(expected_values[1].total)]
+    prefix = 'ECNT_'
+    expected_ecnt_cols = []
+    for expected in cn.LC_ECNT_SPECIFIC:
+        # convert the columns to upper case
+        expected_ecnt_cols.append(prefix + expected.upper())
 
-    # Verify that we still have a row of ECNT linetype data with the original total values of 1125 and 503
-    assert ref1 is not None and ref2 is not None
+    # Verify that all the expected ECNT_ prefixed columns are present in the reformatted data
+    stat_names = reformatted_df['stat_name'].unique().tolist()
+    for cur_stat in stat_names:
+        assert cur_stat in expected_ecnt_cols
 
-    # Verify that the values for crps and n_ens are consistent with the original input data.
-    assert float(ref1['crps'].iloc[0]) == expected_values[0].crps
-    assert float(ref2['crps'].iloc[0]) == expected_values[1].crps
-    assert ref1['n_ens'].iloc[0] == expected_values[0].n_ens
-    assert ref2['n_ens'].iloc[0] == expected_values[1].n_ens
+    specific_vals: pd.Series = reformatted_df[(reformatted_df['total'] == expected_total) &
+                                          (reformatted_df['n_ens'] == expected_n_ens) &
+                                          (reformatted_df['crps'] == expected_crps) &
+                                          (reformatted_df['ign'] == expected_ign)
+                                          ]
+    # The subsetting above should result in a unique result with the same number of rows as ECNT columns
+    expected_number_rows = len(expected_ecnt_cols)
+    assert expected_number_rows == specific_vals.shape[0]
 
-    # Verify that all the expected columns are present: ECNT headers and the stat_name and stat_value
+    # Verify that all the expected columns are present: ECNT headers and the added  stat_name and stat_value columns are
+    # present
     ecnt_headers = list(cn.ECNT_HEADERS)
     ecnt_headers_lc = [hdr.lower() for hdr in ecnt_headers]
     added_headers = ['stat_name', 'stat_value']
@@ -847,6 +855,7 @@ def test_tcdiag_from_tcpairs():
     stat_data, config = setup_test('test_reformat_tcdiag.yaml', is_tcst=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_tcdiag(stat_data)
+    reformatted_df.to_csv("./tcmpr_reformatted.txt", sep="\t")
 
     # Compare original data (read in from METdbLoad) to reformatted
 
@@ -1104,3 +1113,163 @@ def test_mpr_for_climo_data():
     for cur_col in reformatted_col_headers:
         assert cur_col in reformatted_col_headers
 
+
+
+def test_dmap_for_scatter():
+    """
+        Use one of the DMAP linetype files found in the MET
+        nightly regression tests.
+
+        Verify that the columns in the reformatted file are consistent with the
+        original data which has all header columns (some are labelled, other are numbered).
+
+        Args:
+
+        Returns:
+
+            None passes or fails
+    """
+
+    stat_data, config = setup_test("dmap_for_scatter.yaml")
+    wsa = WriteStatAscii(config, logger)
+    reformatted_df = wsa.process_dmap(stat_data)
+    reformatted_df.to_csv("./dmap_for_scatter.data", sep="\t")
+
+    # Verify that all the DMAP and common headers are present in the reformatted output file.
+    expected_headers:list = list(cn.DMAP_HEADERS)
+    actual_headers:list = reformatted_df.columns.to_list()
+
+    # Remove the Idx column from the actual_headers list
+    actual_headers.pop(0)
+
+    # Verify that the expected number of headers exist in the reformatted data
+    assert len(expected_headers) == len(actual_headers)
+
+    # verify that the headers in the reformatted data are an exact match to expected DMAP headers
+    for hdr in actual_headers:
+        assert hdr in expected_headers
+
+    # Verify that the reformatting is correctly maintaining the row values with the associated header
+    # Specify the row corresponding to the DMAP line_type, model FCST, TMP, FULL vx_mask, and the fcst_thresh '<300'
+    working_df = stat_data[(stat_data['model'] == 'FCST') & (stat_data['line_type'] == 'DMAP') & (stat_data['fcst_var'] == 'TMP' )
+    & (stat_data['vx_mask'] =='FULL') & (stat_data['fcst_thresh'] == "<300")]
+
+    # Retrieve the total, fy, baddeley, hausdorff, med_min, g, gbeta, and beta_value values from the input MET data
+    # print(f"columns in working df: {working_df.columns.to_list()}").  Convert the resulting Series into a list,
+    # this will be a list with only one element.
+    expected_total = list(working_df.loc[1:, '0'])[0]
+    expected_fy = list(working_df.loc[1:, '1'])[0]
+    expected_baddeley = list(working_df.loc[1:, '4'])[0]
+    expected_hausdorff = list(working_df.loc[1:, '5'])[0]
+    expected_med_min = list(working_df.loc[1:, '8'])[0]
+    expected_g = list(working_df.loc[1:, '21'])[0]
+    expected_gbeta = list(working_df.loc[1:, '22'])[0]
+    expected_beta_value = list(working_df.loc[1:, '23'])[0]
+
+
+    # Retrieve the values corresponding to the same criteria in the reformatted data and verify these are consistent
+    # with the values above.
+    specific_reformatted = reformatted_df[(reformatted_df['model'] == 'FCST') & (reformatted_df['fcst_var'] == 'TMP') &
+                             (reformatted_df['vx_mask'] == 'FULL') & (reformatted_df['fcst_thresh'] == '<300')]
+    reformatted_total = list(specific_reformatted['total'])[0]
+    reformatted_fy = list(specific_reformatted['fy'])[0]
+    reformatted_baddeley = list(specific_reformatted['baddeley'])[0]
+    reformatted_hausdorff = list(specific_reformatted['hausdorff'])[0]
+    reformatted_med_min = list(specific_reformatted['med_min'])[0]
+    reformatted_g = list(specific_reformatted['g'])[0]
+    reformatted_gbeta = list(specific_reformatted['gbeta'])[0]
+    reformatted_beta_value = list(specific_reformatted['beta_value'])[0]
+
+    # Compare the values between the input MET data and the reformatted data
+    assert expected_total == reformatted_total
+    assert expected_fy == reformatted_fy
+    assert expected_baddeley == reformatted_baddeley
+    assert expected_hausdorff == reformatted_hausdorff
+    assert expected_med_min == reformatted_med_min
+    assert expected_g == reformatted_g
+    assert expected_gbeta == reformatted_gbeta
+    assert expected_beta_value == reformatted_beta_value
+
+
+def test_dmap_for_lineplot():
+    """
+        Use one of the DMAP linetype files found in the MET
+        nightly regression tests. The reformatted data is suitable for line plots and contour plots.
+
+        Verify that the columns in the reformatted file are consistent with the
+        original data which has all header columns.  Some header columns are labelled
+        with the column names specified in the MET User's Guide, others are labelled with
+        numbers.
+
+        Args:
+
+        Returns:
+
+            None passes or fails
+    """
+
+    stat_data, config = setup_test("dmap_for_line.yaml")
+    wsa = WriteStatAscii(config, logger)
+    reformatted_df = wsa.process_dmap(stat_data)
+
+    # Verify that the reformatting is correctly maintaining the row values with the associated header
+    # Specify the row corresponding to the DMAP line_type, model FCST, TMP, FULL vx_mask, and the fcst_thresh '<300'
+    working_df = stat_data[(stat_data['model'] == 'FCST') & (stat_data['line_type'] == 'DMAP') & (stat_data['fcst_var'] == 'TMP' )
+    & (stat_data['vx_mask'] =='FULL') & (stat_data['fcst_thresh'] == "<300")]
+
+    # Retrieve the total, fy, baddeley, hausdorff, med_min, g, gbeta, and beta_value values from the input MET data
+    # print(f"columns in working df: {working_df.columns.to_list()}").  Convert the resulting Series into a list,
+    # this will be a list with only one element.
+
+    expected_vals: dict = {}
+    expected_total = list(working_df.loc[1:, '0'])[0]
+    expected_fy = list(working_df.loc[1:, '1'])[0]
+    expected_baddeley = list(working_df.loc[1:, '4'])[0]
+    expected_hausdorff = list(working_df.loc[1:, '5'])[0]
+    expected_med_min = list(working_df.loc[1:, '8'])[0]
+    expected_g = list(working_df.loc[1:, '21'])[0]
+    expected_beta_value = list(working_df.loc[1:, '23'])[0]
+
+    # Store all these expected values into a dictionary
+    expected_vals['total'] = expected_total
+    expected_vals['fy'] = expected_fy
+    expected_vals['baddeley'] = expected_baddeley
+    expected_vals['hausdorff'] = expected_hausdorff
+    expected_vals['med_min'] = expected_med_min
+    expected_vals['g'] = expected_g
+    expected_vals['beta_value'] = expected_beta_value
+
+    # Retrieve the same values from the reformatted data.
+    # Store the values in a dictionary:
+    reformatted_vals: dict = {}
+    reformatted_working = reformatted_df[(reformatted_df['model'] == 'FCST') & (reformatted_df['vx_mask'] == "FULL") &
+                                         (reformatted_df['fcst_var'] == 'TMP') &
+                                         (reformatted_df['fcst_thresh'] == '<300')]
+    reformatted_total = list(reformatted_working['total'])[0]
+    reformatted_vals['total'] = reformatted_total
+
+    # Subset by stat_name to get a Series, then subset by the appropriate stat_value (as a list of one element)
+    # reformatted_fy_series: pd.Series  = reformatted_working[reformatted_working['stat_name'] == 'fy']
+    # reformatted_fy = list(reformatted_fy_series['stat_value'])[0]
+    # reformatted_vals['reformatted_fy'] = reformatted_fy
+    values_of_interest = ['fy', 'baddeley', 'hausdorff', 'med_min', 'g', 'gbeta', 'beta_value']
+
+    for vals in values_of_interest:
+        stat_names_series: pd.Series = reformatted_working[reformatted_working['stat_name'] == vals]
+        reformatted_val_of_interest = list(stat_names_series['stat_value'])
+        reformatted_val = reformatted_val_of_interest[0]
+        reformatted_vals[vals] = reformatted_val
+
+    print(f"\nexpected values: {expected_vals}")
+    print(f"\nvalues: {reformatted_vals}")
+    # Compare the expected values with the reformatted values
+    for cur_key in expected_vals.keys():
+        assert expected_vals[cur_key] == reformatted_vals[cur_key]
+
+
+    # number of rows of data corresponding to the above criteria should be equal to the number of DMAP columns as
+    # specified in the MET User's Guide: Table 12.7 Format information for DMAP (Distance Map) output line type
+    # (excluding the linetype and total columns)
+    expected_num_rows = len(list(cn.DMAP_SPECIFIC))
+    reformatted_num_rows = len(reformatted_working['stat_name'])
+    assert expected_num_rows == reformatted_num_rows
