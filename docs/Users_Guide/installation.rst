@@ -94,6 +94,13 @@ Add the following to the existing **PYTHONPATH**:
 
   export PYTHONPATH=${PYTHONPATH):$SRC/METdataio:$SRC/METdataio/METdbLoad:$SRC/METdataio/METdbLoad/ush:$SRC/METdataio/METreformat:$SRC/METdataio/METreadnc
 
+or
+
+.. code-block:: bash
+
+  cshrc:
+  setenv PYTHONPATH ${PYTHONPATH):$SRC/METdataio:
+
 This will ensure that all available METdataio code will be loaded.
 
 SRC - represents the path to the METdataio code.
