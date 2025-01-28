@@ -78,7 +78,8 @@ Instructions for installing the metdataio package locally
 
  * Use metdataio package via import statement:
 
-    * From metdataio import **metdbload.ush**
+   .. code-block:: ini
+      from metdataio import metdbload.ush
 
         * To use the modules in the *METdataio/METdbLoad/ush* directory.
 
