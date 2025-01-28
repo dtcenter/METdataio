@@ -79,7 +79,7 @@ Instructions for installing the metdataio package locally
 
     * From metdataio import **metdbload.ush**
 
-        * To use the modules in the *METdataio/METdbLoad/ush* directory
+        * To use the modules in the *METdataio/METdbLoad/ush* directory.
 
 
 Instructions for setting the PYTHONPATH
@@ -100,7 +100,7 @@ Or
 
   cshrc:
 
-  setenv PYTHONPATH ${PYTHONPATH):$SRC/METdataio:
+  setenv PYTHONPATH ${PYTHONPATH}:$SRC/METdataio:
 
 This will ensure that all available METdataio code will be loaded.
 
