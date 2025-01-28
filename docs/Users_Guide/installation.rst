@@ -75,7 +75,7 @@ Instructions for installing the METdataio package locally via conda
  * The . indicates that the user should search the current directory for
    the **pyproject.toml** file.
 
- * Use metdataio package via import statement:
+ * To use the modules in the *METdataio/METdbLoad/ush* directory, use the metdataio package via an import statement:
 
    .. code-block:: ini
       from metdataio import metdbload.ush
