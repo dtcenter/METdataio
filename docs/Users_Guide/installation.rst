@@ -54,15 +54,23 @@ Download the latest release:
 Instructions for installing the metdataio package locally
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
- * Activate the conda environment (i.e.  :code:`'conda activate your-conda-env-name'`)
+ * Activate the conda environment.
+
+    .. code-block:: ini
+
+      conda activate your-conda-env-name
 
  * From within the active conda environment, cd to the *METdataio/* directory,
-   where the file **pyproject.toml** is located
+   where the file **pyproject.toml** is located.
 
- * From this directory, run the following on the command line: :code:`pip install -e .`
+ * From this directory, run the following on the command line:
+   
+   .. code-block:: ini
+
+      pip install -e .
 
  * The -e option stands for editable, which is useful to
-   update the user's METdataio source without reinstalling it
+   update the user's METdataio source without reinstalling it.
 
  * The . indicates that the user should search the current directory for
    the **pyproject.toml** file.
