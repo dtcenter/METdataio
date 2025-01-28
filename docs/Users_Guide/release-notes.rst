@@ -10,10 +10,9 @@ METdataio Release Notes
 =======================
 
 METdataio Version 3.1.0-beta1 Release Notes (20250122)
--------------------------------------------------------
 
   .. dropdown:: New Functionality
-   
+
      None
 
   .. dropdown:: Enhancements

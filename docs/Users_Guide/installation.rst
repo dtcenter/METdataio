@@ -51,6 +51,65 @@ Download the latest release:
 
   git clone https://github.com/dtcenter/METdataio
 
+Instructions for installing the METdataio package locally via conda
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ * Activate the conda environment, changing <your-conda-env-name> to the correct location.
+
+    .. code-block:: ini
+
+      conda activate <your-conda-env-name>
+
+ * From within the active conda environment, change directories to be in the *METdataio/* directory,
+   where the file **pyproject.toml** is located.
+
+ * From this directory, run the following on the command line:
+   
+   .. code-block:: ini
+
+      pip install -e .
+
+ * The :code:`-e` option stands for editable, which is useful to
+   update the user's METdataio source without reinstalling it.
+
+ * The :code:`.` indicates that the user should search the current directory for
+   the **pyproject.toml** file.
+
+ * To use the modules in the *METdataio/METdbLoad/ush* directory, use the metdataio package via an import statement:
+
+   .. code-block:: ini
+
+      from metdataio import metdbload.ush
+
+
+
+Instructions for setting the PYTHONPATH
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If pip install is not permitted for the host machine, setting the **PYTHONPATH** is an alternative.
+Add the following to the existing **PYTHONPATH**:
+
+.. code-block:: bash
+
+  bash:
+
+  export PYTHONPATH=${PYTHONPATH}:$SRC/METdataio:$SRC/METdataio/METdbLoad:$SRC/METdataio/METdbLoad/ush:$SRC/METdataio/METreformat:$SRC/METdataio/METreadnc
+
+Or
+
+.. code-block:: bash
+
+  cshrc:
+
+  setenv PYTHONPATH ${PYTHONPATH}:$SRC/METdataio:
+
+This will ensure that all available METdataio code will be loaded.
+
+**$SRC** - Represents the path to the METdataio code.
+
+**${PYTHONPATH}** - Corresponds to existing paths that are already defined.
+
+
 .. note::
 
   Programs can be run from the METdbLoad/ush subdirectory.
