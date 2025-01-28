@@ -51,7 +51,7 @@ Download the latest release:
 
   git clone https://github.com/dtcenter/METdataio
 
-Instructions for installing the metdataio package locally
+Instructions for installing the METdataio package locally via conda
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
  * Activate the conda environment.  
