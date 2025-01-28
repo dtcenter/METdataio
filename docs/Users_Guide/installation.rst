@@ -54,7 +54,7 @@ Download the latest release:
 Instructions for installing the METdataio package locally via conda
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
- * Activate the conda environment.  
+ * Activate the conda environment, changing <your-conda-env-name> to the correct location.
    Please change 'your-conda-env-name' to the correct location.
 
     .. code-block:: ini
