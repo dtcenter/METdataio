@@ -72,7 +72,7 @@ Instructions for installing the METdataio package locally via conda
  * The `-e` option stands for editable, which is useful to
    update the user's METdataio source without reinstalling it.
 
- * The . indicates that the user should search the current directory for
+ * The `.` indicates that the user should search the current directory for
    the **pyproject.toml** file.
 
  * To use the modules in the *METdataio/METdbLoad/ush* directory, use the metdataio package via an import statement:
