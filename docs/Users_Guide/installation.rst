@@ -78,6 +78,7 @@ Instructions for installing the METdataio package locally via conda
  * To use the modules in the *METdataio/METdbLoad/ush* directory, use the metdataio package via an import statement:
 
    .. code-block:: ini
+
       from metdataio import metdbload.ush
 
 
