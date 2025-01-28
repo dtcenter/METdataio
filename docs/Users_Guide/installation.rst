@@ -60,7 +60,7 @@ Instructions for installing the METdataio package locally via conda
 
       conda activate <your-conda-env-name>
 
- * From within the active conda environment, cd to the *METdataio/* directory,
+ * From within the active conda environment, change directories to be in the *METdataio/* directory,
    where the file **pyproject.toml** is located.
 
  * From this directory, run the following on the command line:
