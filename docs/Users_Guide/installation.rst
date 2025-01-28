@@ -69,7 +69,7 @@ Instructions for installing the METdataio package locally via conda
 
       pip install -e .
 
- * The -e option stands for editable, which is useful to
+ * The `-e` option stands for editable, which is useful to
    update the user's METdataio source without reinstalling it.
 
  * The . indicates that the user should search the current directory for
