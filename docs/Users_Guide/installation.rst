@@ -80,7 +80,6 @@ Instructions for installing the METdataio package locally via conda
    .. code-block:: ini
       from metdataio import metdbload.ush
 
-        * To use the modules in the *METdataio/METdbLoad/ush* directory.
 
 
 Instructions for setting the PYTHONPATH
