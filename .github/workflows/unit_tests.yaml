@@ -50,20 +50,20 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Retrieve METcalcpy repository develop branch
+      - name: Retrieve METcalcpy repository active feature branch
         run: |
           python -m pip install --upgrade pip
           metcalcpy_dir="${RUNNER_WORKSPACE}/METcalcpy"
           git clone https://github.com/dtcenter/METcalcpy ${metcalcpy_dir}
-          git -C ${metcalcpy_dir} checkout develop
+          git -C ${metcalcpy_dir} checkout feature_update_python
           python -m pip install -e ${metcalcpy_dir}
 
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest>=7.1.1
-          python -m pip install netcdf4==1.6.2
+          # python -m pip install pytest>=7.1.1
+          # python -m pip install netcdf4==1.6.2
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install pytest-cov
 
