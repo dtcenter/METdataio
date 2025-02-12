@@ -455,7 +455,7 @@ def test_empty_files(tmp_path):
 def test_print_version():
     mock_logger = MagicMock()
     print_version(mock_logger)
-    assert mock_logger.info.called_once
+    assert mock_logger.info.called
     assert mock_logger.info.call_args[0][0].startswith("METdbload Version:")
 
     with pytest.raises(SystemExit):
