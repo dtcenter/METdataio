@@ -1,5 +1,5 @@
 lxml==5.3.0
-numpy==2.2.2
+numpy==2.2.3
 pandas==2.2.3
 pip==25.0
 PyMySQL==1.1.1
