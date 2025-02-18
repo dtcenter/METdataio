@@ -267,11 +267,11 @@ def test_something():
     # *** Count mode table rows
     q_line2 = "SELECT table_name, table_rows FROM information_schema.tables " + \
             "WHERE table_schema = '" + DB2 + "' AND " + \
-            "table_name LIKE 'mode\_%';"
+            "table_name LIKE 'mode\\_%';"
 
     q_line3 = "SELECT table_name, table_rows FROM information_schema.tables " + \
             "WHERE table_schema = '" + DB3 + "' AND " + \
-            "table_name LIKE 'mode\_%';"
+            "table_name LIKE 'mode\\_%';"
 
     same = count_rows(q_line2, q_line3)
 
@@ -429,11 +429,11 @@ def test_something():
     # *** Count mtd table rows
     q_line2 = "SELECT table_name, table_rows FROM information_schema.tables " + \
             "WHERE table_schema = '" + DB2 + "' AND " + \
-            "table_name LIKE 'mtd\_%';"
+            "table_name LIKE 'mtd\\_%';"
 
     q_line3 = "SELECT table_name, table_rows FROM information_schema.tables " + \
             "WHERE table_schema = '" + DB3 + "' AND " + \
-            "table_name LIKE 'mtd\_%';"
+            "table_name LIKE 'mtd\\_%';"
 
     same = count_rows(q_line2, q_line3)
 
