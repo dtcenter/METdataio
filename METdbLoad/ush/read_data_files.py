@@ -1534,16 +1534,16 @@ class ReadDataFiles:
         # convert MET dates to correct date format
         stat_file[CN.FCST_VALID_BEG] = \
             pd.to_datetime(stat_file[CN.FCST_VALID_BEG],
-                           format='%Y%m%d_%H%M%S', errors='ignore')
+                           format='%Y%m%d_%H%M%S', errors='raise')
         stat_file[CN.FCST_VALID_END] = \
             pd.to_datetime(stat_file[CN.FCST_VALID_END],
-                           format='%Y%m%d_%H%M%S', errors='ignore')
+                           format='%Y%m%d_%H%M%S', errors='raise')
         stat_file[CN.OBS_VALID_BEG] = \
             pd.to_datetime(stat_file[CN.OBS_VALID_BEG],
-                           format='%Y%m%d_%H%M%S', errors='ignore')
+                           format='%Y%m%d_%H%M%S', errors='raise')
         stat_file[CN.OBS_VALID_END] = \
             pd.to_datetime(stat_file[CN.OBS_VALID_END],
-                           format='%Y%m%d_%H%M%S', errors='ignore')
+                           format='%Y%m%d_%H%M%S', errors='raise')
         return stat_file
 
     def read_tcst(self, filename, hdr_names):
@@ -1581,10 +1581,10 @@ class ReadDataFiles:
         # convert MET dates to correct date format
         stat_file[CN.INIT] = \
             pd.to_datetime(stat_file[CN.INIT],
-                           format='%Y%m%d_%H%M%S', errors='ignore')
+                           format='%Y%m%d_%H%M%S', errors='raise')
         stat_file[CN.VALID] = \
             pd.to_datetime(stat_file[CN.VALID],
-                           format='%Y%m%d_%H%M%S', errors='ignore')
+                           format='%Y%m%d_%H%M%S', errors='raise')
 
         return stat_file
 
@@ -1621,13 +1621,14 @@ class ReadDataFiles:
         stat_file.columns = hdr_names
 
         # convert MET dates to correct date format
+
         stat_file[CN.FCST_VALID] = \
             pd.to_datetime(stat_file[CN.FCST_VALID],
-                           format='%Y%m%d_%H%M%S', errors='ignore')
+                           format='%Y%m%d_%H%M%S', errors='raise')
         stat_file.loc[stat_file.obs_valid ==
                       CN.NOTAV, CN.OBS_VALID] = CN.MV_NULL
         stat_file[CN.OBS_VALID] = \
             pd.to_datetime(stat_file[CN.OBS_VALID],
-                           format='%Y%m%d_%H%M%S', errors='ignore')
+                           format='%Y%m%d_%H%M%S', errors='raise')
 
         return stat_file
