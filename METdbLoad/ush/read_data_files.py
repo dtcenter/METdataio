@@ -552,13 +552,13 @@ class ReadDataFiles:
                                 if mtd_file[CN.FCST_LEAD].eq(0).any():
                                     mtd_file.loc[mtd_file.fcst_lead ==
                                                  0, CN.FCST_LEAD] = int(CN.MV_NOTAV)
-                                    mtd_file[CN.FCST_LEAD].astype(np.int64)
+                                    mtd_file[CN.FCST_LEAD].astype(object)
 
                                 # if OBS_LEAD is NA, set it to -9999
                                 if not mtd_file.obs_lead.dtypes == 'int':
                                     mtd_file.loc[mtd_file.obs_lead ==
                                                  CN.NOTAV, CN.OBS_LEAD] = int(CN.MV_NOTAV)
-                                    mtd_file[CN.OBS_LEAD].astype(np.int64)
+                                    mtd_file[CN.OBS_LEAD].astype(object)
 
                                 # initially, match line data to the index of the file names
                                 mtd_file[CN.FILE_ROW] = row_num
