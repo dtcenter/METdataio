@@ -175,7 +175,7 @@ class WriteMtdSql:
                     # for the obs_lead and fcst_lead columns in the dataframes that are being merged
                     headers_to_convert = [CN.OBS_LEAD, CN.FCST_LEAD]
                     for cur_header in headers_to_convert:
-                       mtd_headers[cur_header] = mtd_headers[cur_header].astype(str)
+                        mtd_headers[cur_header] = mtd_headers[cur_header].astype(str)
                         m_2d_data[cur_header] = m_2d_data[cur_header].astype(str)
 
                     m_2d_data = pd.merge(left=mtd_headers, right=m_2d_data, on=CN.MTD_2D_HEADER_KEYS, validate="one-to_one")
