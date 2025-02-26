@@ -178,7 +178,7 @@ class WriteMtdSql:
                         mtd_headers[cur_header] = mtd_headers[cur_header].astype(str)
                         m_2d_data[cur_header] = m_2d_data[cur_header].astype(str)
 
-                    m_2d_data = pd.merge(left=mtd_headers, right=m_2d_data, on=CN.MTD_2D_HEADER_KEYS, validate="1:1")
+                    m_2d_data = pd.merge(left=mtd_headers, right=m_2d_data, on=CN.MTD_2D_HEADER_KEYS)
                     m_2d_data.loc[m_2d_data.obs_valid.isnull(), CN.OBS_VALID] = CN.MV_NULL
 
                     # create defaults for flags
