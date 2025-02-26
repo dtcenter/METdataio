@@ -170,13 +170,12 @@ class WriteMtdSql:
                     m_2d_data.obs_valid = pd.to_datetime(m_2d_data.obs_valid,
                                                          errors='coerce')
                     # put the header ids back into the dataframe
-                    # put the header ids back into the dataframe
+                    try:
+                      m_2d_data = pd.merge(left=mtd_headers, right=m_2d_data, on=CN.MTD_2D_HEADER_KEYS, validate="one-to_one")
+                    except:
+                        mtd_headers[CN.OBS_LEAD] = mtd_headers[CN.OBS_LEAD].astype(int)
+                        m_2d_data[CN.OBS_LEAD] = m_2d_data[CN.OBS_LEAD].astype(int)
 
-                    # update for pandas 2.2.x, convert dtype on the m_2d_data obs_lead and fcst_lead
-                    # columns to object types.
-                    m_2d_data[CN.OBS_LEAD] = m_2d_data[CN.OBS_LEAD].astype(object)
-                    m_2d_data[CN.FCST_LEAD] = m_2d_data[CN.FCST_LEAD].astype(object)
-                    m_2d_data = pd.merge(left=mtd_headers, right=m_2d_data, on=CN.MTD_2D_HEADER_KEYS)
                     m_2d_data.loc[m_2d_data.obs_valid.isnull(), CN.OBS_VALID] = CN.MV_NULL
 
                     # create defaults for flags
