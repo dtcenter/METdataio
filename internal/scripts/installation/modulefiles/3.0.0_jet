@@ -7,7 +7,7 @@ proc ModulesHelp { } {
      *** For help see the official MET webpage at http://www.dtcenter.org/met/users ***"
 }
 
-prereq intel
+prereq intel/2024.2.1
 
 prepend-path PATH /lfs1/HFIP/dtc-hurr/METplus/miniconda/miniconda3/envs/metplus_v5.1_py3.10/bin
 
@@ -17,7 +17,6 @@ prepend-path PATH /contrib/met/METdataio/METdataio-3.0.0/METreformat
 prepend-path PATH /contrib/met/METdataio/METdataio-3.0.0/METreadnc/util
 prepend-path PATH /contrib/met/METdataio/METdataio-3.0.0/METreadnc
 prepend-path PATH /contrib/met/METdataio/METdataio-3.0.0
-
 prepend-path PYTHONPATH /contrib/met/METdataio/METdataio-3.0.0/METdbLoad/ush
 prepend-path PYTHONPATH /contrib/met/METdataio/METdataio-3.0.0/METdbLoad
 prepend-path PYTHONPATH /contrib/met/METdataio/METdataio-3.0.0/METreformat
