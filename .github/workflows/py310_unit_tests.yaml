@@ -50,12 +50,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Retrieve METcalcpy repository feature_update_python branch
+      - name: Retrieve METcalcpy repository develop branch
         run: |
           python -m pip install --upgrade pip
           metcalcpy_dir="${RUNNER_WORKSPACE}/METcalcpy"
           git clone https://github.com/dtcenter/METcalcpy ${metcalcpy_dir}
-          git -C ${metcalcpy_dir} checkout feature_update_python
+          git -C ${metcalcpy_dir} checkout develop
           python -m pip install -e ${metcalcpy_dir}
 
 
