@@ -1,0 +1,122 @@
+name: SonarQube Scan
+
+# Run SonarQube for Pull Requests and changes to the develop and main_vX.Y branches
+
+on:
+
+  # Trigger analysis for pushes to develop and main_vX.Y branches
+  push:
+    branches:
+      - develop
+      - 'main_v**'
+    paths-ignore:
+      - 'docs/**'
+      - '.github/pull_request_template.md'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '**/README.md'
+      - '**/LICENSE.md'
+
+  # Trigger analysis for pull requests to develop and main_vX.Y branches
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - develop
+      - 'main_v**'
+    paths-ignore:
+      - 'docs/**'
+      - '.github/pull_request_template.md'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '**/README.md'
+      - '**/LICENSE.md'
+
+  workflow_dispatch:
+    inputs:
+      reference_branch:
+        description: 'Reference Branch'
+        default: develop
+        type: string
+
+jobs:
+  sonarqube:
+    name: SonarQube Scan
+    runs-on: ubuntu-latest
+    
+    services:
+      mariadb:
+        image: mariadb:latest
+        env:
+          MARIADB_ROOT_PASSWORD: root_password
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
+    
+    steps:
+
+    - name: Check if PR is from a fork
+      id: check_fork
+      if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != 'dtcenter/METdataio' }}
+      run: echo "SonarQube scan cannot be run from a fork"; exit 1
+    - uses: actions/checkout@v4
+      with:
+        # Disable shallow clones for better analysis
+        fetch-depth: 0
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Retrieve METcalcpy repository develop branch
+      run: |
+        python -m pip install --upgrade pip
+        metcalcpy_dir="${RUNNER_WORKSPACE}/METcalcpy"
+        git clone https://github.com/dtcenter/METcalcpy ${metcalcpy_dir}
+        git -C ${metcalcpy_dir} checkout develop
+        python -m pip install -e ${metcalcpy_dir}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install pytest>=7.1.1
+        python -m pip install netcdf4==1.6.2
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        python -m pip install pytest-cov
+
+    - name: Run Pytests
+      run: |
+        coverage run --append -m pytest
+
+    - name: Output coverage report
+      run: coverage report -m
+      if: ${{ always() && steps.check_fork.conclusion == 'skipped' }}
+
+    - name: Generate XML coverage report
+      run: coverage xml
+      if: ${{ always() && steps.check_fork.conclusion == 'skipped' }}
+
+    - name: Get branch name
+      id: get_branch_name
+      run: echo branch_name=${GITHUB_REF#refs/heads/} >> $GITHUB_OUTPUT
+
+    - name: Configure SonarQube
+      run: .github/jobs/configure_sonarqube.sh
+      env:
+        SOURCE_BRANCH: ${{ steps.get_branch_name.outputs.branch_name }}
+        WD_REFERENCE_BRANCH: ${{ github.event.inputs.reference_branch }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    - name: SonarQube Scan
+      uses: sonarsource/sonarqube-scan-action@master
+      env:
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    - name: SonarQube Quality Gate check
+      id: sonarqube-quality-gate-check
+      uses: sonarsource/sonarqube-quality-gate-action@master
+      # Force to fail step after specific time.
+      timeout-minutes: 5
+      env:
+       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
