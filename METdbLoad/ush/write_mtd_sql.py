@@ -170,10 +170,17 @@ class WriteMtdSql:
                     m_2d_data.obs_valid = pd.to_datetime(m_2d_data.obs_valid,
                                                          errors='coerce')
                     # put the header ids back into the dataframe
-                    m_2d_data = pd.merge(
-                        left=mtd_headers, right=m_2d_data, on=CN.MTD_2D_HEADER_KEYS)
-                    m_2d_data.loc[m_2d_data.obs_valid.isnull(),
-                                  CN.OBS_VALID] = CN.MV_NULL
+
+                    # to address changes in pandas 2.2, explicitly convert the dtypes
+                    # for the obs_lead and fcst_lead columns in the dataframes that are being merged
+                    headers_to_convert = [CN.OBS_LEAD, CN.FCST_LEAD]
+                    for cur_header in headers_to_convert:
+                        mtd_headers[cur_header] = mtd_headers[cur_header].astype(str)
+                        m_2d_data[cur_header] = m_2d_data[cur_header].astype(str)
+
+                    m_2d_data = pd.merge(left=mtd_headers, right=m_2d_data, on=CN.MTD_2D_HEADER_KEYS)
+                    obs_valid = m_2d_data.obs_valid.astype(str)
+                    m_2d_data.loc[obs_valid.isnull(), CN.OBS_VALID] = CN.MV_NULL
 
                     # create defaults for flags
                     m_2d_data[CN.SIMPLE_FLAG] = 1
@@ -212,6 +219,14 @@ class WriteMtdSql:
                                                                 errors='coerce')
 
                     # put the header ids back into the dataframe
+
+                    # to address changes in pandas 2.2, explicitly convert the dtypes
+                    # for the obs_lead and fcst_lead columns in the dataframes that are being merged
+                    headers_to_convert = [CN.OBS_LEAD, CN.FCST_LEAD]
+                    for cur_header in headers_to_convert:
+                        mtd_headers[cur_header] = mtd_headers[cur_header].astype(str)
+                        m_3d_single_data[cur_header] = m_3d_single_data[cur_header].astype(str)
+
                     m_3d_single_data = pd.merge(left=mtd_headers, right=m_3d_single_data,
                                                 on=CN.MTD_HEADER_KEYS)
                     m_3d_single_data.loc[m_3d_single_data.obs_valid.isnull(
@@ -254,6 +269,13 @@ class WriteMtdSql:
                                                               errors='coerce')
 
                     # put the header ids back into the dataframe
+                    # to address changes in pandas 2.2, explicitly convert the dtypes
+                    # for the obs_lead and fcst_lead columns in the dataframes that are being merged
+                    headers_to_convert = [CN.OBS_LEAD, CN.FCST_LEAD]
+                    for cur_header in headers_to_convert:
+                        mtd_headers[cur_header] = mtd_headers[cur_header].astype(str)
+                        m_3d_pair_data[cur_header] = m_3d_pair_data[cur_header].astype(str)
+
                     m_3d_pair_data = pd.merge(left=mtd_headers, right=m_3d_pair_data,
                                               on=CN.MTD_HEADER_KEYS)
                     m_3d_pair_data.loc[m_3d_pair_data.obs_valid.isnull(

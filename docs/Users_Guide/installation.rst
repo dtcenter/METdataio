@@ -32,12 +32,15 @@ typing the command in the CLI and/or make the corresponding edit to
 Python Requirements
 -------------------
 
-**Python 3.10.4+** - Python 3.10.4 or higher must be installed. 
+**Python 3.12+** - Python 3.12 or higher must be installed. 
+
+**NOTE** Due to the lack of backwards compatibility in pandas 2.x, this code no longer works with Python 3.10
 
 The requirements below come directly from the **requirements.txt** file 
 at the top level of the repository.
 
 .. literalinclude:: ../../requirements.txt
+
 
 Installation
 ============

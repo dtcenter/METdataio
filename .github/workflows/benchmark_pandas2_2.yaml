@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.10" ]
+        python-version: [ "3.12" ]
 
     steps:
       - uses: actions/checkout@v4
@@ -52,11 +52,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest>=7.1.1
+          python -m pip install pytest>=8.3.4
           python -m pip install pytest_benchmark
-          python -m pip install netcdf4==1.6.2
+          python -m pip install netcdf4==1.7.2
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          python -m pip install pandas==2.2
+          python -m pip install pandas==2.2.3
       
 
       #   Checking the branch name, not necessary but useful when setting things up.

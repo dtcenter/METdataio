@@ -143,6 +143,7 @@ class WriteStatSql:
                                 str(len(line_data.index)))
 
                     # change all Not Available values to METviewer not available (-9999)
+                    pd.set_option('future.no_silent_downcasting', True)
                     line_data = line_data.replace(CN.NOTAV, CN.MV_NOTAV)
 
                     # Only variable length lines have a line_data_id
