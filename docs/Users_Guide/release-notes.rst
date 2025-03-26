@@ -35,6 +35,8 @@ METdataio Upgrade Instructions
 
 .. note::
 
-   In the METdataio-3.1.0-beta2 release, METdataio switched from developing
-   with Python 3.10.4 to developing with Python 3.12.
+   In the METdataio-3.1.0-beta2 release, METdataio switched from development
+   with Python 3.10.4 to development with Python 3.12. View the
+   requirements.txt/nco_requirements.txt file at the top level of the
+   repository for version numbers for the corresponding third-party packages.
 
