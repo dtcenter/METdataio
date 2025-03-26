@@ -1,11 +1,11 @@
-lxml==5.3.0
-numpy==2.2.2
-pandas==2.2.3
-pip==25.0
-PyMySQL==1.1.1
-pytest==8.3.4
-python-dateutil==2.9.0.post0
-PyYAML==6.0.2
+lxml>=5.3.0
+numpy>=2.2.2
+pandas>=2.2.3
+pip>=25.0
+PyMySQL>=1.1.1
+pytest>=8.3.4
+python-dateutil>=2.9.0.post0
+PyYAML>=6.0.2
 xarray>=2025.1.2
 
 
