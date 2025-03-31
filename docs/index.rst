@@ -134,13 +134,65 @@ To cite this documentation in publications, please refer to the METdataio User's
        National Oceanic and Atmospheric Administration (NOAA) Earth 
        System Research Laboratory <https://www.esrl.noaa.gov/>`_
 
+.. toctree::
+   :hidden:
+   :caption: Training
 
-.. Toctree::
+   METplus Tutorial <https://metplus-training.readthedocs.io/en/latest/Tutorial/index.html>
+   Training Series <https://metplus-training.readthedocs.io/en/latest/Training_Series/index.html>
+   Featured Topics <https://metplus-training.readthedocs.io/en/latest/Featured_Topics/index.html>
+             
+.. toctree::
+   :hidden:
+   :caption: METplus
+
+   User's Guide <https://metplus.readthedocs.io/en/latest/Users_Guide/index.html>
+   Contributor's Guide <https://metplus.readthedocs.io/en/latest/Contributors_Guide/index.html>
+   Verification Datasets Guide <https://metplus.readthedocs.io/en/latest/Verification_Datasets/index.html>
+   Release Guide <https://metplus.readthedocs.io/en/latest/Release_Guide/index.html>
+
+.. toctree::
+   :hidden:
+   :caption: MET
+
+   User's Guide <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/index.html>
+   Contributor's Guide <https://metplus.readthedocs.io/projects/met/en/latest/Contributors_Guide/index.html>
+
+.. toctree::
+   :hidden:
+   :caption: METexpress
+
+   User's Guide <https://metplus.readthedocs.io/projects/metexpress/en/latest/index.html>
+
+.. toctree::
+   :hidden:
+   :caption: METviewer
+
+   User's Guide <https://metplus.readthedocs.io/projects/metviewer/en/latest/Users_Guide/index.html>
+   Contributor's Guide <https://metplus.readthedocs.io/projects/metviewer/en/latest/Contributors_Guide/index.html>
+
+.. toctree::
+   :hidden:
+   :caption: METplotpy
+   
+   User's Guide <https://metplus.readthedocs.io/projects/metplotpy/en/latest/Users_Guide/index.html>
+   Contributor's Guide <https://metplus.readthedocs.io/projects/metplotpy/en/latest/Contributors_Guide/index.html>
+
+.. toctree::
+   :hidden:
+   :caption: METcalcpy
+
+   User's Guide <https://metplus.readthedocs.io/projects/metcalcpy/en/latest/Users_Guide/index.html>
+   Contributor's Guide <https://metplus.readthedocs.io/projects/metcalcpy/en/latest/Contributors_Guide/index.html>
+   
+.. toctree::
    :hidden:
    :caption: METdataio
 
    Users_Guide/index
    Contributors_Guide/index
+
+
 
 Index
 =====
