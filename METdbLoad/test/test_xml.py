@@ -151,3 +151,39 @@ def test_db_xml(get_specified_xml_loadfile, xml_config):
                f"schema {utils.LOAD_SPECIFICATION_SCHEMA}")
         pytest.fail(msg)
 
+def test_line_type(get_specified_xml_loadfile):
+    """
+       Test validation against an XML specification file.
+       ValueError should be NOT be raised for
+       the test_line_type.xml specification file.
+    """
+    # Get the XML specification file that has a line_type following the newly updated
+    # schema to match the code in the METdbLoad read_load_xml.py module.
+
+    xml_spec_filename = "test_line_type.xml"
+    xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
+    try:
+        xml_load_file_obj.read_xml()
+    except ValueError:
+        msg = (f"Unexpected ValueError when validating {os.path.join(TEST_XML_SPECIFICATION_FILEPATH,xml_spec_filename)} against "
+               f"schema {utils.LOAD_SPECIFICATION_SCHEMA}")
+        pytest.fail(msg)
+
+def test_bad_line_type(get_specified_xml_loadfile):
+    """
+       Test validation against an XML specification file that incorrectly has the line_type as a child of
+       the load_val element.
+       ValueError SHOULD be raised for
+       the test_line_type.xml specification file.
+    """
+    # Get the XML specification file that has a line_type following the newly updated
+    # schema to match the code in the METdbLoad read_load_xml.py module.
+
+    xml_spec_filename = "test_bad_line_type.xml"
+    xml_load_file_obj = get_specified_xml_loadfile(TEST_XML_SPECIFICATION_FILEPATH, xml_spec_filename)
+
+    with pytest.raises(ValueError):
+        xml_load_file_obj.read_xml()
+
+
+
