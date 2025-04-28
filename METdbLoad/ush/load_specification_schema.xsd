@@ -170,7 +170,7 @@
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
-                
+
                 <xs:element name="line_type" minOccurs="0" maxOccurs="1">
                     <xs:complexType>
                         <xs:sequence>
@@ -178,7 +178,9 @@
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
+
                 <xs:element type="xs:string" name="load_xml" minOccurs="0"/>
+                
                 <xs:element type="xs:string" name="load_note" minOccurs="0"/>
             </xs:sequence>
         </xs:complexType>
