@@ -59,14 +59,13 @@
       <val>grid_stat_cmn</val>
       <val>point_stat_cmn</val>
     </field>
-    <line_type>
-      <val>CNT</val>
-      <val>ORANK</val>
-      <val>SEEPS_MPR</val>
-      <val>ME</val>
-    </line_type>
   </load_val>
-  
+  <line_type>
+    <val>CNT</val>
+    <val>ORANK</val>
+    <val>SEEPS_MPR</val>
+    <val>ME</val>
+  </line_type>
   <load_xml>true</load_xml>
   <load_note>Load HREF and RTPS data for Spring 2022.</load_note>
   
