@@ -13,7 +13,7 @@
     <xs:simpleType name="truefalsetype">
         <!--Checking for true or false values only (allow for case-insensitive) -->
         <xs:restriction base="xs:string">
-                        <xs:pattern value="((t|T)(r|R)(u|U)(e|E))|((f|F)(a|A)(l|L)(s|S)(e|E))"/>
+            <xs:pattern value="((t|T)(r|R)(u|U)(e|E))|((f|F)(a|A)(l|L)(s|S)(e|E))"/>
         </xs:restriction>
     </xs:simpleType>
 
@@ -138,11 +138,11 @@
                 <xs:element type="limitedstringtype" name="description" minOccurs="0"/>
 
                 <xs:element name="load_files" minOccurs="0">
-                   <xs:complexType>
-                       <xs:sequence>
-                          <xs:element type="xs:string" name="file" minOccurs="1" maxOccurs="200"/>
-                       </xs:sequence>
-                   </xs:complexType>
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element type="xs:string" name="file" minOccurs="1" maxOccurs="200"/>
+                        </xs:sequence>
+                    </xs:complexType>
                 </xs:element>
 
                 <xs:element type="foldertmpl" name="folder_tmpl" minOccurs="0"/>
@@ -162,21 +162,23 @@
                                                 </xs:simpleContent>
                                             </xs:complexType>
                                         </xs:element>
-                                         <xs:element type="xs:string" name="val" minOccurs="0" maxOccurs="100"/>
+                                        <xs:element type="xs:string" name="val" minOccurs="0" maxOccurs="100"/>
                                     </xs:sequence>
                                     <xs:attribute type="xs:string" name="name"/>
                                 </xs:complexType>
                             </xs:element>
-                            <xs:element name="line_type" minOccurs="0" maxOccurs="1">
-                               <xs:complexType>
-                                  <xs:sequence>
-                                     <xs:element type="linetype" name="val" maxOccurs="800" minOccurs="0"/>
-                                  </xs:sequence>
-                               </xs:complexType>
-                            </xs:element>
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
+                <xs:element name="line_type" minOccurs="0" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element type="linetype" name="val" maxOccurs="800" minOccurs="0"/>
+                        </xs:sequence>
+                    </xs:complexType>
+
+                </xs:element>
+
                 <xs:element type="xs:string" name="load_xml" minOccurs="0"/>
                 <xs:element type="xs:string" name="load_note" minOccurs="0"/>
             </xs:sequence>
