@@ -762,9 +762,9 @@ Troubleshooting
   * - Solution:
     - This error is typically encountered when one of the following conditions exist as a result of failing the XML validation step:
 
-         - the order of the elements in the XML load specification file is inconsistent with the order expected
-         - the XML load specification file is missing one or more mandatory elements
-         - one or more elements has exceeded size limits specified in the XML schema
-         - there are additional XML elements that are not expected
+        - the order of the elements in the XML load specification file is inconsistent with the order expected
+        - the XML load specification file is missing one or more mandatory elements
+        - one or more elements has exceeded size limits specified in the XML schema
+        - there are additional XML elements that are not expected
 
        **Refer to the section **Create the XML Load Specification File** to verify that the XML load specification file is correct.**
