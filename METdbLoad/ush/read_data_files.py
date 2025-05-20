@@ -433,9 +433,9 @@ class ReadDataFiles:
                                     if not len(tcst_file):
                                         continue
                                     tcst_file.insert(3, CN.DESCR, CN.NOTAV)
-                                elif str(CN.TCST_HEADER_KEYS[1]).lower() in file_hdr.iloc[0].str.lower():
+                                elif str(CN.TCST_HEADER_KEYS[1]).lower() in str(file_hdr.iloc[0].to_list()).lower():
                                     # if AMODEL is in the list of headers, then this is a tcst file
-                                    hdr_names = CN.LONG_HEADER + CN.COL_NUMS
+                                    hdr_names = CN.LONG_HEADER_TCST + CN.COL_NUMS
                                     tcst_file = self.read_tcst(
                                         filename, hdr_names)
                                 else:
@@ -449,7 +449,7 @@ class ReadDataFiles:
 
                                     has_rirw = True
 
-                                # File has headers but not data
+                                    # File has headers but not data
                                     if has_rirw:
                                         if not len(one_file):
                                             continue
