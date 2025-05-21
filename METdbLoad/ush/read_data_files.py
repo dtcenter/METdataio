@@ -1621,9 +1621,6 @@ class ReadDataFiles:
 
         return stat_file
 
-    def assign_header_tcst(self):
-        pass
-
     def read_mode(self, filename, hdr_names):
         """ Read in all the lines except the header of a mode file.
             Returns:
