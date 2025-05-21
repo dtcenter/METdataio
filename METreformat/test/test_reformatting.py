@@ -1289,7 +1289,9 @@ def test_tcst_with_cts():
         tcst_data, config = setup_test("./reformat_tcst_cts.yaml")
         wsa = WriteStatAscii(config, logger)
         reformatted_df = wsa.write_stat_ascii(tcst_data, config)
-        expected_cts = pd.read_csv("./expected/expected_reformatted_cts_from_stat.data", sep='\t')
+        stat_data, sconfig = setup_test("./reformat_stat_cts.yaml")
+        wsa_stat = WriteStatAscii(sconfig, logger)
+        expected_cts = wsa_stat.write_stat_ascii(stat_data, sconfig)
 
         # reformatted_df and expected_cts should have the same number of rows
         # of data and the same number of columns
@@ -1317,7 +1319,11 @@ def test_tcst_with_ctc():
             tcst_data, config = setup_test("./reformat_tcst_ctc.yaml")
             wsa = WriteStatAscii(config, logger)
             reformatted_df = wsa.write_stat_ascii(tcst_data, config)
-            expected_ctc = pd.read_csv("./expected/expected_reformatted_ctc_from_stat.data", sep='\t')
+
+            stat_data, sconfig = setup_test("./reformat_stat_ctc.yaml")
+            wsa_stat = WriteStatAscii(sconfig, logger)
+            expected_ctc = wsa_stat.write_stat_ascii(stat_data, sconfig)
+
             # reformatted_df and expected_cts should have the same number of rows
             # of data and the same number of columns
             assert reformatted_df.shape[0] == expected_ctc.shape[0]
