@@ -1,0 +1,26 @@
+# Configuration settings for reformatting MET .stat output to format for METplotpy
+
+# if .stat file input already contains aggregated statistics (i.e. output from MET stat-analysis
+# has been applied to MET .stat output from point-stat, grid-stat, or ensemble-stat).
+input_stats_aggregated: True 
+
+output_dir: ./output
+output_filename: reformatted_cts_from_tcst.data
+
+input_data_dir: ./data/tc_stat_rirw_cts_ctc
+
+# Set to log_filename to STDOUT/stdout if no log file is to be saved
+log_directory: ./output
+log_filename:  stdout
+# most verbose is info, less verbose is error
+log_level: info
+
+# Currently support FHO, CTC, CTS, CNT, SL1L2, VL1L2, PCT, MCTC, VCNT, ECNT, RHIST, TCDiag, MPR, and DMAP line types
+line_type: CTS
+
+#
+# FOR MPR or DMAP linetypes only
+#
+
+# True if reformatting for scatter plot, False otherwise
+keep_all_cols: False
