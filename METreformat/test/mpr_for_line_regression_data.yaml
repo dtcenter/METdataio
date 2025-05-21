@@ -4,7 +4,7 @@
 # has been applied to MET .stat output from point-stat, grid-stat, or ensemble-stat).
 input_stats_aggregated: True 
 
-output_dir:  ../output
+output_dir:  ./output
 output_filename: reformatted_mpr_for_line.txt
 
 
