@@ -20,7 +20,7 @@ print(sys.path)
 project = 'METdataio'
 author = 'UCAR/NSF NCAR, NOAA, CSU/CIRA, and CU/CIRES'
 author_list = 'Win-Gildenmeister, M., V. Hagerty, M. Smith, T. Burek, and H. Fisher'
-version = '3.1.0-rc1'
+version = '3.2.0-beta1-dev'
 verinfo = version
 release = f'{version}'
 release_year = '2025'
