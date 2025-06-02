@@ -444,10 +444,10 @@ class XmlLoadFile:
 
             # find all files in directories, append path to them, and put on load_files list
             file_list = []
-            for file_dir in load_dirs:
+            for file_dir in sorted(load_dirs):
                 if os.path.exists(file_dir):
                     file_list = file_list + [os.path.join(file_dir, x)
-                                             for x in os.listdir(file_dir)]
+                                             for x in sorted(os.listdir(file_dir))]
 
         except ValueError as value_error:
             self.logger.error(

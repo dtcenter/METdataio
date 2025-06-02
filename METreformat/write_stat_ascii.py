@@ -361,7 +361,7 @@ class WriteStatAscii:
         num_repeating_col_labels: int = int(cn.LINE_VAR_REPEATS[linetype])
 
         #  Retrieve the value for N_THRESH, the number of thresholds
-        num_thresh: int = int(stat_data_copy.iloc[0][cn.NUM_STATIC_PCT_COLS])
+        num_thresh: int = int(stat_data_copy.iloc[0].iloc[cn.NUM_STATIC_PCT_COLS])
 
         # Add 1 for THRESH_N, the last threshold value column
         total_number_variable_columns = num_thresh * num_repeating_col_labels + 1

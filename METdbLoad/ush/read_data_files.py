@@ -2,14 +2,14 @@
 
 """
 Program Name: read_data_files.py
-Contact(s): Venita Hagerty
+Contact(s):  Minna Win
 Abstract:
 History Log:  Initial version
 Usage: Read data files given in load_spec file.
 Parameters: N/A
-Input Files: data files of type MET, VSDB, MODE, MTD
+Input Files: data files of type MET, VSDB, MODE, MTD, TCST
 Output Files: N/A
-Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
+Copyright 2025 UCAR/NSF NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, NOAA/OAR/ESRL/GSD
 """
 
 # pylint:disable=no-member
@@ -97,6 +97,10 @@ class ReadDataFiles:
             list_2d = []
             list_single = []
             list_pair = []
+
+            # keep track of whether the tcst file contains CTC and/or CTS data
+            # as a result of running TC-Stat rirw job
+            has_rirw = False
 
             # keep track of each set of revisions
             rev_ctr = 0
@@ -397,7 +401,6 @@ class ReadDataFiles:
                             # Process TCST files
                             #
                             elif lu_id == CN.TCST:
-
                                 # Get the first line of the .tcst file that has the headers
                                 try:
                                     file_hdr = pd.read_csv(filename, sep=r'\s+',
@@ -430,21 +433,48 @@ class ReadDataFiles:
                                     if not len(tcst_file):
                                         continue
                                     tcst_file.insert(3, CN.DESCR, CN.NOTAV)
-                                else:
+                                elif str(CN.TCST_HEADER_KEYS[1]).lower() in str(file_hdr.iloc[0].to_list()).lower():
+                                    # if AMODEL is in the list of headers, then this is a tcst file
                                     hdr_names = CN.LONG_HEADER_TCST + CN.COL_NUMS
                                     tcst_file = self.read_tcst(
                                         filename, hdr_names)
+                                else:
+                                    # CTC or CTS output generated
+                                    # by TC-Stat from an RIRW job
+                                    # hdr_names is assigned in same manner
+                                    # as STAT files
+                                    hdr_names = CN.LONG_HEADER  + CN.COL_NUMS
+                                    one_file = self.read_stat(
+                                        filename, hdr_names)
 
-                                # File has headers but not data
-                                if not len(tcst_file):
-                                    continue
+                                    has_rirw = True
 
-                                # add line numbers and count the header line, for tcst files
-                                tcst_file[CN.LINE_NUM] = tcst_file.index + 2
+                                    # File has headers but not data
+                                    if has_rirw:
+                                        if not len(one_file):
+                                            continue
+                                    else:
+                                       if not len(tcst_file):
+                                           continue
 
-                                tcst_file = tcst_file.rename(columns={"init": "fcst_init",
-                                                                      "lead": "fcst_lead",
-                                                                      "valid": "fcst_valid"})
+                                if has_rirw:
+                                    # Avoid fragmentation by making a copy
+                                   one_file = one_file.copy()
+                                    # add line numbers and count the header line
+                                   one_file[CN.LINE_NUM] = one_file.index + 2
+                                   # add columns for fcst_perc and obs_perc
+                                   # these can be in parens in fcst_thresh and obs_thresh in stat files
+                                   one_file[[CN.FCST_PERC, CN.OBS_PERC]] = \
+                                    (CN.MV_NOTAV, CN.MV_NOTAV)
+                                else:
+                                    # Defragmenting
+                                    tcst_file = tcst_file.copy()
+
+                                    # add line numbers and count the header line, for tcst files
+                                    tcst_file[CN.LINE_NUM] = tcst_file.index + 2
+                                    tcst_file = tcst_file.rename(columns={"init": "fcst_init",
+                                                                          "lead": "fcst_lead",
+                                                                          "valid": "fcst_valid"})
 
                             #
                             # Process MTD files

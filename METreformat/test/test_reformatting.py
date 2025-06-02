@@ -1,4 +1,5 @@
 import os
+import shutil
 import pathlib
 from collections import namedtuple
 from dataclasses import make_dataclass
@@ -87,7 +88,7 @@ def setup_test(yaml_file, is_tcst=False):
 
 def test_point_stat_FHO_consistency():
     '''
-           For the data frame for the FHO line type, verify that a value in the
+           For the data frame for the FHO line type, verify that a value in the`
            original data
            corresponds to the value identified with the same criteria in the newly
            reformatted
@@ -917,7 +918,7 @@ def test_tcdiag_from_tcpairs():
     orig_amax_wind = subset['18'].to_list()[0]
 
     # Value of the SHEAR_MAGNITUDE diagnostic and STORM SPEED from the corresponding row of TCDIAG data
-    subset_tcdiag = subset = stat_data.loc[(stat_data['amodel'] == 'GFSO') &
+    subset_tcdiag  = stat_data.loc[(stat_data['amodel'] == 'GFSO') &
                                            (stat_data['fcst_init'] == '2022-09-26 00:00:00') &
                                            (stat_data['fcst_lead'] == '060000') &
                                            (stat_data['line_type'] == 'TCDIAG')]
@@ -1190,6 +1191,9 @@ def test_dmap_for_scatter():
     assert expected_gbeta == reformatted_gbeta
     assert expected_beta_value == reformatted_beta_value
 
+    # cleanup
+    os.remove('./dmap_for_scatter.data')
+
 
 def test_dmap_for_lineplot():
     """
@@ -1273,3 +1277,62 @@ def test_dmap_for_lineplot():
     expected_num_rows = len(list(cn.DMAP_SPECIFIC))
     reformatted_num_rows = len(reformatted_working['stat_name'])
     assert expected_num_rows == reformatted_num_rows
+
+def test_tcst_with_cts():
+        """
+            Test to ensure that tcst files containing  CTS linetype
+            data (as result of running a MET TC-Stat rirw job) is appropriately
+            reformatted.  This verifies that the changes made to the METdbLoad
+            redd_data_files.py module are correctly reading in the CTC and CTS
+            lines in tcst files.
+        """
+        tcst_data, config = setup_test("./reformat_tcst_cts.yaml")
+        wsa = WriteStatAscii(config, logger)
+        reformatted_df = wsa.write_stat_ascii(tcst_data, config)
+        stat_data, sconfig = setup_test("./reformat_stat_cts.yaml")
+        wsa_stat = WriteStatAscii(sconfig, logger)
+        expected_cts = wsa_stat.write_stat_ascii(stat_data, sconfig)
+
+        # reformatted_df and expected_cts should have the same number of rows
+        # of data and the same number of columns
+        assert reformatted_df.shape[0] == expected_cts.shape[0]
+        assert reformatted_df.shape[1] == expected_cts.shape[1]
+
+        # Compare the expected and generated dataframes have the same
+        # values for stat_name, and stat_value in the first row
+        assert reformatted_df.iloc[:1, :]['stat_name'][0] == expected_cts.iloc[:1, :]['stat_name'][0]
+        assert reformatted_df.iloc[:1, :]['stat_value'][0] == expected_cts.iloc[:1, :]['stat_value'][0]
+
+        # cleanup
+        shutil.rmtree('./output/')
+
+
+
+def test_tcst_with_ctc():
+            """
+                Test to ensure that tcst files containing CTC  linetype
+                data (as result of running a MET TC-Stat rirw job) is appropriately
+                reformatted.  This verifies that the changes made to the METdbLoad
+                redd_data_files.py module are correctly reading in the CTC and CTS
+                lines in tcst files.
+            """
+            tcst_data, config = setup_test("./reformat_tcst_ctc.yaml")
+            wsa = WriteStatAscii(config, logger)
+            reformatted_df = wsa.write_stat_ascii(tcst_data, config)
+
+            stat_data, sconfig = setup_test("./reformat_stat_ctc.yaml")
+            wsa_stat = WriteStatAscii(sconfig, logger)
+            expected_ctc = wsa_stat.write_stat_ascii(stat_data, sconfig)
+
+            # reformatted_df and expected_cts should have the same number of rows
+            # of data and the same number of columns
+            assert reformatted_df.shape[0] == expected_ctc.shape[0]
+            assert reformatted_df.shape[1] == expected_ctc.shape[1]
+
+            # Compare the expected and generated dataframes have the same
+            # values for stat_name, and stat_value in the first row
+            assert reformatted_df.iloc[:1, :]['stat_name'][0] == expected_ctc.iloc[:1, :]['stat_name'][0]
+            assert reformatted_df.iloc[:1, :]['stat_value'][0]== expected_ctc.iloc[:1, :]['stat_value'][0]
+
+            # cleanup
+            shutil.rmtree('./output/')

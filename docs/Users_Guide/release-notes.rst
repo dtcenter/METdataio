@@ -9,6 +9,26 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
+METdataio Version 3.1.0-rc1 release notes (20250521)
+------------------------------------------------------
+
+.. dropdown:: Bugfixes
+
+   None
+
+.. dropdown:: Documentation
+
+   * Modify load_specification schema (`#374 <https://github.com/dtcenter/METdataio/issues/3741>`_)
+   * Include support for CTS and CTC linetype in the METdbLoad module for TC data (`#376 <https://github.com/dtcenter/METdataio/pull/376>`_)
+
+.. dropdown:: Enhancements
+
+   None
+
+.. dropdown::	Repository, build, and test
+
+   None
+
 METdataio Version 3.1.0-beta2 release notes (20250330)
 ------------------------------------------------------
 
