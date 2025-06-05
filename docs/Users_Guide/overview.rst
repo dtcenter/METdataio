@@ -59,17 +59,11 @@ in place to incorporate many new capabilities and options in future releases
 of METdataio. Additionally, updates to accommodate new features of the MET
 software are often required.
 
-Code Support
+User Support
 ============
 
-Support for METdataio is provided through the
-`METplus GitHub Discussions Forum <https://github.com/dtcenter/METplus/discussions>`_.
-We will endeavor to respond to requests for help in a timely fashion.
-
-We welcome comments and suggestions for improvements to METdataio, especially
-information regarding errors. In addition, comments on this document would be
-greatly appreciated. While we cannot promise to incorporate all suggested
-changes, we will certainly take all suggestions into consideration.
-
-METdataio is a "living" application. Our goal is to continually enhance it and
-add to its capabilities.
+METdataio is one component of the larger METplus system for which user support
+is provided through the
+`METplus GitHub Discussions Forum <https://github.com/dtcenter/METplus/discussions>`_,
+as described in the
+`METplus User's Guide <https://metplus.readthedocs.io/en/latest/Users_Guide/overview.html#user-support>`_.
