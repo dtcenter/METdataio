@@ -105,3 +105,7 @@ mpr_df_orig.txt
 
 # other METplus components
 /METcalcpy
+
+# Test outputs
+stdout/
+tcmpr_reformatted.txt
