@@ -304,7 +304,7 @@ def test_met_db_indexes(
                 {"apply_indexes": "true"},
             )
         ),
-        "index": False,
+        "index": True,
         "tmpdir": [str(tmp_path)],
     }
 

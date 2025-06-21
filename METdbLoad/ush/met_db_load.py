@@ -46,7 +46,7 @@ DEFAULT_TMP_DIR = [os.getenv('HOME')]
 PACKAGE_NAME = "metdataio"  # Used for version lookup
 
 
-def main(xmlfile, index, tmpdir=DEFAULT_TMP_DIR, loglevel=None):
+def main(xmlfile, index=False, tmpdir=DEFAULT_TMP_DIR, loglevel=None):
     """ Main program to load files into the METdataio/METviewer database
         Returns:
            N/A
