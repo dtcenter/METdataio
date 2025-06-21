@@ -22,6 +22,7 @@ import argparse
 import time
 from datetime import datetime
 from datetime import timedelta
+from importlib.metadata import version, PackageNotFoundError
 import sys
 import os
 import getpass
@@ -41,32 +42,31 @@ from METdbLoad.ush import DEFAULT_LOGLEVEL
 from METreformat.util import get_common_logger
 
 
-def main(args):
+DEFAULT_TMP_DIR = [os.getenv('HOME')]
+PACKAGE_NAME = "metdataio"  # Used for version lookup
+
+
+def main(xmlfile, index, tmpdir=DEFAULT_TMP_DIR, loglevel=None):
     """ Main program to load files into the METdataio/METviewer database
         Returns:
            N/A
     """
 
     try:
-
         # use the current date/time for logger
         begin_time = str(datetime.now())
-        # setup a logger for this module
-        cli_loglevel = False
-        if args.loglevel:
-            loglevel = args.loglevel
-            cli_loglevel = True
-        else:
-            loglevel = DEFAULT_LOGLEVEL
 
-        # Get the common logger
+        # Setup a logger for this module
+        loglevel_provided = True if loglevel else False
+        loglevel = loglevel or DEFAULT_LOGLEVEL  # Use DEFAULT_LOGLEVEL if loglevel is 'None'
+
         logger = get_common_logger(loglevel, 'stdout')
 
-        if cli_loglevel:
-            logger.info(f"Loglevel set to {loglevel} from command line.")
-        else:
+        if not loglevel_provided:
             logger.info(
-                f"Loglevel not supplied. Setting to default: {loglevel}. This may be overwritten by XML loadfile.")
+                "Loglevel not provided. Using default loglevel of %s. (This may be overridden by XML loadfile.)", loglevel)
+        else:
+            logger.info("Loglevel set to %s.", loglevel)
 
         # Print the METdbload version from the docs folder
         print_version(logger)
@@ -86,10 +86,10 @@ def main(args):
         #  Read the XML file
         #
         try:
-            logger.debug("XML filename is %s", args.xmlfile)
+            logger.debug("XML filename is %s", xmlfile)
 
             # instantiate a load_spec XML file
-            xml_loadfile = XmlLoadFile(args.xmlfile, logger=logger)
+            xml_loadfile = XmlLoadFile(xmlfile, logger=logger)
 
             # read in the XML file and get the information out of its tags
             xml_loadfile.read_xml()
@@ -103,7 +103,7 @@ def main(args):
         #  Verify the tmp file
         #
         try:
-            tmp_dir = args.tmpdir[0]
+            tmp_dir = tmpdir[0]
             if not os.path.isdir(tmp_dir):
                 logger.error(
                     "*** Error occurred in Main accessing tmp dir %s ***", tmp_dir)
@@ -116,13 +116,13 @@ def main(args):
 
         # If XML tag verbose is set to True, change logger to debug level unless already
         # supplied via the cli.
-        if xml_loadfile.flags["verbose"] and not cli_loglevel:
+        if xml_loadfile.flags["verbose"] and not loglevel == DEFAULT_LOGLEVEL:
             logger.setLevel("DEBUG")
 
         #
         # If argument -index is used, only process the index
         #
-        if args.index and xml_loadfile.flags["apply_indexes"]:
+        if index and xml_loadfile.flags["apply_indexes"]:
             try:
                 if xml_loadfile.connection['db_management_system'] in CN.RELATIONAL:
                     sql_run = RunSql()
@@ -360,7 +360,8 @@ def main(args):
         logger.info("--- *** --- End METdbLoad --- *** ---")
 
     except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
-        self.logger.error(
+        logger = get_common_logger(DEFAULT_LOGLEVEL, 'stdout')
+        logger.error(
             "*** %s occurred in main function of met_db_load ***", sys.exc_info()[0])
         sys.exit("*** Error loading data")
 
@@ -371,16 +372,12 @@ def print_version(logger):
            N/A
     """
     try:
-        base_dir = os.path.dirname(os.path.realpath(__file__))
-        version_file = "{}/../../docs/version".format(base_dir)
-        file = open(version_file, mode='r')
-        code_version = str.strip(file.read())
-        logger.info("METdbload Version: %s", code_version)
+        logger.info("METdbload Version: %s", version(PACKAGE_NAME))
 
-    except (RuntimeError, TypeError, NameError, KeyError):
+    except (PackageNotFoundError):
         logger.error("*** %s occurred in print_version ***", sys.exc_info()[0])
         logger.error(
-            "*** %s occurred in Main printing version ***", sys.exc_info()[0])
+            "*** %s occurred in Main printing version. %s package was not found. ***", sys.exc_info()[0], PACKAGE_NAME)
         sys.exit("*** Error in print version")
 
 
@@ -440,12 +437,11 @@ def parse_args():
     try:
         parser = argparse.ArgumentParser()
         # Allow user to choose dir for tmp files - default to user home
-        tmp_dir = [os.getenv('HOME')]
         parser.add_argument(
             "xmlfile", help="Please provide required xml load_spec filename")
         parser.add_argument("-index", action="store_true",
                             help="Only process index, do not load data")
-        parser.add_argument("tmpdir", nargs='*', default=tmp_dir,
+        parser.add_argument("tmpdir", nargs='*', default=DEFAULT_TMP_DIR,
                             help="Optional - when different directory wanted for tmp file")
         parser.add_argument("--loglevel", default=None, type=str, choices={"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"},
                             help="Optional - specify log level. One of: DEBUG, INFO, WARNING, ERROR, CRITICAL.")
@@ -457,4 +453,11 @@ def parse_args():
 
 
 if __name__ == '__main__':
-    main(parse_args())
+    args = parse_args()
+
+    main(
+        xmlfile=args.xmlfile,
+        index=args.index,
+        tmpdir=args.tmpdir,
+        loglevel=args.loglevel,
+    )

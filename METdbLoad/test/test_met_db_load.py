@@ -137,20 +137,17 @@ def test_met_db_table_counts(
         "mtd_header_db_check": "true",
     }
 
-    test_args = dict_to_args(
-        {
-            "xmlfile": str(
-                get_xml_test_file(
-                    tmp_path, met_data_dir, met_tool, load_flags=load_flags
-                )
-            ),
-            "index": "true",
-            "tmpdir": [str(tmp_path)],
-            "loglevel": None,
-        }
-    )
+    test_args = {
+        "xmlfile": str(
+            get_xml_test_file(
+                tmp_path, met_data_dir, met_tool, load_flags=load_flags
+            )
+        ),
+        "index": "true",
+        "tmpdir": [str(tmp_path)],
+    }
 
-    load_main(test_args)
+    load_main(**test_args)
 
     for table, expected_count in expected_counts.items():
         assert_count_rows(testRunSql.cur, table, expected_count)
@@ -206,22 +203,19 @@ def test_met_db_table_dups(
         "mtd_header_db_check": "true",
         "force_dup_file": "false",
     }
-    test_args = dict_to_args(
-        {
-            "xmlfile": str(
-                get_xml_test_file(
-                    tmp_path, met_data_dir, met_tool, load_flags=load_flags
-                )
-            ),
-            "index": "true",
-            "tmpdir": [str(tmp_path)],
-            "loglevel": None,
-        }
-    )
+    test_args = {
+        "xmlfile": str(
+            get_xml_test_file(
+                tmp_path, met_data_dir, met_tool, load_flags=load_flags
+            )
+        ),
+        "index": "true",
+        "tmpdir": [str(tmp_path)],
+    }
 
-    load_main(test_args)
+    load_main(**test_args)
     # load again to check duplicates aren't loaded in db
-    load_main(test_args)
+    load_main(**test_args)
 
     for table, expected_count in expected_counts.items():
         assert_count_rows(testRunSql.cur, table, expected_count)
@@ -277,22 +271,19 @@ def test_met_db_table_dups_allowed(
         "mtd_header_db_check": "true",
         "force_dup_file": "true",
     }
-    test_args = dict_to_args(
-        {
-            "xmlfile": str(
-                get_xml_test_file(
-                    tmp_path, met_data_dir, met_tool, load_flags=load_flags
-                )
-            ),
-            "index": "true",
-            "tmpdir": [str(tmp_path)],
-            "loglevel": None,
-        }
-    )
+    test_args = {
+        "xmlfile": str(
+            get_xml_test_file(
+                tmp_path, met_data_dir, met_tool, load_flags=load_flags
+            )
+        ),
+        "index": "true",
+        "tmpdir": [str(tmp_path)],
+    }
 
-    load_main(test_args)
+    load_main(**test_args)
     # load again to add duplicates
-    load_main(test_args)
+    load_main(**test_args)
 
     for table, expected_count in expected_counts.items():
         assert_count_rows(testRunSql.cur, table, expected_count * 2)
@@ -304,21 +295,18 @@ def test_met_db_indexes(
     tmp_path,
 ):
     # set up to "apply_indexes"
-    test_args = dict_to_args(
-        {
-            "xmlfile": str(
-                get_xml_test_file(
-                    tmp_path,
-                    POINT_STAT_DATA_DIR,
-                    "point_stat",
-                    {"apply_indexes": "true"},
-                )
-            ),
-            "index": "false",
-            "tmpdir": [str(tmp_path)],
-            "loglevel": None,
-        }
-    )
+    test_args = {
+        "xmlfile": str(
+            get_xml_test_file(
+                tmp_path,
+                POINT_STAT_DATA_DIR,
+                "point_stat",
+                {"apply_indexes": "true"},
+            )
+        ),
+        "index": False,
+        "tmpdir": [str(tmp_path)],
+    }
 
     # file_id and stat_header are already indexed
     idx_cnt = testRunSql.cur.execute("SHOW INDEX FROM line_data_fho")
@@ -326,7 +314,7 @@ def test_met_db_indexes(
 
     # sys.exit is called after processing indexes
     with pytest.raises(SystemExit):
-        load_main(test_args)
+        load_main(**test_args)
 
     # check extra indicies have been created
     idx_cnt = testRunSql.cur.execute("SHOW INDEX FROM line_data_fho")
@@ -338,7 +326,7 @@ def test_met_db_indexes(
     # check sys.exit called on error
     with pytest.raises(SystemExit):
         with patch.object(RunSql, "apply_indexes", side_effect=KeyError):
-            load_main(test_args)
+            load_main(**test_args)
 
 
 @pytest.mark.parametrize(
@@ -395,20 +383,17 @@ def test_local_in_file(
 ):
     """check we get the same result when local_file is on or off"""
 
-    test_args = dict_to_args(
-        {
-            "xmlfile": str(
-                get_xml_test_file(
-                    tmp_path, met_data_dir, met_tool, local_infile=local_infile
-                )
-            ),
-            "index": "false",
-            "tmpdir": [str(tmp_path)],
-            "loglevel": None,
-        }
-    )
+    test_args = {
+        "xmlfile": str(
+            get_xml_test_file(
+                tmp_path, met_data_dir, met_tool, local_infile=local_infile
+            )
+        ),
+        "index": False,
+        "tmpdir": [str(tmp_path)],
+    }
 
-    load_main(test_args)
+    load_main(**test_args)
 
     for table, expected_count in expected_counts.items():
         assert_count_rows(testRunSql.cur, table, expected_count)
@@ -434,23 +419,19 @@ def test_empty_files(tmp_path):
             "VERSION MODEL DESC FCST_LEAD FCST_VALID_BEG  FCST_VALID_END  OBS_LEAD OBS_VALID_BEG   OBS_VALID_END   FCST_VAR FCST_UNITS   FCST_LEV OBS_VAR OBS_UNITS    OBS_LEV  OBTYPE VX_MASK INTERP_MTHD INTERP_PNTS FCST_THRESH         OBS_THRESH          COV_THRESH ALPHA LINE_TYPE\n"
         )
 
-    test_args = dict_to_args(
-        {
-            "xmlfile": str(
-                get_xml_test_file(
-                    tmp_path,
-                    met_data_dir,
-                    "mtd",
-                )
-            ),
-            "index": "false",
-            "tmpdir": [str(tmp_path)],
-            "loglevel": None,
-        }
-    )
+    test_args = {
+        "xmlfile": str(
+            get_xml_test_file(
+                tmp_path,
+                met_data_dir,
+                "mtd",
+            )
+        ),
+        "index": False,
+        "tmpdir": [str(tmp_path)]
+    }
 
-    load_main(test_args)
-
+    load_main(**test_args)
 
 def test_print_version():
     mock_logger = MagicMock()
@@ -459,7 +440,7 @@ def test_print_version():
     assert mock_logger.info.call_args[0][0].startswith("METdbload Version:")
 
     with pytest.raises(SystemExit):
-        with patch("os.path.dirname", side_effect=TypeError):
+        with patch("METdbLoad.ush.met_db_load.PACKAGE_NAME", "metdataio_bogus_package_name"):
             print_version(mock_logger)
     assert mock_logger.error.call_count == 2
 
