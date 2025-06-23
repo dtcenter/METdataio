@@ -46,8 +46,16 @@ DEFAULT_TMP_DIR = [os.getenv('HOME')]
 PACKAGE_NAME = "metdataio"  # Used for version lookup
 
 
-def main(xmlfile, index=False, tmpdir=DEFAULT_TMP_DIR, loglevel=None):
-    """ Main program to load files into the METdataio/METviewer database
+def load_met_data(xmlfile, index=False, tmpdir=DEFAULT_TMP_DIR, loglevel=None):
+    """
+    Loads MET data into database based on the configuration in the given XML file.
+        Args:
+            xmlfile: Configuration file specifying what data should be loaded and
+                how it should be processed
+            index: Boolean indicating whether only indexes should be loaded, omitting
+                the data itself.
+            tmpdir: A directory to store temporary files in
+            loglevel: Minimum severity for shown log statements
         Returns:
            N/A
     """
@@ -455,7 +463,7 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
-    main(
+    load_met_data(
         xmlfile=args.xmlfile,
         index=args.index,
         tmpdir=args.tmpdir,
