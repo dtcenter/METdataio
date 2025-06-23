@@ -1,7 +1,7 @@
 import pytest
 import sys
 from unittest.mock import patch, MagicMock
-from METdbLoad.ush.met_db_load import main as load_main
+from METdbLoad.ush.met_db_load import load_met_data
 from METdbLoad.ush.met_db_load import purge_files, parse_args, next_set, print_version
 from METdbLoad.ush.run_sql import RunSql
 from METdbLoad.test.utils import dict_to_args
@@ -147,7 +147,7 @@ def test_met_db_table_counts(
         "tmpdir": [str(tmp_path)],
     }
 
-    load_main(**test_args)
+    load_met_data(**test_args)
 
     for table, expected_count in expected_counts.items():
         assert_count_rows(testRunSql.cur, table, expected_count)
@@ -213,9 +213,9 @@ def test_met_db_table_dups(
         "tmpdir": [str(tmp_path)],
     }
 
-    load_main(**test_args)
+    load_met_data(**test_args)
     # load again to check duplicates aren't loaded in db
-    load_main(**test_args)
+    load_met_data(**test_args)
 
     for table, expected_count in expected_counts.items():
         assert_count_rows(testRunSql.cur, table, expected_count)
@@ -281,9 +281,9 @@ def test_met_db_table_dups_allowed(
         "tmpdir": [str(tmp_path)],
     }
 
-    load_main(**test_args)
+    load_met_data(**test_args)
     # load again to add duplicates
-    load_main(**test_args)
+    load_met_data(**test_args)
 
     for table, expected_count in expected_counts.items():
         assert_count_rows(testRunSql.cur, table, expected_count * 2)
@@ -314,7 +314,7 @@ def test_met_db_indexes(
 
     # sys.exit is called after processing indexes
     with pytest.raises(SystemExit):
-        load_main(**test_args)
+        load_met_data(**test_args)
 
     # check extra indicies have been created
     idx_cnt = testRunSql.cur.execute("SHOW INDEX FROM line_data_fho")
@@ -326,7 +326,7 @@ def test_met_db_indexes(
     # check sys.exit called on error
     with pytest.raises(SystemExit):
         with patch.object(RunSql, "apply_indexes", side_effect=KeyError):
-            load_main(**test_args)
+            load_met_data(**test_args)
 
 
 @pytest.mark.parametrize(
@@ -393,14 +393,14 @@ def test_local_in_file(
         "tmpdir": [str(tmp_path)],
     }
 
-    load_main(**test_args)
+    load_met_data(**test_args)
 
     for table, expected_count in expected_counts.items():
         assert_count_rows(testRunSql.cur, table, expected_count)
 
 
 def test_empty_files(tmp_path):
-    """Junk files shouldn't cause an error when running load_main"""
+    """Junk files shouldn't cause an error when running load_met_data"""
 
     met_data_dir = tmp_path / "empty_files_test"
     met_data_dir.mkdir()
@@ -431,7 +431,7 @@ def test_empty_files(tmp_path):
         "tmpdir": [str(tmp_path)]
     }
 
-    load_main(**test_args)
+    load_met_data(**test_args)
 
 def test_print_version():
     mock_logger = MagicMock()

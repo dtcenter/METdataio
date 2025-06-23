@@ -2,7 +2,7 @@ import pytest
 from unittest import mock
 from pymysql import OperationalError
 
-from METdbLoad.ush.met_db_load import main as load_main
+from METdbLoad.ush.met_db_load import load_met_data
 from METdbLoad.ush import constants as CN
 from METdbLoad.test.utils import dict_to_args
 from METdataio.METdbLoad.test.utils import (
@@ -22,7 +22,7 @@ def populate_some_data(
         "tmpdir": [str(tmp_path)],
         "loglevel": "DEBUG"
     }
-    load_main(**test_args)
+    load_met_data(**test_args)
 
 
 def test_get_file_name(tmp_path, emptyDB, testRunSql, mock_logger):
