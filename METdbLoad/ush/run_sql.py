@@ -179,20 +179,26 @@ class RunSql:
 
                 # only line_data has timestamps in dataframe - change to strings
                 if 'line_data' in sql_table:
-                    raw_data['fcst_valid_beg'] = raw_data['fcst_valid_beg'].astype(
-                        str)
-                    raw_data['fcst_valid_end'] = raw_data['fcst_valid_end'].astype(
-                        str)
-                    raw_data['fcst_init_beg'] = raw_data['fcst_init_beg'].astype(
-                        str)
-                    raw_data['obs_valid_beg'] = raw_data['obs_valid_beg'].astype(
-                        str)
-                    raw_data['obs_valid_end'] = raw_data['obs_valid_end'].astype(
-                        str)
+                    if sql_table in (CN.TCST_HEADER):
+                        raw_data['fcst_valid'] = raw_data['fcst_valid'].astype(
+                            str)
+                        raw_data['fcst_init'] = raw_data['fcst_init'].astype(
+                            str)
+                    else:
+                        raw_data['fcst_valid_beg'] = raw_data[
+                            'fcst_valid_beg'].astype(str)
+                        raw_data['fcst_valid_end'] = raw_data[
+                            'fcst_valid_end'].astype(str)
+                        raw_data['fcst_init_beg'] = raw_data[
+                            'fcst_init_beg'].astype(str)
+                        raw_data['obs_valid_beg'] = raw_data[
+                            'obs_valid_beg'].astype(str)
+                        raw_data['obs_valid_end'] = raw_data[
+                            'obs_valid_end'].astype(str)
                 elif sql_table in (CN.MODE_HEADER, CN.MTD_HEADER):
                     raw_data['fcst_valid'] = raw_data['fcst_valid'].astype(str)
-                    raw_data['fcst_init'] = raw_data['fcst_valid'].astype(str)
-                    raw_data['obs_valid'] = raw_data['fcst_init'].astype(str)
+                    raw_data['fcst_init'] = raw_data['fcst_init'].astype(str)
+                    raw_data['obs_valid'] = raw_data['obs_valid'].astype(str)
                 # make a copy of the dataframe that is a list of lists and write to database
                 dfile = raw_data[col_list].values.tolist()
                 sql_cur.executemany(sql_query, dfile)

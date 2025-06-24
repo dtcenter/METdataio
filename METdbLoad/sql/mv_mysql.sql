@@ -2446,7 +2446,7 @@ CREATE TABLE line_data_tcmpr
 (
     tcst_header_id INT UNSIGNED NOT NULL,
     data_file_id   INT UNSIGNED NOT NULL,
-    line_number    INT UNSIGNED NOT NULL,
+    line_num    INT UNSIGNED NOT NULL,
     fcst_lead      INT,
     fcst_valid     DATETIME,
     fcst_init      DATETIME,
