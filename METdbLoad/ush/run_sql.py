@@ -179,7 +179,7 @@ class RunSql:
 
                 # only line_data has timestamps in dataframe - change to strings
                 if 'line_data' in sql_table:
-                    if sql_table in (CN.TCST_HEADER):
+                    if 'fcst_valid' in raw_data:
                         raw_data['fcst_valid'] = raw_data['fcst_valid'].astype(
                             str)
                         raw_data['fcst_init'] = raw_data['fcst_init'].astype(
