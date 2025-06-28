@@ -16,7 +16,7 @@ METdataio Version 3.1.0 release notes (20250628)
 
   * Include support for CTS and CTC linetype in the METdbLoad module for TC data (`#376 <https://github.com/dtcenter/METdataio/pull/376>`_)
   * Modify load_specification schema (`#374 <https://github.com/dtcenter/METdataio/issues/374>`_)
-  * TC and MODE data not loading correctly with latest METdataio (`#389 <https://github.com/dtcenter/METdataio/issues/389>` _)
+  * TC and MODE data not loading correctly with latest METdataio  (`#389 <https://github.com/dtcenter/METdataio/issues/389>`_)
 
 .. dropdown:: Documentation
 
@@ -27,7 +27,7 @@ METdataio Version 3.1.0 release notes (20250628)
 .. dropdown:: Enhancements
 
    * Provide reformatting for the DMAP line type and any associated plots (`#348 <https://github.com/dtcenter/METdataio/issues/348>`_)
-   * Update installation modulefiles for Python 3.12 (`#373 <https://github.com/dtcenter/METdataio/issues/373>`
+   * Update installation modulefiles for Python 3.12 (`#373 <https://github.com/dtcenter/METdataio/issues/373>`_)
 
 .. dropdown::	Repository, build, and test
 
