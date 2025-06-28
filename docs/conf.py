@@ -19,7 +19,7 @@ print(sys.path)
 # -- Project information -----------------------------------------------------
 project = 'METdataio'
 author = 'UCAR/NSF NCAR, NOAA, CSU/CIRA, and CU/CIRES'
-author_list = 'V. Hagerty,  M. Smith, T. Burek,  H. Fisher, and M. Win-Gildenmeister'
+author_list = 'Win-Gildenmeister, M., V. Hagerty, V., M. Smith, T. Burek,  H. Fisher'
 version = '3.1.0'
 verinfo = version
 release = f'{version}'
