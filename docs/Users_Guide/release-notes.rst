@@ -14,14 +14,15 @@ METdataio Version 3.1.0 release notes (20250628)
 
 .. dropdown:: Bugfixes
 
- * TC and MODE data not loading correctly with latest METdataio (`#389 <https://github.com/dtcenter/METdataio/issues/389>`
+  * Include support for CTS and CTC linetype in the METdbLoad module for TC data (`#376 <https://github.com/dtcenter/METdataio/pull/376>`_)
+  * Modify load_specification schema (`#374 <https://github.com/dtcenter/METdataio/issues/374>`_)
+  * TC and MODE data not loading correctly with latest METdataio (`#389 <https://github.com/dtcenter/METdataio/issues/389>`
 
 .. dropdown:: Documentation
 
    * Enhance the installation instructions (`#361 <https://github.com/dtcenter/METdataio/issues/361>`_)
    * Enhance the Table of Contents to include all METplus components (`#369 <https://github.com/dtcenter/METdataio/pull/369>`_)
-   * Modify load_specification schema (`#374 <https://github.com/dtcenter/METdataio/issues/374>`_)
-   * Include support for CTS and CTC linetype in the METdbLoad module for TC data (`#376 <https://github.com/dtcenter/METdataio/pull/376>`_)
+
 
 .. dropdown:: Enhancements
 
