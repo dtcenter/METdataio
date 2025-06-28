@@ -24,7 +24,7 @@ version = '3.1.0'
 verinfo = version
 release = f'{version}'
 release_year = '2025'
-release_date = f'{release_year}-06-28'
+release_date = f'{release_year}-06-30'
 copyright = f'{release_year}, {author}'
 
 # if set, adds "Last updated on " followed by
