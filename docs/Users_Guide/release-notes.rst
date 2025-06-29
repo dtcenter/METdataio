@@ -33,6 +33,8 @@ METdataio Version 3.1.0 release notes (20250630)
 
    * Update infrastructure to reflect move to developing with Python 3.12 (`#368 <https://github.com/dtcenter/METdataio/pull/368>`_)
    * Update modulefiles used on various machines (`#365 <https://github.com/dtcenter/METdataio/issues/365>`_)
+   * Sort directory listing to get consistent results (`#384 <https://github.com/dtcenter/METdataio/issues/384>`_)
+
 
 
 
