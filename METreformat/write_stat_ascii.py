@@ -35,6 +35,8 @@ import METreformat.util as util
 from METdbLoad.ush.read_data_files import ReadDataFiles
 from METdbLoad.ush.read_load_xml import XmlLoadFile
 
+from metcalcpy.util.read_env_vars_in_config import parse_config
+
 
 class WriteStatAscii:
     """ Class to write MET .stat files to an ASCII file that contains the reformatted input data
@@ -2148,23 +2150,12 @@ def main():
         # Acquire the output file name and output directory information and location of
         # the xml specification file
         config_file: str = util.read_config_from_command_line()
-        with open(config_file, 'r') as stream:
-            try:
-                parms: dict = yaml.load(stream, Loader=yaml.FullLoader)
-                pathlib.Path(parms['output_dir']).mkdir(
-                    parents=True, exist_ok=True)
-            except yaml.YAMLError:
-                sys.exit(1)
-
+        parms: dict = parse_config(config_file)
+        pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
         log_dir = parms['log_directory']
 
-        # Create the log directory if it doesn't alreaedy exist
-        try:
-            os.makedirs(log_dir)
-        except OSError:
-            # ignore warning that is raised
-            # when the directory already exists
-            pass
+        # Create the log directory if it doesn't already exist
+        os.makedirs(log_dir, exist_ok=True)
 
         full_log_filename = os.path.join(log_dir, parms['log_filename'])
         logger = util.get_common_logger(parms['log_level'], full_log_filename)

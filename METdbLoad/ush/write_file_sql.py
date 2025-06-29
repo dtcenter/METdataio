@@ -116,6 +116,12 @@ class WriteFileSql:
                                                      .isin(list_dupes)].index,
                                            inplace=True)
 
+                    if not tcst_data.empty and list_dupes:
+                        if tcst_data.file_row.isin(list_dupes).any():
+                            tcst_data.drop(tcst_data[tcst_data.file_row
+                                                     .isin(list_dupes)].index,
+                                           inplace=True)
+
                     if not mode_cts_data.empty and list_dupes:
                         if mode_cts_data.file_row.isin(list_dupes).any():
                             mode_cts_data.drop(mode_cts_data[mode_cts_data.file_row
@@ -157,6 +163,9 @@ class WriteFileSql:
                     stat_data.reset_index(drop=True, inplace=True)
                     mode_cts_data.reset_index(drop=True, inplace=True)
                     mode_obj_data.reset_index(drop=True, inplace=True)
+                    mtd_2d_data.reset_index(drop=True, inplace=True)
+                    mtd_3d_single_data.reset_index(drop=True, inplace=True)
+                    mtd_3d_pair_data.reset_index(drop=True, inplace=True)
                     tcst_data.reset_index(drop=True, inplace=True)
 
                     # Replace the temporary id value with the actual index in the line data
