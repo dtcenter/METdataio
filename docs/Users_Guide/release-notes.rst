@@ -9,65 +9,34 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
-METdataio Version 3.1.0-rc1 release notes (20250521)
+METdataio Version 3.1.0 release notes (20250716)
 ------------------------------------------------------
 
 .. dropdown:: Bugfixes
 
-   None
-
-.. dropdown:: Documentation
-
-   * Modify load_specification schema (`#374 <https://github.com/dtcenter/METdataio/issues/3741>`_)
-   * Include support for CTS and CTC linetype in the METdbLoad module for TC data (`#376 <https://github.com/dtcenter/METdataio/pull/376>`_)
-
-.. dropdown:: Enhancements
-
-   None
-
-.. dropdown::	Repository, build, and test
-
-   None
-
-METdataio Version 3.1.0-beta2 release notes (20250330)
-------------------------------------------------------
-
-.. dropdown:: Bugfixes
-
-   None
+  * **Include support for CTS and CTC linetype in the METdbLoad module for TC data** (`#376 <https://github.com/dtcenter/METdataio/pull/376>`_)
+  * **Modify load_specification schema** (`#374 <https://github.com/dtcenter/METdataio/issues/374>`_)
+  * **TC and MODE data not loading correctly with latest METdataio**  (`#389 <https://github.com/dtcenter/METdataio/issues/389>`_)
 
 .. dropdown:: Documentation
 
    * Enhance the installation instructions (`#361 <https://github.com/dtcenter/METdataio/issues/361>`_)
-   * Enhance the Table of Contents to include all METplus components (`#369 <https://github.com/dtcenter/METdataio/pull/369>`_)  
+   * Enhance the Table of Contents to include all METplus components (`#369 <https://github.com/dtcenter/METdataio/pull/369>`_)
 
-.. dropdown:: Enhancements
-
-   None
-
-.. dropdown::	Repository, build, and test
-
-   * Update infrastructure to reflect move to developing with Python 3.12 (`#368 <https://github.com/dtcenter/METdataio/pull/368>`_)		
-   * Update modulefiles used on various machines (`#365 <https://github.com/dtcenter/METdataio/issues/365>`_)
-
-METdataio Version 3.1.0-beta1 Release Notes (20250122)
-------------------------------------------------------
-
-.. dropdown:: Bugfixes
-
-   None
-
-.. dropdown:: Documentation
-
-   None
 
 .. dropdown:: Enhancements
 
    * Provide reformatting for the DMAP line type and any associated plots (`#348 <https://github.com/dtcenter/METdataio/issues/348>`_)
+   * Update installation modulefiles for Python 3.12 (`#373 <https://github.com/dtcenter/METdataio/issues/373>`_)
 
 .. dropdown::	Repository, build, and test
 
-   None
+   * **Update infrastructure to reflect move to developing with Python 3.12** (`#368 <https://github.com/dtcenter/METdataio/pull/368>`_)
+   * Update modulefiles used on various machines (`#365 <https://github.com/dtcenter/METdataio/issues/365>`_)
+   * Sort directory listing to get consistent results (`#384 <https://github.com/dtcenter/METdataio/issues/384>`_)
+
+
+
 
 METdataio Upgrade Instructions
 ==============================
