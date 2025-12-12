@@ -53,12 +53,21 @@ class WriteModeSql:
                 # Write Mode Headers
                 # --------------------
 
-                # get the unique mode headers from cts_data and obj_data
+                # get the unique mode headers from cts_data, obj_data, or both
                 if not cts_data.empty:
                     mode_headers = cts_data[CN.MODE_HEADER_FIELDS[1:]]
+                else:
+                    msg = "No MODE CTS data, please check your data."
+                    logger.error(msg)
+                    sys.exit(msg)
+
                 if not obj_data.empty:
                     mode_headers = pd.concat([mode_headers, obj_data[CN.MODE_HEADER_FIELDS[1:]]],
                                              ignore_index=True, sort=False)
+                else:
+                    msg = "No MODE OBJ data, please check your data."
+                    logger.error(msg)
+                    sys.exit(msg)
                 # restore to original order now that cts and obj are recombined
                 mode_headers = mode_headers.sort_values(
                     by=[CN.DATA_FILE_ID, CN.LINENUMBER])
