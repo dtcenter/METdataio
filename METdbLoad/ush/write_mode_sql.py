@@ -53,7 +53,8 @@ class WriteModeSql:
                 # Write Mode Headers
                 # --------------------
 
-                # get the unique mode headers from cts_data, obj_data, or both
+                # get the unique mode headers from cts_data and obj_data
+                # CTS and OBJ data must both be present
                 if not cts_data.empty:
                     mode_headers = cts_data[CN.MODE_HEADER_FIELDS[1:]]
                 else:
