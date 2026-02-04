@@ -278,8 +278,8 @@ class WriteMtdSql:
 
                     m_3d_pair_data = pd.merge(left=mtd_headers, right=m_3d_pair_data,
                                               on=CN.MTD_HEADER_KEYS)
-                    m_3d_pair_data.loc[m_3d_pair_data.obs_valid.isnull(
-                    ), CN.OBS_VALID] = CN.MV_NULL
+                    m_3d_pair_data.obs_valid = m_3d_pair_data.obs_valid.astype(str)
+                    m_3d_pair_data.loc[m_3d_pair_data.obs_valid.isnull(), CN.OBS_VALID] = CN.MV_NULL
                     mtd_headers = mtd_headers.iloc[0:0]
 
                     # create defaults for flags
