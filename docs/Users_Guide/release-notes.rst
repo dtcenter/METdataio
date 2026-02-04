@@ -9,12 +9,12 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
-METdataio Version 3.2.0 Release Notes (20251114)
-------------------------------------------------
+METdataio Version 4.0.0-beta1 Release Notes (20260204)
+------------------------------------------------------
 
 .. dropdown:: Bugfixes
 
-   * None
+   * **Bugfix to error out when loading MODE object data without CTS data** (`#401 <https://github.com/dtcenter/METdataio/issues/401>`_)
 
 .. dropdown:: Documentation
 

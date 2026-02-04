@@ -383,7 +383,7 @@ class ReadDataFiles:
                                 # if FCST_LEAD is NA, set it to 0
                                 if not mode_file.fcst_lead.dtypes == 'int':
                                     mode_file.loc[mode_file.fcst_lead ==
-                                                  CN.NOTAV, CN.FCST_LEAD] = 0
+                                                  CN.NOTAV, CN.FCST_LEAD] = '0'
                                     mode_file[CN.FCST_LEAD] = mode_file[CN.FCST_LEAD].astype(
                                         int)
 
@@ -558,7 +558,7 @@ class ReadDataFiles:
                                 # if FCST_LEAD is NA, set it to 0 to do math
                                 if not mtd_file.fcst_lead.dtypes == 'int':
                                     mtd_file.loc[mtd_file.fcst_lead ==
-                                                 CN.NOTAV, CN.FCST_LEAD] = 0
+                                                 CN.NOTAV, CN.FCST_LEAD] = '0'
                                     mtd_file[CN.FCST_LEAD] = mtd_file[CN.FCST_LEAD].astype(
                                         int)
 
@@ -841,23 +841,23 @@ class ReadDataFiles:
                     # Added for tc_gen files
                     if not all_stat.fcst_lead.dtypes == 'int':
                         all_stat.loc[all_stat.fcst_lead ==
-                                     CN.NOTAV, CN.FCST_LEAD] = 0
+                                     CN.NOTAV, CN.FCST_LEAD] = '0'
                         all_stat[CN.FCST_LEAD] = all_stat[CN.FCST_LEAD].astype(
                             int)
 
                     # Change ALL items in column OBS_LEAD to 0 if they are 'NA'
                     if not all_stat.obs_lead.dtypes == 'int':
                         all_stat.loc[all_stat.obs_lead ==
-                                     CN.NOTAV, CN.OBS_LEAD] = 0
+                                     CN.NOTAV, CN.OBS_LEAD] = '0'
                         all_stat[CN.OBS_LEAD] = all_stat[CN.OBS_LEAD].astype(
                             int)
 
                     # Change 'NA' values in column INTERP_PNTS to 0 if present
                     if not all_stat.interp_pnts.dtypes == 'int':
                         all_stat.loc[all_stat.interp_pnts ==
-                                     CN.NOTAV, CN.INTERP_PNTS] = 0
+                                     CN.NOTAV, CN.INTERP_PNTS] = '0'
                         all_stat.loc[all_stat.interp_pnts.isnull(),
-                                     CN.INTERP_PNTS] = 0
+                                     CN.INTERP_PNTS] = '0'
                         all_stat.interp_pnts = all_stat.interp_pnts.astype(int)
 
                     # PCT lines in stat files are short one row, subtract 1 from n_thresh
@@ -879,23 +879,30 @@ class ReadDataFiles:
                     # Some lines in stat files may be missing ec_value
                     # CTC and CTS, set to .5
                     # MCTS, set to 1/n_cat. MCTC is variable length
+                    # set value to string representation of float, then convert type to float -- for pandas 3.x
                     if all_stat[CN.LINE_TYPE].eq(CN.CTC).any():
-                        all_stat.loc[(all_stat.line_type == CN.CTC) &
+                        mask = (all_stat.line_type == CN.CTC)
+                        all_stat.loc[mask &
                                      ((all_stat['5'].isnull()) |
-                                     (all_stat['5'] == CN.NOTAV)), '5'] = .5
+                                     (all_stat['5'] == CN.NOTAV)), '5'] = '.5'
+                        all_stat['5'] = pd.to_numeric(all_stat['5'], errors='coerce')
 
                     if all_stat[CN.LINE_TYPE].eq(CN.CTS).any():
-                        all_stat.loc[(all_stat.line_type == CN.CTS) &
+                        mask = (all_stat.line_type == CN.CTS)
+                        all_stat.loc[mask &
                                      ((all_stat['96'].isnull()) |
-                                     (all_stat['96'] == CN.NOTAV)), '96'] = .5
+                                     (all_stat['96'] == CN.NOTAV)), '96'] = '.5'
+                        all_stat['96'] = pd.to_numeric(all_stat['96'], errors='coerce')
 
                     if all_stat[CN.LINE_TYPE].eq(CN.MCTS).any():
-                        all_stat.loc[(all_stat.line_type == CN.MCTS) &
+                        mask = (all_stat.line_type == CN.MCTS)
+                        all_stat.loc[mask &
                                      ((all_stat['19'].isnull()) |
                                      (all_stat['19'] == CN.NOTAV)), '19'] = \
-                            1/all_stat.loc[(all_stat.line_type == CN.MCTS) &
+                            str(1/all_stat.loc[(all_stat.line_type == CN.MCTS) &
                                            ((all_stat['19'].isnull()) |
-                                            (all_stat['19'] == CN.NOTAV)), '1']
+                                            (all_stat['19'] == CN.NOTAV)), '1'])
+                        all_stat['19'] = pd.to_numeric(all_stat['19'], errors='coerce')
 
             except (RuntimeError, TypeError, NameError, KeyError):
                 self.logger.error(
@@ -1178,7 +1185,8 @@ class ReadDataFiles:
                         elif vsdb_type == CN.CTC:
                             # column 0 is Total, 1 is F, 2 is H
                             # column 3 is O (Oh) - if None, set to 0 (Zero)
-                            vsdb_data.loc[vsdb_data['3'].isnull(), '3'] = 0
+                            vsdb_data.loc[vsdb_data['3'].isnull(), '3'] = '0'
+                            vsdb_data['3'] = pd.to_numeric(vsdb_data['3'], errors='coerce')
                             # fy = Total * F
                             vsdb_data['4'] = vsdb_data['0'].astype(
                                 float) * vsdb_data['1'].astype(float)
@@ -1246,7 +1254,7 @@ class ReadDataFiles:
 
                     if not all_cts.fcst_lead.dtypes == 'int':
                         all_cts.loc[all_cts.fcst_lead ==
-                                    CN.NOTAV, CN.FCST_LEAD] = 0
+                                    CN.NOTAV, CN.FCST_LEAD] = '0'
                         all_cts[CN.FCST_LEAD] = all_cts[CN.FCST_LEAD].astype(
                             int)
 
@@ -1279,7 +1287,7 @@ class ReadDataFiles:
 
                     if not all_obj.fcst_lead.dtypes == 'int':
                         all_obj.loc[all_obj.fcst_lead ==
-                                    CN.NOTAV, CN.FCST_LEAD] = 0
+                                    CN.NOTAV, CN.FCST_LEAD] = '0'
                         all_obj[CN.FCST_LEAD] = all_obj[CN.FCST_LEAD].astype(
                             int)
 
@@ -1361,7 +1369,7 @@ class ReadDataFiles:
 
                     if not all_stat.fcst_lead.dtypes == 'int':
                         all_stat.loc[all_stat.fcst_lead ==
-                                     CN.NOTAV, CN.FCST_LEAD] = 0
+                                     CN.NOTAV, CN.FCST_LEAD] = '0'
                         all_stat[CN.FCST_LEAD] = all_stat[CN.FCST_LEAD].astype(
                             int)
 
