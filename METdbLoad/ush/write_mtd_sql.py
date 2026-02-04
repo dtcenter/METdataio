@@ -229,8 +229,8 @@ class WriteMtdSql:
 
                     m_3d_single_data = pd.merge(left=mtd_headers, right=m_3d_single_data,
                                                 on=CN.MTD_HEADER_KEYS)
-                    m_3d_single_data.loc[m_3d_single_data.obs_valid.isnull(
-                    ), CN.OBS_VALID] = CN.MV_NULL
+                    m_3d_single_data.obs_valid = m_3d_single_data.obs_valid.astype(str)
+                    m_3d_single_data.loc[m_3d_single_data.obs_valid.isnull(), CN.OBS_VALID] = CN.MV_NULL
 
                     # create defaults for flags
                     m_3d_single_data[CN.SIMPLE_FLAG] = 1
