@@ -565,7 +565,7 @@ class WriteStatAscii:
         num_repeating_col_labels: int = int(cn.LINE_VAR_REPEATS[linetype])
 
         #  Retrieve the value for N_RANK, the number of possible ranks
-        num_rank: int = int(stat_data_copy.iloc[0][str(cn.NUM_STATIC_RHIST_COLS)])
+        num_rank: int = int(stat_data_copy.iloc[0, cn.NUM_STATIC_RHIST_COLS])
 
         # Add 1 for the TOTAL column to get the total number of columns for this line type
         total_number_relevant_columns = cn.NUM_STATIC_RHIST_COLS + \
