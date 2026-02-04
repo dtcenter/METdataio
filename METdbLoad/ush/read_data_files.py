@@ -1185,7 +1185,8 @@ class ReadDataFiles:
                         elif vsdb_type == CN.CTC:
                             # column 0 is Total, 1 is F, 2 is H
                             # column 3 is O (Oh) - if None, set to 0 (Zero)
-                            vsdb_data.loc[vsdb_data['3'].isnull(), '3'] = 0
+                            vsdb_data.loc[vsdb_data['3'].isnull(), '3'] = '0'
+                            vsdb_data['3'] = pd.to_numeric(vsdb_data['3'], errors='coerce')
                             # fy = Total * F
                             vsdb_data['4'] = vsdb_data['0'].astype(
                                 float) * vsdb_data['1'].astype(float)

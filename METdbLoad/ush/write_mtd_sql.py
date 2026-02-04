@@ -145,8 +145,8 @@ class WriteMtdSql:
                         new_headers.loc[new_headers.revision_id != CN.MV_NULL, CN.REVISION_ID] = \
                             new_headers.loc[new_headers.revision_id != CN.MV_NULL, CN.REVISION_ID] + \
                             next_rev_id
-                    new_headers.loc[new_headers.obs_valid.isnull(
-                    ), CN.OBS_VALID] = CN.MV_NULL
+                    new_headers.obs_valid = new_headers.obs_valid.astype(str)
+                    new_headers.loc[new_headers.obs_valid.isnull(), CN.OBS_VALID] = CN.MV_NULL
                     sql_met.write_to_sql(new_headers, CN.MTD_HEADER_FIELDS, CN.MTD_HEADER,
                                          CN.INS_MTDHEADER, tmp_dir, sql_cur, local_infile, logger)
                     new_headers = new_headers.iloc[0:0]
@@ -179,8 +179,8 @@ class WriteMtdSql:
                         m_2d_data[cur_header] = m_2d_data[cur_header].astype(str)
 
                     m_2d_data = pd.merge(left=mtd_headers, right=m_2d_data, on=CN.MTD_2D_HEADER_KEYS)
-                    obs_valid = m_2d_data.obs_valid.astype(str)
-                    m_2d_data.loc[obs_valid.isnull(), CN.OBS_VALID] = CN.MV_NULL
+                    m_2d_data.obs_valid = m_2d_data.obs_valid.astype(str)
+                    m_2d_data.loc[m_2d_data.obs_valid.isnull(), CN.OBS_VALID] = CN.MV_NULL
 
                     # create defaults for flags
                     m_2d_data[CN.SIMPLE_FLAG] = 1
