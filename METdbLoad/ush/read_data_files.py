@@ -881,25 +881,28 @@ class ReadDataFiles:
                     # MCTS, set to 1/n_cat. MCTC is variable length
                     # set value to string representation of float, then convert type to float -- for pandas 3.x
                     if all_stat[CN.LINE_TYPE].eq(CN.CTC).any():
-                        all_stat.loc[(all_stat.line_type == CN.CTC) &
+                        mask = (all_stat.line_type == CN.CTC)
+                        all_stat.loc[mask &
                                      ((all_stat['5'].isnull()) |
                                      (all_stat['5'] == CN.NOTAV)), '5'] = '.5'
-                        all_stat['5'].astype(float)
+                        all_stat.loc[mask, '5'] = all_stat.loc[mask, '5'].astype(float)
 
                     if all_stat[CN.LINE_TYPE].eq(CN.CTS).any():
-                        all_stat.loc[(all_stat.line_type == CN.CTS) &
+                        mask = (all_stat.line_type == CN.CTS)
+                        all_stat.loc[mask &
                                      ((all_stat['96'].isnull()) |
                                      (all_stat['96'] == CN.NOTAV)), '96'] = '.5'
-                        all_stat['96'].astype(float)
+                        all_stat[mask, '96'] = all_stat[mask, '96'].astype(float)
 
                     if all_stat[CN.LINE_TYPE].eq(CN.MCTS).any():
-                        all_stat.loc[(all_stat.line_type == CN.MCTS) &
+                        mask = (all_stat.line_type == CN.MCTS)
+                        all_stat.loc[mask &
                                      ((all_stat['19'].isnull()) |
                                      (all_stat['19'] == CN.NOTAV)), '19'] = \
                             str(1/all_stat.loc[(all_stat.line_type == CN.MCTS) &
                                            ((all_stat['19'].isnull()) |
                                             (all_stat['19'] == CN.NOTAV)), '1'])
-                        all_stat['19'].astype(float)
+                        all_stat[mask, '19'] = all_stat[mask, '19'].astype(float)
 
             except (RuntimeError, TypeError, NameError, KeyError):
                 self.logger.error(
