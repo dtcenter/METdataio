@@ -56,13 +56,13 @@ jobs:
       id: check_fork
       if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != 'dtcenter/METdataio' }}
       run: echo "SonarQube scan cannot be run from a fork"; exit 1
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         # Disable shallow clones for better analysis
         fetch-depth: 0
 
     - name: Set up Python 3.12
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: "3.12"
 
