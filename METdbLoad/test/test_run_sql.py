@@ -2,7 +2,7 @@ import pytest
 from unittest import mock
 from pymysql import OperationalError
 
-from METdbLoad.ush.met_db_load import main as load_main
+from METdbLoad.ush.met_db_load import load_met_data
 from METdbLoad.ush import constants as CN
 from METdbLoad.test.utils import dict_to_args
 from METdataio.METdbLoad.test.utils import (
@@ -14,17 +14,15 @@ from METdataio.METdbLoad.test.utils import (
 def populate_some_data(
     tmp_path, met_data_dir=GRID_STAT_DATA_DIR, met_tool="grid_stat", load_flags={}
 ):
-    test_args = dict_to_args(
-        {
-            "xmlfile": str(
-                get_xml_test_file(tmp_path, met_data_dir, met_tool, load_flags)
-            ),
-            "index": "true",
-            "tmpdir": [str(tmp_path)],
-            "loglevel": "DEBUG"
-        }
-    )
-    load_main(test_args)
+    test_args = {
+        "xmlfile": str(
+            get_xml_test_file(tmp_path, met_data_dir, met_tool, load_flags)
+        ),
+        "index": "true",
+        "tmpdir": [str(tmp_path)],
+        "loglevel": "DEBUG"
+    }
+    load_met_data(**test_args)
 
 
 def test_get_file_name(tmp_path, emptyDB, testRunSql, mock_logger):
