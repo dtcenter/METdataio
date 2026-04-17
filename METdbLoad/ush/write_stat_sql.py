@@ -146,6 +146,9 @@ class WriteStatSql:
                     pd.set_option('future.no_silent_downcasting', True)
                     line_data = line_data.replace(CN.NOTAV, CN.MV_NOTAV)
 
+                    # Explicitly convert columns to numeric where possible
+                    line_data = line_data.infer_objects(copy=False)
+
                     # Only variable length lines have a line_data_id
                     if line_type in CN.VAR_LINE_TYPES:
                         # Get next valid line data id. Set it to zero (first valid id) if no records yet
@@ -253,7 +256,7 @@ class WriteStatSql:
                                     # Fill in ec_value if missing - 1/n_cat
                                     if pd.isna(line_data.iloc[row_num, var_index + repeat_width]):
                                         line_data.iloc[row_num, var_index + repeat_width] = \
-                                            1/line_data.iloc[row_num, var_index - 1]
+                                            1 / float(line_data.iloc[row_num, var_index - 1])
 
                                     # Move field (ec_value) that was added later back to end of main line
                                     line_data.iloc[row_num, var_index] = \
@@ -344,6 +347,6 @@ class WriteStatSql:
             logger.debug("[--- End write_stat_data ---]")
 
         except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
-            self.logger.error(
+            logger.error(
                 "*** %s occurred in write_stat_data function ***", sys.exc_info()[0])
             sys.exit("*** Error in write_stat_data function")
