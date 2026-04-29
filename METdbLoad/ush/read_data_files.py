@@ -777,7 +777,7 @@ class ReadDataFiles:
                                          all_stat.fcst_thresh.str.contains(
                                 CN.R_PAREN, regex=False),
                             CN.FCST_THRESH].str.split(CN.L_PAREN).str[1]. \
-                            str.split(CN.R_PAREN).str[0].astype(float)
+                            str.split(CN.R_PAREN).str[0]
                         # remove the percentage from fcst_thresh
                         all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False) &
                                      all_stat.fcst_thresh.str.contains(
@@ -799,7 +799,7 @@ class ReadDataFiles:
                                          all_stat.obs_thresh.str.contains(
                                 CN.R_PAREN, regex=False),
                             CN.OBS_THRESH].str.split(CN.L_PAREN).str[1]. \
-                            str.split(CN.R_PAREN).str[0].astype(float)
+                            str.split(CN.R_PAREN).str[0]
                         all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN, regex=False) &
                                      all_stat.obs_thresh.str.contains(
                             CN.R_PAREN, regex=False),
@@ -885,14 +885,12 @@ class ReadDataFiles:
                         all_stat.loc[mask &
                                      ((all_stat['5'].isnull()) |
                                      (all_stat['5'] == CN.NOTAV)), '5'] = '.5'
-                        all_stat['5'] = pd.to_numeric(all_stat['5'], errors='coerce')
 
                     if all_stat[CN.LINE_TYPE].eq(CN.CTS).any():
                         mask = (all_stat.line_type == CN.CTS)
                         all_stat.loc[mask &
                                      ((all_stat['96'].isnull()) |
                                      (all_stat['96'] == CN.NOTAV)), '96'] = '.5'
-                        all_stat['96'] = pd.to_numeric(all_stat['96'], errors='coerce')
 
                     if all_stat[CN.LINE_TYPE].eq(CN.MCTS).any():
                         mask = (all_stat.line_type == CN.MCTS)
@@ -902,11 +900,11 @@ class ReadDataFiles:
                             str(1/all_stat.loc[(all_stat.line_type == CN.MCTS) &
                                            ((all_stat['19'].isnull()) |
                                             (all_stat['19'] == CN.NOTAV)), '1'])
-                        all_stat['19'] = pd.to_numeric(all_stat['19'], errors='coerce')
 
             except (RuntimeError, TypeError, NameError, KeyError):
                 self.logger.error(
                     f"*** Error concatenating data frames prior to load: {sys.exc_info()[0]}*** ")
+                self.logger.debug("Exception details:", exc_info=True)
                 sys.exit("*** Error concatenating data frames prior to load")
 
             try:
@@ -920,6 +918,7 @@ class ReadDataFiles:
             except (RuntimeError, TypeError, NameError, KeyError):
                 self.logger.error(
                     f"*** Error concatenating tcst data frames prior to load: {sys.exc_info()[0]}*** ")
+                self.logger.debug("Exception details:", exc_info=True)
                 sys.exit("*** Error concatenating tcst data frames prior to load")
 
             try:
@@ -1186,7 +1185,6 @@ class ReadDataFiles:
                             # column 0 is Total, 1 is F, 2 is H
                             # column 3 is O (Oh) - if None, set to 0 (Zero)
                             vsdb_data.loc[vsdb_data['3'].isnull(), '3'] = '0'
-                            vsdb_data['3'] = pd.to_numeric(vsdb_data['3'], errors='coerce')
                             # fy = Total * F
                             vsdb_data['4'] = vsdb_data['0'].astype(
                                 float) * vsdb_data['1'].astype(float)
@@ -1244,6 +1242,7 @@ class ReadDataFiles:
             except (RuntimeError, TypeError, NameError, KeyError):
                 self.logger.error(
                     f"*** Error concatenating vsdb data frames prior to load: {sys.exc_info()[0]}*** ")
+                self.logger.debug("Exception details:", exc_info=True)
                 sys.exit("*** Error concatenating vsdb data frames prior to load")
 
             try:

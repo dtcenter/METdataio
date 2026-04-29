@@ -113,6 +113,7 @@ class WriteStatSql:
             except (RuntimeError, TypeError, NameError, KeyError):
                 logger.error(
                     "*** %s in write_stat_data write headers ***", sys.exc_info()[0])
+                logger.debug("Exception details:", exc_info=True)
                 sys.exit("*** Error writing stat SQL headers")
 
             try:
@@ -145,6 +146,9 @@ class WriteStatSql:
                     # change all Not Available values to METviewer not available (-9999)
                     pd.set_option('future.no_silent_downcasting', True)
                     line_data = line_data.replace(CN.NOTAV, CN.MV_NOTAV)
+
+                    # Explicitly convert columns to numeric where possible
+                    line_data = line_data.infer_objects(copy=False)
 
                     # Only variable length lines have a line_data_id
                     if line_type in CN.VAR_LINE_TYPES:
@@ -253,7 +257,7 @@ class WriteStatSql:
                                     # Fill in ec_value if missing - 1/n_cat
                                     if pd.isna(line_data.iloc[row_num, var_index + repeat_width]):
                                         line_data.iloc[row_num, var_index + repeat_width] = \
-                                            1/line_data.iloc[row_num, var_index - 1]
+                                            str(1 / float(line_data.iloc[row_num, var_index - 1]))
 
                                     # Move field (ec_value) that was added later back to end of main line
                                     line_data.iloc[row_num, var_index] = \
@@ -334,6 +338,7 @@ class WriteStatSql:
             except (RuntimeError, TypeError, NameError, KeyError):
                 logger.error(
                     "*** %s in write_stat_data write line data ***", sys.exc_info()[0])
+                logger.debug("Exception details:", exc_info=True)
                 sys.exit("*** Error writing stat SQL line data")
 
             write_time_end = time.perf_counter()
@@ -344,6 +349,7 @@ class WriteStatSql:
             logger.debug("[--- End write_stat_data ---]")
 
         except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
-            self.logger.error(
+            logger.error(
                 "*** %s occurred in write_stat_data function ***", sys.exc_info()[0])
+            logger.debug("Exception details:", exc_info=True)
             sys.exit("*** Error in write_stat_data function")

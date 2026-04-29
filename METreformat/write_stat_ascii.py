@@ -64,6 +64,7 @@ class WriteStatAscii:
             self.logger = logger
             self.logger.error(
                 "*** %s occurred while initializing class WriteStatAscii ***", sys.exc_info()[0])
+            self.logger.debug("Exception details:", exc_info=True)
             sys.exit("*** Error initializing class WriteStatAscii")
 
     def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict) -> pd.DataFrame:
@@ -179,6 +180,7 @@ class WriteStatAscii:
         except (TypeError, NameError, KeyError, NotImplementedError):
             self.logger.error(
                 "*** %s in write_stat_ascii ***", sys.exc_info()[0])
+            self.logger.debug("Exception details:", exc_info=True)
 
         write_time_end: float = time.perf_counter()
         write_time = write_time_end - write_time_start
