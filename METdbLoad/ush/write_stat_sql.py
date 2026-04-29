@@ -113,6 +113,7 @@ class WriteStatSql:
             except (RuntimeError, TypeError, NameError, KeyError):
                 logger.error(
                     "*** %s in write_stat_data write headers ***", sys.exc_info()[0])
+                logger.debug("Exception details:", exc_info=True)
                 sys.exit("*** Error writing stat SQL headers")
 
             try:
@@ -337,6 +338,7 @@ class WriteStatSql:
             except (RuntimeError, TypeError, NameError, KeyError):
                 logger.error(
                     "*** %s in write_stat_data write line data ***", sys.exc_info()[0])
+                logger.debug("Exception details:", exc_info=True)
                 sys.exit("*** Error writing stat SQL line data")
 
             write_time_end = time.perf_counter()
@@ -349,4 +351,5 @@ class WriteStatSql:
         except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
             logger.error(
                 "*** %s occurred in write_stat_data function ***", sys.exc_info()[0])
+            logger.debug("Exception details:", exc_info=True)
             sys.exit("*** Error in write_stat_data function")
