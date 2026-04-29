@@ -777,7 +777,7 @@ class ReadDataFiles:
                                          all_stat.fcst_thresh.str.contains(
                                 CN.R_PAREN, regex=False),
                             CN.FCST_THRESH].str.split(CN.L_PAREN).str[1]. \
-                            str.split(CN.R_PAREN).str[0].astype(float)
+                            str.split(CN.R_PAREN).str[0]
                         # remove the percentage from fcst_thresh
                         all_stat.loc[all_stat.fcst_thresh.str.contains(CN.L_PAREN, regex=False) &
                                      all_stat.fcst_thresh.str.contains(
@@ -799,7 +799,7 @@ class ReadDataFiles:
                                          all_stat.obs_thresh.str.contains(
                                 CN.R_PAREN, regex=False),
                             CN.OBS_THRESH].str.split(CN.L_PAREN).str[1]. \
-                            str.split(CN.R_PAREN).str[0].astype(float)
+                            str.split(CN.R_PAREN).str[0]
                         all_stat.loc[all_stat.obs_thresh.str.contains(CN.L_PAREN, regex=False) &
                                      all_stat.obs_thresh.str.contains(
                             CN.R_PAREN, regex=False),
