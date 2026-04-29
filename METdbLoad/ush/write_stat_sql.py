@@ -257,7 +257,7 @@ class WriteStatSql:
                                     # Fill in ec_value if missing - 1/n_cat
                                     if pd.isna(line_data.iloc[row_num, var_index + repeat_width]):
                                         line_data.iloc[row_num, var_index + repeat_width] = \
-                                            1 / float(line_data.iloc[row_num, var_index - 1])
+                                            str(1 / float(line_data.iloc[row_num, var_index - 1]))
 
                                     # Move field (ec_value) that was added later back to end of main line
                                     line_data.iloc[row_num, var_index] = \
