@@ -6,18 +6,18 @@
 
 name: Python vulerability check
 
-on:
-  push:
-    branches:
+#on:
+#  push:
+#    branches:
 #      - develop
 #      - develop-ref
 #      - feature_*
-      - main_*
+#      - main_*
 #      - bugfix_*
 #      - test_*
 #      - issue_*
-  pull_request:
-    types: [opened, reopened, synchronize]
+#  pull_request:
+#    types: [opened, reopened, synchronize]
 
 jobs:
   selftest:
