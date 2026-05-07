@@ -49,25 +49,6 @@ METdataio Version 13.0.0-beta1 Release Notes (20260204)
    * None
 
 
-METdataio Version 13.0.0-beta1 Release Notes (20260204)
-------------------------------------------------------
-
-.. dropdown:: Bugfixes
-
-   * **Bugfix to error out when loading MODE object data without CTS data** (`#401 <https://github.com/dtcenter/METdataio/issues/401>`_)
-
-.. dropdown:: Documentation
-
-   * None
-
-.. dropdown:: Enhancements
-
-   * None
-     
-.. dropdown::	Repository, build, and test
-
-   * None
-
 
 METdataio Upgrade Instructions
 ==============================
