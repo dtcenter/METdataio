@@ -9,8 +9,28 @@ describes the bugfix, enhancement, or new feature:
 METdataio Release Notes
 =======================
 
-METdataio Version 4.0.0-beta1 Release Notes (20260204)
-------------------------------------------------------
+METdataio Version 13.0.0-beta2 Release Notes (20260507)
+-------------------------------------------------------
+
+.. dropdown:: Bugfixes
+
+   * None
+
+.. dropdown:: Documentation
+
+   * None
+
+.. dropdown:: Enhancements
+
+   * None
+     
+.. dropdown::	Repository, build, and test
+
+   * **Add testing for Python 3.14** (`#410 <https://github.com/dtcenter/METdataio/pull/410>`_)
+
+
+METdataio Version 13.0.0-beta1 Release Notes (20260204)
+-------------------------------------------------------
 
 .. dropdown:: Bugfixes
 
@@ -29,6 +49,7 @@ METdataio Version 4.0.0-beta1 Release Notes (20260204)
    * None
 
 
+
 METdataio Upgrade Instructions
 ==============================
 
@@ -36,8 +57,10 @@ This section summarizes and highlights important changes to METdataio since vers
 
 .. note::
 
-   In the METdataio-3.1.0-beta2 release, METdataio switched from development
-   with Python 3.10.4 to development with Python 3.12. View the
+   The version numbering for METdataio has been updated to 13.0.0 to provide consistency and clarity with all METplus components. 
+
+   In the METdataio-13.0.0-beta2 release, METdataio switched from development
+   with Python 3.12 to development with Python 3.14. View the
    requirements.txt/nco_requirements.txt file at the top level of the
    repository for version numbers for the corresponding third-party packages.
 
