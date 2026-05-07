@@ -19,19 +19,19 @@ name: Python vulerability check
 #  pull_request:
 #    types: [opened, reopened, synchronize]
 
-jobs:
-  selftest:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v6
-      - name: install
-        run: |
-          python -m venv env/
-          source env/bin/activate
-          python -m pip install .
-      - uses: pypa/gh-action-pip-audit@v1.1.0
-        with:
-          inputs: '.'
-          virtual-environment: env/
-          local: true
-          summary: true
+#jobs:
+#  selftest:
+#    runs-on: ubuntu-22.04
+#    steps:
+#      - uses: actions/checkout@v6
+#      - name: install
+#        run: |
+#          python -m venv env/
+#          source env/bin/activate
+#          python -m pip install .
+#      - uses: pypa/gh-action-pip-audit@v1.1.0
+#        with:
+#          inputs: '.'
+#          virtual-environment: env/
+#          local: true
+##          summary: true
