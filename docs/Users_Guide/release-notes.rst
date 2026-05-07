@@ -58,6 +58,7 @@ This section summarizes and highlights important changes to METdataio since vers
 
 .. note::
 
+
    The version numbering for METdataio has been updated to 13.0.0 to provide consistency and clarity with all METplus components. 
 
    In the METdataio-13.0.0-beta2 release, METdataio switched from development
