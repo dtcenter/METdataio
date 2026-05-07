@@ -9,13 +9,13 @@ name: Python vulerability check
 on:
   push:
     branches:
-      - develop
-      - develop-ref
-      - feature_*
+#      - develop
+#      - develop-ref
+#      - feature_*
       - main_*
-      - bugfix_*
-      - test_*
-      - issue_*
+#      - bugfix_*
+#      - test_*
+#      - issue_*
   pull_request:
     types: [opened, reopened, synchronize]
 
