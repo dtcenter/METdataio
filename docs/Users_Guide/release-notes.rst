@@ -14,7 +14,7 @@ METdataio Version 13.0.0-beta2 Release Notes (20260507)
 
 .. dropdown:: Bugfixes
 
-   * None
+   * **Use case fix when using pandas 3** (`#415 <https://github.com/dtcenter/METdataio/pull/415>`_)
 
 .. dropdown:: Documentation
 
@@ -27,6 +27,7 @@ METdataio Version 13.0.0-beta2 Release Notes (20260507)
 .. dropdown::	Repository, build, and test
 
    * **Add testing for Python 3.14** (`#410 <https://github.com/dtcenter/METdataio/pull/410>`_)
+   * Remove python-dateutil from nco_requirements.txt and requirements.txt (`#409 <https://github.com/dtcenter/METdataio/pull/409>`_)
 
 
 METdataio Version 13.0.0-beta1 Release Notes (20260204)
@@ -56,6 +57,7 @@ METdataio Upgrade Instructions
 This section summarizes and highlights important changes to METdataio since version 3.1.0, including:
 
 .. note::
+
 
    The version numbering for METdataio has been updated to 13.0.0 to provide consistency and clarity with all METplus components. 
 
