@@ -70,7 +70,7 @@ html_css_files = ['theme_override.css','custom.css']
 html_logo = os.path.join('_static','met_dataio_logo_2022_08.png')
 
 # -- Intersphinx control -----------------------------------------------------
-intersphinx_mapping = {'numpy':("https://numpy.org/doc/stable/", None)}
+#intersphinx_mapping = {'numpy':("https://numpy.org/doc/stable/", None)}
 
 numfig = True
 
