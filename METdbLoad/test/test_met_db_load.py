@@ -20,7 +20,6 @@ from METdataio.METdbLoad.test.utils import (
 )
 
 
-@pytest.mark.skip()
 def assert_count_rows(cur, table, expected_count):
     cur.execute(f"SELECT * FROM {table}")
     actual = cur.fetchall()
@@ -29,7 +28,6 @@ def assert_count_rows(cur, table, expected_count):
     ), f"Table {table} has {len(actual)} rows. Expected {expected_count}."
 
 
-@pytest.mark.skip()
 @pytest.mark.parametrize(
     "met_data_dir, met_tool, expected_counts",
     [
@@ -125,7 +123,6 @@ def assert_count_rows(cur, table, expected_count):
         ),
     ],
 )
-@pytest.mark.skip()
 def test_met_db_table_counts(
     emptyDB,
     testRunSql,
@@ -195,7 +192,6 @@ def test_met_db_table_counts(
         ),
     ],
 )
-@pytest.mark.skip()
 def test_met_db_table_dups(
     emptyDB,
     testRunSql,
@@ -267,7 +263,6 @@ def test_met_db_table_dups(
         ),
     ],
 )
-@pytest.mark.skip()
 def test_met_db_table_dups_allowed(
     emptyDB,
     testRunSql,
@@ -303,7 +298,6 @@ def test_met_db_table_dups_allowed(
         assert_count_rows(testRunSql.cur, table, expected_count * 2)
 
 
-@pytest.mark.skip()
 def test_met_db_indexes(
     emptyDB,
     testRunSql,
@@ -396,7 +390,6 @@ def test_met_db_indexes(
         ),
     ],
 )
-@pytest.mark.skip()
 def test_local_in_file(
     emptyDB, testRunSql, tmp_path, met_data_dir, met_tool, expected_counts, local_infile
 ):
@@ -421,7 +414,6 @@ def test_local_in_file(
         assert_count_rows(testRunSql.cur, table, expected_count)
 
 
-@pytest.mark.skip()
 def test_empty_files(tmp_path):
     """Junk files shouldn't cause an error when running load_main"""
 
@@ -460,7 +452,6 @@ def test_empty_files(tmp_path):
     load_main(test_args)
 
 
-@pytest.mark.skip()
 def test_print_version():
     mock_logger = MagicMock()
     print_version(mock_logger)
@@ -521,7 +512,6 @@ def test_next_set(mid, last, expected):
         ),
     ],
 )
-@pytest.mark.skip()
 def test_purge_files(xml_flags, expected):
     load_files = [
         "test.stat",
@@ -539,7 +529,6 @@ def test_purge_files(xml_flags, expected):
     assert expected == actual
 
 
-@pytest.mark.skip()
 def test_purge_files_raises():
     mock_logger = MagicMock()
     with pytest.raises(SystemExit):
@@ -547,7 +536,6 @@ def test_purge_files_raises():
     assert mock_logger.error.call_count == 2
 
 
-@pytest.mark.skip()
 def test_parse_args():
     good_args = [
         "met_db_load.py",
