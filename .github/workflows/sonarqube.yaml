@@ -71,7 +71,7 @@ jobs:
         python -m pip install --upgrade pip
         metcalcpy_dir="${RUNNER_WORKSPACE}/METcalcpy"
         git clone https://github.com/dtcenter/METcalcpy ${metcalcpy_dir}
-        git -C ${metcalcpy_dir} checkout develop
+        git -C ${metcalcpy_dir} checkout main_v3.1
         python -m pip install -e ${metcalcpy_dir}
 
     - name: Install dependencies
