@@ -55,7 +55,7 @@ jobs:
           python -m pip install --upgrade pip
           metcalcpy_dir="${RUNNER_WORKSPACE}/METcalcpy"
           git clone https://github.com/dtcenter/METcalcpy ${metcalcpy_dir}
-          git -C ${metcalcpy_dir} checkout develop
+          git -C ${metcalcpy_dir} checkout main_v3.1
           python -m pip install -e ${metcalcpy_dir}
 
 
@@ -65,6 +65,10 @@ jobs:
           # python -m pip install pytest>=7.1.1
           python -m pip install netcdf4==1.7.2
           # Migrating to python3.14, the requirements.txt in the develop branch is a mismatch with
+          # python -m pip install netcdf4==1.6.2 
+          
+          #if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # Migrating to python3.14, the requirements.txt in the develop branch is a mismatch with 
           # this version of python.  Explicitly pip install numpy, pandas, lxml, and xarray
           python -m pip install numpy==2.2.2
           python -m pip install pandas==2.2.3
