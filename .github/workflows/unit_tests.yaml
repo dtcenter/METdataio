@@ -64,7 +64,12 @@ jobs:
           python -m pip install --upgrade pip
           # python -m pip install pytest>=7.1.1
           python -m pip install netcdf4==1.7.2
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # Migrating to python3.14, the requirements.txt in the develop branch is a mismatch with
+          # this version of python.  Explicitly pip install numpy, pandas, lxml, and xarray
+          python -m pip install numpy==2.2.2
+          python -m pip install pandas==2.2.3
+          python -m pip install lxml==5.3.0
+          python -m pip install xarray==2025.1.2
           python -m pip install pytest-cov
 
       #   Checking the branch name, not necessary but useful when setting things up.
