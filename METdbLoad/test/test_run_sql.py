@@ -11,7 +11,6 @@ from METdataio.METdbLoad.test.utils import (
 )
 
 
-@pytest.mark.skip()
 def populate_some_data(
     tmp_path, met_data_dir=GRID_STAT_DATA_DIR, met_tool="grid_stat", load_flags={}
 ):
@@ -27,7 +26,6 @@ def populate_some_data(
     )
     load_main(test_args)
 
-@pytest.mark.skip()
 def test_get_file_name(tmp_path, emptyDB, testRunSql, mock_logger):
     file_name = testRunSql.get_file_name(1, testRunSql.cur, mock_logger)
     assert file_name == None
@@ -49,7 +47,6 @@ def test_get_file_name(tmp_path, emptyDB, testRunSql, mock_logger):
         [False, CN.CREATE_INDEXES_QUERIES],
     ),
 )
-@pytest.mark.skip()
 def test_apply_indexes(testRunSql, drop, cmds, mock_logger):
 
     mock_cursor = mock.MagicMock()
