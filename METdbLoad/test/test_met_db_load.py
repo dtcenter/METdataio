@@ -472,7 +472,6 @@ def test_print_version():
         (99, 147, (100, 147, 147)),
     ],
 )
-@pytest.mark.skip()
 def test_next_set(mid, last, expected):
     assert next_set(mid, last) == expected
 
