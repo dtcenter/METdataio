@@ -26,7 +26,6 @@ def populate_some_data(
     )
     load_main(test_args)
 
-
 def test_get_file_name(tmp_path, emptyDB, testRunSql, mock_logger):
     file_name = testRunSql.get_file_name(1, testRunSql.cur, mock_logger)
     assert file_name == None
