@@ -177,7 +177,6 @@ def test_point_stat_FHO_consistency():
     assert expected_name == actual_name
 
 
-# @pytest.mark.skip()
 def test_point_stat_sl1l2_consistency():
     '''
            For the data frame for the SL1L2 line type, verify that a value in the
@@ -519,7 +518,7 @@ def test_process_cnt_agg():
    with pytest.raises(NotImplementedError):
        wsa.process_cnt_for_agg(stat_data)
 
-def test_point_stat_vcnt_MET_13_consistency():
+def test_point_stat_vcnt_met13_consistency():
     '''
            For the data frame for the VCNT line type (post-MET v12),
            verify that a value in the original data
