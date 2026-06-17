@@ -235,7 +235,6 @@ def test_point_stat_sl1l2_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
-@pytest.mark.skip("Does not work with VL1L2 data with recently added columns")
 def test_point_stat_vl1l2_consistency():
     '''
            For the data frame for the VL1L2 line type, verify that a value in the
@@ -254,28 +253,34 @@ def test_point_stat_vl1l2_consistency():
     # Subset original dataframe to one containing only the VL1L2 data
     vl1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
                              vl1l2_columns_to_use]
-
     # Add the stat columns header names for the VL1L2 line type
     vl1l2_columns: List[str] = cn.VL1L2_HEADERS
     vl1l2_df.columns: List[str] = vl1l2_columns
 
     # get the value of the record corresponding to line_type Vl1L2, total number of
-    # pairs, obs_var, obs_lev, and fcst_thresh, for the MAE statistic.
-    total = str(934)
-    interp = 'DW_MEAN_SQUARE'
+    # pairs, obs_var, obs_lev, and fcst_thresh, for the DIR_MSE statistic.
+    total = str(4474)
+    interp = 'NEAREST'
     obs_level = 'Z10'
     fcst_thresh = 'NA'
-
-    # Filter the original dataframe to a particular UFBAR row
+    fcst_var = 'UGRD_VGRD'
+    obtype = 'ADPSFC'
+    desc = 'WIND_UNION'
+    # Filter the original dataframe to a particular UGRD_VGRD row
     expected_df: pd.DataFrame = vl1l2_df.loc[(vl1l2_df['total'] == total) &
                                              (vl1l2_df['interp_mthd'] == interp) &
                                              (vl1l2_df['obs_lev'] == obs_level) &
-                                             (vl1l2_df['fcst_thresh'] == fcst_thresh)]
+                                             (vl1l2_df['fcst_thresh'] == fcst_thresh) &
+                                             (vl1l2_df['fcst_var'] == fcst_var) &
+                                             (vl1l2_df['obtype'] == obtype) &
+                                             (vl1l2_df['desc'] == desc)
+                                             ]
+
     expected_row: pd.Series = expected_df.iloc[0]
-    expected_name: str = "UFBAR"
+    expected_name: str = "DIR_MSE"
     expected_val: float = expected_row.loc[expected_name]
 
-    wsa = WriteStatAscii(parms)
+    wsa = WriteStatAscii(parms, logger)
     obs_var = 'UGRD_VGRD'
     reshaped_df = wsa.process_vl1l2(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) &
