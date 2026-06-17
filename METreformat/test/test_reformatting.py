@@ -1,6 +1,7 @@
 import os
 import shutil
 import pathlib
+from argparse import Namespace
 from collections import namedtuple
 from dataclasses import make_dataclass
 from typing import List
@@ -10,11 +11,12 @@ import pandas as pd
 import pytest
 import yaml
 
-import METdataio.METdbLoad.ush.constants as cn
-from METdataio.METdbLoad.ush.read_data_files import ReadDataFiles
-from METdataio.METdbLoad.ush.read_load_xml import XmlLoadFile
-from METdataio.METreformat.write_stat_ascii import WriteStatAscii
-import METdataio.METreformat.util as util
+# import METdataio.METdbLoad.ush.constants as cn
+import METdbLoad.ush.constants as cn
+from METdbLoad.ush.read_data_files import ReadDataFiles
+from METdbLoad.ush.read_load_xml import XmlLoadFile
+from METreformat.write_stat_ascii import WriteStatAscii
+import METreformat.util as util
 
 full_log_filename = os.path.join('../output', 'test_reformatting_log.txt')
 logger = util.get_common_logger('DEBUG', full_log_filename)
@@ -86,13 +88,49 @@ def setup_test(yaml_file, is_tcst=False):
     return file_df, config
 
 
+def test_bad_yaml():
+    """
+       Force a runtime exception by providing a non-existent yaml file
+    """
+
+    with pytest.raises(TypeError):
+        wsa = WriteStatAscii(None, logger)
+
+def test_write_stat_ascii_bad_input():
+    '''
+        Test that an AttributeError is raised when the input dataframe
+        is nonexistent.
+    '''
+    stat_data, parms = setup_test("FHO.yaml")
+    cwd = os.getcwd()
+
+    # After creating the WriteStatAscii object, the log directory should exist
+    with pytest.raises(AttributeError):
+        wsa = WriteStatAscii(parms, logger)
+        wsa.write_stat_ascii(None, parms)
+
+def test_unsupported_linetype():
+    '''
+        Test that the NotImplementedError is raised when an unsupported linetype
+        is requested.  The MTD (mode time domain) line type is currently not
+        supported.
+    '''
+    stat_data, parms = setup_test("not_supported.yaml")
+    cwd = os.getcwd()
+    parms['log_directory'] = cwd + "/log_output"
+    parms['log_filename'] = "test_log.out"
+
+    # After creating the WriteStatAscii object, the log directory should exist
+    with pytest.raises(NotImplementedError):
+        wsa = WriteStatAscii(parms, logger)
+        wsa.write_stat_ascii(stat_data, parms)
+
+
 def test_point_stat_FHO_consistency():
     '''
            For the data frame for the FHO line type, verify that a value in the`
-           original data
-           corresponds to the value identified with the same criteria in the newly
-           reformatted
-           dataframe.
+           original data corresponds to the value identified with the same
+           criteria in the newly reformatted dataframe.
 
     '''
 
@@ -319,6 +357,16 @@ def test_point_stat_ctc_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
+def test_process_ctc_agg():
+   """ verify that the NotImplementedError is raised  when
+         invoking the process_ctc_agg
+   """
+   stat_data, parms = setup_test('CTC.yaml')
+   parms['input_stats_aggregated'] = False
+   wsa = WriteStatAscii(parms, logger)
+   with pytest.raises(NotImplementedError):
+       wsa.process_ctc_for_agg(stat_data)
+
 def test_point_stat_cts_consistency():
     '''
            For the data frame for the CTS line type, verify that a value in the
@@ -385,6 +433,15 @@ def test_point_stat_cts_consistency():
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
 
+def test_process_cts_agg():
+   """ verify that the NotImplementedError is raised  when
+         invoking the process_cts_agg
+   """
+   stat_data, parms = setup_test('CTS.yaml')
+   parms['input_stats_aggregated'] = False
+   wsa = WriteStatAscii(parms, logger)
+   with pytest.raises(NotImplementedError):
+       wsa.process_cts_for_agg(stat_data)
 
 def test_point_stat_cnt_consistency():
     '''
@@ -452,29 +509,42 @@ def test_point_stat_cnt_consistency():
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
 
+def test_process_cnt_agg():
+   """ verify that the NotImplementedError is raised  when
+         invoking the process_cnt_agg
+   """
+   stat_data, parms = setup_test('CNT.yaml')
+   parms['input_stats_aggregated'] = False
+   wsa = WriteStatAscii(parms, logger)
+   with pytest.raises(NotImplementedError):
+       wsa.process_cnt_for_agg(stat_data)
 
-@pytest.mark.skip('Work in progress')
-def test_point_stat_vcnt_consistency():
+def test_point_stat_vcnt_MET_13_consistency():
     '''
-           For the data frame for the VCNT line type, verify that a value in the
-           original data
+           For the data frame for the VCNT line type (post-MET v12),
+           verify that a value in the original data
            corresponds to the value identified with the same criteria in the newly
-           reformatted
-           dataframe.
+           reformatted dataframe.
 
     '''
 
-    # Original data
-    stat_data, parms = setup_test('VCNT.yaml')
+    # MET v 13 data
+    # the inclusion of the 12 new VCNT columns was
+    # added in the MET 12.0.0 release. Use VCNT data used in
+    # MET v13 regression tests
+    stat_data, parms = setup_test('VCNT_for_MET13.yaml')
 
     # Relevant columns for the VCNT line type
     linetype: str = cn.VCNT
+
+
     end = cn.NUM_STAT_VCNT_COLS
     vcnt_columns_to_use: List[str] = np.arange(0, end).tolist()
 
     # Subset original dataframe to one containing only the VCNT data
     vcnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
                             vcnt_columns_to_use]
+    vcnt_df.to_csv("/Users/minnawin/issue_339_error_handling/METdataio/METreformat/test/data/point_stat/vcnt/df_MET13.csv")
 
     # Add the stat columns for the VCNT line type
     vcnt_columns: List[str] = cn.FULL_VCNT_HEADER
@@ -482,20 +552,22 @@ def test_point_stat_vcnt_consistency():
 
     # get the value of the record corresponding to line_type VCNT, total number, obs_var,
     # obs_lev, and fcst_thresh, for the ME statistic.
-    total = str(934)
+    total = str(980)
     obs_var = 'UGRD_VGRD'
     obs_level = 'Z10'
     fcst_thresh = 'NA'
-    expected_df: pd.DataFrame = vcnt_df.loc[
-        (vcnt_df['total'] == total) & (vcnt_df['obs_var'] == obs_var) &
+    expected_df: pd.DataFrame = vcnt_df.loc[(vcnt_df['total'] == total) &
+        (vcnt_df['obs_var'] == obs_var) &
         (vcnt_df['obs_lev'] == obs_level) &
         (vcnt_df['fcst_thresh'] == fcst_thresh)]
+
     expected_row: pd.Series = expected_df.iloc[0]
-    expected_name: str = "VCNT"
-    wsa = WriteStatAscii(parms)
-    reshaped_df = wsa.process_cnt(stat_data)
-    actual_df: pd.DataFrame = reshaped_df.loc[
-        (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
+    expected_name: str = "FBAR"
+    wsa = WriteStatAscii(parms, logger)
+    reshaped_df = wsa.write_stat_ascii(stat_data, parms)
+    reshaped_df.to_csv("/Users/minnawin/issue_339_error_handling/METdataio/METreformat/test/data/point_stat/vcnt/reshaped_v13.csv")
+    actual_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) &
+        (reshaped_df['obs_var'] == obs_var) &
         (reshaped_df['obs_lev'] == obs_level) &
         (reshaped_df['fcst_thresh'] == fcst_thresh)]
     actual_row: pd.Series = actual_df.iloc[0]
@@ -843,9 +915,20 @@ def test_fho_reformat_for_agg():
     with pytest.raises(NotImplementedError):
         wsa.process_fho_for_agg(stat_data)
 
-    # Expect SystemExit within the process_by_stat_line_type when a NotImplementedError is caught
-    with pytest.raises(SystemExit):
-        wsa.write_stat_ascii(stat_data, parms)
+def test_fho_reformat():
+    '''
+       Verify that the  process_fho within write_stat_ascii returns a
+       dataframe that isn't empty
+
+    :return:
+    '''
+
+    stat_data, parms = setup_test("FHO_for_agg.yaml")
+    wsa = WriteStatAscii(parms, logger)
+
+    result_df = wsa.process_fho(stat_data)
+    assert result_df.shape[0] > 0
+
 
 
 def test_tcdiag_from_tcpairs():
@@ -1336,3 +1419,37 @@ def test_tcst_with_ctc():
 
             # cleanup
             shutil.rmtree('./output/')
+
+
+def test_config_file_path():
+    """ Verify that a full path to the config file is generated from
+          read_config_from_command_line
+    """
+    result = util.read_config_from_command_line()
+    assert os.path.exists(result)
+
+
+def test_write_stat_ascii_type_error():
+        """ Deliberately input the incorrect/unexpected
+              type to the WriteStatAscii constructor
+        """
+        tcst_data, config = setup_test("./reformat_tcst_ctc.yaml")
+        bad_config = []
+        logger = None
+        with pytest.raises(AttributeError):
+           wsa = WriteStatAscii(bad_config, logger)
+
+
+def test_NA():
+    """ Verify that nan's are replaced by NA in write_stat_ascii()"""
+
+    _, parms = setup_test("./FHO_nan.yaml")
+    dir = os.getcwd()
+    parms['log_directory'] = dir
+    wsa = WriteStatAscii(parms, logger)
+    result = wsa.write_stat_ascii(_, parms)
+    desc = result['desc']
+
+    assert 'nan' not in desc
+
+
