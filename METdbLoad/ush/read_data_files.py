@@ -34,31 +34,22 @@ class ReadDataFiles:
            N/A
     """
 
+
     def __init__(self, logger=None):
-        try:
-            self.cache = {}
-            self.stat_data = pd.DataFrame()
-            self.mode_cts_data = pd.DataFrame()
-            self.mode_obj_data = pd.DataFrame()
-            self.tcst_data = pd.DataFrame()
-            self.data_files = pd.DataFrame()
-            self.mtd_2d_data = pd.DataFrame()
-            self.mtd_3d_single_data = pd.DataFrame()
-            self.mtd_3d_pair_data = pd.DataFrame()
-            if logger is None:
-                full_logfile = os.path.join(os.getcwd(), __name__ + "_log.txt")
-                self.logger = util.get_common_logger('DEBUG', full_logfile)
-            else:
-                self.logger = logger
-        except RuntimeError:
-            if logger is None:
-                print(
-                    "*** %s occurred while initializing class ReadDataFiles ***", sys.exc_info()[0])
-            else:
-                self.logger = logger
-                self.logger.error(
-                    "*** %s occurred while initializing class ReadDataFiles ***", sys.exc_info()[0])
-            sys.exit("*** Error initializing class ReadDataFiles")
+        self.cache = {}
+        self.stat_data = pd.DataFrame()
+        self.mode_cts_data = pd.DataFrame()
+        self.mode_obj_data = pd.DataFrame()
+        self.tcst_data = pd.DataFrame()
+        self.data_files = pd.DataFrame()
+        self.mtd_2d_data = pd.DataFrame()
+        self.mtd_3d_single_data = pd.DataFrame()
+        self.mtd_3d_pair_data = pd.DataFrame()
+        if logger is None:
+            full_logfile = os.path.join(os.getcwd(), __name__ + "_log.txt")
+            self.logger = util.get_common_logger('DEBUG', full_logfile)
+        else:
+            self.logger = logger
 
     def read_data(self, load_flags, load_files, line_types):
         """ Read in data files as given in load_spec file.
