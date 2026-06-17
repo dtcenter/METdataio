@@ -60,12 +60,12 @@ class WriteStatAscii:
             self.logger = logger
             self.parms = parms
 
-        except RuntimeError:
+        except TypeError, AttributeError:
             self.logger = logger
             self.logger.error(
                 "*** %s occurred while initializing class WriteStatAscii ***", sys.exc_info()[0])
             self.logger.debug("Exception details:", exc_info=True)
-            sys.exit("*** Error initializing class WriteStatAscii")
+            raise
 
     def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict) -> pd.DataFrame:
         """ For line types: FHO, CTC, CTS, SL1L2, ECNT, MCTS, VCNT, MPR (line plot), and DMAP (line plot)
@@ -119,8 +119,9 @@ class WriteStatAscii:
             # stat_bcl/bcu, stat_ncl/ncu columns.  Other plots, like the histogram plots (rank, relative, probability)
             # and ROC diagrams require specific formatting.
 
-            working_df = stat_data.copy(deep=True)
             linetype_requested = str(parms['line_type']).upper()
+            working_df = stat_data.copy(deep=True)
+
             if linetype_requested in supported_linetypes:
                 # If the TCDiag linetype is requested, keep both the TCDiag and TCMPR linetypes.
                 if linetype_requested == cn.TCDIAG:
@@ -132,7 +133,7 @@ class WriteStatAscii:
             else:
                 self.logger.error(
                     "Requested line type is currently not supported for reformatting")
-                raise ValueError("Requested line type ", linetype_requested,
+                raise NotImplementedError("Requested line type ", linetype_requested,
                                  " is currently not supported for reformatting")
 
             # --------------------
@@ -160,11 +161,8 @@ class WriteStatAscii:
             working_df = working_df.fillna('NA')
             begin_reformat = time.perf_counter()
 
-            try:
-                reformatted_df = self.process_by_stat_linetype(
-                    linetype_requested, working_df, is_aggregated)
-            except NotImplementedError:
-                sys.exit('NotImplementedError')
+            reformatted_df = self.process_by_stat_linetype(
+            linetype_requested, working_df, is_aggregated)
 
             end_reformat = time.perf_counter()
             reformat_time = end_reformat - begin_reformat
@@ -177,10 +175,12 @@ class WriteStatAscii:
             _: pd.DataFrame = reformatted_df.to_csv(output_file, index=None, sep='\t',
                                                     mode='a')
 
-        except (TypeError, NameError, KeyError, NotImplementedError):
-            self.logger.error(
-                "*** %s in write_stat_ascii ***", sys.exc_info()[0])
+        except (AttributeError, TypeError, NameError, KeyError, NotImplementedError):
+            msg = f" *** {sys.exc_info()[0]} : {linetype_requested} not supported in write_stat_ascii ***"
+            self.logger.error(msg)
             self.logger.debug("Exception details:", exc_info=True)
+            raise
+
 
         write_time_end: float = time.perf_counter()
         write_time = write_time_end - write_time_start
@@ -327,7 +327,8 @@ class WriteStatAscii:
             # agg_stat.py for DMAP
             linetype_data: pd.DataFrame = self.process_dmap(stat_data)
         else:
-            return None
+            msg = f"{linetype} is not supported"
+            raise NotImplementedError(msg)
 
         return linetype_data
 
