@@ -543,7 +543,6 @@ def test_point_stat_vcnt_met13_consistency():
     # Subset original dataframe to one containing only the VCNT data
     vcnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
                             vcnt_columns_to_use]
-    vcnt_df.to_csv("/Users/minnawin/issue_339_error_handling/METdataio/METreformat/test/data/point_stat/vcnt/df_MET13.csv")
 
     # Add the stat columns for the VCNT line type
     vcnt_columns: List[str] = cn.FULL_VCNT_HEADER
@@ -564,7 +563,6 @@ def test_point_stat_vcnt_met13_consistency():
     expected_name: str = "FBAR"
     wsa = WriteStatAscii(parms, logger)
     reshaped_df = wsa.write_stat_ascii(stat_data, parms)
-    reshaped_df.to_csv("/Users/minnawin/issue_339_error_handling/METdataio/METreformat/test/data/point_stat/vcnt/reshaped_v13.csv")
     actual_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) &
         (reshaped_df['obs_var'] == obs_var) &
         (reshaped_df['obs_lev'] == obs_level) &
