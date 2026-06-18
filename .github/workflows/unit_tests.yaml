@@ -34,10 +34,7 @@ jobs:
         image: mariadb:latest
         env:
           MARIADB_ROOT_PASSWORD: root_password
-          DB_DATABASE: test_mv
-          DB_USER: root
-          DB_PASSWORD: root
-          
+                    
         ports:
           - 3306:3306
         options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -77,11 +74,7 @@ jobs:
       #       run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
       #       id: extract_branch
 
-      - name: Start database
-        run: |
-          sudo /etc/init.d/mysql start mysql -e "create database if not exists $DB_DATABASE;" -u$DB_USER -p $DB_PASSWORD
-      
-      - name: Test with pytest
+            - name: Test with pytest
         run: |
           coverage run --append -m pytest
           coverage report -m
