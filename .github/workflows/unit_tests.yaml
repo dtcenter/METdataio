@@ -74,7 +74,7 @@ jobs:
       #       run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
       #       id: extract_branch
 
-            - name: Test with pytest
+      - name: Test with pytest
         run: |
           coverage run --append -m pytest
           coverage report -m
