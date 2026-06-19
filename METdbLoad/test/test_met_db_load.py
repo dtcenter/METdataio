@@ -28,9 +28,6 @@ def assert_count_rows(cur, table, expected_count):
     ), f"Table {table} has {len(actual)} rows. Expected {expected_count}."
 
 
-def test_db(testRunSql):
-    assert isinstance(testRunSql, RunSql)
-
 @pytest.mark.parametrize(
     "met_data_dir, met_tool, expected_counts",
     [
