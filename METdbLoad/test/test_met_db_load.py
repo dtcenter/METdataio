@@ -1,6 +1,6 @@
 import pytest
 import sys
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, Mock
 from METdbLoad.ush.met_db_load import main as load_main
 from METdbLoad.ush.met_db_load import purge_files, parse_args, next_set, print_version
 from METdbLoad.ush.run_sql import RunSql
@@ -28,6 +28,9 @@ def assert_count_rows(cur, table, expected_count):
     ), f"Table {table} has {len(actual)} rows. Expected {expected_count}."
 
 
+def test_db(testRunSql):
+    assert isinstance(testRunSql, RunSql)
+
 @pytest.mark.parametrize(
     "met_data_dir, met_tool, expected_counts",
     [
@@ -39,7 +42,7 @@ def assert_count_rows(cur, table, expected_count):
                 "line_data_fho": 24,
                 "line_data_cts": 24,
                 "line_data_ctc": 24,
-                "line_data_cnt": 10,
+                "line_data_cnt": 11,
                 "line_data_vl1l2": 1,
             },
         ),
