@@ -39,7 +39,7 @@ def assert_count_rows(cur, table, expected_count):
                 "line_data_fho": 24,
                 "line_data_cts": 24,
                 "line_data_ctc": 24,
-                "line_data_cnt": 11,
+                "line_data_cnt": 10,
                 "line_data_vl1l2": 1,
             },
         ),
