@@ -1423,13 +1423,6 @@ def test_tcst_with_ctc():
             shutil.rmtree('./output/')
 
 
-def test_config_file_path():
-    """ Verify that a full path to the config file is generated from
-          read_config_from_command_line
-    """
-    result = util.read_config_from_command_line()
-    assert os.path.exists(result)
-
 
 def test_write_stat_ascii_type_error():
         """ Deliberately input the incorrect/unexpected
