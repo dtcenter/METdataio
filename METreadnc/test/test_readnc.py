@@ -111,10 +111,14 @@ def test_read_into_pandas_bogus_files():
     load_files = ['a','b','c']
     with pytest.raises(FileNotFoundError):
         file_reader = rn.ReadNetCDF()
-        netcdf_data_set_list = file_reader.read_into_xarray(load_files)
+        netcdf_data_set_list = file_reader.read_into_pandas(load_files)
+
+    with pytest.raises(ValueError):
+        file_reader = rn.ReadNetCDF()
+        netcdf_data_set_list = file_reader.read_into_pandas(5)
 
 
-        def test_read_into_xarray_bogus_files():
+def test_read_into_xarray_bogus_files():
             """
 
                  Verify that the ValueError is raised when an empty list of
@@ -125,3 +129,7 @@ def test_read_into_pandas_bogus_files():
             with pytest.raises(FileNotFoundError):
                 file_reader = rn.ReadNetCDF()
                 netcdf_data_set_list = file_reader.read_into_xarray(load_files)
+
+            with pytest.raises(ValueError):
+                file_reader = rn.ReadNetCDF()
+                netcdf_data_set_list = file_reader.read_into_xarray(5)
