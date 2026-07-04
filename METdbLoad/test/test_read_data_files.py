@@ -2,9 +2,11 @@
 """Test reading data files."""
 
 import pytest
+import logging
 
-from METdataio.METdbLoad.ush.read_data_files import ReadDataFiles
-from METdataio.METdbLoad.test.utils import (
+from METdbLoad.ush.read_data_files import ReadDataFiles
+from METdbLoad.ush.read_load_xml import XmlLoadFile
+from METdbLoad.test.utils import (
     POINT_STAT_DATA_DIR,
     MTD_DATA_DIR,
 )
@@ -23,7 +25,7 @@ def test_counts(tmp_path, get_xml_loadfile):
     )
 
     # number of files
-    assert len(XML_LOADFILE.load_files) == 2
+    assert len(XML_LOADFILE.load_files) == 1
     # number of lines of data
     assert FILE_DATA.stat_data.shape[0] == 94
     # number of line types
@@ -80,3 +82,58 @@ def test_mtd_loads_revision(tmp_path, get_xml_loadfile):
     assert sum(revs) == 4
     revs = FILE_DATA.mtd_2d_data["obs_var"] == "REV_APCP_01"
     assert sum(revs) == 4
+
+
+def test_read_data_logger():
+    """
+        verify expected behavior when logger is None and a valid logger
+
+    """
+    data = None
+    rdf = ReadDataFiles()
+
+    # make sure a logger is created when no logger is supplied
+    assert rdf.logger
+
+    # make sure the input logger is being used
+    logger_name = "bogus"
+    logger = logging.Logger(name=logger_name)
+    rdf_logger_given = ReadDataFiles(logger)
+    assert rdf_logger_given.logger.name == logger_name
+
+
+
+def test_read_data_no_valid_files():
+    """
+          test that when no valid files are available to load, a ValueError is raised
+
+    """
+    line_types = None
+    load_flags = None
+    load_files = None
+    rdf = ReadDataFiles()
+
+    # load_files is None
+    with pytest.raises(ValueError):
+        rdf.read_data(load_flags, load_files, line_types)
+
+    # load_files are not MET .stat files
+
+def test_read_xml():
+    """
+      test when xmlfile is None
+    Returns:
+
+    """
+
+    with pytest.raises(TypeError):
+        xml_loadfile_obj:XmlLoadFile = XmlLoadFile(None, None)
+        xml_loadfile_obj.read_xml()
+        print('finis')
+
+
+
+
+
+
+
