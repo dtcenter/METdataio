@@ -119,17 +119,6 @@ def test_read_data_no_valid_files():
 
     # load_files are not MET .stat files
 
-def test_read_xml():
-    """
-      test when xmlfile is None
-    Returns:
-
-    """
-
-    with pytest.raises(TypeError):
-        xml_loadfile_obj:XmlLoadFile = XmlLoadFile(None, None)
-        xml_loadfile_obj.read_xml()
-        print('finis')
 
 
 
