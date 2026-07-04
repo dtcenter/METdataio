@@ -866,7 +866,6 @@ def test_ecnt_reformat_for_agg():
     # Reformatted data
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_ecnt_for_agg(stat_data)
-    reformatted_df.to_csv("/Users/minnawin/issue_339_error_handling/output/ecnt_reformatted_for_aggstat.csv")
     # Check that the reformatting worked and produced results (i.e. a dataframe with more than 0 rows)
     assert (reformatted_df.shape[0] > 0)
 
@@ -918,11 +917,9 @@ def test_ecnt_reformat():
 
     # Original unreformatted data
     stat_data, config = setup_test('ECNT.yaml')
-    stat_data.to_csv("/Users/minnawin/issue_339_error_handling/output/ecnt_stat_data.csv")
     # Reformatted data
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_ecnt(stat_data)
-    reformatted_df.to_csv("/Users/minnawin/issue_339_error_handling/output/ecnt_reformatted.csv")
     # Check that the reformatting worked and produced results (i.e. a dataframe with more than 0 rows)
     assert (reformatted_df.shape[0] > 0)
 
