@@ -1477,7 +1477,7 @@ def test_tcst_with_ctc():
 
 def test_write_stat_ascii_type_error():
     """ Deliberately input the incorrect/unexpected
-          type to the WriteStatAscii constructor
+          types to the WriteStatAscii constructor
     """
     tcst_data, config = setup_test("./reformat_tcst_ctc.yaml")
     bad_config = []
@@ -1497,3 +1497,18 @@ def test_NA():
     desc = result['desc']
 
     assert 'nan' not in desc
+
+def test_init_with_bad_parm():
+    """
+         Verify that a bad parms input raises an TypeError
+
+    Returns:
+
+
+    """
+    parms = []
+    logger = "bogus"
+    with pytest.raises(AttributeError):
+
+       wsa = WriteStatAscii(parms, logger)
+
