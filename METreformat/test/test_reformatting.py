@@ -1482,7 +1482,7 @@ def test_write_stat_ascii_type_error():
     tcst_data, config = setup_test("./reformat_tcst_ctc.yaml")
     bad_config = []
     logger = None
-    with pytest.raises(AttributeError):
+    with pytest.raises(TypeError):
         wsa = WriteStatAscii(bad_config, logger)
 
 
