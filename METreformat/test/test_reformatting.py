@@ -1508,7 +1508,6 @@ def test_init_with_bad_parm():
     """
     parms = []
     logger = "bogus"
-    with pytest.raises(AttributeError):
-
+    with pytest.raises(TypeError):
        wsa = WriteStatAscii(parms, logger)
 
