@@ -96,11 +96,7 @@ class XmlLoadFile:
             self.logger.debug("[--- Start read_xml ---]")
 
             try:
-
-                # check for existence of XML file
-                if not Path(self.xmlfilename).is_file():
-                    sys.exit("*** XML file " + self.xmlfilename +
-                             " can not be found!")
+                Path(self.xmlfilename).is_file()
 
                 # Validate the XML file
                 self.logger.info(
@@ -127,6 +123,7 @@ class XmlLoadFile:
             except (RuntimeError, TypeError, NameError, KeyError):
                 self.logger.error("*** %s in read_xml ***", sys.exc_info()[0])
                 sys.exit("*** Parsing error(s) in XML file!")
+                raise
 
             # Extract values from load_spec XML tags, store in attributes of class XmlLoadFile
             try:
@@ -204,7 +201,7 @@ class XmlLoadFile:
         except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
             self.logger.error(
                 "*** %s occurred in read_xml function ***", sys.exc_info()[0])
-            sys.exit("*** Error reading XML")
+            raise
 
     def validate_xml(self):
         """
