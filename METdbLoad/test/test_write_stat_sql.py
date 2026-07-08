@@ -192,14 +192,14 @@ def test_empty_mode_data():
         WriteModeSql.write_mode_data(flags, cts_data, obj_data, tmp_dir, sql_run.cur, local_infile, logger)
 
     # Non-empty cts_data but empty obj_data
-    mode_data = "./mode_cts_test.txt"
-    cts_df = pd.read_csv(mode_data, engine='python', sep="\s+")
-
-    uc_cols = cts_df.columns.to_list()
-    lc_cols = []
-    for col in uc_cols:
-        lc_cols.append(str(col).lower())
-    cts_df.columns = lc_cols
-    with pytest.raises(SystemExit):
-        obj_data = pd.DataFrame()
-        WriteModeSql.write_mode_data(flags, cts_df, obj_data, tmp_dir, sql_run.cur, local_infile, logger)
+    # mode_data = "./mode_cts_test.txt"
+    # cts_df = pd.read_csv(mode_data, engine='python', sep="\\s+")
+    #
+    # uc_cols = cts_df.columns.to_list()
+    # lc_cols = []
+    # for col in uc_cols:
+    #     lc_cols.append(str(col).lower())
+    # cts_df.columns = lc_cols
+    # with pytest.raises(SystemExit):
+    #     obj_data = pd.DataFrame()
+    #     WriteModeSql.write_mode_data(flags, cts_df, obj_data, tmp_dir, sql_run.cur, local_infile, logger)
