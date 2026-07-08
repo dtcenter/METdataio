@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Test reading data files."""
+import logging
 
+import pandas as pd
 import pytest
 
 # pylint:disable=import-error
@@ -11,6 +13,9 @@ from METdataio.METdbLoad.ush.read_data_files import ReadDataFiles
 from METdataio.METdbLoad.ush.run_sql import RunSql
 from METdataio.METdbLoad.ush.write_file_sql import WriteFileSql
 from METdataio.METdbLoad.ush.write_stat_sql import WriteStatSql
+from METdataio.METdbLoad.ush.read_load_xml import XmlLoadFile
+from METdataio.METdbLoad.ush import write_mode_sql
+from METdataio.METdbLoad.ush.write_mode_sql import WriteModeSql
 
 
 def test_counts(get_xml_loadfile):
@@ -167,3 +172,35 @@ def test_counts(get_xml_loadfile):
 
     sql_run.cur.close()
     sql_run.conn.close()
+
+def test_empty_mode_data():
+    ''' Verify expected error message when empty CTS or obj data  is provided in
+        write_mode_data().
+    '''
+    xml_loadfile = XmlLoadFile(None)
+    sql_run = RunSql()
+    tmp_dir = "/tmp"
+    flags = xml_loadfile.flags
+    local_infile = "dummy.txt"
+    rdf_obj = ReadDataFiles()
+    logger = rdf_obj.logger
+
+   # empty cts_data
+    cts_data = pd.DataFrame()
+    obj_data = pd.DataFrame()
+    with pytest.raises(SystemExit):
+        WriteModeSql.write_mode_data(flags, cts_data, obj_data, tmp_dir, sql_run.cur, local_infile, logger)
+
+    # Non-empty cts_data but empty obj_data
+    cwd = os.getcwd()
+    mode_data = os.path.join(cwd, "./test/data/mode/test_mode_cts", "mode_cts_test.txt")
+    cts_df = pd.read_csv(mode_data, engine='python', sep="\s+")
+
+    uc_cols = cts_df.columns.to_list()
+    lc_cols = []
+    for col in uc_cols:
+        lc_cols.append(str(col).lower())
+    cts_df.columns = lc_cols
+    with pytest.raises(SystemExit):
+        obj_data = pd.DataFrame()
+        WriteModeSql.write_mode_data(flags, cts_df, obj_data, tmp_dir, sql_run.cur, local_infile, logger)
