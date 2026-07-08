@@ -727,6 +727,7 @@ for line_type in UC_LINE_TYPES_TCST:
 
     if line_type in VAR_LINE_TYPES_TCST:
         LINE_DATA_COLS_TCST[line_type] = [LINE_DATA_ID] + LINE_DATA_COLS_TCST[line_type]
+        LINE_DATA_FIELDS[line_type] = [LINE_DATA_ID] + LINE_DATA_FIELDS[line_type]
 
     # For each line type, create insert queries
     VALUE_SLOTS = '%s, ' * len(LINE_DATA_FIELDS[line_type])
@@ -773,6 +774,7 @@ for line_type in UC_LINE_TYPES:
 
     if line_type in VAR_LINE_TYPES:
         LINE_DATA_COLS[line_type] = [LINE_DATA_ID] + LINE_DATA_COLS[line_type]
+        LINE_DATA_FIELDS[line_type] = [LINE_DATA_ID] + LINE_DATA_FIELDS[line_type]
 
     # For each line type, create insert queries
     VALUE_SLOTS = '%s, ' * len(LINE_DATA_FIELDS[line_type])

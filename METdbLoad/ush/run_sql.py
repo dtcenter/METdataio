@@ -184,7 +184,7 @@ class RunSql:
                             str)
                         raw_data['fcst_init'] = raw_data['fcst_init'].astype(
                             str)
-                    else:
+                    elif 'fcst_valid_beg' in raw_data:
                         raw_data['fcst_valid_beg'] = raw_data[
                             'fcst_valid_beg'].astype(str)
                         raw_data['fcst_valid_end'] = raw_data[
