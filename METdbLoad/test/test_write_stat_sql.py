@@ -192,13 +192,8 @@ def test_empty_mode_data():
         WriteModeSql.write_mode_data(flags, cts_data, obj_data, tmp_dir, sql_run.cur, local_infile, logger)
 
     # Non-empty cts_data but empty obj_data
-    cwd = os.getcwd()
-    mode_data = cwd +  "/test/data/mode/test_mode_cts/mode_cts_test.txt"
-    try:
-        cts_df = pd.read_csv(mode_data, engine='python', sep="\s+")
-    except FileNotFoundError:
-        print(f"data file: {mode_data} not found")
-        exit
+    mode_data = "./mode_cts_test.txt"
+    cts_df = pd.read_csv(mode_data, engine='python', sep="\s+")
 
     uc_cols = cts_df.columns.to_list()
     lc_cols = []
