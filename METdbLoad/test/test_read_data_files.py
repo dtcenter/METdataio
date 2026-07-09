@@ -11,7 +11,6 @@ from METdbLoad.test.utils import (
     MTD_DATA_DIR,
    EMPTY_DIR,
    ONE_EMPTY_DIR,
-   EMPTY_VSDB,
 )
 
 
@@ -175,10 +174,11 @@ def test_one_empty_data(tmp_path, get_xml_loadfile):
 
 def test_empty_vsdb(tmp_path, get_xml_loadfile):
     '''
-       Verify that expected behavior is observed when the VSDB data is empty
+       Verify that expected behavior is observed when the VSDB data is empty.
+       Use the generic empty file in the METdbLoad/test/data/empty directory.
 
     '''
-    XML_LOADFILE = get_xml_loadfile(tmp_path, EMPTY_VSDB)
+    XML_LOADFILE = get_xml_loadfile(tmp_path, EMPTY_DIR)
 
     # Read all of the data from the data files into a dataframe
     rdf = ReadDataFiles()
