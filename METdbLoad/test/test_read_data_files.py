@@ -11,6 +11,7 @@ from METdbLoad.test.utils import (
     MTD_DATA_DIR,
    EMPTY_DIR,
    ONE_EMPTY_DIR,
+   EMPTY_VSDB,
 )
 
 
@@ -172,7 +173,23 @@ def test_one_empty_data(tmp_path, get_xml_loadfile):
     # Empty stat_data data frame with no rows and no columns
     assert rdf.stat_data.shape[0] > 0
 
+def test_empty_vsdb(tmp_path, get_xml_loadfile):
+    '''
+       Verify that expected behavior is observed when the VSDB data is empty
 
+    '''
+    XML_LOADFILE = get_xml_loadfile(tmp_path, EMPTY_VSDB)
+
+    # Read all of the data from the data files into a dataframe
+    rdf = ReadDataFiles()
+
+    # read in the data files, with options specified by XML flags
+    rdf.read_data(
+        XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+    )
+
+    assert rdf.stat_data.shape[0] == 0
+    assert rdf.stat_data.shape[1] == 0
 
 
 
