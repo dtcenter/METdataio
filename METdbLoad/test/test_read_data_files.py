@@ -128,7 +128,7 @@ def test_read_data_no_valid_files():
         load_files = []
         rdf.read_data(load_flags, load_files, line_types)
 
-def test_empty_data(tmp_path, get_xml_loadfile):
+def test_only_empty_data(tmp_path, get_xml_loadfile):
     """
 
       test that empty data file exercises the exception block that corresponds
@@ -142,8 +142,7 @@ def test_empty_data(tmp_path, get_xml_loadfile):
     rdf  = ReadDataFiles()
 
     # read in the data files, with options specified by XML flags
-    with pytest.raises(SystemExit):
-       rdf.read_data(
+    rdf.read_data(
            XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
         )
 
@@ -152,7 +151,7 @@ def test_empty_data(tmp_path, get_xml_loadfile):
     assert rdf.stat_data.shape[1] == 0
 
 
-def test_empty_data(tmp_path, get_xml_loadfile):
+def test_one_empty_data(tmp_path, get_xml_loadfile):
     """
 
       test that when there is one empty data file and another that isn't empty,
