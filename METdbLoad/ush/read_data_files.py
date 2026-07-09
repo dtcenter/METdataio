@@ -739,7 +739,7 @@ class ReadDataFiles:
             except (RuntimeError, TypeError, NameError, KeyError, ValueError):
                 self.logger.error(
                     f"*** Error assembling files for load: {sys.exc_info()[0]} ***", )
-                raise
+                sys.exit("*** Error assembling files for load")
 
             try:
 
