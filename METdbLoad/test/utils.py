@@ -19,6 +19,9 @@ TCDIAG_DATA_DIR = abs_path("METreformat/test/data/tcdiag_tcmpr")
 EMPTY_DIR = abs_path("METreformat/test/data/point_stat/empty")
 ONE_EMPTY_DIR = abs_path("METreformat/test/data/point_stat/one_empty")
 
+# Data in METdbLoad
+EMPTY_VSDB = abs_path("METdbLoad/test/data/vsdb/empty_vsdb")
+
 
 # This data is copied from MET test data
 # https://hub.docker.com/r/dtcenter/met-data-output
