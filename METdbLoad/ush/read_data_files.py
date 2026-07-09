@@ -1494,8 +1494,7 @@ class ReadDataFiles:
         except (RuntimeError, TypeError, NameError, KeyError, AttributeError, ValueError):
             self.logger.error(
                 "*** %s Error reading data: occurred in read_data function ***", sys.exc_info()[0])
-            raise
-            # sys.exit("*** Error reading data")
+            sys.exit("*** Error reading data")
 
     @staticmethod
     def get_lookup(filename):
