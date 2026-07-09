@@ -174,7 +174,7 @@ def test_counts(get_xml_loadfile):
     sql_run.conn.close()
 
 def test_empty_mode_data():
-    ''' Verify expected error message when empty CTS or obj data  is provided in
+    ''' Verify expected error message when empty CTS  is provided in
         write_mode_data().
     '''
     xml_loadfile = XmlLoadFile(None)
@@ -191,15 +191,31 @@ def test_empty_mode_data():
     with pytest.raises(SystemExit):
         WriteModeSql.write_mode_data(flags, cts_data, obj_data, tmp_dir, sql_run.cur, local_infile, logger)
 
+
+def test_empty_mode_obj_data():
+    ''' Verify expected error message when obj data  is provided in
+        write_mode_data(). Use dummy mode_cts data but empty obj data.
+    '''
+    xml_loadfile = XmlLoadFile(None)
+    sql_run = RunSql()
+    tmp_dir = "/tmp"
+    flags = xml_loadfile.flags
+    local_infile = "dummy.txt"
+    rdf_obj = ReadDataFiles()
+    logger = rdf_obj.logger
+    obj_data = pd.DataFrame()
+
     # Non-empty cts_data but empty obj_data
-    # mode_data = "./mode_cts_test.txt"
-    # cts_df = pd.read_csv(mode_data, engine='python', sep="\\s+")
-    #
-    # uc_cols = cts_df.columns.to_list()
-    # lc_cols = []
-    # for col in uc_cols:
-    #     lc_cols.append(str(col).lower())
-    # cts_df.columns = lc_cols
-    # with pytest.raises(SystemExit):
-    #     obj_data = pd.DataFrame()
-    #     WriteModeSql.write_mode_data(flags, cts_df, obj_data, tmp_dir, sql_run.cur, local_infile, logger)
+    DUMMY_MODE_DIR = os.path.abspath("test/data/mode/test_mode_cts/")
+    dummy_mode_datafile = "./mode_cts_test.txt"
+    dummy_mode = os.path.join(DUMMY_MODE_DIR, dummy_mode_datafile)
+    cts_df = pd.read_csv(dummy_mode, engine='python', sep="/s+")
+
+    uc_cols = cts_df.columns.to_list()
+    lc_cols = []
+    for col in uc_cols:
+        lc_cols.append(str(col).lower())
+    cts_df.columns = lc_cols
+    with pytest.raises(SystemExit):
+        obj_data = pd.DataFrame()
+        WriteModeSql.write_mode_data(flags, cts_df, obj_data, tmp_dir, sql_run.cur, local_infile, logger)
