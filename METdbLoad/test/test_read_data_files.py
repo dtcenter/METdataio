@@ -9,7 +9,8 @@ from METdbLoad.ush.read_load_xml import XmlLoadFile
 from METdbLoad.test.utils import (
     POINT_STAT_DATA_DIR,
     MTD_DATA_DIR,
-   EMPTY_DIR
+   EMPTY_DIR,
+   ONE_EMPTY_DIR,
 )
 
 
@@ -127,7 +128,7 @@ def test_read_data_no_valid_files():
         load_files = []
         rdf.read_data(load_flags, load_files, line_types)
 
-def test_empty_data_dir(tmp_path, get_xml_loadfile):
+def test_empty_data(tmp_path, get_xml_loadfile):
     """
 
       test that empty data file exercises the exception block that corresponds
@@ -141,13 +142,39 @@ def test_empty_data_dir(tmp_path, get_xml_loadfile):
     rdf  = ReadDataFiles()
 
     # read in the data files, with options specified by XML flags
+    with pytest.raises(SystemExit):
+       rdf.read_data(
+           XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+        )
+
+    # Empty stat_data data frame with no rows and no columns
+    assert rdf.stat_data.shape[0] == 0
+    assert rdf.stat_data.shape[1] == 0
+
+
+def test_empty_data(tmp_path, get_xml_loadfile):
+    """
+
+      test that when there is one empty data file and another that isn't empty,
+      the empty data/empty header exceptions continue resulting in a final
+      data frame with data.
+
+    """
+    XML_LOADFILE = get_xml_loadfile(tmp_path, ONE_EMPTY_DIR)
+
+    # Read all of the data from the data files into a dataframe
+    rdf  = ReadDataFiles()
+
+    # read in the data files, with options specified by XML flags
     rdf.read_data(
         XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
     )
 
     # Empty stat_data data frame with no rows and no columns
-    assert rdf.stat_data.shape[0] == 0
-    assert rdf.stat_data.shape[1] == 0
+    assert rdf.stat_data.shape[0] > 0
+
+
+
 
 
 
