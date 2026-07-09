@@ -9,6 +9,7 @@ from METdbLoad.ush.read_load_xml import XmlLoadFile
 from METdbLoad.test.utils import (
     POINT_STAT_DATA_DIR,
     MTD_DATA_DIR,
+   EMPTY_DIR
 )
 
 
@@ -113,13 +114,40 @@ def test_read_data_no_valid_files():
     load_files = None
     rdf = ReadDataFiles()
 
-    # load_files is None
+
     # A ValueError is raised, but sys.exit is invoked, resulting
     # in a SystemExit in the exception block
+
+    # load_files is None
     with pytest.raises(SystemExit):
         rdf.read_data(load_flags, load_files, line_types)
 
-    # load_files are not MET .stat files
+    # load_files is an empty list
+    with pytest.raises(SystemExit):
+        load_files = []
+        rdf.read_data(load_flags, load_files, line_types)
+
+def test_empty_data_dir(tmp_path, get_xml_loadfile):
+    """
+
+      test that empty data file exercises the exception block that corresponds
+      to an empty file, or file with no header yet continues and the resulting
+      data frame is empty.
+
+    """
+    XML_LOADFILE = get_xml_loadfile(tmp_path, EMPTY_DIR)
+
+    # Read all of the data from the data files into a dataframe
+    rdf  = ReadDataFiles()
+
+    # read in the data files, with options specified by XML flags
+    rdf.read_data(
+        XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+    )
+
+    # Empty stat_data data frame with no rows and no columns
+    assert rdf.stat_data.shape[0] == 0
+    assert rdf.stat_data.shape[1] == 0
 
 
 
