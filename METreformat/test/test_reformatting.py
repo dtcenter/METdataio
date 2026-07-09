@@ -737,11 +737,11 @@ def test_ensemble_stat_ecnt_consistency():
 
     assert num_matches == num_ecnt_headers
 
-
 def test_pct_consistency():
     '''
+        test PCT linetype reformatting has kept data consistent with original
+        data format (i.e. the MET .stat data)
 
-    :return: None
     '''
 
     # Original data
