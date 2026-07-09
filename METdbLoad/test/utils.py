@@ -16,12 +16,10 @@ GRID_STAT_DATA_DIR = abs_path("METreformat/test/data/grid_stat/mctc_mcts")
 MPR_DATA_DIR = abs_path("METreformat/test/data/mpr/climo_data")
 POINT_STAT_DATA_DIR = abs_path("METreformat/test/data/point_stat")
 TCDIAG_DATA_DIR = abs_path("METreformat/test/data/tcdiag_tcmpr")
-EMPTY_DIR = abs_path("METreformat/test/data/point_stat/empty")
 ONE_EMPTY_DIR = abs_path("METreformat/test/data/point_stat/one_empty")
 
 # Data in METdbLoad
-EMPTY_VSDB = abs_path("METdbLoad/test/data/vsdb/empty_vsdb")
-
+EMPTY_DIR = abs_path("METdbLoad/test/data/empty")
 
 # This data is copied from MET test data
 # https://hub.docker.com/r/dtcenter/met-data-output
