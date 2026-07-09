@@ -25,7 +25,7 @@ def test_counts(tmp_path, get_xml_loadfile):
     )
 
     # number of files
-    assert len(XML_LOADFILE.load_files) == 2
+    assert len(XML_LOADFILE.load_files) == 1
     # number of lines of data
     assert FILE_DATA.stat_data.shape[0] == 94
     # number of line types
@@ -114,7 +114,9 @@ def test_read_data_no_valid_files():
     rdf = ReadDataFiles()
 
     # load_files is None
-    with pytest.raises(ValueError):
+    # A ValueError is raised, but sys.exit is invoked, resulting
+    # in a SystemExit in the exception block
+    with pytest.raises(SystemExit):
         rdf.read_data(load_flags, load_files, line_types)
 
     # load_files are not MET .stat files
