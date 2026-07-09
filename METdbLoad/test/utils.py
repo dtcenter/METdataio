@@ -16,6 +16,7 @@ GRID_STAT_DATA_DIR = abs_path("METreformat/test/data/grid_stat/mctc_mcts")
 MPR_DATA_DIR = abs_path("METreformat/test/data/mpr/climo_data")
 POINT_STAT_DATA_DIR = abs_path("METreformat/test/data/point_stat")
 TCDIAG_DATA_DIR = abs_path("METreformat/test/data/tcdiag_tcmpr")
+EMPTY_DIR = abs_path("METreformat/test/data/point_stat/empty")
 
 
 # This data is copied from MET test data
