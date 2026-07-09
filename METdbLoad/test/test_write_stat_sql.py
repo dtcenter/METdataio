@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Test reading data files."""
 import logging
-
+from pathlib import Path
 import pandas as pd
 import pytest
 
@@ -206,10 +206,9 @@ def test_empty_mode_obj_data():
     obj_data = pd.DataFrame()
 
     # Non-empty cts_data but empty obj_data
-    DUMMY_MODE_DIR = os.path.abspath("test/data/mode/test_mode_cts/")
-    dummy_mode_datafile = "./mode_cts_test.txt"
-    dummy_mode = os.path.join(DUMMY_MODE_DIR, dummy_mode_datafile)
-    cts_df = pd.read_csv(dummy_mode, engine='python', sep="/s+")
+    TOP_DIR = str(Path(__file__).parents[1])
+    DUMMY_MODE_DATA = os.path.join(TOP_DIR, "test/data/mode/test_mode_cts/mode_cts_test.txt")
+    cts_df = pd.read_csv(DUMMY_MODE_DATA, engine='python', sep="/s+")
 
     uc_cols = cts_df.columns.to_list()
     lc_cols = []
