@@ -112,7 +112,7 @@ def get_xml_test_file(tmp_path, met_data_dir, met_tool, load_flags={}, local_inf
 
 
 def dict_to_args(args_dict):
-    """Convert a dcit to an argparse Namespace
+    """Convert a dict to an argparse Namespace
     
     Args:
         args_dict (dict): key value pairs to be converted to
