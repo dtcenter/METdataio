@@ -29,6 +29,9 @@ MODE_OBJ_EMPTY = abs_path("METdbLoad/test/data/empty/empty_mode_obj/")
 MODE_NO_HEADER = abs_path("METdbLoad/test/data/mode/no_header")
 MODE_ONLY_CTS = abs_path("METdbLoad/test/data/mode/only_cts")
 MODE_EMPTY = abs_path("METdbLoad/test/data/empty/empty_mode")
+MTD_EMPTY = abs_path("METdbLoad/test/data/empty/empty_mtd")
+MTD_DIR = abs_path("METdbLoad/test/data/mtd")
+MTD_HEADER_NO_DATA = abs_path("MEtdbLoad/test/data/mtd/mtd_header_only")
 
 
 # This data is copied from MET test data
