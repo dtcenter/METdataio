@@ -13,6 +13,8 @@ from METdbLoad.test.utils import (
    ONE_EMPTY_DIR,
    VSDB_DIR,
    VSDB_NO_EQUALS_DIR,
+   VSDB_EMPTY,
+   VSDB_ONE_EMPTY,
 )
 
 
@@ -155,7 +157,7 @@ def test_only_empty_data(tmp_path, get_xml_loadfile):
 
 def test_one_empty_data(tmp_path, get_xml_loadfile):
     """
-
+      For point-stat data,
       test that when there is one empty data file and another that isn't empty,
       the empty data/empty header exceptions continue resulting in a final
       data frame with data.
@@ -174,13 +176,14 @@ def test_one_empty_data(tmp_path, get_xml_loadfile):
     # Empty stat_data data frame with no rows and no columns
     assert rdf.stat_data.shape[0] > 0
 
-def test_empty_vsdb(tmp_path, get_xml_loadfile):
+@pytest.mark.parametrize("get_generic_xml_loadfile", ["vsdb"], indirect=True)
+def test_empty_vsdb(tmp_path, get_generic_xml_loadfile):
     '''
-       Verify that expected behavior is observed for valid VSDB data.
-
+       Verify that expected behavior is observed for empty VSDB data.
 
     '''
-    XML_LOADFILE = get_xml_loadfile(tmp_path, EMPTY_DIR)
+
+    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, VSDB_EMPTY, 'vsdb')
 
     # Read all of the data from the data files into a dataframe
     rdf = ReadDataFiles()
@@ -193,13 +196,14 @@ def test_empty_vsdb(tmp_path, get_xml_loadfile):
     assert rdf.stat_data.shape[0] == 0
     assert rdf.stat_data.shape[1] == 0
 
-def test_vsdb(tmp_path, get_xml_loadfile):
+@pytest.mark.parametrize("get_generic_xml_loadfile", ["vsdb"], indirect=True)
+def test_vsdb(tmp_path, get_generic_xml_loadfile):
     '''
-       Verify that expected behavior is observed when the VSDB data is empty.
-       Use the generic empty file in the METdbLoad/test/data/empty directory.
+       Verify that expected behavior is observed when the VSDB data contains one
+       data file that is empty.
 
     '''
-    XML_LOADFILE = get_xml_loadfile(tmp_path, VSDB_DIR)
+    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, VSDB_ONE_EMPTY, "vsdb")
 
     # Read all of the data from the data files into a dataframe
     rdf = ReadDataFiles()
@@ -228,6 +232,22 @@ def test_vsdb_no_equals(tmp_path, get_xml_loadfile):
     )
     assert rdf.stat_data.shape[0] > 0
 
+def test_empty_mode(tmp_path, get_xml_loadfile):
+    '''
+       Verify that expected behavior is observed when the mode data is empty.
+       Use the generic empty file in the METdbLoad/test/data/empty directory.
 
+    '''
+    XML_LOADFILE = get_xml_loadfile(tmp_path, EMPTY_DIR)
+
+    # Read all of the data from the data files into a dataframe
+    rdf = ReadDataFiles()
+
+    # read in the data files, with options specified by XML flags
+    rdf.read_data(
+        XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+    )
+
+    assert rdf.stat_data.shape[0] == 0
 
 
