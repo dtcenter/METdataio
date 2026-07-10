@@ -23,6 +23,8 @@ from METdbLoad.test.utils import (
     MTD_DIR,
     MTD_EMPTY,
     MTD_HEADER_NO_DATA,
+    TCSTAT_DIR,
+    TCSTAT_NO_HEADER,
 )
 
 
@@ -367,6 +369,43 @@ def test_mtd_header_no_data(tmp_path, get_generic_xml_loadfile):
 
     # Read all of the data from the data files into a dataframe
     rdf = ReadDataFiles()
+    with pytest.raises(SystemExit):
+        rdf.read_data(
+            XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+        )
+
+@pytest.mark.parametrize("get_generic_xml_loadfile", ['tcst'], indirect=True)
+def test_tcst(tmp_path, get_generic_xml_loadfile):
+    '''
+       Verify that expected behavior is observed when the tcst  file has data
+       but no header.
+
+    '''
+    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, TCSTAT_DIR, 'tcst')
+
+    # Read all of the data from the data files into a dataframe
+    rdf = ReadDataFiles()
+
+    rdf.read_data(
+        XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+    )
+
+    # Expect 8 rows of data
+    assert rdf.stat_data.shape[0] == 8
+
+
+@pytest.mark.parametrize("get_generic_xml_loadfile", ['tcst'], indirect=True)
+def test_tcst_no_header(tmp_path, get_generic_xml_loadfile):
+    '''
+       Verify that expected behavior is observed when the tcst  file has data
+       but no header.
+
+    '''
+    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, TCSTAT_NO_HEADER, 'tcst')
+
+    # Read all of the data from the data files into a dataframe
+    rdf = ReadDataFiles()
+
     with pytest.raises(SystemExit):
         rdf.read_data(
             XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
