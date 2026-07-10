@@ -8,7 +8,10 @@ from unittest.mock import MagicMock
 from METdataio.METdbLoad.ush.run_sql import RunSql
 from METdataio.METdbLoad.test.utils import (
     get_xml_test_file,
-    POINT_STAT_DATA_DIR
+    POINT_STAT_DATA_DIR,
+    VSDB_NO_EQUALS_DIR,
+    VSDB_DATA_DIR,
+    VSDB_DIR,
 )
 from METdataio.METdbLoad.ush.read_load_xml import XmlLoadFile
 
@@ -126,6 +129,19 @@ def get_xml_loadfile():
 
     return load_and_read_xml
 
+@pytest.fixture
+def get_generic_xml_loadfile():
+    def load_and_read_xml(
+        tmp_path, data_dir, met_tool
+    ):
+        from METdataio.METdbLoad.ush.read_load_xml import XmlLoadFile
+
+        XML_FILE = get_xml_test_file(tmp_path, data_dir, met_tool)
+        XML_LOADFILE = XmlLoadFile(XML_FILE)
+        XML_LOADFILE.read_xml()
+        return XML_LOADFILE
+
+    return load_and_read_xml
 
 @pytest.fixture
 def mock_logger():
