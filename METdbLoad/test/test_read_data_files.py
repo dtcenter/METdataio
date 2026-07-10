@@ -9,17 +9,20 @@ from METdbLoad.ush.read_load_xml import XmlLoadFile
 from METdbLoad.test.utils import (
     POINT_STAT_DATA_DIR,
     MTD_DATA_DIR,
-   EMPTY_DIR,
-   ONE_EMPTY_DIR,
-   VSDB_DIR,
-   VSDB_NO_EQUALS_DIR,
-   VSDB_EMPTY,
-   VSDB_ONE_EMPTY,
-   MODE_CTS_EMPTY,
-   MODE_OBJ_EMPTY,
-   MODE_NO_HEADER,
-   MODE_ONLY_CTS,
-   MODE_EMPTY ,
+    EMPTY_DIR,
+    ONE_EMPTY_DIR,
+    VSDB_DIR,
+    VSDB_NO_EQUALS_DIR,
+    VSDB_EMPTY,
+    VSDB_ONE_EMPTY,
+    MODE_CTS_EMPTY,
+    MODE_OBJ_EMPTY,
+    MODE_NO_HEADER,
+    MODE_ONLY_CTS,
+    MODE_EMPTY,
+    MTD_DIR,
+    MTD_EMPTY,
+    MTD_HEADER_NO_DATA,
 )
 
 
@@ -100,7 +103,6 @@ def test_read_data_logger():
         verify expected behavior when logger is None and a valid logger
 
     """
-    data = None
     rdf = ReadDataFiles()
 
     # make sure a logger is created when no logger is supplied
@@ -337,3 +339,35 @@ def test_empty_mode_obj_valid_mod_cts(tmp_path, get_generic_xml_loadfile):
 
         assert rdf.stat_data.shape[0] == 0
         assert rdf.stat_data.shape[1] == 0
+
+@pytest.mark.parametrize("get_generic_xml_loadfile", ['mtd_2d'], indirect=True)
+def test_empty_mtd(tmp_path, get_generic_xml_loadfile):
+        '''
+           Verify that expected behavior is observed when the mtd file is empty
+
+        '''
+        XML_LOADFILE = get_generic_xml_loadfile(tmp_path, MTD_EMPTY, 'mtd_2d')
+
+        # Read all of the data from the data files into a dataframe
+        rdf = ReadDataFiles()
+        with pytest.raises(SystemExit):
+            rdf.read_data(
+                XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+            )
+
+
+@pytest.mark.parametrize("get_generic_xml_loadfile", ['mtd_2d'], indirect=True)
+def test_mtd_header_no_data(tmp_path, get_generic_xml_loadfile):
+    '''
+       Verify that expected behavior is observed when the mtd file has data
+       but no header.
+
+    '''
+    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, MTD_EMPTY, 'mtd_2d')
+
+    # Read all of the data from the data files into a dataframe
+    rdf = ReadDataFiles()
+    with pytest.raises(SystemExit):
+        rdf.read_data(
+            XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+        )
