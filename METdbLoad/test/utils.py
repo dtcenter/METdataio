@@ -17,6 +17,8 @@ MPR_DATA_DIR = abs_path("METreformat/test/data/mpr/climo_data")
 POINT_STAT_DATA_DIR = abs_path("METreformat/test/data/point_stat")
 TCDIAG_DATA_DIR = abs_path("METreformat/test/data/tcdiag_tcmpr")
 ONE_EMPTY_DIR = abs_path("METreformat/test/data/point_stat/one_empty")
+TCSTAT_DIR = abs_path("METreformat/test/data/tc_stat_rirw_cts_ctc")
+TCSTAT_NO_HEADER = abs_path("METreformat/test/data/tc_stat_rirw_cts_ctc/tc_stat_no_header")
 
 # Data in METdbLoad
 EMPTY_DIR = abs_path("METdbLoad/test/data/empty")
