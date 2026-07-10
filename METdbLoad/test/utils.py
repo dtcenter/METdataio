@@ -24,6 +24,10 @@ VSDB_DIR = abs_path("METdbLoad/test/data/vsdb")
 VSDB_NO_EQUALS_DIR = abs_path("METdbLoad/test/data/vsdb/vsdb_no_equals")
 VSDB_EMPTY = abs_path("METdbLoad/test/data/empty/empty_vsdb")
 VSDB_ONE_EMPTY = abs_path("METdbLoad/test/data/empty/empty_vsdb/one_empty")
+MODE_CTS_EMPTY = abs_path("METdbLoad/test/data/empty/mode_cts/")
+MODE_OBJ_EMPTY = abs_path("METdbLoad/test/data/empty/mode_obj/")
+MODE_NO_HEADER = abs_path("METdbLoad/test/data/mode/no_header")
+
 
 # This data is copied from MET test data
 # https://hub.docker.com/r/dtcenter/met-data-output
