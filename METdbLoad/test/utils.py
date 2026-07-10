@@ -22,6 +22,8 @@ ONE_EMPTY_DIR = abs_path("METreformat/test/data/point_stat/one_empty")
 EMPTY_DIR = abs_path("METdbLoad/test/data/empty")
 VSDB_DIR = abs_path("METdbLoad/test/data/vsdb")
 VSDB_NO_EQUALS_DIR = abs_path("METdbLoad/test/data/vsdb/vsdb_no_equals")
+VSDB_EMPTY = abs_path("METdbLoad/test/data/empty/empty_vsdb")
+VSDB_ONE_EMPTY = abs_path("METdbLoad/test/data/empty/empty_vsdb/one_empty")
 
 # This data is copied from MET test data
 # https://hub.docker.com/r/dtcenter/met-data-output
