@@ -15,6 +15,11 @@ from METdbLoad.test.utils import (
    VSDB_NO_EQUALS_DIR,
    VSDB_EMPTY,
    VSDB_ONE_EMPTY,
+   MODE_CTS_EMPTY,
+   MODE_OBJ_EMPTY,
+   MODE_NO_HEADER,
+   MODE_ONLY_CTS,
+   MODE_EMPTY ,
 )
 
 
@@ -232,13 +237,13 @@ def test_vsdb_no_equals(tmp_path, get_xml_loadfile):
     )
     assert rdf.stat_data.shape[0] > 0
 
-def test_empty_mode(tmp_path, get_xml_loadfile):
+@pytest.mark.parametrize("get_generic_xml_loadfile", ['mode_cts'], indirect=True)
+def test_empty_mode_cts(tmp_path, get_generic_xml_loadfile):
     '''
-       Verify that expected behavior is observed when the mode data is empty.
-       Use the generic empty file in the METdbLoad/test/data/empty directory.
+       Verify that expected behavior is observed when the mode cts data file is empty.
 
     '''
-    XML_LOADFILE = get_xml_loadfile(tmp_path, EMPTY_DIR)
+    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, MODE_CTS_EMPTY, 'mode_cts')
 
     # Read all of the data from the data files into a dataframe
     rdf = ReadDataFiles()
@@ -249,5 +254,86 @@ def test_empty_mode(tmp_path, get_xml_loadfile):
     )
 
     assert rdf.stat_data.shape[0] == 0
+    assert rdf.stat_data.shape[1] == 0
+
+@pytest.mark.parametrize("get_generic_xml_loadfile", ['mode_cts'], indirect=True)
+def test_empty_mode_no_header(tmp_path, get_generic_xml_loadfile):
+    '''
+       Verify that expected behavior is observed when the mode cts data file is
+       missing a header
+
+    '''
+
+    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, MODE_NO_HEADER, 'mode_cts')
+
+    # Read all of the data from the data files into a dataframe
+    rdf = ReadDataFiles()
 
 
+    # read in the data files, with options specified by XML flags
+    with pytest.raises(SystemExit):
+       rdf.read_data(
+           XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+       )
+
+
+    @pytest.mark.parametrize("get_generic_xml_loadfile", ['mode_cts', ' mode_obj'], indirect=True)
+    def test_empty_mode_cts_mode_obj(tmp_path, get_generic_xml_loadfile):
+        '''
+           Verify that expected behavior is observed when the mode cts data file is empty.
+
+        '''
+
+        XML_LOADFILE = get_generic_xml_loadfile(tmp_path, MODE_EMPTY, 'mode_cts')
+
+        # Read all of the data from the data files into a dataframe
+        rdf = ReadDataFiles()
+
+        # read in the data files, with options specified by XML flags
+        rdf.read_data(
+            XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+        )
+
+    assert rdf.stat_data.shape[0] == 0
+    assert rdf.stat_data.shape[1] == 0
+
+@pytest.mark.parametrize("get_generic_xml_loadfile", ['mode_cts'], indirect=True)
+def test_empty_mode_cts_valid_mod_obj(tmp_path, get_generic_xml_loadfile):
+    '''
+       Verify that expected behavior is observed when the mode cts data file is empty
+       but there is a valid mode_obj file
+
+    '''
+    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, MODE_CTS_EMPTY, 'mode_cts')
+
+    # Read all of the data from the data files into a dataframe
+    rdf = ReadDataFiles()
+
+    # read in the data files, with options specified by XML flags
+    rdf.read_data(
+        XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+    )
+
+    assert rdf.stat_data.shape[0] == 0
+    assert rdf.stat_data.shape[1] == 0
+
+
+@pytest.mark.parametrize("get_generic_xml_loadfile", ['mode_cts'], indirect=True)
+def test_empty_mode_obj_valid_mod_cts(tmp_path, get_generic_xml_loadfile):
+        '''
+           Verify that expected behavior is observed when the mode obj data file is empty
+           but there is a valid mode cts file
+
+        '''
+        XML_LOADFILE = get_generic_xml_loadfile(tmp_path, MODE_OBJ_EMPTY, 'mode_cts')
+
+        # Read all of the data from the data files into a dataframe
+        rdf = ReadDataFiles()
+
+        # read in the data files, with options specified by XML flags
+        rdf.read_data(
+            XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+        )
+
+        assert rdf.stat_data.shape[0] == 0
+        assert rdf.stat_data.shape[1] == 0
