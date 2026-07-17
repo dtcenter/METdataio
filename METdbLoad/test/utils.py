@@ -37,6 +37,7 @@ MTD_HEADER_NO_DATA = abs_path("METdbLoad/test/data/mtd/mtd_header_only")
 MTD_INTENSITY_90_LAST_COL = abs_path("METdbLoad/test/data/mtd/intensity_90_last_col")
 MTD_NO_FCST_T_BEG = abs_path("METdbLoad/test/data/mtd/no_fcst_t_beg")
 MTD_ONE_EMPTY = abs_path("METdbLoad/test/data/mtd/one_empty")
+MTD_MISSING_COLUMNS = abs_path("METdbLoad/test/data/mtd/missing_some_columns")
 
 
 # This data is copied from MET test data
