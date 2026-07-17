@@ -368,6 +368,7 @@ class ReadDataFiles:
                                 if CN.FCST_UNITS not in hdr_names:
                                     mode_file.insert(
                                         16, CN.FCST_UNITS, CN.NOTAV)
+                                if CN.OBS_UNITS not in hdr_names:
                                     mode_file.insert(
                                         19, CN.OBS_UNITS, CN.NOTAV)
 
