@@ -32,10 +32,10 @@ MODE_NO_HEADER = abs_path("METdbLoad/test/data/mode/no_header")
 MODE_ONLY_CTS = abs_path("METdbLoad/test/data/mode/only_cts")
 MODE_EMPTY = abs_path("METdbLoad/test/data/empty/empty_mode")
 MTD_EMPTY = abs_path("METdbLoad/test/data/empty/empty_mtd")
-MTD_DIR = abs_path("METdbLoad/test/data/mtd")
 MTD_HEADER_NO_DATA = abs_path("METdbLoad/test/data/mtd/mtd_header_only")
 MTD_INTENSITY_90_LAST_COL = abs_path("METdbLoad/test/data/mtd/intensity_90_last_col")
 MTD_NO_FCST_T_BEG = abs_path("METdbLoad/test/data/mtd/no_fcst_t_beg")
+MTD_ONE_EMPTY = abs_path("METdbLoad/test/data/mtd/one_empty")
 
 
 # This data is copied from MET test data
