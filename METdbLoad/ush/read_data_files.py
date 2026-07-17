@@ -543,6 +543,7 @@ class ReadDataFiles:
                                 if CN.FCST_UNITS not in hdr_names:
                                     mtd_file.insert(
                                         17, CN.FCST_UNITS, CN.NOTAV)
+                                if CN.OBS_UNITS not in hdr_names:
                                     mtd_file.insert(20, CN.OBS_UNITS, CN.NOTAV)
 
                                 # if FCST_LEAD is NA, set it to 0 to do math
