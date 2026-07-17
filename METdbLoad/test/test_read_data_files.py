@@ -29,6 +29,7 @@ from METdbLoad.test.utils import (
     MTD_INTENSITY_90_LAST_COL,
     MTD_NO_FCST_T_BEG,
     MTD_ONE_EMPTY,
+    MTD_MISSING_COLUMNS
 )
 import pandas as pd
 
@@ -446,6 +447,30 @@ def test_mtd_no_fcst_t_beg(tmp_path, get_generic_xml_loadfile):
 
     # Verify that the missing fcst_t_beg column has been added with CN.MV_NULL
     assert rdf.mtd_2d_data['fcst_t_beg'][0] == CN.MV_NULL
+
+@pytest.mark.parametrize("get_generic_xml_loadfile", ['mtd_2d'], indirect=True)
+def test_mtd_missing_columns(tmp_path, get_generic_xml_loadfile):
+    '''
+       Verify that expected behavior is observed when the mtd file is missing the
+       FCST_T_END, OBS_T_BEG, OBS_T_END, and FCST_UNITS columns.
+       These columns should be added to the dataframe with the expected
+       default value.
+
+    '''
+    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, MTD_MISSING_COLUMNS, 'mtd_2d')
+
+    # Read all of the data from the data files into a dataframe
+    rdf = ReadDataFiles()
+    rdf.read_data(
+        XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+    )
+
+    # Verify that the missing fcst_t_end column has been added with CN.MV_NULL
+    assert rdf.mtd_2d_data['fcst_t_end'][0] == CN.MV_NULL
+    assert rdf.mtd_2d_data['obs_t_beg'][0] == CN.MV_NULL
+    assert rdf.mtd_2d_data['obs_t_end'][0] == CN.MV_NULL
+    assert rdf.mtd_2d_data['fcst_units'][0] == CN.NOTAV
+    assert rdf.mtd_2d_data['obs_units'][0] == CN.NOTAV
 
 
 @pytest.mark.parametrize("get_generic_xml_loadfile", ['mtd_2d'], indirect=True)
