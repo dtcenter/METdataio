@@ -9,7 +9,6 @@ from METdbLoad.ush.read_data_files import ReadDataFiles
 from METdbLoad.ush.read_load_xml import XmlLoadFile
 from METdbLoad.test.utils import (
     POINT_STAT_DATA_DIR,
-    MTD_DATA_DIR,
     EMPTY_DIR,
     ONE_EMPTY_DIR,
     VSDB_DIR,
@@ -21,7 +20,7 @@ from METdbLoad.test.utils import (
     MODE_NO_HEADER,
     MODE_ONLY_CTS,
     MODE_EMPTY,
-    MTD_DIR,
+    MTD_DATA_DIR,
     MTD_EMPTY,
     MTD_HEADER_NO_DATA,
     TCSTAT_DIR,
@@ -29,7 +28,12 @@ from METdbLoad.test.utils import (
     MTD_HEADER_NO_DATA,
     MTD_INTENSITY_90_LAST_COL,
     MTD_NO_FCST_T_BEG,
+    MTD_ONE_EMPTY,
 )
+import pandas as pd
+
+
+from METdataio.METdbLoad.conftest import get_generic_xml_loadfile
 
 
 def test_counts(tmp_path, get_xml_loadfile):
@@ -352,19 +356,56 @@ def test_empty_mode_obj_valid_mod_cts(tmp_path, get_generic_xml_loadfile):
 
 
 @pytest.mark.parametrize("get_generic_xml_loadfile", ['mtd_2d'], indirect=True)
+def test_mtd_2d(tmp_path, get_generic_xml_loadfile):
+    '''
+       Verify that MTD 2D data is correctly read in
+    '''
+
+    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, MTD_DATA_DIR, 'mtd_2d')
+
+    # Read all of the data from the data files into a dataframe
+    rdf = ReadDataFiles()
+
+    # read in the data files, with options specified by XML flags
+    rdf.read_data(XML_LOADFILE.flags, XML_LOADFILE.load_files,
+                  XML_LOADFILE.line_types)
+
+    assert rdf.mtd_2d_data.shape[0] > 0
+    assert rdf.mtd_2d.data.shape[1] > 0
+
+
+@pytest.mark.parametrize("get_generic_xml_loadfile", ['mtd_2d'], indirect=True)
 def test_empty_mtd(tmp_path, get_generic_xml_loadfile):
     '''
-       Verify that expected behavior is observed when the mtd file is empty
+       Verify that expected behavior is observed when there is only one
+        mtd file and that mtd file is empty: an empty dataframe
 
     '''
     XML_LOADFILE = get_generic_xml_loadfile(tmp_path, MTD_EMPTY, 'mtd_2d')
 
     # Read all of the data from the data files into a dataframe
     rdf = ReadDataFiles()
-    with pytest.raises(SystemExit):
-        rdf.read_data(
-            XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
-        )
+    rdf.read_data(
+        XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+    )
+    assert rdf.mtd_2d_data.shape[0] == 0
+
+
+@pytest.mark.parametrize("get_generic_xml_loadfile", ['mtd_2d'], indirect=True)
+def test_one_empty_mtd(tmp_path, get_generic_xml_loadfile):
+    '''
+       Verify that expected behavior is observed when one of the 2D mtd files
+        is empty:  a dataframe with the data from the non-empty mtd file
+
+    '''
+    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, MTD_ONE_EMPTY, 'mtd_2d')
+
+    # Read all of the data from the data files into a dataframe
+    rdf = ReadDataFiles()
+    rdf.read_data(
+        XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+    )
+    assert rdf.mtd_2d_data.shape[0] > 0
 
 
 @pytest.mark.parametrize("get_generic_xml_loadfile", ['mtd_2d'], indirect=True)
@@ -379,12 +420,13 @@ def test_mtd_header_no_data(tmp_path, get_generic_xml_loadfile):
     # Read all of the data from the data files into a dataframe
     rdf = ReadDataFiles()
     rdf.read_data(
-            XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
-        )
+        XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+    )
 
     # Should produce an empty dataframe
     assert rdf.stat_data.shape[0] == 0
     assert rdf.stat_data.shape[1] == 0
+
 
 @pytest.mark.parametrize("get_generic_xml_loadfile", ['mtd_2d'], indirect=True)
 def test_mtd_no_fcst_t_beg(tmp_path, get_generic_xml_loadfile):
@@ -399,11 +441,12 @@ def test_mtd_no_fcst_t_beg(tmp_path, get_generic_xml_loadfile):
     # Read all of the data from the data files into a dataframe
     rdf = ReadDataFiles()
     rdf.read_data(
-            XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
-        )
+        XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+    )
 
     # Verify that the missing fcst_t_beg column has been added with CN.MV_NULL
     assert rdf.mtd_2d_data['fcst_t_beg'][0] == CN.MV_NULL
+
 
 @pytest.mark.parametrize("get_generic_xml_loadfile", ['mtd_2d'], indirect=True)
 def test_mtd_intensity_90_last_col(tmp_path, get_generic_xml_loadfile):
@@ -418,18 +461,20 @@ def test_mtd_intensity_90_last_col(tmp_path, get_generic_xml_loadfile):
     # Read all of the data from the data files into a dataframe
     rdf = ReadDataFiles()
     rdf.read_data(
-            XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
-        )
+        XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+    )
 
     # verify that a column was added after the intensity_90 column and the
     # added column is 'intensity_nn'
-    columns =  rdf.mtd_2d_data.columns.to_list()
+    columns = rdf.mtd_2d_data.columns.to_list()
     for idx, col in enumerate(columns):
         if col == 'intensity_90':
             idx_intensity_90 = idx
 
     assert len(rdf.mtd_2d_data.iloc[idx_intensity_90 + 1]) > 0
     assert rdf.mtd_2d_data['intensity_nn'].shape[0] > 0
+    rdf.mtd_2d_data.to_csv("./intensity_90.txt", header=True, sep=" ")
+
 
 @pytest.mark.parametrize("get_generic_xml_loadfile", ['tcst'], indirect=True)
 def test_tcst(tmp_path, get_generic_xml_loadfile):
