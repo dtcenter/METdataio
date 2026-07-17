@@ -474,8 +474,7 @@ class ReadDataFiles:
 
                                 # Get the first line of the MTD file that has the headers
                                 try:
-                                    file_hdr = pd.read_csv(filename, sep=r'\s+',
-                                                           nrows=1)
+                                    file_hdr = pd.read_csv(filename, sep=r'\s+', nrows=1)
                                 except (pd.errors.EmptyDataError):
                                     """
                                     We do NOT want to exit here. One empty file does not mean that we should not load

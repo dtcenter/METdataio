@@ -371,7 +371,7 @@ def test_mtd_2d(tmp_path, get_generic_xml_loadfile):
                   XML_LOADFILE.line_types)
 
     assert rdf.mtd_2d_data.shape[0] > 0
-    assert rdf.mtd_2d.data.shape[1] > 0
+    assert rdf.mtd_2d_data.shape[1] > 0
 
 
 @pytest.mark.parametrize("get_generic_xml_loadfile", ['mtd_2d'], indirect=True)
