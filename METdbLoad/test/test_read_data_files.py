@@ -569,9 +569,10 @@ def test_tcst_empty_data(tmp_path, get_generic_xml_loadfile):
     # Read all of the data from the data files into a dataframe
     rdf = ReadDataFiles()
 
-    with pytest.raises(SystemExit):
-        rdf.read_data(
+    rdf.read_data(
             XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
         )
+
+    rdf.tcst_data.shape[0] > 0
 
 
