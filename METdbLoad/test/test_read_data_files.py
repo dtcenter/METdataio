@@ -25,6 +25,7 @@ from METdbLoad.test.utils import (
     MTD_HEADER_NO_DATA,
     TCSTAT_DIR,
     TCSTAT_NO_HEADER,
+    TCSTAT_EMPTY,
     MTD_HEADER_NO_DATA,
     MTD_INTENSITY_90_LAST_COL,
     MTD_NO_FCST_T_BEG,
@@ -356,13 +357,13 @@ def test_empty_mode_obj_valid_mod_cts(tmp_path, get_generic_xml_loadfile):
     assert rdf.stat_data.shape[1] == 0
 
 
-@pytest.mark.parametrize("get_generic_xml_loadfile", ['mtd_2d'], indirect=True)
-def test_mtd_2d(tmp_path, get_generic_xml_loadfile):
+@pytest.mark.parametrize("get_generic_xml_loadfile", ['mtd_3d'], indirect=True)
+def test_mtd_3d(tmp_path, get_generic_xml_loadfile):
     '''
-       Verify that MTD 2D data is correctly read in
+       Verify that MTD 3D data is correctly read in
     '''
 
-    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, MTD_DATA_DIR, 'mtd_2d')
+    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, MTD_DATA_DIR, 'mtd_3d')
 
     # Read all of the data from the data files into a dataframe
     rdf = ReadDataFiles()
@@ -537,3 +538,40 @@ def test_tcst_no_header(tmp_path, get_generic_xml_loadfile):
         rdf.read_data(
             XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
         )
+
+@pytest.mark.parametrize("get_generic_xml_loadfile", ['tcst'], indirect=True)
+def test_tcst_empty(tmp_path, get_generic_xml_loadfile):
+    '''
+       Verify that expected behavior is observed when the tcst  file has data
+       but no header.
+
+    '''
+    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, TCSTAT_EMPTY, 'tcst')
+
+    # Read all of the data from the data files into a dataframe
+    rdf = ReadDataFiles()
+
+    # with pytest.raises(SystemExit):
+    rdf.read_data(
+            XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+        )
+    assert rdf.tcst_data.shape[0] == 0
+
+@pytest.mark.parametrize("get_generic_xml_loadfile", ['tcst'], indirect=True)
+def test_tcst_empty_data(tmp_path, get_generic_xml_loadfile):
+    '''
+       Verify that expected behavior is observed when the tcst  file has data
+       but no header.
+
+    '''
+    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, TCSTAT_EMPTY, 'tcst')
+
+    # Read all of the data from the data files into a dataframe
+    rdf = ReadDataFiles()
+
+    with pytest.raises(SystemExit):
+        rdf.read_data(
+            XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
+        )
+
+
