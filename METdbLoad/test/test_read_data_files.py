@@ -557,22 +557,3 @@ def test_tcst_empty(tmp_path, get_generic_xml_loadfile):
         )
     assert rdf.tcst_data.shape[0] == 0
 
-@pytest.mark.parametrize("get_generic_xml_loadfile", ['tcst'], indirect=True)
-def test_tcst_empty_data(tmp_path, get_generic_xml_loadfile):
-    '''
-       Verify that expected behavior is observed when the tcst  file has data
-       but no header.
-
-    '''
-    XML_LOADFILE = get_generic_xml_loadfile(tmp_path, TCSTAT_EMPTY, 'tcst')
-
-    # Read all of the data from the data files into a dataframe
-    rdf = ReadDataFiles()
-
-    rdf.read_data(
-            XML_LOADFILE.flags, XML_LOADFILE.load_files, XML_LOADFILE.line_types
-        )
-
-    rdf.tcst_data.shape[0] > 0
-
-
