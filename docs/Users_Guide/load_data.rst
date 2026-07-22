@@ -33,7 +33,7 @@ mv_mysql.sql schema:
 
 
 .. note::
- Use the mysql command line client (https://dev.mysql.com/doc/refman/en/mysql.html) to run the above instructions.
+ Use the `mysql command line client <https://dev.mysql.com/doc/refman/9.7/en/mysql.html>`_ to run the above instructions.
 
  The *mv_mysql.sql* file is located in the METdataio/METdbLoad/sql/ directory.
 
