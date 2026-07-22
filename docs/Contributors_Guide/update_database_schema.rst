@@ -47,8 +47,8 @@ where **xyz** corresponds to the Github issue number and is branched from the *d
    * $BASE_DIR corresponds to the directory where the METdataio source code resides
 
 4. In the **update_for_x_y.sql** file created above, make any changes to reflect updates to the schema
-   The `MET release guide  <https://met.readthedocs.io/en/latest/Users_Guide/release-notes.html>`_
-   is a useful resource for determining which linetypes were added or modified.
+   The `MET Release Notes  <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/release-notes.html>`_
+   are a useful resource for determining which linetypes were added or modified.
    Test that this loads the schema updates correctly.
 
 5. In the $BASE_DIR/METdataio/METdbLoad/sql/mv_mysql.sql file, make necessary edits corresponding to the latest
