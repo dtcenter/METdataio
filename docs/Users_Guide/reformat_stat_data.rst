@@ -355,7 +355,7 @@ plot and line type.  Formats fall into the following categories:
 	     MET User's Guide:
 
               *  `Point-Stat Table 11.1 <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/point-stat.html#id6>`_ (Point-Stat)
-              *  `Grid-Stat Table 13.1 <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/grid-stat.html#id81>`_ (Grid-Stat)
+              *  `Grid-Stat Table 13.1 <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/grid-stat.html#id8>`_ (Grid-Stat)
               *  `Ensemble-Stat Table 14.1 <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/ensemble-stat.html#id1>`_ (Ensemble-Stat)
 
 
@@ -409,9 +409,9 @@ plot and line type.  Formats fall into the following categories:
            * The common stat columns are common to all line types for Point-Stat, Grid-Stat, and Ensemble-Stat (model, vx mask, description, fcst lead, etc.)
              as described in the MET User's Guide:
 
-              *  `MET Point-Stat: Table 11.1  <https://met.readthedocs.io/en/main_v12.0/Users_Guide/point-stat.html#id1>`_ (Point-Stat)
-              *  `MET Grid-Stat: Table 12.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/grid-stat.html#id1>`_  (Grid-Stat)
-              *  `MET Ensemble-Stat: Table 13.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/ensemble-stat.html#id1>`_ (Ensemble-Stat)
+              *  `MET Point-Stat: Table 11.1  <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/point-stat.html#id6>`_ (Point-Stat)
+              *  `MET Grid-Stat: Table 13.1 <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/grid-stat.html#id8>`_  (Grid-Stat)
+              *  `MET Ensemble-Stat: Table 14.1 <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/ensemble-stat.html#id1>`_ (Ensemble-Stat)
 
 
          .. dropdown:: Unformatted Examples:
@@ -693,7 +693,7 @@ plot and line type.  Formats fall into the following categories:
            ensemble spread skill plot that consists of ratio lines (e.g. ECNT spread_plus_oerr/rmse)
 
          * the METcalcpy agg_stat.py module can be used to calculate these aggregation statistics, but requires
-           all the ECNT statistic values specified in `Table 13.2 of the MET User's Guide <https://met.readthedocs.io/en/develop/Users_Guide/ensemble-stat.html#id2>`_
+           all the ECNT statistic values specified in `Table 14.2 of the MET User's Guide <https://metplus.readthedocs.io/projects/met/en/develop/Users_Guide/ensemble-stat.html#id2>`_
            in addition to a stat_name column and stat_value column
 
            * the stat_name column contains all the ECNT statistic names pre-pended with **ECNT_**:
