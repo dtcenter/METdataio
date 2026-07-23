@@ -648,7 +648,7 @@ plot and line type.  Formats fall into the following categories:
 
     .. dropdown::  by specific linetype: ECNT
 
-       * The ECNT linetype (from the MET ensemble-stat tool) can be reformatted to contain all the ECNT statistic values specified in `Table 14.2 of the MET User's Guide <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/ensemble-stat.html#id2>`_.
+       * The ECNT linetype (from the MET ensemble-stat tool) can be reformatted to contain all the ECNT statistic values specified in the table of `Format information for ECNT output line type <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/ensemble-stat.html#id2>`_ in the MET User's Guide.
 
          * in addition, the following values are separated into additional columns:
 
@@ -693,8 +693,8 @@ plot and line type.  Formats fall into the following categories:
            ensemble spread skill plot that consists of ratio lines (e.g. ECNT spread_plus_oerr/rmse)
 
          * the METcalcpy agg_stat.py module can be used to calculate these aggregation statistics, but requires
-           all the ECNT statistic values specified in `Table 14.2 of the MET User's Guide <https://metplus.readthedocs.io/projects/met/en/develop/Users_Guide/ensemble-stat.html#id2>`_
-           in addition to a stat_name column and stat_value column
+           all the ECNT statistic values specified in the `Table of Format information for ECNT output line type <https://metplus.readthedocs.io/projects/met/en/develop/Users_Guide/ensemble-stat.html#id2>`_
+	   of the MET User's Guide in addition to a stat_name column and stat_value column
 
            * the stat_name column contains all the ECNT statistic names pre-pended with **ECNT_**:
 
