@@ -24,7 +24,6 @@ import METdbLoad.ush.constants as CN
 
 from METdbLoad.ush.run_sql import RunSql
 
-
 class WriteModeSql:
     """ Class to write mode files (cts and object) to a SQL database
         Returns:
@@ -277,6 +276,6 @@ class WriteModeSql:
             logger.debug("[--- End write_mode_sql ---]")
 
         except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
-            self.logger.error(
+            logger.error(
                 "*** %s occurred in write_mode_data function ***", sys.exc_info()[0])
             sys.exit("*** Error in write_mode_data function")

@@ -16,6 +16,29 @@ GRID_STAT_DATA_DIR = abs_path("METreformat/test/data/grid_stat/mctc_mcts")
 MPR_DATA_DIR = abs_path("METreformat/test/data/mpr/climo_data")
 POINT_STAT_DATA_DIR = abs_path("METreformat/test/data/point_stat")
 TCDIAG_DATA_DIR = abs_path("METreformat/test/data/tcdiag_tcmpr")
+ONE_EMPTY_DIR = abs_path("METreformat/test/data/point_stat/one_empty")
+TCSTAT_DIR = abs_path("METreformat/test/data/tc_stat_rirw_cts_ctc")
+TCSTAT_NO_HEADER = abs_path("METreformat/test/data/tc_stat_rirw_cts_ctc/tc_stat_no_header")
+TCSTAT_EMPTY = abs_path("METreformat/test/data/tc_stat_rirw_cts_ctc/empty")
+
+# Data in METdbLoad
+EMPTY_DIR = abs_path("METdbLoad/test/data/empty")
+VSDB_DIR = abs_path("METdbLoad/test/data/vsdb")
+VSDB_NO_EQUALS_DIR = abs_path("METdbLoad/test/data/vsdb/vsdb_no_equals")
+VSDB_EMPTY = abs_path("METdbLoad/test/data/empty/empty_vsdb")
+VSDB_ONE_EMPTY = abs_path("METdbLoad/test/data/empty/empty_vsdb/one_empty")
+MODE_CTS_EMPTY = abs_path("METdbLoad/test/data/empty/empty_mode_cts/")
+MODE_OBJ_EMPTY = abs_path("METdbLoad/test/data/empty/empty_mode_obj/")
+MODE_NO_HEADER = abs_path("METdbLoad/test/data/mode/no_header")
+MODE_ONLY_CTS = abs_path("METdbLoad/test/data/mode/only_cts")
+MODE_EMPTY = abs_path("METdbLoad/test/data/empty/empty_mode")
+MTD_DATA_DIR = abs_path("METdbLoad/test/data/mtd")
+MTD_EMPTY = abs_path("METdbLoad/test/data/empty/empty_mtd")
+MTD_HEADER_NO_DATA = abs_path("METdbLoad/test/data/mtd/mtd_header_only")
+MTD_INTENSITY_90_LAST_COL = abs_path("METdbLoad/test/data/mtd/intensity_90_last_col")
+MTD_NO_FCST_T_BEG = abs_path("METdbLoad/test/data/mtd/no_fcst_t_beg")
+MTD_ONE_EMPTY = abs_path("METdbLoad/test/data/mtd/one_empty")
+MTD_MISSING_COLUMNS = abs_path("METdbLoad/test/data/mtd/missing_some_columns")
 
 
 # This data is copied from MET test data
@@ -107,7 +130,7 @@ def get_xml_test_file(tmp_path, met_data_dir, met_tool, load_flags={}, local_inf
 
 
 def dict_to_args(args_dict):
-    """Convert a dcit to an argparse Namespace
+    """Convert a dict to an argparse Namespace
     
     Args:
         args_dict (dict): key value pairs to be converted to
