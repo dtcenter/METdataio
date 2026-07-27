@@ -1,10 +1,9 @@
-
-*************************************
+**************************
 Running Unit Tests Locally
-*************************************
+**************************
 
 Background
-===========
+==========
 
 Unit tests are included in METdataio and all of its sub-modules. The tests are found under the `test/` directory in each module, e.g. `METdbLoad/test/`.
 These tests are run automatically when a pull request is raised on GitHub and must pass before any merge will be considered. 
@@ -15,7 +14,7 @@ Database Setup
 ==============
 
 The setup of `mariadb` will be different depending on the operating system you are running, and the available privileges. If you encounter issues it is recommended you consult your system administrator
-for support appropriate to your system and environment. For up to date instructions on installing mariadb consult the `MariaDB docs <mariadb.org>`_ or the `MariaDB GitHub page <https://github.com/MariaDB/>`_.
+for support appropriate to your system and environment. For up to date instructions on installing mariadb consult the `MariaDB documentation <https://mariadb.org/documentation/>`_ or the `MariaDB GitHub page <https://github.com/MariaDB/>`_.
 
 Below is an example setup on CentOS.
 
@@ -59,7 +58,7 @@ Writing Tests
 
 All Pull Requests that change source code in `METdataio` should include appropriate unit tests. These tests should 
 demonstrate that when the new source code is invoked it produces the desired results. For help with writing tests, and for examples 
-of how to use pytest, refer ot the `pytest documentation <https://docs.pytest.org/>`_.
+of how to use pytest, refer ot the `pytest documentation <https://docs.pytest.org/en/stable/>`_.
 
 When writing new tests for `METdataio` you should be familiar with the content of `conftest.py`, noting that each sub module may have it's own `conftest.py`.
 For example, when writing a test for `METdbLoad` you may want to instatiate an empty test database. To do this use the `emptyDB` test fixture, found in `METdbLoad/conftest.py`.

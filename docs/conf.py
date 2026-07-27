@@ -87,9 +87,7 @@ linkcheck_workers = 8
 
 linkcheck_ignore = [
     # add regex patterns for URLs that should be skipped, e.g.:
-    # r'https://dtcenter\.org/.*',   # if this site blocks automated requests
-    # r'https://dev\.mysql\.com/doc/.*',    # occasionally slow/rate-limited, not actually broken
-    # r'https://.*\.rap\.ucar\.edu/.*',     # internal DTC/NCAR-network resources unreachable from CI runners
+    r'https://dev\.mysql\.com/doc.*',
 ]
 
 linkcheck_allowed_redirects = {
