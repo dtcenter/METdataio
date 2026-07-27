@@ -79,7 +79,7 @@ jobs:
           echo "Finished benchmark for pandas 2.2"
 
 #      - name: Archive benchmark results
-#        uses: actions/upload-artifact@v4
+#        uses: actions/upload-artifact@v7
 #        with:
 #          name: benchmark-report
 #          path: /home/runner/work/METdataio/METdatio/METreformat/test/**
