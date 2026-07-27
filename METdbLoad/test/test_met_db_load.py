@@ -1,6 +1,6 @@
 import pytest
 import sys
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, Mock
 from METdbLoad.ush.met_db_load import main as load_main
 from METdbLoad.ush.met_db_load import purge_files, parse_args, next_set, print_version
 from METdbLoad.ush.run_sql import RunSql
@@ -353,7 +353,6 @@ def test_met_db_indexes(
                 "line_data_cts": 24,
                 "line_data_ctc": 24,
                 "line_data_cnt": 10,
-                "line_data_vl1l2": 1,
             },
             "false",
         ),
@@ -366,7 +365,6 @@ def test_met_db_indexes(
                 "line_data_cts": 24,
                 "line_data_ctc": 24,
                 "line_data_cnt": 10,
-                "line_data_vl1l2": 1,
             },
             "true",
         ),

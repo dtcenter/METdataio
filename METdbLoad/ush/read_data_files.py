@@ -34,31 +34,22 @@ class ReadDataFiles:
            N/A
     """
 
+
     def __init__(self, logger=None):
-        try:
-            self.cache = {}
-            self.stat_data = pd.DataFrame()
-            self.mode_cts_data = pd.DataFrame()
-            self.mode_obj_data = pd.DataFrame()
-            self.tcst_data = pd.DataFrame()
-            self.data_files = pd.DataFrame()
-            self.mtd_2d_data = pd.DataFrame()
-            self.mtd_3d_single_data = pd.DataFrame()
-            self.mtd_3d_pair_data = pd.DataFrame()
-            if logger is None:
-                full_logfile = os.path.join(os.getcwd(), __name__ + "_log.txt")
-                self.logger = util.get_common_logger('DEBUG', full_logfile)
-            else:
-                self.logger = logger
-        except RuntimeError:
-            if logger is None:
-                print(
-                    "*** %s occurred while initializing class ReadDataFiles ***", sys.exc_info()[0])
-            else:
-                self.logger = logger
-                self.logger.error(
-                    "*** %s occurred while initializing class ReadDataFiles ***", sys.exc_info()[0])
-            sys.exit("*** Error initializing class ReadDataFiles")
+        self.cache = {}
+        self.stat_data = pd.DataFrame()
+        self.mode_cts_data = pd.DataFrame()
+        self.mode_obj_data = pd.DataFrame()
+        self.tcst_data = pd.DataFrame()
+        self.data_files = pd.DataFrame()
+        self.mtd_2d_data = pd.DataFrame()
+        self.mtd_3d_single_data = pd.DataFrame()
+        self.mtd_3d_pair_data = pd.DataFrame()
+        if logger is None:
+            full_logfile = os.path.join(os.getcwd(), __name__ + "_log.txt")
+            self.logger = util.get_common_logger('DEBUG', full_logfile)
+        else:
+            self.logger = logger
 
     def read_data(self, load_flags, load_files, line_types):
         """ Read in data files as given in load_spec file.
@@ -377,6 +368,7 @@ class ReadDataFiles:
                                 if CN.FCST_UNITS not in hdr_names:
                                     mode_file.insert(
                                         16, CN.FCST_UNITS, CN.NOTAV)
+                                if CN.OBS_UNITS not in hdr_names:
                                     mode_file.insert(
                                         19, CN.OBS_UNITS, CN.NOTAV)
 
@@ -483,8 +475,7 @@ class ReadDataFiles:
 
                                 # Get the first line of the MTD file that has the headers
                                 try:
-                                    file_hdr = pd.read_csv(filename, sep=r'\s+',
-                                                           nrows=1)
+                                    file_hdr = pd.read_csv(filename, sep=r'\s+', nrows=1)
                                 except (pd.errors.EmptyDataError):
                                     """
                                     We do NOT want to exit here. One empty file does not mean that we should not load
@@ -553,6 +544,7 @@ class ReadDataFiles:
                                 if CN.FCST_UNITS not in hdr_names:
                                     mtd_file.insert(
                                         17, CN.FCST_UNITS, CN.NOTAV)
+                                if CN.OBS_UNITS not in hdr_names:
                                     mtd_file.insert(20, CN.OBS_UNITS, CN.NOTAV)
 
                                 # if FCST_LEAD is NA, set it to 0 to do math
@@ -745,7 +737,7 @@ class ReadDataFiles:
 
                 # end for row
 
-            except (RuntimeError, TypeError, NameError, KeyError):
+            except (RuntimeError, TypeError, NameError, KeyError, ValueError):
                 self.logger.error(
                     f"*** Error assembling files for load: {sys.exc_info()[0]} ***", )
                 sys.exit("*** Error assembling files for load")
@@ -1500,9 +1492,9 @@ class ReadDataFiles:
 
             self.logger.debug("[--- End read_data ---]")
 
-        except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
+        except (RuntimeError, TypeError, NameError, KeyError, AttributeError, ValueError):
             self.logger.error(
-                "*** %s occurred in read_data function ***", sys.exc_info()[0])
+                "*** %s Error reading data: occurred in read_data function ***", sys.exc_info()[0])
             sys.exit("*** Error reading data")
 
     @staticmethod
