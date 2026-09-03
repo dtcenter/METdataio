@@ -111,7 +111,7 @@ class WriteStatAscii:
             # Subset data to requested line type
             # ----------------------------------
             supported_linetypes = [cn.FHO, cn.CNT, cn.VCNT, cn.CTC,
-                                   cn.CTS, cn.MCTS, cn.SL1L2, cn.ECNT, cn.PCT,
+                                   cn.CTS, cn.MCTS, cn.SL1L2, cn.SAL1L2, cn.ECNT, cn.PCT,
                                    cn.RHIST, cn.TCDIAG, cn.MPR, cn.DMAP]
 
             # Different formats based on the line types. Most METplotpy plots accept the long format where
@@ -282,6 +282,14 @@ class WriteStatAscii:
             else:
                 linetype_data: pd.DataFrame = self.process_sl1l2_for_agg(
                     stat_data)
+
+        # SAL1L2 Scalar Anomaly Partial sums
+        elif linetype == cn.SAL1L2:
+             if is_aggregated:
+                 linetype_data: pd.DataFrame = self.process_sal1l2(stat_data)
+             else:
+                 linetype_data: pd.DataFrame = self.process_sal1l2_for_agg(
+                     stat_data)
 
         # VL1L2 Scalar Partial sums
         elif linetype == cn.VL1L2:
@@ -1301,6 +1309,67 @@ class WriteStatAscii:
 
     def process_sl1l2_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
 
+        raise NotImplementedError
+
+    def process_sal1l2(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+    """
+         Reshape the data from the original MET output file (stat_data) into new
+         statistics columns:
+         stat_name, stat_value specifically for the SAL1L2 line type data.
+
+         Arguments:
+         @param stat_data: the dataframe containing all the data from the MET
+         .stat file.
+
+         Returns:
+             linetype_data: the reshaped pandas dataframe with statistics data
+             reorganized into the stat_name and
+                            stat_value columns.
+
+    """
+
+    # Relevant columns for the SAL1L2 line type
+    linetype: str = cn.SAL1L2
+    end = cn.NUM_STAT_SAL1L2_COLS
+    sal1l2_columns_to_use: List[str] = (
+        np.arange(0, end).tolist())
+
+    # Subset original dataframe to one containing only the SAL1L2 data
+    sal1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+                                                                                sal1l2_columns_to_use]
+
+    # Add the stat columns header names for the SAL1L2 line type
+    sal1l2_columns: List[str] = cn.SAL1L2_HEADERS
+    sal1l2_df.columns: List[str] = sal1l2_columns
+
+    # Create another index column to preserve the index values from the stat_data
+    # dataframe (i.e. the dataframe containing the original data from the MET output file).
+    idx = list(sal1l2_df.index)
+
+    # Work on a copy to avoid a possible PerformanceWarning from a fragmented dataframe.
+    sal1l2_df_copy = sal1l2_df.copy()
+    sal1l2_df_copy.insert(loc=0, column='Idx', value=idx)
+
+    # Columns we don't want to stack (treated as a multi index)
+    id_vars_list = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
+    reshaped = sal1l2_df_copy.melt(id_vars=id_vars_list,
+                                   value_vars=cn.SAL1L2_STATISTICS_HEADERS,
+                                   var_name='stat_name',
+                                   value_name='stat_value').sort_values('Idx')
+
+    # SAL1L2 line type doesn't have bcl/bcu stat values (same as SL1L2) -- set to NA
+    na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
+
+    reshaped['stat_ncl']: pd.Series = na_column
+    reshaped['stat_ncu']: pd.Series = na_column
+    reshaped['stat_bcl']: pd.Series = na_column
+    reshaped['stat_bcu']: pd.Series = na_column
+
+    return reshaped
+
+    def process_sal1l2_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        # Matches the current state of SL1L2, VL1L2, CTC, CTS, CNT, VCNT, MCTS, FHO, RHIST --
+        # raw-input aggregation via METcalcpy's agg_stat is a separate, not-yet-built path.
         raise NotImplementedError
 
     def process_vl1l2(self, stat_data: pd.DataFrame) -> pd.DataFrame:
