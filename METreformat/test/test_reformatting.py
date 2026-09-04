@@ -237,6 +237,40 @@ def test_point_stat_sl1l2_consistency():
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
 
+def test_point_stat_sal1l2_consistency():
+    stat_data, parms = setup_test('SAL1L2.yaml')
+
+    linetype: str = cn.SAL1L2
+    sal1l2_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_SAL1L2_COLS).tolist()
+    sal1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+                             sal1l2_columns_to_use]
+    sal1l2_df.columns: List[str] = cn.SAL1L2_HEADERS
+
+    total = str(361)
+    obs_var = 'UGRD'
+    obs_level = 'P250'
+    fcst_thresh = 'NA'
+    # --------------------------------------------------------------------------------------
+
+    expected_df: pd.DataFrame = sal1l2_df.loc[
+        (sal1l2_df['total'] == total) & (sal1l2_df['obs_var'] == obs_var) &
+        (sal1l2_df['obs_lev'] == obs_level) &
+        (sal1l2_df['fcst_thresh'] == fcst_thresh)]
+    expected_row: pd.Series = expected_df.iloc[0]
+    expected_name: str = "FABAR"   # or OABAR/FOABAR/FFABAR/OOABAR/MAE — pick one to spot-check
+    expected_val: float = expected_row.loc[expected_name]
+
+    wsa = WriteStatAscii(parms, logger)
+    reshaped_df = wsa.process_sal1l2(stat_data)
+    actual_df: pd.DataFrame = reshaped_df.loc[
+        (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
+        (reshaped_df['obs_lev'] == obs_level) &
+        (reshaped_df['fcst_thresh'] == fcst_thresh) &
+        (reshaped_df['stat_name'] == expected_name)]
+    actual_value: float = actual_df.iloc[0]['stat_value']
+
+    assert expected_val == actual_value
+
 
 def test_point_stat_vl1l2_consistency():
     '''
