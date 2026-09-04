@@ -2,7 +2,7 @@ input_stats_aggregated: True
 output_dir: ../output
 output_filename: sal1l2_reformatted.data
 line_type: SAL1L2
-input_data_dir: ./data/point_stat/SAL1L2
+input_data_dir: ./data/point_stat/sal1l2
 log_directory: ./output
 log_filename: stdout
 log_level: ERROR

@@ -257,7 +257,7 @@ def test_point_stat_sal1l2_consistency():
         (sal1l2_df['obs_lev'] == obs_level) &
         (sal1l2_df['fcst_thresh'] == fcst_thresh)]
     expected_row: pd.Series = expected_df.iloc[0]
-    expected_name: str = "FABAR"   # or OABAR/FOABAR/FFABAR/OOABAR/MAE — pick one to spot-check
+    expected_name: str = "FABAR"   # or OABAR/FOABAR/FFABAR/OOABAR/MAE
     expected_val: float = expected_row.loc[expected_name]
 
     wsa = WriteStatAscii(parms, logger)
