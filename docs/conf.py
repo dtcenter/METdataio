@@ -86,7 +86,7 @@ linkcheck_retries = 2
 linkcheck_workers = 8
 
 linkcheck_ignore = [
-    # add regex patterns for URLs that should be skipped, e.g.:
+    # dev.mysql.com returns 403 Forbidden to automated requests (Akamai bot protection)
     r'https://dev\.mysql\.com/doc.*',
 ]
 
