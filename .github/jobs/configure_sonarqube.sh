@@ -29,7 +29,13 @@ if [ -z ${SONAR_TOKEN+x} ]; then
 fi
 
 # Define the version string
-SONAR_PROJECT_VERSION=$(cat docs/version | cut -d'=' -f2 | tr -d '" ')
+#SONAR_PROJECT_VERSION=$(cat docs/version | cut -d'=' -f2 | tr -d '" ')
+SONAR_PROJECT_VERSION=$(grep -v '^[[:space:]]*$' docs/version | head -n1 | tr -d '" ')
+
+if [ -z "$SONAR_PROJECT_VERSION" ] || [ "$(echo "$SONAR_PROJECT_VERSION" | wc -l)" -gt 1 ]; then
+  echo "ERROR: ${0} -> SONAR_PROJECT_VERSION is empty or multi-line: '$SONAR_PROJECT_VERSION'"
+  exit 1
+fi
 
 #
 # Define the $SONAR_REFERENCE_BRANCH as the
