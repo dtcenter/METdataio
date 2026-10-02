@@ -743,7 +743,7 @@ was saved to the working directory.
 
 .. dropdown:: Modify the reformat_stat.yaml configuration file (click to view config file)
 
-    .. literalinclude:: ../../../METdataio/METreformat/reformat_stat.yaml
+    .. literalinclude:: ../../METreformat/reformat_stat.yaml
 
     Refer to the following details for each of the mandatory settings in the configuration file.
 
