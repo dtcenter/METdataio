@@ -10,7 +10,7 @@ METdataio database and the METviewer and METexpress display systems to enable
 users to create plots from their MET output statistics.
 
 The METdataio User's Guide is organized as follows.  Currently, the METdataio
-User's Guide only contains information about METdbload, a utility of
+User's Guide only contains information about METdbLoad, a utility of
 METdataio.  Eventually, there will be utilities to add and delete databases,
 delete duplicate records, etc.
 
@@ -38,12 +38,12 @@ environments, and so on.
 METdataio Goals and Design Philosophy
 =====================================
 
-METdataio is a Python rewrite of the capabilities in METviewer. METdbload,
+METdataio is a Python rewrite of the capabilities in METviewer. METdbLoad,
 a METdataio utility, reads MET verification statistics ASCII files,
 and loads them into a database for plotting with METviewer and METexpress.
 The specification for which files to load is written in XML.
 
-The METdataio code and documentation is maintained by the DTC in Boulder,
+The METdataio code and documentation are maintained by the DTC in Boulder,
 Colorado. The MET package is freely available to the modeling, verification,
 and operational communities, including universities, governments,
 the private sector, and operational modeling and prediction centers.

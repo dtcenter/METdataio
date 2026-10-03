@@ -14,7 +14,7 @@ Requirements
 ============
 
 METreadnc requires the following Python packages that must be installed
-prior to us:
+prior to use:
 
 - xarray
 - netcdf4
@@ -29,7 +29,7 @@ or requirements.txt in the METcalcpy repository (https://github.com/dtcenter/MET
 Setting up
 ==========
 
-- set up a base directory, where the METdataio source code reside
+- set up a base directory, where the METdataio source code resides
 
 .. code-block:: ini
 

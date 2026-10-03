@@ -49,16 +49,16 @@ Available at: https://github.com/dtcenter/METdataio/releases.
 
 **Acknowledgments**
 
-We thank the the National Science Foundation (NSF) along with three
+We thank the National Science Foundation (NSF) along with three
 organizations within the National Oceanic and Atmospheric Administration
 (NOAA): 1) Office of Atmospheric Research (OAR); 2) Next Generation
-Global Predition System project (NGGPS); and 3) United State Weather
+Global Prediction System project (NGGPS); and 3) United States Weather
 Research Program (USWRP) for their support of this work. Thanks also go
 to the staff at the Developmental Testbed Center for their help, advice,
 and many types of support. We released METplus Alpha in February 2017
 and would not have made a decade of cutting-edge verification support
 without those who participated in DTC planning workshops and the NGGPS
-United Forecast System Strategic Implementation Plan Working Groups
+Unified Forecast System Strategic Implementation Plan Working Groups
 (NGGPS UFS SIP WGs).
 
 The DTC is sponsored by the National Oceanic and Atmospheric

@@ -11,8 +11,8 @@ This chapter describes how to install and get started using METdataio.
 METdataio has been developed and tested on Mac and Linux operating
 systems.  Support for additional platforms may be added in future releases.
 
-METdbload is a Python3 program that requires some extra packages to be
-available on the user's computer prior to installation.  METdbload is part
+METdbLoad is a Python3 program that requires some extra packages to be
+available on the user's computer prior to installation.  METdbLoad is part
 of the METdataio database package. Additional METdataio programs that work
 with the data are planned.
 
@@ -34,7 +34,7 @@ Python Requirements
 
 **Python 3.12+** - Python 3.12 or higher must be installed. 
 
-**NOTE** Due to the lack of backwards compatibility in pandas 2.x, this code no longer works with Python 3.10
+**NOTE** Due to the lack of backwards compatibility in pandas 2.x, this code no longer works with Python 3.10.
 
 The requirements below come directly from the **requirements.txt** file 
 at the top level of the repository.
