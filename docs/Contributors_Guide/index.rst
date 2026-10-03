@@ -4,10 +4,11 @@ Contributor's Guide
 
 **Foreword: A note to METdataio users**
 
-This Contributor's guide is provided as an aid to **developers and contributors** of METdataio.  METdataio is a
-Python rewrite of the capabilities in METviewer. The METviewer tool reads MET
-verification statistics output from a database and creates plots using the R
-statistical package. METdataio is also a component of the unified METplus
+This Contributor's guide is provided as an aid to **developers and contributors** of METdataio.  METdataio provides
+Python tools to read, reformat, and load MET verification output, including
+capabilities previously provided by METviewer's data loader. The METviewer tool
+reads MET verification statistics output from a database and creates plots
+using the R statistical package. METdataio is also a component of the unified METplus
 verification framework. More details about METplus can be found on the
 `METplus website <http://dtcenter.org/community-code/metplus>`_.
 
@@ -21,7 +22,7 @@ in the
 We will then determine if we will be able to include the contribution in a
 future version.
 
-**Model Evaluation Tools Datadb (METdataio)  TERMS OF USE - IMPORTANT!**
+**Model Evaluation Tools Data IO (METdataio)  TERMS OF USE - IMPORTANT!**
 
 Copyright |copyright|
 Licensed under the Apache License, Version 2.0 (the "License");
