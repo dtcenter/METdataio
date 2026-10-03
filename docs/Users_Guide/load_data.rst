@@ -24,9 +24,9 @@ mv_mysql.sql schema:
   mysql -u[db_username] -p[db_password] [db_name] < sql/mv_mysql.sql
 
 
-- Replace *db_usenamer* with the username
+- Replace *db_username* with the username
 
-- Replace *db_passwd* with the password
+- Replace *db_password* with the password
 
 - Replace *db_name* with the appropriate database name that begins with **mv** (e.g. mv_xyz )
 
@@ -109,7 +109,7 @@ Change directory to the location where the *example_load_specification.xml* file
 - Replace *path-to-your-dir* with the full path where the XML specification file will be saved.
 
 Make the necessary edits to the required elements and delete any optional, unused/irrelevant elements, based on the explanation below (click to
-expand). Remember to update the username and password that is applicable to the database.
+expand). Remember to update the username and password that are applicable to the database.
 
 
 .. note::
@@ -355,7 +355,7 @@ expand). Remember to update the username and password that is applicable to the 
        - indicate whether or not to force load paths/files that already exist
        - True or False (case insensitive)
 
-    *The following elements indicate which group the database should be assigned and a description.*
+    *The following elements indicate which group the database should be assigned to and a description.*
 
      .. dropdown::  group
 
@@ -714,7 +714,7 @@ If logging is desired, redirect output to a log file (via &> command):
 
   python met_db_load.py /path-to/load_specification.xml  &> log/your_logname.log &
 
-- Replace *path-to-METdataio-source* to the path to the location of the cloned or forked METdataio source code.
+- Replace *path-to-METdataio-source* with the path to the location of the cloned or forked METdataio source code.
 - Replace the *path-to* with the location where the load_specification.xml XML load specification file was saved.
 
 Refer to the section **Create the XML Specification File** and expand the drop-down instructions
@@ -760,7 +760,7 @@ Troubleshooting
     -  /full-path-to/xyz.xml is not valid and may contain a recursive payload or an excessively large payload
 
   * - Solution:
-    - This error is typically encountered when one of the following conditions exist as a result of failing the XML validation step:
+    - This error is typically encountered when one of the following conditions exists as a result of failing the XML validation step:
 
         - the order of the elements in the XML load specification file is inconsistent with the order expected
         - the XML load specification file is missing one or more mandatory elements
