@@ -790,8 +790,8 @@ was saved to the working directory.
   
        .. dropdown:: log_level
 
-         * The verbosity of the logging: INFO, DEBUG, WARNING, ERROR
-         * INFO is the most verbose, ERROR is least verbose
+         * The verbosity of the logging: DEBUG, INFO, WARNING, ERROR
+         * DEBUG is the most verbose, ERROR is the least verbose
 
        .. dropdown:: line_type
 

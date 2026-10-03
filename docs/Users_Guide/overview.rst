@@ -38,13 +38,15 @@ environments, and so on.
 METdataio Goals and Design Philosophy
 =====================================
 
-METdataio is a Python rewrite of the capabilities in METviewer. METdbLoad,
+METdataio provides Python tools to read, reformat, and load MET verification
+output, including capabilities previously provided by METviewer's data loader.
+METdbLoad,
 a METdataio utility, reads MET verification statistics ASCII files,
 and loads them into a database for plotting with METviewer and METexpress.
 The specification for which files to load is written in XML.
 
 The METdataio code and documentation are maintained by the DTC in Boulder,
-Colorado. The MET package is freely available to the modeling, verification,
+Colorado. METdataio is freely available to the modeling, verification,
 and operational communities, including universities, governments,
 the private sector, and operational modeling and prediction centers.
 

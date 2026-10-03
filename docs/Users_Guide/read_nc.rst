@@ -101,7 +101,7 @@ The variable *infile* represents a single file (string) or a list of file names.
 
 .. code-block:: ini
 
-  df = file_reader_read_into_pandas(infile)
+  df = file_reader.read_into_pandas(infile)
 
 The variable *infile* represents a single file (string) or a list of file names.  Specify the full path to the file(s).
 

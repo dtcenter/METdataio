@@ -13,7 +13,7 @@ Before using the METdbLoad module, the database **must** exist and have the prop
 (i.e. grant privileges to insert, delete, update, and index).
 
 
-Data must be loaded into a database which has the prefix \'\mv_\'\,
+Data must be loaded into a database which has the prefix 'mv\_'
 (e.g. mv_met_data). This database must be structured with the METviewer
 mv_mysql.sql schema:
 
@@ -100,11 +100,11 @@ as this file contains the database password.**
 
 - Replace the *path-to-your-dir* with the actual path to where this file will be saved.
 
-Change directory to the location where the *example_load_specification.xml* file was copied.
+Change directory to the location where the *load_specification.xml* file was copied.
 
 .. code-block:: ini
 
-   cd path-to-your-dir/load_specification.xml
+   cd path-to-your-dir
 
 - Replace *path-to-your-dir* with the full path where the XML specification file will be saved.
 
@@ -767,4 +767,4 @@ Troubleshooting
         - one or more elements has exceeded size limits specified in the XML schema
         - there are additional XML elements that are not expected
 
-       **Refer to the section **Create the XML Load Specification File** to verify that the XML load specification file is correct.**
+       **Refer to the section "Create the XML Specification File" to verify that the XML load specification file is correct.**
