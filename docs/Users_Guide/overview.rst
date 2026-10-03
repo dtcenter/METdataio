@@ -48,7 +48,7 @@ Colorado. The MET package is freely available to the modeling, verification,
 and operational communities, including universities, governments,
 the private sector, and operational modeling and prediction centers.
 
-	     
+
 Future Development Plans
 ========================
 
