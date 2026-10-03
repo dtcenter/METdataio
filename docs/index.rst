@@ -41,7 +41,7 @@ and analysis tools to provide the same primary functionality as the EMC VSDB
 system, and also included a spatial verification package called MODE.
 
 Over the years, MET and VSDB packages grew in complexity.  Verification
-capability at other NOAA laboratories, such as ESRL, were also under heavy
+capability at other NOAA laboratories, such as ESRL, was also under heavy
 development.  An effort to unify verification capability was first started
 under the HIWPP project and led by NOAA ESRL.  In 2015, the NGGPS
 Program Office started working groups to focus on several aspects of the
@@ -65,7 +65,7 @@ extensible through adding additional capability developed by the community.
 The core components of the framework include MET, the associated database and
 display systems called METviewer and METexpress, and a suite of Python
 wrappers to provide low-level automation and examples, also called use-cases.
-A description of each tool along with some ancillary repositories are as
+A description of each tool along with some ancillary repositories is as
 follows:
 
 * **MET** - core statistical tool that matches up grids with either gridded
@@ -83,7 +83,7 @@ follows:
   components of METplus tools for statistical aggregation, event
   equalization, and other analysis needs
 * **METplotpy**  - suite of Python-based scripts to plot MET output,
-  and in come cases provide additional post-processing of output prior
+  and in some cases provide additional post-processing of output prior
   to plotting
 * **METdataio**  - Data ingest and export to store and retrieve MET output 
   to be used by other MET tools including METviewer and METexpress 
@@ -91,7 +91,7 @@ follows:
 The umbrella repository will be brought together by using a software package
 called `manage_externals <https://github.com/ESMCI/manage_externals>`_
 developed by the Community Earth System Modeling (CESM) team, hosted at NCAR
-and NOAA Earth System's Research Laboratory.  The manage_externals paackage
+and NOAA Earth System's Research Laboratory.  The manage_externals package
 was developed because CESM is comprised of a number of different components
 that are developed and managed independently. Each component also may have
 additional "external" dependencies that need to be maintained independently.
@@ -107,10 +107,10 @@ Acronyms
 * **VSDB** - Verification Statistics Data Base
 * **MODE** - Method for Object-Based Diagnostic Evaluation
 * **UFS** - Unified Forecast System
-* **SIMA** -System for Integrated Modeling of the Atmosphere
-* **ESRL** - Earth Systems Research Laboratory
-* **HIWPP** - High Impact Weather Predication Project
-* **NGGPS** - Next Generation Global Predicatio System
+* **SIMA** - System for Integrated Modeling of the Atmosphere
+* **ESRL** - Earth System Research Laboratory
+* **HIWPP** - High Impact Weather Prediction Project
+* **NGGPS** - Next Generation Global Prediction System
 * **GSD** - Global Systems Division
 
 
