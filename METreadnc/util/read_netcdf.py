@@ -13,7 +13,6 @@ import os
 import argparse
 import pandas as pd
 import xarray as xr
-import yaml
 # Setting PYTHONPATH to METcalcpy
 # or pip install . in the directory METcalcpy makes this the better import
 from metcalcpy.util.read_env_vars_in_config import parse_config
@@ -68,6 +67,10 @@ class ReadNetCDF:
             # single file specified
             file_data = xr.open_dataset(load_files)
             df = file_data.to_dataframe().reset_index()
+        else:
+            raise ValueError('Input file(s) not recognized. Files must be specified as a single filename, list of '
+                       'filenames, or a tuple of filenames.')
+            raise FileNotFoundError("Input file(s) are non-existent.")
         return df
 
     def read_into_xarray(self, load_files) -> list:
@@ -88,6 +91,7 @@ class ReadNetCDF:
         else:
             raise ValueError('Input file(s) not recognized. Files must be specified as a single filename, list of '
                              'filenames, or a tuple of filenames.')
+            raise FileNotFoundError("Input file(s) are non-existent.")
 
         return self.xarray_data
 

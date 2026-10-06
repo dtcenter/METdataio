@@ -74,8 +74,8 @@ class RunSql:
             self.conn = pymysql.connect(host=connection['db_host'],
                                         port=connection['db_port'],
                                         user=connection['db_user'],
-                                        passwd=connection['db_password'],
-                                        db=connection['db_database'],
+                                        password=connection['db_password'],
+                                        database=connection['db_database'],
                                         local_infile=local_infile)
 
         except pymysql.OperationalError as pop_err:
@@ -184,7 +184,7 @@ class RunSql:
                             str)
                         raw_data['fcst_init'] = raw_data['fcst_init'].astype(
                             str)
-                    else:
+                    elif 'fcst_valid_beg' in raw_data:
                         raw_data['fcst_valid_beg'] = raw_data[
                             'fcst_valid_beg'].astype(str)
                         raw_data['fcst_valid_end'] = raw_data[

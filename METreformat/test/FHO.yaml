@@ -1,5 +1,4 @@
-#input_stats_aggregated: True
-input_stats_aggregated: False
+input_stats_aggregated: True
 output_dir: ../output
 output_filename: fho_reformatted.data
 line_type: FHO

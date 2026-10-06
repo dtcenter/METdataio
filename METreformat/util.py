@@ -1,7 +1,6 @@
 import argparse
 import logging
 import sys
-import getpass
 from METreformat.context_filter import ContextFilter as cf
 
 def read_config_from_command_line():
