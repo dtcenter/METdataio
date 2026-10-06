@@ -6,7 +6,7 @@ Running Unit Tests Locally
 Background
 ===========
 
-Unit tests are included in METdataio and all of its sub-modules. The tests are found under the `test/` directory in each module, e.g. `METdbLoad/test/`.
+Unit tests are included in METdataio and all of its sub-modules. The tests are found under the `test/` directory in each module, e.g., `METdbLoad/test/`.
 These tests are run automatically when a pull request is raised on GitHub and must pass before any merge will be considered. 
 When developing new features it is advisable to ensure the tests pass by running them locally against your changes. To do this you must first have either
 a `mysql` or `mariadb` service running and set up with an appropriate user. Although either database can be used, this guide will focus on `mariadb`.

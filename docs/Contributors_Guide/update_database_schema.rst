@@ -81,7 +81,7 @@ Remember to include the *DELIMITER |*  at the beginning/top of the file and *DEL
 
 - Create tests like those in the METdataio/METdbLoad/tests directory, creating a new subdirectory following the naming convention:
 
- - update_schema_release_beta (e.g. update_schema_6.0_beta4).
+ - update_schema_release_beta (e.g., update_schema_6.0_beta4).
 
 The update_schema_6.0_beta4
 directory indicates that these tests and data correspond to the METplus 6.0 beta 4 release.

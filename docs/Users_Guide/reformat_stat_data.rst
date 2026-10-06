@@ -17,7 +17,7 @@ from multiple line types, as determined by settings in the MET configuration fil
   is requested, an appropriate error message will be generated.
 
 All MET .stat line types have common columns (refer to `Table 11.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/point-stat.html#id5>`_ in the MET User's Guide) that are labelled
-(i.e. the columns have headers/names).  The remaining columns
+(i.e., the columns have headers/names).  The remaining columns
 are unlabelled.  When the stat output from the MET Point-Stat, Grid-Stat, Ensemble-Stat, or TC-Pairs tools is
 reformatted, these unlabelled columns are rearranged into a format appropriate
 for the METplotpy plot of interest and on the *line_type* data.
@@ -27,11 +27,11 @@ When generating plots in METviewer, the MET .stat input data is first loaded int
 a database. A database query is then performed to filter the data, based on criteria specified through
 METviewer's graphical user interface.  The query is based on:
 
-* the selected values for the dependent variables (i.e. forecast variable) and the associated statistics of interest
-* series variables (i.e. model and specific model values)
+* the selected values for the dependent variables (i.e., forecast variable) and the associated statistics of interest
+* series variables (i.e., model and specific model values)
 * fixed values (corresponding to columns in the MET output such as forecast lead, vx mask, model, etc.)
 
-Any requested aggregation statistics (i.e. mean, median) are calculated by invoking the METcalcpy agg_stat.py code.
+Any requested aggregation statistics (i.e., mean, median) are calculated by invoking the METcalcpy agg_stat.py code.
 The format of the data from the query result may vary, based on the line type and whether aggregation statistics were
 calculated.
 
@@ -41,11 +41,11 @@ calculated.
   is this format that is expected by the METplotpy scripts**.
 
 Users have the option to generate plots from the command line, by-passing METviewer and its database. **However,
-the MET Stat-Analysis** tool will need to be used for performing any necessary filtering of data (e.g. by any combination of
+the MET Stat-Analysis** tool will need to be used for performing any necessary filtering of data (e.g., by any combination of
 times, models, regions, etc.) prior to reformatting. The METcalcpy agg_stat.py module is used after
-reformatting to calculate aggregation statistics (i.e. total, mean, median, confidence
+reformatting to calculate aggregation statistics (i.e., total, mean, median, confidence
 intervals for a specific statistic, etc.). Not all data requires the calculation of
-aggregation statistics (e.g. histogram plots).
+aggregation statistics (e.g., histogram plots).
 
 Plots that are generated from the command line require a YAML configuration file. The .stat/.tcst output from the Point-Stat,
 Grid-Stat, Ensemble-Stat, or TC-Pairs tool must be reformatted before invoking the METplotpy scripts from the
@@ -368,7 +368,7 @@ plot and line type.  Formats fall into the following categories:
 
            * each row represents unique data (tidy data)
            * the number of columns is different for each row, due to each row representing a different linetype
-             (e.g. DMAP, NBRTC)
+             (e.g., DMAP, NBRTC)
            * numerous columns are unlabelled
 
 
@@ -422,7 +422,7 @@ plot and line type.  Formats fall into the following categories:
 
            * each row represents unique data (tidy data)
            * the number of columns is different for each row, due to each row representing a different linetype
-             (e.g. DMAP, NBRTC)
+             (e.g., DMAP, NBRTC)
            * numerous columns are unlabelled
 
 
@@ -488,7 +488,7 @@ plot and line type.  Formats fall into the following categories:
 
              * each row represents unique data (tidy data)
              * the number of columns is different for each row, due to each row representing a different linetype
-               (e.g. PCT, PSTD, PJC, PRC)
+               (e.g., PCT, PSTD, PJC, PRC)
              * numerous columns are unlabelled
 
          .. dropdown:: Reformatted Example (truncated):
@@ -503,7 +503,7 @@ plot and line type.  Formats fall into the following categories:
                           * numbers on the far left correspond to index values used in reformatting the original data
                           * TMP forecast variable rows used in the example, other forecast variables were manually
                             removed from the output file
-                          * numerous rows have the same common stat columns (i.e. version, ..., interp_mthd),
+                          * numerous rows have the same common stat columns (i.e., version, ..., interp_mthd),
                             the same line_type, and total value
 
                                * the data is organized by thresh_i, oy_i, on_i, and i_value using the criteria described
@@ -533,7 +533,7 @@ plot and line type.  Formats fall into the following categories:
 
           * each row represents unique data (tidy data)
           * the number of columns is different for each row, due to each row representing a different linetype
-            (e.g. ECNT, RHIST, PHIST, RELP, SSVAR)
+            (e.g., ECNT, RHIST, PHIST, RELP, SSVAR)
           * numerous columns are unlabelled
 
 
@@ -620,7 +620,7 @@ plot and line type.  Formats fall into the following categories:
 
          * The data corresponds to the TCDIAG data consolidated with the corresponding TCMPR line
          * The unlabelled first column contains index values created during the reformatting process
-         * The LINE_TYPE column is now located AFTER the last TCMPR column (i.e. MAX_WIND_STDEV)
+         * The LINE_TYPE column is now located AFTER the last TCMPR column (i.e., MAX_WIND_STDEV)
          * The INDEX_PAIRS column corresponds to the INDEX column of TCDIAG (Table 24.3 of the MET User's Guide)
 
            * renamed INDEX_PAIRS to **differentiate it from the INDEX column of TCMPR**
@@ -687,10 +687,10 @@ plot and line type.  Formats fall into the following categories:
             * stat_bcl
             * stat_bcu
 
-       * Some plots require aggregation statistics (i.e. mean, sum, confidence levels, etc.)
+       * Some plots require aggregation statistics (i.e., mean, sum, confidence levels, etc.)
 
          * an example of when aggregation statistics are needed is when using the METplotpy line plot to generate an
-           ensemble spread skill plot that consists of ratio lines (e.g. ECNT spread_plus_oerr/rmse)
+           ensemble spread skill plot that consists of ratio lines (e.g., ECNT spread_plus_oerr/rmse)
 
          * the METcalcpy agg_stat.py module can be used to calculate these aggregation statistics, but requires
            all the ECNT statistic values specified in `Table 13.2 of the MET User's Guide <https://met.readthedocs.io/en/develop/Users_Guide/ensemble-stat.html#id2>`_
