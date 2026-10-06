@@ -1448,7 +1448,7 @@ class ReadDataFiles:
                     # line type of mtd 2d table
                     all_2d[CN.LINE_TYPE_LU_ID] = 19
 
-                    self.mtd_2d_data = all_2d
+                    self.mtd_2d_data = self.apply_column_types(all_2d)
                     all_2d = all_2d.iloc[0:0]
 
             except (RuntimeError, TypeError, NameError, KeyError):
@@ -1466,7 +1466,7 @@ class ReadDataFiles:
                     # line type of mtd single table
                     all_single[CN.LINE_TYPE_LU_ID] = 17
 
-                    self.mtd_3d_single_data = all_single
+                    self.mtd_3d_single_data = self.apply_column_types(all_single)
                     all_single = all_single.iloc[0:0]
 
             except (RuntimeError, TypeError, NameError, KeyError):
@@ -1484,7 +1484,7 @@ class ReadDataFiles:
                     # line type of mtd pair table
                     all_pair[CN.LINE_TYPE_LU_ID] = 18
 
-                    self.mtd_3d_pair_data = all_pair
+                    self.mtd_3d_pair_data = self.apply_column_types(all_pair)
                     all_pair = all_pair.iloc[0:0]
 
             except (RuntimeError, TypeError, NameError, KeyError):
@@ -1504,6 +1504,25 @@ class ReadDataFiles:
             self.logger.error(
                 "*** %s occurred in read_data function ***", sys.exc_info()[0])
             sys.exit("*** Error reading data")
+
+    def apply_column_types(self, df):
+        """! Set the data types for each column in the dataframe
+            Returns:
+               the dataframe with the data types set
+        """
+        for col_name, col_type in CN.COL_TYPE_MAP.items():
+            if col_name in df.columns:
+                try:
+                    # if the column contains CN.NOTAV, replace it with CN.MV_NOTAV
+                    # for numeric columns
+                    if col_type in ('int', 'float'):
+                        df.loc[df[col_name] == CN.NOTAV, col_name] = CN.MV_NOTAV
+
+                    df[col_name] = df[col_name].astype(col_type)
+                except (ValueError, TypeError):
+                    self.logger.error(
+                        f"*** Error setting data type for column {col_name} to {col_type} ***")
+        return df
 
     @staticmethod
     def get_lookup(filename):
@@ -1584,6 +1603,9 @@ class ReadDataFiles:
         stat_file[CN.OBS_VALID_END] = \
             pd.to_datetime(stat_file[CN.OBS_VALID_END],
                            format='%Y%m%d_%H%M%S', errors='raise')
+
+        stat_file = self.apply_column_types(stat_file)
+
         return stat_file
 
     def read_tcst(self, filename, hdr_names):
@@ -1625,6 +1647,8 @@ class ReadDataFiles:
         stat_file[CN.VALID] = \
             pd.to_datetime(stat_file[CN.VALID],
                            format='%Y%m%d_%H%M%S', errors='raise')
+
+        stat_file = self.apply_column_types(stat_file)
 
         return stat_file
 
@@ -1670,5 +1694,7 @@ class ReadDataFiles:
         stat_file[CN.OBS_VALID] = \
             pd.to_datetime(stat_file[CN.OBS_VALID],
                            format='%Y%m%d_%H%M%S', errors='raise')
+
+        stat_file = self.apply_column_types(stat_file)
 
         return stat_file

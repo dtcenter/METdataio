@@ -254,6 +254,17 @@ TCST_HEADER_KEYS = [VERSION, AMODEL, BMODEL, DESCR, STORM_ID, BASIN, CYCLONE,
 VSDB_HEADER = [VERSION, MODEL, FCST_LEAD, FCST_VALID_BEG, OBTYPE,
                VX_MASK, LINE_TYPE, FCST_VAR, FCST_LEV]
 
+# Lookup table for column data types
+COL_TYPE_MAP = {
+    FCST_LEAD: 'int',
+    OBS_LEAD: 'int',
+    INTERP_PNTS: 'int',
+    ALPHA: 'float',
+    LINE_NUM: 'int',
+    LINENUMBER: 'int',
+    'total': 'int'
+}
+
 Q_FILE = "SELECT data_file_id FROM data_file WHERE " + \
          "path=%s AND filename=%s"
 
