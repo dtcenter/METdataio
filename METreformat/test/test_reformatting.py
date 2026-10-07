@@ -132,6 +132,73 @@ def setup_test(yaml_file, is_tcst=False):
     return file_df, config
 
 
+@pytest.mark.parametrize(
+    'linetype, is_aggregated, is_implemented',
+    [
+        (cn.FHO, True, True),
+        (cn.FHO, False, False),
+        (cn.CNT, True, True),
+        (cn.CNT, False, False),
+        (cn.VCNT, True, True),
+        (cn.VCNT, False, False),
+        (cn.CTC, True, True),
+        (cn.CTC, False, False),
+        (cn.CTS, True, True),
+        (cn.CTS, False, False),
+        (cn.MCTS, True, True),
+        (cn.MCTS, False, False),
+        (cn.SL1L2, True, True),
+        (cn.SL1L2, False, False),
+        (cn.SAL1L2, True, False),
+        (cn.SAL1L2, False, False),
+        (cn.VL1L2, True, True),
+        (cn.VL1L2, False, False),
+        (cn.ECNT, True, True),
+        (cn.ECNT, False, True),
+        #(cn.PCT, True, True), # need to create PCT.yaml
+        (cn.RHIST, True, True),
+        #(cn.TCDIAG, True, True), # need to create TCDIAG.yaml
+        #(cn.MPR, True, True),  # need to create MPR.yaml
+        #(cn.DMAP, True, True),  # need to create DMAP.yaml
+        (cn.VAL1L2, True, False),
+        (cn.VAL1L2, False, False),
+        (cn.MCTC, True, False),
+        (cn.MCTC, False, False),
+        (cn.NBRCTC, True, False),
+        (cn.NBRCTC, False, False),
+    ],
+)
+def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implemented):
+    """Verify dispatch behavior for each aggregated state.
+
+    For non-implemented cases, provide a YAML fixture matching the
+    {line_type}.yaml or {line_type}_for_agg.yaml naming convention and expect
+    NotImplementedError. Once support is added, flip is_implemented to True.
+    """
+    yaml_file = f'{linetype}.yaml'
+    if not is_aggregated:
+        yaml_file = f'{linetype}_for_agg.yaml'
+
+    # if is_implemented is False and yaml doesn't exist,
+    #  use another yaml file that does exist to test the NotImplementedError.
+    if not is_implemented and not os.path.exists(os.path.join(os.path.dirname(__file__), yaml_file)):
+        yaml_file = 'FHO.yaml'
+
+    stat_data, parms = setup_test(yaml_file)
+    wsa = WriteStatAscii(parms, logger)
+
+    if not is_implemented:
+        with pytest.raises(NotImplementedError):
+            #wsa.write_stat_ascii(stat_data, parms)
+            wsa.process_by_stat_linetype(linetype, stat_data, is_aggregated=is_aggregated)
+        return
+
+    result_df = wsa.process_by_stat_linetype(linetype, stat_data, is_aggregated=is_aggregated)
+    #result_df = wsa.write_stat_ascii(stat_data, parms)
+    assert isinstance(result_df, pd.DataFrame)
+    assert not result_df.empty
+
+
 def test_bad_yaml():
     """
        Force a runtime exception by providing a non-existent yaml file
@@ -1026,42 +1093,6 @@ def test_fho_reformat():
 
     result_df = wsa.process_fho(stat_data)
     assert result_df.shape[0] > 0
-
-
-@pytest.mark.parametrize(
-    'linetype, is_aggregated, is_implemented',
-    [
-        (cn.FHO, True, True),
-        (cn.CTC, True, True),
-        (cn.CTS, True, True),
-        (cn.CNT, True, True),
-        (cn.ECNT, True, True),
-        (cn.ECNT, False, True),
-        (cn.FHO, False, False),
-    ],
-)
-def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implemented):
-    """Verify dispatch behavior for each aggregated state.
-
-    For non-implemented cases, provide a YAML fixture matching the
-    {line_type}.yaml or {line_type}_for_agg.yaml naming convention and expect
-    NotImplementedError. Once support is added, flip is_implemented to True.
-    """
-    yaml_file = f'{linetype}.yaml'
-    if not is_aggregated:
-        yaml_file = f'{linetype}_for_agg.yaml'
-
-    stat_data, parms = setup_test(yaml_file)
-    wsa = WriteStatAscii(parms, logger)
-
-    if not is_implemented:
-        with pytest.raises(NotImplementedError):
-            wsa.process_by_stat_linetype(linetype, stat_data, is_aggregated=is_aggregated)
-        return
-
-    result_df = wsa.process_by_stat_linetype(linetype, stat_data, is_aggregated=is_aggregated)
-    assert isinstance(result_df, pd.DataFrame)
-    assert not result_df.empty
 
 
 def test_tcdiag_from_tcpairs():
