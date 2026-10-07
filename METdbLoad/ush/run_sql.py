@@ -169,7 +169,7 @@ class RunSql:
                 # write the data out to a csv file, use local data infile to load to database
                 raw_data[col_list].to_csv(tmpfile, na_rep=CN.MV_NOTAV,
                                           index=False, header=False, sep=CN.SEP)
-                sql_cur.execute(CN.LD_TABLE, (tmpfile, sql_table, CN.SEP))
+                sql_cur.execute(CN.LD_TABLE.format(tmpfile, sql_table, CN.SEP))
                 # delete the temporary CSV file
                 os.remove(tmpfile)
             else:
