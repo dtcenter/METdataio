@@ -199,6 +199,9 @@ class RunSql:
                     raw_data['fcst_valid'] = raw_data['fcst_valid'].astype(str)
                     raw_data['fcst_init'] = raw_data['fcst_init'].astype(str)
                     raw_data['obs_valid'] = raw_data['obs_valid'].astype(str)
+                # PyMySQL executemany() expects Python None for SQL NULLs;
+                # convert the LOAD DATA sentinel back before inserting.
+                raw_data = raw_data.replace(CN.MV_NULL, None)
                 # make a copy of the dataframe that is a list of lists and write to database
                 dfile = raw_data[col_list].values.tolist()
                 sql_cur.executemany(sql_query, dfile)
