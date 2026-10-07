@@ -110,10 +110,6 @@ class WriteStatAscii:
             # -----------------------------------
             # Subset data to requested line type
             # ----------------------------------
-            supported_linetypes = [cn.FHO, cn.CNT, cn.VCNT, cn.CTC,
-                                   cn.CTS, cn.MCTS, cn.SL1L2, cn.ECNT, cn.PCT,
-                                   cn.RHIST, cn.TCDIAG, cn.MPR, cn.DMAP]
-
             # Different formats based on the line types. Most METplotpy plots accept the long format where
             # all stats are under the stat_name and stat_value columns and the confidence limits under the
             # stat_bcl/bcu, stat_ncl/ncu columns.  Other plots, like the histogram plots (rank, relative, probability)
@@ -122,19 +118,12 @@ class WriteStatAscii:
             linetype_requested = str(parms['line_type']).upper()
             working_df = stat_data.copy(deep=True)
 
-            if linetype_requested in supported_linetypes:
-                # If the TCDiag linetype is requested, keep both the TCDiag and TCMPR linetypes.
-                if linetype_requested == cn.TCDIAG:
-                    working_df = working_df.loc[(working_df['line_type'] == linetype_requested) |
-                                                (working_df['line_type'] == cn.TCMPR)]
-                else:
-                    working_df = working_df.loc[working_df['line_type']
-                                                == linetype_requested]
+            # If the TCDiag linetype is requested, keep both the TCDiag and TCMPR linetypes.
+            if linetype_requested == cn.TCDIAG:
+                working_df = working_df.loc[(working_df['line_type'] == linetype_requested) |
+                                            (working_df['line_type'] == cn.TCMPR)]
             else:
-                self.logger.error(
-                    "Requested line type is currently not supported for reformatting")
-                raise NotImplementedError("Requested line type ", linetype_requested,
-                                 " is currently not supported for reformatting")
+                working_df = working_df.loc[working_df['line_type'] == linetype_requested]
 
             # --------------------
             # Write Stat Headers

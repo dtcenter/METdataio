@@ -76,11 +76,16 @@ def read_input(config_file, is_tcst):
     :return: file_df, the dataframe representation of the input data
     """
 
-    try:
-        parms: dict = parse_config(config_file)
-        pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
-    except (yaml.YAMLError, ValueError) as exc:
-        print(exc)
+    if isinstance(config_file, dict):
+        parms = config_file
+    else:
+        try:
+            parms: dict = parse_config(config_file)
+            pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
+        except (yaml.YAMLError, ValueError) as exc:
+            print(exc)
+
+    pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
 
     input_data_dir = parms['input_data_dir']
     input_data_full_path = os.path.join(os.path.dirname(__file__), input_data_dir)
@@ -132,6 +137,35 @@ def setup_test(yaml_file, is_tcst=False):
     return file_df, config
 
 
+def build_dispatch_test_config(linetype, is_aggregated):
+    """Build a minimal config for the generic line-type dispatch tests.
+
+    The dispatch tests only need enough metadata to read the input stat files and
+    create a unique output file per parameter combination without depending on a
+    dedicated YAML file for each linetype.
+    """
+    line_type = str(linetype).upper()
+    input_data_dir_lookup = {
+        cn.ECNT: './data/ensemble_stat',
+        cn.MCTS: './data/grid_stat/mctc_mcts',
+        cn.RHIST: './data/rhist_phist_relp_orank',
+    }
+    input_data_dir = input_data_dir_lookup.get(line_type, './data/point_stat')
+    suffix = '' if is_aggregated else '_for_agg'
+    output_filename = f'{line_type.lower()}{suffix}_reformatted.data'
+
+    return {
+        'input_stats_aggregated': is_aggregated,
+        'output_dir': os.environ['METREFORMAT_TEST_OUTPUT_DIR'],
+        'output_filename': output_filename,
+        'line_type': line_type,
+        'input_data_dir': input_data_dir,
+        'log_directory': os.environ['METREFORMAT_TEST_OUTPUT_DIR'],
+        'log_filename': 'stdout',
+        'log_level': 'INFO',
+    }
+
+
 @pytest.mark.parametrize(
     'linetype, is_aggregated, is_implemented',
     [
@@ -171,32 +205,26 @@ def setup_test(yaml_file, is_tcst=False):
 def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implemented):
     """Verify dispatch behavior for each aggregated state.
 
-    For non-implemented cases, provide a YAML fixture matching the
-    {line_type}.yaml or {line_type}_for_agg.yaml naming convention and expect
-    NotImplementedError. Once support is added, flip is_implemented to True.
+    Use a minimal generated config instead of a dedicated YAML fixture for each
+    linetype so the tests remain focused on dispatch behavior, while still
+    producing a unique output file per parameter combination.
     """
-    yaml_file = f'{linetype}.yaml'
-    if not is_aggregated:
-        yaml_file = f'{linetype}_for_agg.yaml'
-
-    # if is_implemented is False and yaml doesn't exist,
-    #  use another yaml file that does exist to test the NotImplementedError.
-    if not is_implemented and not os.path.exists(os.path.join(os.path.dirname(__file__), yaml_file)):
-        yaml_file = 'FHO.yaml'
-
-    stat_data, parms = setup_test(yaml_file)
+    parms = build_dispatch_test_config(linetype, is_aggregated)
+    stat_data, parms = read_input(parms, is_tcst=False)
     wsa = WriteStatAscii(parms, logger)
 
     if not is_implemented:
         with pytest.raises(NotImplementedError):
-            #wsa.write_stat_ascii(stat_data, parms)
-            wsa.process_by_stat_linetype(linetype, stat_data, is_aggregated=is_aggregated)
+            wsa.write_stat_ascii(stat_data, parms)
+        output_path = os.path.join(parms['output_dir'], parms['output_filename'])
+        assert not os.path.exists(output_path)
         return
 
-    result_df = wsa.process_by_stat_linetype(linetype, stat_data, is_aggregated=is_aggregated)
-    #result_df = wsa.write_stat_ascii(stat_data, parms)
+    result_df = wsa.write_stat_ascii(stat_data, parms)
+    output_path = os.path.join(parms['output_dir'], parms['output_filename'])
     assert isinstance(result_df, pd.DataFrame)
     assert not result_df.empty
+    assert os.path.exists(output_path)
 
 
 def test_bad_yaml():
