@@ -1019,8 +1019,11 @@ MTD_3D_OBJ_PAIR_FIELDS = [MTD_HEADER_ID, OBJECT_ID, OBJECT_CAT,
 Q_MTDHEADER = "SELECT mtd_header_id FROM mtd_header WHERE " + \
               "=%s AND ".join(MTD_HEADER_KEYS) + "=%s"
 
+MTD_VALUE_SLOTS = '%s, ' * len(MTD_HEADER_FIELDS)
+MTD_VALUE_SLOTS = MTD_VALUE_SLOTS[:-2]
+
 INS_MTDHEADER = "INSERT INTO mtd_header (" + ",".join(MTD_HEADER_FIELDS) + \
-                ") VALUES (" + VALUE_SLOTS + ")"
+                ") VALUES (" + MTD_VALUE_SLOTS + ")"
 
 C_VALUE_SLOTS = '%s, ' * len(MTD_2D_OBJ_FIELDS)
 C_VALUE_SLOTS = C_VALUE_SLOTS[:-2]
