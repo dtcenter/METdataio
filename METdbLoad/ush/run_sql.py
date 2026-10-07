@@ -20,6 +20,7 @@ import os
 import time
 from datetime import timedelta
 import pymysql
+import pandas as pd
 
 from METdbLoad.ush import constants as CN
 from METdbLoad.ush import DEFAULT_LOGLEVEL
@@ -202,6 +203,7 @@ class RunSql:
                 # PyMySQL executemany() expects Python None for SQL NULLs;
                 # convert the LOAD DATA sentinel back before inserting.
                 raw_data = raw_data.replace(CN.MV_NULL, None)
+                raw_data = raw_data.astype(object).where(pd.notna(raw_data), None)
                 # make a copy of the dataframe that is a list of lists and write to database
                 dfile = raw_data[col_list].values.tolist()
                 sql_cur.executemany(sql_query, dfile)
