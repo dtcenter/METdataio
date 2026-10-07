@@ -1,6 +1,7 @@
 import os
-import shutil
 import pathlib
+import shutil
+import warnings
 from argparse import Namespace
 from collections import namedtuple
 from dataclasses import make_dataclass
@@ -17,8 +18,51 @@ from METdbLoad.ush.read_data_files import ReadDataFiles
 from METdbLoad.ush.read_load_xml import XmlLoadFile
 from METreformat.write_stat_ascii import WriteStatAscii
 import METreformat.util as util
+from metcalcpy.util.read_env_vars_in_config import parse_config
 
-full_log_filename = os.path.join('../output', 'test_reformatting_log.txt')
+TEST_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'output')
+DEFAULT_TEST_OUTPUT_DIR = os.path.abspath(TEST_OUTPUT_DIR)
+
+
+def prepare_test_output_dir(output_dir=None):
+    """Set up a predictable output directory for the METreformat tests.
+
+    The default test output directory is repo-local and is safe to scrub before
+    each run. When a custom directory is supplied via the environment, warn and
+    leave it alone to avoid deleting user data.
+    """
+    if output_dir is None:
+        output_dir = os.environ.get('METREFORMAT_TEST_OUTPUT_DIR', DEFAULT_TEST_OUTPUT_DIR)
+
+    output_dir = os.path.abspath(output_dir)
+    pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+    if os.path.abspath(output_dir) == DEFAULT_TEST_OUTPUT_DIR:
+        for child in os.listdir(output_dir):
+            child_path = os.path.join(output_dir, child)
+            if os.path.isdir(child_path) and not os.path.islink(child_path):
+                shutil.rmtree(child_path)
+            else:
+                os.remove(child_path)
+        return output_dir
+
+    if os.listdir(output_dir):
+        warnings.warn(
+            f'METREFORMAT_TEST_OUTPUT_DIR={output_dir} is not empty; the test suite '
+            'will not delete custom output directories automatically. Please clear it '
+            'before running the METreformat tests.',
+            UserWarning,
+            stacklevel=2,
+        )
+
+    return output_dir
+
+
+os.environ.setdefault('METREFORMAT_TEST_OUTPUT_DIR', DEFAULT_TEST_OUTPUT_DIR)
+os.environ['METREFORMAT_TEST_OUTPUT_DIR'] = prepare_test_output_dir(
+    os.environ.get('METREFORMAT_TEST_OUTPUT_DIR')
+)
+full_log_filename = os.path.join(os.environ['METREFORMAT_TEST_OUTPUT_DIR'], 'test_reformatting_log.txt')
 logger = util.get_common_logger('DEBUG', full_log_filename)
 
 
@@ -32,12 +76,11 @@ def read_input(config_file, is_tcst):
     :return: file_df, the dataframe representation of the input data
     """
 
-    with open(config_file, 'r') as stream:
-        try:
-            parms: dict = yaml.load(stream, Loader=yaml.FullLoader)
-            pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
-        except yaml.YAMLError as exc:
-            print(exc)
+    try:
+        parms: dict = parse_config(config_file)
+        pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
+    except (yaml.YAMLError, ValueError) as exc:
+        print(exc)
 
     input_data_dir = parms['input_data_dir']
     input_data_full_path = os.path.join(os.path.dirname(__file__), input_data_dir)
@@ -993,7 +1036,11 @@ def test_tcdiag_from_tcpairs():
     stat_data, config = setup_test('test_reformat_tcdiag.yaml', is_tcst=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_tcdiag(stat_data)
-    reformatted_df.to_csv("./tcmpr_reformatted.txt", sep="\t")
+    pathlib.Path(config['output_dir']).mkdir(parents=True, exist_ok=True)
+    output_path = os.path.join(config['output_dir'], config['output_filename'])
+    reformatted_df.to_csv(output_path, sep="\t")
+
+    assert os.path.exists(output_path)
 
     # Compare original data (read in from METdbLoad) to reformatted
 
@@ -1441,9 +1488,6 @@ def test_tcst_with_cts():
     assert reformatted_df.iloc[:1, :]['stat_name'][0] == expected_cts.iloc[:1, :]['stat_name'][0]
     assert reformatted_df.iloc[:1, :]['stat_value'][0] == expected_cts.iloc[:1, :]['stat_value'][0]
 
-    # cleanup
-    shutil.rmtree('./output/')
-
 
 def test_tcst_with_ctc():
     """
@@ -1470,9 +1514,6 @@ def test_tcst_with_ctc():
     # values for stat_name, and stat_value in the first row
     assert reformatted_df.iloc[:1, :]['stat_name'][0] == expected_ctc.iloc[:1, :]['stat_name'][0]
     assert reformatted_df.iloc[:1, :]['stat_value'][0] == expected_ctc.iloc[:1, :]['stat_value'][0]
-
-    # cleanup
-    shutil.rmtree('./output/')
 
 
 def test_write_stat_ascii_type_error():

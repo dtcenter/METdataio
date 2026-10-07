@@ -4,14 +4,14 @@
 # has been applied to MET .stat output from point-stat, grid-stat, or ensemble-stat).
 input_stats_aggregated: True 
 
-output_dir: ./output
+output_dir: !ENV ${METREFORMAT_TEST_OUTPUT_DIR}
 output_filename: reformatted_mpr_for_scatter_regression_data.txt
 keep_all_cols: True
 
 input_data_dir: ./data/mpr/from_regression_data/
 
 # Set to log_filename to STDOUT/stdout if no log file is to be saved
-log_directory: ./output
+log_directory: !ENV ${METREFORMAT_TEST_OUTPUT_DIR}
 log_filename: mpr_for_scatter_log.txt
 
 # most verbose is debug, less verbose is error

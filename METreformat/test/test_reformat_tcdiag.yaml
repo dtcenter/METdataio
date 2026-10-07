@@ -5,7 +5,7 @@
 # no agg stats are needed via METcalcpy, set to True.
 input_stats_aggregated: True
 
-output_dir: ./output
+output_dir: !ENV ${METREFORMAT_TEST_OUTPUT_DIR}
 output_filename: tc_pairs_reformatted_tc_diag.tcst
 
 input_data_dir: ./data/tcdiag_tcmpr/
