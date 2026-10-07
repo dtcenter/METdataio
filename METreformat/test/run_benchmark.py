@@ -8,6 +8,7 @@ from METdataio.METdbLoad.ush.read_data_files import ReadDataFiles
 from METdataio.METdbLoad.ush.read_load_xml import XmlLoadFile
 from METdataio.METreformat.write_stat_ascii import WriteStatAscii
 import METdataio.METreformat.util as util
+from metcalcpy.util.read_env_vars_in_config import parse_config
 
 full_log_filename = os.path.join('../output', 'test_benchmarking_log.txt')
 logger = util.get_common_logger('DEBUG', full_log_filename)
@@ -23,12 +24,11 @@ def read_input(config_file, is_tcst):
     :return: file_df, the dataframe representation of the input data
     """
 
-    with open(config_file, 'r') as stream:
-        try:
-            parms: dict = yaml.load(stream, Loader=yaml.FullLoader)
-            pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
-        except yaml.YAMLError as exc:
-            print(exc)
+    try:
+        parms: dict = parse_config(config_file)
+        pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
+    except (yaml.YAMLError, ValueError) as exc:
+        print(exc)
 
     input_data_filename = parms['input_data_dir']
     input_data = os.path.join(os.path.dirname(__file__), input_data_filename)
