@@ -1028,6 +1028,42 @@ def test_fho_reformat():
     assert result_df.shape[0] > 0
 
 
+@pytest.mark.parametrize(
+    'linetype, is_aggregated, is_implemented',
+    [
+        (cn.FHO, True, True),
+        (cn.CTC, True, True),
+        (cn.CTS, True, True),
+        (cn.CNT, True, True),
+        (cn.ECNT, True, True),
+        (cn.ECNT, False, True),
+        (cn.FHO, False, False),
+    ],
+)
+def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implemented):
+    """Verify dispatch behavior for each aggregated state.
+
+    For non-implemented cases, provide a YAML fixture matching the
+    {line_type}.yaml or {line_type}_for_agg.yaml naming convention and expect
+    NotImplementedError. Once support is added, flip is_implemented to True.
+    """
+    yaml_file = f'{linetype}.yaml'
+    if not is_aggregated:
+        yaml_file = f'{linetype}_for_agg.yaml'
+
+    stat_data, parms = setup_test(yaml_file)
+    wsa = WriteStatAscii(parms, logger)
+
+    if not is_implemented:
+        with pytest.raises(NotImplementedError):
+            wsa.process_by_stat_linetype(linetype, stat_data, is_aggregated=is_aggregated)
+        return
+
+    result_df = wsa.process_by_stat_linetype(linetype, stat_data, is_aggregated=is_aggregated)
+    assert isinstance(result_df, pd.DataFrame)
+    assert not result_df.empty
+
+
 def test_tcdiag_from_tcpairs():
     '''
         Test that the reformatting is correct by comparing values in the original data to the reformatted data
