@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/METdataio.iml" filepath="$PROJECT_DIR$/.idea/METdataio.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/metdataio.iml" filepath="$PROJECT_DIR$/.idea/metdataio.iml" />
     </modules>
   </component>
 </project>
