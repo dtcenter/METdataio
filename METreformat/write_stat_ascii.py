@@ -23,7 +23,7 @@ import pathlib
 import re
 import sys
 import time
-from typing import List
+from typing import List, Dict
 
 
 import numpy as np
@@ -60,12 +60,191 @@ class WriteStatAscii:
             self.logger = logger
             self.parms = parms
 
+            # Initialize the line type handler registry
+            self._handler_registry = self._build_handler_registry()
+
         except (AttributeError):
             self.logger = logger
             self.logger.error(
                 "*** %s occurred while initializing class WriteStatAscii ***", sys.exc_info()[0])
             self.logger.debug("Exception details:", exc_info=True)
             raise
+
+    def _build_handler_registry(self) -> Dict[str, Dict[str, str]]:
+        """
+        Build registry mapping line types to their handler methods.
+
+        Registry structure:
+            {
+                'LINETYPE': {
+                    'aggregated': 'method_name_for_aggregated_input',
+                    'non_aggregated': 'method_name_for_non_agg_input' or None
+                },
+                ...
+            }
+
+        Use None to indicate unsupported mode (will raise NotImplementedError).
+
+        Returns:
+            Dictionary mapping line types to their handler configuration
+
+        Example for adding a new line type:
+            'NEW_TYPE': {
+                'aggregated': 'process_new_type',
+                'non_aggregated': 'process_new_type_for_agg',
+            }
+        """
+        return {
+            cn.FHO: {
+                'aggregated': 'process_fho',
+                'non_aggregated': None,  # Not supported
+            },
+            cn.CNT: {
+                'aggregated': 'process_cnt',
+                'non_aggregated': 'process_cnt_for_agg',
+            },
+            cn.VCNT: {
+                'aggregated': 'process_vcnt',
+                'non_aggregated': 'process_vcnt_for_agg',
+            },
+            cn.CTC: {
+                'aggregated': 'process_ctc',
+                'non_aggregated': 'process_ctc_for_agg',
+            },
+            cn.CTS: {
+                'aggregated': 'process_cts',
+                'non_aggregated': 'process_cts_for_agg',
+            },
+            cn.MCTS: {
+                'aggregated': 'process_mcts',
+                'non_aggregated': 'process_mcts_for_agg',
+            },
+            cn.SL1L2: {
+                'aggregated': 'process_sl1l2',
+                'non_aggregated': 'process_sl1l2_for_agg',
+            },
+            cn.VL1L2: {
+                'aggregated': 'process_vl1l2',
+                'non_aggregated': 'process_vl1l2_for_agg',
+            },
+            cn.ECNT: {
+                'aggregated': 'process_ecnt',
+                'non_aggregated': 'process_ecnt_for_agg',
+            },
+            cn.PCT: {
+                'aggregated': 'process_pct',
+                'non_aggregated': None,  # Not supported
+            },
+            cn.RHIST: {
+                'aggregated': 'process_rhist',
+                'non_aggregated': None,  # Not supported
+            },
+            cn.TCDIAG: {
+                'aggregated': 'process_tcdiag',
+                'non_aggregated': None,  # Not supported
+            },
+            cn.MPR: {
+                'aggregated': 'process_mpr',
+                'non_aggregated': None,  # Not supported
+            },
+            cn.DMAP: {
+                'aggregated': 'process_dmap',
+                'non_aggregated': None,  # Not supported
+            },
+            'VAL1L2': {
+                'aggregated': 'process_val1l2',
+                'non_aggregated': 'process_val1l2_for_agg',
+            },
+            'MCTC': {
+                'aggregated': 'process_mctc',
+                'non_aggregated': 'process_mctc_for_agg',
+            },
+            'NBRCTC': {
+                'aggregated': 'process_nbrctc',
+                'non_aggregated': 'process_nbrctc_for_agg',
+            },
+            'NBRCTS': {
+                'aggregated': 'process_nbrcts',
+                'non_aggregated': 'process_nbrcts_for_agg',
+            },
+            'NBRCNT': {
+                'aggregated': 'process_nbrcnt',
+                'non_aggregated': 'process_nbrcnt_for_agg',
+            },
+            'SSVAR': {
+                'aggregated': 'process_ssvar',
+                'non_aggregated': 'process_ssvar_for_agg',
+            },
+            'GRAD': {
+                'aggregated': 'process_grad',
+                'non_aggregated': 'process_grad_for_agg',
+            },
+            'RPS': {
+                'aggregated': 'process_rps',
+                'non_aggregated': 'process_rps_for_agg',
+            },
+            'ECLV': {
+                'aggregated': 'process_eclv',
+                'non_aggregated': 'process_eclv_for_agg',
+            },
+            'PSTD': {
+                'aggregated': 'process_pstd',
+                'non_aggregated': 'process_pstd_for_agg',
+            },
+            'PJC': {
+                'aggregated': 'process_pjc',
+                'non_aggregated': 'process_pjc_for_agg',
+            },
+            'PRC': {
+                'aggregated': 'process_prc',
+                'non_aggregated': 'process_prc_for_agg',
+            },
+        }
+
+    def _validate_handler_support(self, linetype: str, is_aggregated: bool) -> str:
+        """
+        Validate that a handler exists for the requested line type and mode.
+
+        Args:
+            linetype: The line type (normalized to uppercase)
+            is_aggregated: Whether input is aggregated
+
+        Returns:
+            The method name to call
+
+        Raises:
+            NotImplementedError: If line type or mode is unsupported
+        """
+        linetype = linetype.upper()
+
+        # Check if line type exists in registry
+        if linetype not in self._handler_registry:
+            supported_types = ', '.join(sorted(self._handler_registry.keys()))
+            msg = (
+                f"{linetype} is not supported. "
+                f"Supported line types: {supported_types}"
+            )
+            raise NotImplementedError(msg)
+
+        # Check if requested mode is supported
+        mode_key = 'aggregated' if is_aggregated else 'non_aggregated'
+        handler_config = self._handler_registry[linetype]
+        method_name = handler_config.get(mode_key)
+
+        if method_name is None:
+            agg_str = 'aggregated' if is_aggregated else 'non-aggregated'
+            supported_modes = [
+                k for k, v in handler_config.items()
+                if v is not None
+            ]
+            supported_str = ' or '.join(supported_modes)
+            msg = (
+                f"{linetype} does not support {agg_str} input. "
+                f"Supported modes: {supported_str}"
+            )
+            raise NotImplementedError(msg)
+
+        return method_name
 
     def write_stat_ascii(self, stat_data: pd.DataFrame, parms: dict) -> pd.DataFrame:
         """ For line types: FHO, CTC, CTS, SL1L2, ECNT, MCTS, VCNT, MPR (line plot), and DMAP (line plot)
@@ -104,6 +283,7 @@ class WriteStatAscii:
         """
 
         write_time_start: float = time.perf_counter()
+        linetype_requested = str(parms['line_type']).upper()
 
         try:
 
@@ -115,7 +295,6 @@ class WriteStatAscii:
             # stat_bcl/bcu, stat_ncl/ncu columns.  Other plots, like the histogram plots (rank, relative, probability)
             # and ROC diagrams require specific formatting.
 
-            linetype_requested = str(parms['line_type']).upper()
             working_df = stat_data.copy(deep=True)
 
             # If the TCDiag linetype is requested, keep both the TCDiag and TCMPR linetypes.
@@ -161,8 +340,7 @@ class WriteStatAscii:
             # Write out to the tab-separated text file
             output_file = os.path.join(
                 parms['output_dir'], parms['output_filename'])
-            _: pd.DataFrame = reformatted_df.to_csv(output_file, index=None, sep='\t',
-                                                    mode='a')
+            reformatted_df.to_csv(output_file, index=False, sep='\t', mode='a')
 
         except (AttributeError, TypeError, NameError, KeyError, NotImplementedError):
             msg = f" *** {sys.exc_info()[0]} : {linetype_requested} not supported in write_stat_ascii ***"
@@ -181,26 +359,27 @@ class WriteStatAscii:
 
     def process_by_stat_linetype(self, linetype: str, stat_data: pd.DataFrame, is_aggregated=True):
         """
+        Route to appropriate line type handler based on registry lookup.
 
            For MET .stat output, extract the relevant statistics information into the
-           necessary format based on whether the data is already aggregated (via MET stat-analysis) or
-           if the data is un-aggregated and requires the METcalcpy agg_stat module for performing the aggregation
-           statistics calculations.  **NOTE** Support for reformatting into agg_stat's required input format is currently
-           available for the *ECNT* linetype.  This support will be extended to the other supported linetypes. 
+            necessary format based on whether the data is already aggregated (via MET stat-analysis) or
+            if the data is un-aggregated and requires the METcalcpy agg_stat module for performing the aggregation
+            statistics calculations.  **NOTE** Support for reformatting into agg_stat's required input format is currently
+            available for the *ECNT* linetype.  This support will be extended to the other supported linetypes.
 
 
         Args:
             @param linetype: The linetype of interest (i.e. CNT, CTS, FHO, TCMPR, etc.)
             @param stat_data: The original MET data read in from the .stat/.tcst file, containing only the requested
                               linetype rows.
-            Empty columns from the original .stat
+                Empty columns from the original .stat
                               file are named with the string representation of the
                               numbers 1-n.
             @param is_aggregated: Default=True.
-                                  Boolean to indicate whether input .stat files already have aggregated statistics
-                                  computed (i.e. output from MET stat-analysis tool). True if MET stat-analysis was used,
-                                  False if .stat files are directly from MET point-stat, grid-stat, or
-                                  ensemble-stat tool.
+                                   Boolean to indicate whether input .stat files already have aggregated statistics
+                                   computed (i.e. output from MET stat-analysis tool). True if MET stat-analysis was used,
+                                   False if .stat files are directly from MET point-stat, grid-stat, or
+                                   ensemble-stat tool.
 
             @return: linetype_data 
 
@@ -213,111 +392,23 @@ class WriteStatAscii:
                 Or, if data requires aggregation via METcalcpy agg_stat.py, then the input will be
                 reformatted with columns corresponding to the linetype's statistics names.
         """
+        linetype_upper = linetype.upper()
 
-        linetype_data = pd.DataFrame()
-
-        # FHO forecast, hit rate, observation rate
-        if linetype == cn.FHO:
-            if is_aggregated:
-                linetype_data: pd.DataFrame = self.process_fho(stat_data)
-            else:
-                linetype_data: pd.DataFrame = self.process_fho_for_agg(
-                    stat_data)
-
-        # CNT Continuous Statistics
-        elif linetype == cn.CNT:
-            if is_aggregated:
-                linetype_data: pd.DataFrame = self.process_cnt(stat_data)
-            else:
-                linetype_data: pd.DataFrame = self.process_cnt_for_agg(
-                    stat_data)
-
-        # VCNT Continuous Statistics
-        elif linetype == cn.VCNT:
-            if is_aggregated:
-                linetype_data: pd.DataFrame = self.process_vcnt(stat_data)
-            else:
-                linetype_data: pd.DataFrame = self.process_vcnt_for_agg(
-                    stat_data)
-
-        # CTC Contingency Table Counts
-        elif linetype == cn.CTC:
-            if is_aggregated:
-                linetype_data: pd.DataFrame = self.process_ctc(stat_data)
-            else:
-                linetype_data: pd.DataFrame = self.process_ctc_for_agg(
-                    stat_data)
-
-        # CTS Contingency Table Statistics
-        elif linetype == cn.CTS:
-            if is_aggregated:
-                linetype_data: pd.DataFrame = self.process_cts(stat_data)
-            else:
-                linetype_data: pd.DataFrame = self.process_cts_for_agg(
-                    stat_data)
-
-        # MCTS Contingency Table Statistics
-        elif linetype == cn.MCTS:
-            if is_aggregated:
-                linetype_data: pd.DataFrame = self.process_mcts(stat_data)
-            else:
-                linetype_data: pd.DataFrame = self.process_mcts_for_agg(
-                    stat_data)
-
-        # SL1L2 Scalar Partial sums
-        elif linetype == cn.SL1L2:
-            if is_aggregated:
-                linetype_data: pd.DataFrame = self.process_sl1l2(stat_data)
-            else:
-                linetype_data: pd.DataFrame = self.process_sl1l2_for_agg(
-                    stat_data)
-
-        # VL1L2 Scalar Partial sums
-        elif linetype == cn.VL1L2:
-            if is_aggregated:
-                linetype_data: pd.DataFrame = self.process_vl1l2(stat_data)
-            else:
-                linetype_data: pd.DataFrame = self.process_vl1l2_for_agg(
-                    stat_data)
-
-        # ECNT Ensemble Continuous statistics
-        elif linetype == cn.ECNT:
-            if is_aggregated:
-                linetype_data: pd.DataFrame = self.process_ecnt(stat_data)
-            else:
-                linetype_data: pd.DataFrame = self.process_ecnt_for_agg(
-                    stat_data)
-
-        # PCT
-        elif linetype == cn.PCT:
-            # No need to support additional reformatting for agg_stat, this format supports this.
-            linetype_data: pd.DataFrame = self.process_pct(stat_data)
-
-        # RHIST (ranked histogram)
-        elif linetype == cn.RHIST:
-            # No need to support reformatting for METcalcpy agg_stat.py,
-            # there is no need to calculate the sum or confidence intervals
-            # for the histogram plots.
-            linetype_data: pd.DataFrame = self.process_rhist(stat_data)
-
-        # TCDIAG (from MET TC-Pairs output)
-        elif linetype == cn.TCDIAG:
-            # No need to support additional reformatting for agg_stat.
-            linetype_data: pd.DataFrame = self.process_tcdiag(stat_data)
-
-        # MPR
-        elif linetype == cn.MPR:
-            # no need to support further reformatting for agg_stat, there is no
-            # code in METcalcpy agg_stat.py for MPR.
-            linetype_data: pd.DataFrame = self.process_mpr(stat_data)
-
-        elif linetype == cn.DMAP:
-            # no need to support further formatting for agg_stat.  No code in METcalcpy's
-            # agg_stat.py for DMAP
-            linetype_data: pd.DataFrame = self.process_dmap(stat_data)
+        # Special handling for TCDIAG: include both TCDIAG and TCMPR rows
+        if linetype_upper == cn.TCDIAG:
+            stat_data = stat_data.loc[
+                (stat_data['line_type'] == linetype_upper) |
+                (stat_data['line_type'] == cn.TCMPR)
+            ]
         else:
-            msg = f"{linetype} is not supported"
-            raise NotImplementedError(msg)
+            stat_data = stat_data.loc[stat_data['line_type'] == linetype_upper]
+
+        # Validate handler exists and mode is supported
+        method_name = self._validate_handler_support(linetype_upper, is_aggregated)
+
+        # Get the handler method and invoke it
+        handler_method = getattr(self, method_name)
+        linetype_data = handler_method(stat_data)
 
         return linetype_data
 
@@ -1981,6 +2072,354 @@ class WriteStatAscii:
 
         return linetype_data
 
+    def process_val1l2(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the VAL1L2 line type data and reshape it.
+        
+        VAL1L2 is similar to VL1L2 (Vector L1L2 Partial Sums) with additional information.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The dataframe with the reshaped data for the VAL1L2 line type
+        """
+        raise NotImplementedError("VAL1L2 aggregated processing not yet implemented")
+
+    def process_val1l2_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the VAL1L2 line type data and reformat for METcalcpy agg_stat.
+        
+        Reformat raw VAL1L2 data from the MET output file for aggregation.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The reformatted dataframe for agg_stat input
+        """
+        raise NotImplementedError("VAL1L2 non-aggregated processing not yet implemented")
+
+    def process_mctc(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the MCTC line type data and reshape it.
+        
+        MCTC (Multi-category Contingency Table Counts) provides contingency table counts
+        for multi-category forecasts.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The dataframe with the reshaped data for the MCTC line type
+        """
+        raise NotImplementedError("MCTC aggregated processing not yet implemented")
+
+    def process_mctc_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the MCTC line type data and reformat for METcalcpy agg_stat.
+        
+        Reformat raw MCTC data from the MET output file for aggregation.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The reformatted dataframe for agg_stat input
+        """
+        raise NotImplementedError("MCTC non-aggregated processing not yet implemented")
+
+    def process_nbrctc(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the NBRCTC line type data and reshape it.
+        
+        NBRCTC (Neighborhood Contingency Table Counts) extends CTC by including
+        neighborhood verification methods.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The dataframe with the reshaped data for the NBRCTC line type
+        """
+        raise NotImplementedError("NBRCTC aggregated processing not yet implemented")
+
+    def process_nbrctc_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the NBRCTC line type data and reformat for METcalcpy agg_stat.
+        
+        Reformat raw NBRCTC data from the MET output file for aggregation.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The reformatted dataframe for agg_stat input
+        """
+        raise NotImplementedError("NBRCTC non-aggregated processing not yet implemented")
+
+    def process_nbrcts(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the NBRCTS line type data and reshape it.
+        
+        NBRCTS (Neighborhood Contingency Table Statistics) extends CTS by including
+        neighborhood verification methods.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The dataframe with the reshaped data for the NBRCTS line type
+        """
+        raise NotImplementedError("NBRCTS aggregated processing not yet implemented")
+
+    def process_nbrcts_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the NBRCTS line type data and reformat for METcalcpy agg_stat.
+        
+        Reformat raw NBRCTS data from the MET output file for aggregation.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The reformatted dataframe for agg_stat input
+        """
+        raise NotImplementedError("NBRCTS non-aggregated processing not yet implemented")
+
+    def process_nbrcnt(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the NBRCNT line type data and reshape it.
+        
+        NBRCNT (Neighborhood Continuous Statistics) extends CNT by including
+        neighborhood verification methods. Contains an extra neighborhood-width dimension.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The dataframe with the reshaped data for the NBRCNT line type
+        """
+        raise NotImplementedError("NBRCNT aggregated processing not yet implemented")
+
+    def process_nbrcnt_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the NBRCNT line type data and reformat for METcalcpy agg_stat.
+        
+        Reformat raw NBRCNT data from the MET output file for aggregation.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The reformatted dataframe for agg_stat input
+        """
+        raise NotImplementedError("NBRCNT non-aggregated processing not yet implemented")
+
+    def process_ssvar(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the SSVAR line type data and reshape it.
+        
+        SSVAR (Spatial Scale Separation using Filtering) is used for separating
+        spatial scales in forecast verification.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The dataframe with the reshaped data for the SSVAR line type
+        """
+        raise NotImplementedError("SSVAR aggregated processing not yet implemented")
+
+    def process_ssvar_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the SSVAR line type data and reformat for METcalcpy agg_stat.
+        
+        Reformat raw SSVAR data from the MET output file for aggregation.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The reformatted dataframe for agg_stat input
+        """
+        raise NotImplementedError("SSVAR non-aggregated processing not yet implemented")
+
+    def process_grad(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the GRAD line type data and reshape it.
+        
+        GRAD (Gradient) verifies gradients of forecast and observed fields.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The dataframe with the reshaped data for the GRAD line type
+        """
+        raise NotImplementedError("GRAD aggregated processing not yet implemented")
+
+    def process_grad_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the GRAD line type data and reformat for METcalcpy agg_stat.
+        
+        Reformat raw GRAD data from the MET output file for aggregation.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The reformatted dataframe for agg_stat input
+        """
+        raise NotImplementedError("GRAD non-aggregated processing not yet implemented")
+
+    def process_rps(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the RPS line type data and reshape it.
+        
+        RPS (Ranked Probability Score) is a common metric for probabilistic forecasts
+        of multi-category outcomes.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The dataframe with the reshaped data for the RPS line type
+        """
+        raise NotImplementedError("RPS aggregated processing not yet implemented")
+
+    def process_rps_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the RPS line type data and reformat for METcalcpy agg_stat.
+        
+        Reformat raw RPS data from the MET output file for aggregation.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The reformatted dataframe for agg_stat input
+        """
+        raise NotImplementedError("RPS non-aggregated processing not yet implemented")
+
+    def process_eclv(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the ECLV line type data and reshape it.
+        
+        ECLV (Ensemble Continuous Likelihood) is used for probabilistic verification
+        of continuous variables.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The dataframe with the reshaped data for the ECLV line type
+        """
+        raise NotImplementedError("ECLV aggregated processing not yet implemented")
+
+    def process_eclv_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the ECLV line type data and reformat for METcalcpy agg_stat.
+        
+        Reformat raw ECLV data from the MET output file for aggregation.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The reformatted dataframe for agg_stat input
+        """
+        raise NotImplementedError("ECLV non-aggregated processing not yet implemented")
+
+    def process_pstd(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the PSTD line type data and reshape it.
+        
+        PSTD (Probabilistic Standardized Verification) is a contingency table statistic
+        for probabilistic forecasts. Note: PSTD has several output shapes and threshold columns.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The dataframe with the reshaped data for the PSTD line type
+        """
+        raise NotImplementedError("PSTD aggregated processing not yet implemented")
+
+    def process_pstd_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the PSTD line type data and reformat for METcalcpy agg_stat.
+        
+        Reformat raw PSTD data from the MET output file for aggregation.
+        Note: PSTD has several output shapes and threshold columns that require special handling.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The reformatted dataframe for agg_stat input
+        """
+        raise NotImplementedError("PSTD non-aggregated processing not yet implemented")
+
+    def process_pjc(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the PJC line type data and reshape it.
+        
+        PJC (Probabilistic Contingency Table Statistics - Forecast Classification) is used
+        for probabilistic forecast verification. Note: PJC has several output shapes and threshold columns.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The dataframe with the reshaped data for the PJC line type
+        """
+        raise NotImplementedError("PJC aggregated processing not yet implemented")
+
+    def process_pjc_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the PJC line type data and reformat for METcalcpy agg_stat.
+        
+        Reformat raw PJC data from the MET output file for aggregation.
+        Note: PJC has several output shapes and threshold columns that require special handling.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The reformatted dataframe for agg_stat input
+        """
+        raise NotImplementedError("PJC non-aggregated processing not yet implemented")
+
+    def process_prc(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the PRC line type data and reshape it.
+        
+        PRC (Probabilistic Contingency Table Statistics - Observation Classification) is used
+        for probabilistic forecast verification. Note: PRC has several output shapes and threshold columns.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The dataframe with the reshaped data for the PRC line type
+        """
+        raise NotImplementedError("PRC aggregated processing not yet implemented")
+
+    def process_prc_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retrieve the PRC line type data and reformat for METcalcpy agg_stat.
+        
+        Reformat raw PRC data from the MET output file for aggregation.
+        Note: PRC has several output shapes and threshold columns that require special handling.
+        
+        Arguments:
+            @param stat_data: The dataframe containing the data from the MET .stat file.
+        
+        Returns:
+            linetype_data: The reformatted dataframe for agg_stat input
+        """
+        raise NotImplementedError("PRC non-aggregated processing not yet implemented")
 
     def rename_confidence_level_columns(self, confidence_level_columns: List[str]) -> \
             List[str]:
