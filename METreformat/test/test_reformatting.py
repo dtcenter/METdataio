@@ -149,6 +149,7 @@ def build_dispatch_test_config(linetype, is_aggregated):
         cn.ECNT: './data/ensemble_stat',
         cn.MCTS: './data/grid_stat/mctc_mcts',
         cn.RHIST: './data/rhist_phist_relp_orank',
+        cn.SAL1L2: './data/point_stat/sal1l2',
     }
     input_data_dir = input_data_dir_lookup.get(line_type, './data/point_stat')
     suffix = '' if is_aggregated else '_for_agg'
@@ -183,8 +184,8 @@ def build_dispatch_test_config(linetype, is_aggregated):
         (cn.MCTS, False, False),
         (cn.SL1L2, True, True),
         (cn.SL1L2, False, False),
-        (cn.SAL1L2, True, False),
-        (cn.SAL1L2, False, False),
+        (cn.SAL1L2, True, True),
+        (cn.SAL1L2, False, True),
         (cn.VL1L2, True, True),
         (cn.VL1L2, False, False),
         (cn.ECNT, True, True),
