@@ -147,51 +147,51 @@ class WriteStatAscii:
                 'aggregated': 'process_dmap',
                 'non_aggregated': None,  # Not supported
             },
-            'VAL1L2': {
+            cn.VAL1L2: {
                 'aggregated': 'process_val1l2',
                 'non_aggregated': 'process_val1l2_for_agg',
             },
-            'MCTC': {
+            cn.MCTC: {
                 'aggregated': 'process_mctc',
                 'non_aggregated': 'process_mctc_for_agg',
             },
-            'NBRCTC': {
+            cn.NBRCTC: {
                 'aggregated': 'process_nbrctc',
                 'non_aggregated': 'process_nbrctc_for_agg',
             },
-            'NBRCTS': {
+            cn.NBRCTS: {
                 'aggregated': 'process_nbrcts',
                 'non_aggregated': 'process_nbrcts_for_agg',
             },
-            'NBRCNT': {
+            cn.NBRCNT: {
                 'aggregated': 'process_nbrcnt',
                 'non_aggregated': 'process_nbrcnt_for_agg',
             },
-            'SSVAR': {
+            cn.SSVAR: {
                 'aggregated': 'process_ssvar',
                 'non_aggregated': 'process_ssvar_for_agg',
             },
-            'GRAD': {
+            cn.GRAD: {
                 'aggregated': 'process_grad',
                 'non_aggregated': 'process_grad_for_agg',
             },
-            'RPS': {
+            cn.RPS: {
                 'aggregated': 'process_rps',
                 'non_aggregated': 'process_rps_for_agg',
             },
-            'ECLV': {
+            cn.ECLV: {
                 'aggregated': 'process_eclv',
                 'non_aggregated': 'process_eclv_for_agg',
             },
-            'PSTD': {
+            cn.PSTD: {
                 'aggregated': 'process_pstd',
                 'non_aggregated': 'process_pstd_for_agg',
             },
-            'PJC': {
+            cn.PJC: {
                 'aggregated': 'process_pjc',
                 'non_aggregated': 'process_pjc_for_agg',
             },
-            'PRC': {
+            cn.PRC: {
                 'aggregated': 'process_prc',
                 'non_aggregated': 'process_prc_for_agg',
             },
