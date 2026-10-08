@@ -137,12 +137,17 @@ def setup_test(yaml_file, is_tcst=False):
     return file_df, config
 
 
-def build_dispatch_test_config(linetype, is_aggregated):
+def build_dispatch_test_config(linetype, is_aggregated=True, for_scatter=False):
     """Build a minimal config for the generic line-type dispatch tests.
 
     The dispatch tests only need enough metadata to read the input stat files and
     create a unique output file per parameter combination without depending on a
     dedicated YAML file for each linetype.
+
+    @param linetype: The line type to test.
+    @param is_aggregated Whether or not the data has been aggregated
+    @param for_scatter Whether or not the data is for a scatter plot (keep_all_cols)
+    @return: A tuple of (parms, is_tcst), where is_tcst is True for TCMPR/TCDIAG input.
     """
     line_type = str(linetype).upper()
     input_data_dir_lookup = {
@@ -150,10 +155,17 @@ def build_dispatch_test_config(linetype, is_aggregated):
         cn.MCTS: './data/grid_stat/mctc_mcts',
         cn.RHIST: './data/rhist_phist_relp_orank',
         cn.SAL1L2: './data/point_stat/sal1l2',
+        cn.PCT: './data/RRFS_PCT_PRC_PJC_PSTD/2022050600',
+        cn.TCMPR: './data/tcdiag_tcmpr',
+        cn.TCDIAG: './data/tcdiag_tcmpr',
+        cn.MPR: './data/mpr/from_regression_data',
+        cn.DMAP: './data/grid_stat/dmap',
+        cn.VL1L2: './data/point_stat/vl1l2_MET13',
     }
     input_data_dir = input_data_dir_lookup.get(line_type, './data/point_stat')
     suffix = '' if is_aggregated else '_for_agg'
     output_filename = f'{line_type.lower()}{suffix}_reformatted.data'
+    is_tcst = line_type in {cn.TCMPR, cn.TCDIAG}
 
     return {
         'input_stats_aggregated': is_aggregated,
@@ -164,7 +176,26 @@ def build_dispatch_test_config(linetype, is_aggregated):
         'log_directory': os.environ['METREFORMAT_TEST_OUTPUT_DIR'],
         'log_filename': 'stdout',
         'log_level': 'INFO',
-    }
+        'keep_all_cols': for_scatter,
+    }, is_tcst
+
+
+def setup_test_linetype(linetype, is_aggregated=True, for_scatter=False):
+    """Build a minimal config for a linetype test and read its input data.
+
+    This is the common path for tests that previously needed:
+
+        parms = build_dispatch_test_config(...)
+        stat_data, parms = read_input(parms, is_tcst=False)
+
+    @param linetype: The line type to test.
+    @param is_aggregated: Whether or not the data has been aggregated.
+    @param for_scatter: Whether or not the data is for a scatter plot (keep_all_cols).
+    @return: A tuple of (stat_data, parms).
+    """
+    parms, is_tcst = build_dispatch_test_config(linetype, is_aggregated, for_scatter)
+    stat_data, parms = read_input(parms, is_tcst=is_tcst)
+    return stat_data, parms
 
 
 @pytest.mark.parametrize(
@@ -190,11 +221,15 @@ def build_dispatch_test_config(linetype, is_aggregated):
         (cn.VL1L2, False, False),
         (cn.ECNT, True, True),
         (cn.ECNT, False, True),
-        #(cn.PCT, True, True), # need to create PCT.yaml
+        (cn.PCT, True, True),
+        (cn.PCT, False, False),
         (cn.RHIST, True, True),
-        #(cn.TCDIAG, True, True), # need to create TCDIAG.yaml
-        #(cn.MPR, True, True),  # need to create MPR.yaml
-        #(cn.DMAP, True, True),  # need to create DMAP.yaml
+        (cn.TCDIAG, True, True),
+        (cn.TCDIAG, False, False),
+        (cn.MPR, True, True),
+        (cn.MPR, False, False),
+        (cn.DMAP, True, True),
+        (cn.DMAP, False, False),
         (cn.VAL1L2, True, False),
         (cn.VAL1L2, False, False),
         (cn.MCTC, True, False),
@@ -228,8 +263,7 @@ def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implement
     linetype so the tests remain focused on dispatch behavior, while still
     producing a unique output file per parameter combination.
     """
-    parms = build_dispatch_test_config(linetype, is_aggregated)
-    stat_data, parms = read_input(parms, is_tcst=False)
+    stat_data, parms = setup_test_linetype(linetype, is_aggregated)
     wsa = WriteStatAscii(parms, logger)
 
     if not is_implemented:
@@ -260,8 +294,7 @@ def test_write_stat_ascii_bad_input():
         Test that an AttributeError is raised when the input dataframe
         is nonexistent.
     '''
-    stat_data, parms = setup_test("FHO.yaml")
-    cwd = os.getcwd()
+    stat_data, parms = setup_test_linetype("FHO", is_aggregated=True)
 
     # After creating the WriteStatAscii object, the log directory should exist
     with pytest.raises(AttributeError):
@@ -275,14 +308,9 @@ def test_unsupported_linetype():
         is requested.  The MTD (mode time domain) line type is currently not
         supported.
     '''
-    stat_data, parms = setup_test("not_supported.yaml")
-    cwd = os.getcwd()
-    parms['log_directory'] = cwd + "/log_output"
-    parms['log_filename'] = "test_log.out"
-
-    # After creating the WriteStatAscii object, the log directory should exist
+    stat_data, parms = setup_test_linetype("MTD", is_aggregated=False)
+    wsa = WriteStatAscii(parms, logger)
     with pytest.raises(NotImplementedError):
-        wsa = WriteStatAscii(parms, logger)
         wsa.write_stat_ascii(stat_data, parms)
 
 
@@ -295,7 +323,7 @@ def test_point_stat_FHO_consistency():
     '''
 
     # Subset the input dataframe to include only the FHO linetype
-    stat_data, parms = setup_test("FHO.yaml")
+    stat_data, parms = setup_test_linetype("FHO", is_aggregated=True)
     end = cn.NUM_STAT_FHO_COLS
     fho_columns_to_use = np.arange(0, end).tolist()
     linetype = cn.FHO
@@ -348,8 +376,7 @@ def test_point_stat_sl1l2_consistency():
     '''
 
     # Original data
-    parms = build_dispatch_test_config('SL1L2', is_aggregated=True)
-    stat_data, parms = read_input(parms, is_tcst=False)
+    stat_data, parms = setup_test_linetype('SL1L2', is_aggregated=True)
 
     # Relevant columns for the SL1L2 line type
     linetype: str = cn.SL1L2
@@ -396,8 +423,7 @@ def test_point_stat_sl1l2_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 def test_point_stat_sal1l2_consistency():
-    parms = build_dispatch_test_config('SAL1L2', is_aggregated=True)
-    stat_data, parms = read_input(parms, is_tcst=False)
+    stat_data, parms = setup_test_linetype('SAL1L2', is_aggregated=True)
 
     linetype: str = cn.SAL1L2
     sal1l2_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_SAL1L2_COLS).tolist()
@@ -440,7 +466,7 @@ def test_point_stat_vl1l2_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('VL1L2.yaml')
+    stat_data, parms = setup_test_linetype('VL1L2', is_aggregated=True)
 
     # Relevant columns for the VL1L2 line type
     linetype: str = cn.VL1L2
@@ -509,7 +535,7 @@ def test_point_stat_ctc_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('CTC.yaml')
+    stat_data, parms = setup_test_linetype('CTC')
 
     # Relevant columns for the CTC line type
     linetype: str = cn.CTC
@@ -561,7 +587,7 @@ def test_process_ctc_agg():
     """ verify that the NotImplementedError is raised  when
           invoking the process_ctc_agg
     """
-    stat_data, parms = setup_test('CTC.yaml')
+    stat_data, parms = setup_test_linetype('CTC')
     parms['input_stats_aggregated'] = False
     wsa = WriteStatAscii(parms, logger)
     with pytest.raises(NotImplementedError):
@@ -579,7 +605,7 @@ def test_point_stat_cts_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('CTS.yaml')
+    stat_data, parms = setup_test_linetype('CTS')
 
     # Relevant columns for the CTS line type
     linetype: str = cn.CTS
@@ -635,17 +661,6 @@ def test_point_stat_cts_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_process_cts_agg():
-    """ verify that the NotImplementedError is raised  when
-          invoking the process_cts_agg
-    """
-    stat_data, parms = setup_test('CTS.yaml')
-    parms['input_stats_aggregated'] = False
-    wsa = WriteStatAscii(parms, logger)
-    with pytest.raises(NotImplementedError):
-        wsa.process_cts_for_agg(stat_data)
-
-
 def test_point_stat_cnt_consistency():
     '''
            For the data frame for the CNT line type, verify that a value in the
@@ -657,7 +672,7 @@ def test_point_stat_cnt_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('CNT.yaml')
+    stat_data, parms = setup_test_linetype('CNT')
 
     # Relevant columns for the CNT line type
     linetype: str = cn.CNT
@@ -711,17 +726,6 @@ def test_point_stat_cnt_consistency():
 
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
-
-
-def test_process_cnt_agg():
-    """ verify that the NotImplementedError is raised  when
-          invoking the process_cnt_agg
-    """
-    stat_data, parms = setup_test('CNT.yaml')
-    parms['input_stats_aggregated'] = False
-    wsa = WriteStatAscii(parms, logger)
-    with pytest.raises(NotImplementedError):
-        wsa.process_cnt_for_agg(stat_data)
 
 
 def test_point_stat_vcnt_met13_consistency():
@@ -793,7 +797,7 @@ def test_point_stat_mcts_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('./MCTS.yaml')
+    stat_data, parms = setup_test_linetype('MCTS')
 
     # Relevant columns for the MCTS line type
     linetype: str = cn.MCTS
@@ -859,7 +863,7 @@ def test_ensemble_stat_ecnt_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test('ECNT.yaml')
+    stat_data, config = setup_test_linetype('ECNT')
 
     # Relevant columns for the ECNT line type
     linetype: str = cn.ECNT
@@ -993,7 +997,7 @@ def test_rhist_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test('RHIST.yaml')
+    stat_data, config = setup_test_linetype('RHIST')
 
     # Relevant columns for the RHIST line type
     linetype: str = cn.RHIST
@@ -1054,7 +1058,7 @@ def test_ecnt_reformat_for_agg():
        '''
 
     # Original unreformatted data
-    stat_data, config = setup_test('ECNT_for_agg.yaml')
+    stat_data, config = setup_test_linetype('ECNT', is_aggregated=False)
 
     # Reformatted data
     wsa = WriteStatAscii(config, logger)
@@ -1109,7 +1113,7 @@ def test_ecnt_reformat():
        '''
 
     # Original unreformatted data
-    stat_data, config = setup_test('ECNT.yaml')
+    stat_data, config = setup_test_linetype('ECNT')
     # Reformatted data
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_ecnt(stat_data)
@@ -1155,7 +1159,7 @@ def test_fho_reformat_for_agg():
     :return:
     '''
 
-    stat_data, parms = setup_test("FHO_for_agg.yaml")
+    stat_data, parms = setup_test_linetype("FHO", is_aggregated=False)
     wsa = WriteStatAscii(parms, logger)
 
     # Expect error when invoking the process_fho_for_agg directly
@@ -1171,7 +1175,7 @@ def test_fho_reformat():
     :return:
     '''
 
-    stat_data, parms = setup_test("FHO_for_agg.yaml")
+    stat_data, parms = setup_test_linetype("FHO", is_aggregated=False)
     wsa = WriteStatAscii(parms, logger)
 
     result_df = wsa.process_fho(stat_data)
@@ -1183,7 +1187,7 @@ def test_tcdiag_from_tcpairs():
         Test that the reformatting is correct by comparing values in the original data to the reformatted data
 
     '''
-    stat_data, config = setup_test('test_reformat_tcdiag.yaml', is_tcst=True)
+    stat_data, config = setup_test_linetype('TCDIAG')
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_tcdiag(stat_data)
     pathlib.Path(config['output_dir']).mkdir(parents=True, exist_ok=True)

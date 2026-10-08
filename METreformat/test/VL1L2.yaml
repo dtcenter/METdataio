@@ -1,9 +1,0 @@
-input_stats_aggregated: True
-output_dir: !ENV ${METREFORMAT_TEST_OUTPUT_DIR}
-output_filename: vl1l2_reformatted.data
-line_type: VL1L2
-input_data_dir: ./data/point_stat/vl1l2_MET13
-# Set to log_filename to STDOUT if no log file is to be saved
-log_directory: !ENV ${METREFORMAT_TEST_OUTPUT_DIR}
-log_filename: stdout
-log_level: ERROR
