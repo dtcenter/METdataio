@@ -23,8 +23,7 @@ import pathlib
 import re
 import sys
 import time
-from typing import List, Dict
-
+from typing import List, Dict, Any
 
 import numpy as np
 import pandas as pd
@@ -70,22 +69,11 @@ class WriteStatAscii:
             self.logger.debug("Exception details:", exc_info=True)
             raise
 
-    def _build_handler_registry(self) -> Dict[str, Dict[str, str]]:
-        """
-        Build registry mapping line types to their handler methods.
-
-        Registry structure:
-            {
-                'LINETYPE': {
-                    'aggregated': 'method_name_for_aggregated_input',
-                    'non_aggregated': 'method_name_for_non_agg_input' or None
-                },
-                ...
-            }
-
+    def _build_handler_registry(self) -> dict[str | Any, dict[str, str | None] | Any]:
+        """!Build registry mapping line types to their handler methods.
         Use None to indicate unsupported mode (will raise NotImplementedError).
 
-        Returns:
+        @returns
             Dictionary mapping line types to their handler configuration
 
         Example for adding a new line type:
@@ -202,18 +190,12 @@ class WriteStatAscii:
         }
 
     def _validate_handler_support(self, linetype: str, is_aggregated: bool) -> str:
-        """
-        Validate that a handler exists for the requested line type and mode.
+        """!Validate that a handler exists for the requested line type and mode.
 
-        Args:
-            linetype: The line type (normalized to uppercase)
-            is_aggregated: Whether input is aggregated
-
-        Returns:
-            The method name to call
-
-        Raises:
-            NotImplementedError: If line type or mode is unsupported
+        @arg linetype The line type (normalized to uppercase)
+        @arg is_aggregated Boolean whether input is aggregated
+        @returns The method name to call
+        @raises NotImplementedError If line type or mode is unsupported
         """
         linetype = linetype.upper()
 
