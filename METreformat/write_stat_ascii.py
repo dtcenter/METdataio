@@ -23,11 +23,10 @@ import pathlib
 import re
 import sys
 import time
-from typing import List, Dict, Any
+from typing import List, Any
 
 import numpy as np
 import pandas as pd
-import yaml
 
 from METdbLoad.ush import constants as cn
 import METreformat.util as util
@@ -35,6 +34,10 @@ from METdbLoad.ush.read_data_files import ReadDataFiles
 from METdbLoad.ush.read_load_xml import XmlLoadFile
 
 from metcalcpy.util.read_env_vars_in_config import parse_config
+
+# Constants for string formatting and regex patterns to avoid duplication
+LABEL_IDX_FORMAT = "{label}_{idx}"
+VALUE_REGEX_PATTERN = r'(value_)(\d+)'
 
 
 class WriteStatAscii:
@@ -62,14 +65,15 @@ class WriteStatAscii:
             # Initialize the line type handler registry
             self._handler_registry = self._build_handler_registry()
 
-        except (AttributeError):
+        except AttributeError:
             self.logger = logger
             self.logger.error(
                 "*** %s occurred while initializing class WriteStatAscii ***", sys.exc_info()[0])
             self.logger.debug("Exception details:", exc_info=True)
             raise
 
-    def _build_handler_registry(self) -> dict[str | Any, dict[str, str | None] | Any]:
+    @staticmethod
+    def _build_handler_registry() -> dict[str | Any, dict[str, str | None] | Any]:
         """!Build registry mapping line types to their handler methods.
         Use None to indicate unsupported mode (will raise NotImplementedError).
 
@@ -474,14 +478,14 @@ class WriteStatAscii:
         for i in range(int(cn.LINE_VAR_COUNTER[cn.PCT]), int(num_thresh) + 1):
             for column in cn.LC_PCT_VARIABLE_HEADERS:
                 column_name = str(column_name_value)
-                column_label = "{label}_{idx}".format(label=column, idx=i)
+                column_label = LABEL_IDX_FORMAT.format(label=column, idx=i)
                 working_df.rename(
                     columns={column_name: column_label}, inplace=True)
                 column_name_value += 1
 
             # Add a list used to facilitate creating the value_i column when reformatting.
             ith_value_label.append(
-                "{label}_{idx}".format(label="value", idx=i))
+                LABEL_IDX_FORMAT.format(label="value", idx=i))
 
         # Create a dataframe consisting only of the value_1, ..., value_n values and their corresponding index values
         # and concat to the working_df.
@@ -495,7 +499,7 @@ class WriteStatAscii:
 
         for label in ith_value_label:
             values_list = []
-            match = re.match(r'(value_)(\d+)', label)
+            match = re.match(VALUE_REGEX_PATTERN, label)
             ith_value = int(match.group(2))
 
             for i in range(1, num_rows + 1):
@@ -540,7 +544,7 @@ class WriteStatAscii:
             match_thresh = re.match(r'(thresh_)(\d+)', cur)
             match_oy = re.match(r'(oy_)(\d+)', cur)
             match_on = re.match(r'(on_)(\d+)', cur)
-            match_val = re.match(r'(value_)(\d+)', cur)
+            match_val = re.match(VALUE_REGEX_PATTERN, cur)
             if match_thresh:
                 thresh_cols.append(cur)
             elif match_oy:
@@ -666,14 +670,14 @@ class WriteStatAscii:
         for i in range(int(cn.LINE_VAR_COUNTER[cn.RHIST]), int(num_rank) + 1):
             for column in cn.LC_RHIST_VARIABLE_HEADERS:
                 column_name = str(column_name_value)
-                column_label = "{label}_{idx}".format(label=column, idx=i)
+                column_label = LABEL_IDX_FORMAT.format(label=column, idx=i)
                 working_df.rename(
                     columns={column_name: column_label}, inplace=True)
                 column_name_value += 1
 
             # Add a list used to facilitate creating the value_i column when reformatting.
             ith_value_label.append(
-                "{label}_{idx}".format(label="value", idx=i))
+                LABEL_IDX_FORMAT.format(label="value", idx=i))
 
         # Create a dataframe consisting only of the value_1, ..., value_n values and their corresponding index values
         # and concat to the working_df.
@@ -687,7 +691,7 @@ class WriteStatAscii:
 
         for label in ith_value_label:
             values_list = []
-            match = re.match(r'(value_)(\d+)', label)
+            match = re.match(VALUE_REGEX_PATTERN, label)
             ith_value = int(match.group(2))
 
             for i in range(1, num_rows + 1):
@@ -727,7 +731,7 @@ class WriteStatAscii:
         remaining_columns = working_headers[cn.NUM_STATIC_RHIST_COLS:]
         for cur in remaining_columns:
             match_rank = re.match(r'(rank_)(\d+)', cur)
-            match_val = re.match(r'(value_)(\d+)', cur)
+            match_val = re.match(VALUE_REGEX_PATTERN, cur)
             if match_rank:
                 rank_cols.append(cur)
             elif match_val:
@@ -1670,14 +1674,14 @@ class WriteStatAscii:
         uc_long_header_tcst = [hdr.upper() for hdr in cn.LONG_HEADER_TCST]
         common_headers = uc_long_header_tcst[0:len(uc_long_header_tcst) - 1]
         full_df = pd.merge(
-            reformatted_tcmpr, all_tcdiag_reformatted, on=common_headers, how='inner')
+            reformatted_tcmpr, all_tcdiag_reformatted, on=common_headers, how='inner', validate="m:1")
 
         # Clean up extraneous columns:
         #   TOTAL_x and TOTAL_y are identical, drop TOTAL_y and rename TOTAL_x to TOTAL
         #   LINE_TYPE_x is TCMPR, LINE_TYPE_y is TCDIAG, drop LINE_TYPE_x and rename LINE_TYPE_x to LINE_TYPE
         cleanup_df = full_df.copy(deep=True)
-        cleanup_df.drop('TOTAL_y', axis=1, inplace=True)
-        cleanup_df.drop('LINE_TYPE_x', axis=1, inplace=True)
+        cleanup_df = cleanup_df.drop('TOTAL_y', axis=1)
+        cleanup_df = cleanup_df.drop('LINE_TYPE_x', axis=1)
         cleanup_df.rename(
             {'TOTAL_x': 'TOTAL', 'LINE_TYPE_y': 'LINE_TYPE'}, axis=1, inplace=True)
 
@@ -1833,7 +1837,7 @@ class WriteStatAscii:
         end_reformat = time.perf_counter()
         reformat_time = end_reformat - begin_reformat
         self.logger.info(
-            "Reformatting the TCMPR dataframe took {reformat_time} seconds")
+            f"Reformatting the TCMPR dataframe took {reformat_time} seconds")
 
         return tcmpr_relevant
 
@@ -2499,11 +2503,10 @@ def read_input(parms, logger):
 
     flags = xml_loadfile_obj.flags
     line_types = xml_loadfile_obj.line_types
-    linetype = parms['line_type'].lower()
 
     # If MPR linetype was requested, set the flag
     # to load mpr to True
-    if parms['line_type'] == 'MPR' or parms['line_type'] == 'mpr':
+    if parms['line_type'].upper() == 'MPR':
         flags["load_mpr"] = True
     # load_stat should always be enabled,
     # set the load_stat flag to True
@@ -2511,10 +2514,10 @@ def read_input(parms, logger):
 
     rdf_obj.read_data(flags, load_files, line_types)
 
-    if parms['line_type'] == 'TCDIAG':
+    if parms['line_type'].upper() == 'TCDIAG':
         return rdf_obj.tcst_data
-    else:
-        return rdf_obj.stat_data
+
+    return rdf_obj.stat_data
 
 
 def config_file_complete(parms, logger):
