@@ -348,7 +348,8 @@ def test_point_stat_sl1l2_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('SL1L2.yaml')
+    parms = build_dispatch_test_config('SL1L2', is_aggregated=True)
+    stat_data, parms = read_input(parms, is_tcst=False)
 
     # Relevant columns for the SL1L2 line type
     linetype: str = cn.SL1L2
@@ -395,7 +396,8 @@ def test_point_stat_sl1l2_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 def test_point_stat_sal1l2_consistency():
-    stat_data, parms = setup_test('SAL1L2.yaml')
+    parms = build_dispatch_test_config('SAL1L2', is_aggregated=True)
+    stat_data, parms = read_input(parms, is_tcst=False)
 
     linetype: str = cn.SAL1L2
     sal1l2_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_SAL1L2_COLS).tolist()
