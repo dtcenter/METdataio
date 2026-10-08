@@ -115,6 +115,10 @@ class WriteStatAscii:
                 'aggregated': 'process_sl1l2',
                 'non_aggregated': 'process_sl1l2_for_agg',
             },
+            cn.SAL1L2: {
+                'aggregated': 'process_sal1l2',
+                'non_aggregated': 'process_sal1l2_for_agg',
+            },
             cn.VL1L2: {
                 'aggregated': 'process_vl1l2',
                 'non_aggregated': 'process_vl1l2_for_agg',
