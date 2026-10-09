@@ -339,7 +339,7 @@ def test_write_stat_ascii_bad_input():
         Test that an AttributeError is raised when the input dataframe
         is nonexistent.
     '''
-    stat_data, parms = setup_test("FHO", test_name="write_stat_ascii_bad_input", is_aggregated=True)
+    _, parms = setup_test("FHO", test_name="write_stat_ascii_bad_input", is_aggregated=True)
 
     fail_if_output_exists(parms)
     # After creating the WriteStatAscii object, the log directory should exist
@@ -1730,11 +1730,10 @@ def test_write_stat_ascii_type_error():
     """ Deliberately input the incorrect/unexpected
           types to the WriteStatAscii constructor
     """
-    tcst_data, config = setup_test("CTC", test_name="reformat_tcst_ctc")
     bad_config = []
     logger = None
     with pytest.raises(TypeError):
-        wsa = WriteStatAscii(bad_config, logger)
+        WriteStatAscii(bad_config, logger)
 
 
 def test_NA():
