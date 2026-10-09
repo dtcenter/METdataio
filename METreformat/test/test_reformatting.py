@@ -112,14 +112,8 @@ def read_input(config_file, is_tcst):
 
     if is_tcst:
         file_df = rdf_obj.tcst_data
-
     else:
         file_df = rdf_obj.stat_data
-    # Check if the output file already exists, if so, delete it to avoid
-    # appending output from subsequent runs into the same file.
-    existing_output_file = os.path.join(parms['output_dir'], parms['output_filename'])
-    if os.path.exists(existing_output_file):
-        os.remove(existing_output_file)
 
     return file_df, parms
 
@@ -1489,7 +1483,8 @@ def test_dmap_for_scatter():
     stat_data, config = setup_test_linetype("DMAP", test_name="dmap_for_scatter", for_scatter=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_dmap(stat_data)
-    reformatted_df.to_csv("./dmap_for_scatter.data", sep="\t")
+    output_path = os.path.join(config['output_dir'], config['output_filename'])
+    reformatted_df.to_csv(output_path, sep="\t")
 
     # Verify that all the DMAP and common headers are present in the reformatted output file.
     expected_headers: list = list(cn.DMAP_HEADERS)
@@ -1546,9 +1541,6 @@ def test_dmap_for_scatter():
     assert expected_g == reformatted_g
     assert expected_gbeta == reformatted_gbeta
     assert expected_beta_value == reformatted_beta_value
-
-    # cleanup
-    os.remove('./dmap_for_scatter.data')
 
 
 def test_dmap_for_lineplot():
