@@ -137,7 +137,7 @@ def setup_test(yaml_file, is_tcst=False):
     return file_df, config
 
 
-def build_dispatch_test_config(linetype, is_aggregated=True, for_scatter=False):
+def build_dispatch_test_config(linetype, test_name=None, is_aggregated=True, for_scatter=False):
     """Build a minimal config for the generic line-type dispatch tests.
 
     The dispatch tests only need enough metadata to read the input stat files and
@@ -150,6 +150,9 @@ def build_dispatch_test_config(linetype, is_aggregated=True, for_scatter=False):
     @return: A tuple of (parms, is_tcst), where is_tcst is True for TCMPR/TCDIAG input.
     """
     line_type = str(linetype).upper()
+    if test_name is None:
+        test_name = line_type
+
     input_data_dir_lookup = {
         cn.ECNT: './data/ensemble_stat',
         cn.MCTS: './data/grid_stat/mctc_mcts',
@@ -161,10 +164,18 @@ def build_dispatch_test_config(linetype, is_aggregated=True, for_scatter=False):
         cn.MPR: './data/mpr/from_regression_data',
         cn.DMAP: './data/grid_stat/dmap',
         cn.VL1L2: './data/point_stat/vl1l2_MET13',
+        cn.VCNT: './data/point_stat/vl1l2_MET13',
+        'VCNT_for_MET13': './data/point_stat/vcnt_MET13',
+        'FHO_nan': './data/point_stat_nan',
+        'mpr_climo_data': './data/mpr/climo_data',
+        'reformat_stat_ctc': './data/tc_stat_rirw_cts_ctc/stat',
+        'reformat_stat_cts': './data/tc_stat_rirw_cts_ctc/stat',
+        'reformat_tcst_ctc': './data/tc_stat_rirw_cts_ctc',
+        'reformat_tcst_cts': './data/tc_stat_rirw_cts_ctc',
     }
-    input_data_dir = input_data_dir_lookup.get(line_type, './data/point_stat')
+    input_data_dir = input_data_dir_lookup.get(test_name) or input_data_dir_lookup.get(line_type, './data/point_stat')
     suffix = '' if is_aggregated else '_for_agg'
-    output_filename = f'{line_type.lower()}{suffix}_reformatted.data'
+    output_filename = f'{test_name.lower()}{suffix}_reformatted.data'
     is_tcst = line_type in {cn.TCMPR, cn.TCDIAG}
 
     return {
@@ -180,7 +191,7 @@ def build_dispatch_test_config(linetype, is_aggregated=True, for_scatter=False):
     }, is_tcst
 
 
-def setup_test_linetype(linetype, is_aggregated=True, for_scatter=False):
+def setup_test_linetype(linetype, test_name=None, is_aggregated=True, for_scatter=False):
     """Build a minimal config for a linetype test and read its input data.
 
     This is the common path for tests that previously needed:
@@ -189,11 +200,12 @@ def setup_test_linetype(linetype, is_aggregated=True, for_scatter=False):
         stat_data, parms = read_input(parms, is_tcst=False)
 
     @param linetype: The line type to test.
+    @param test_name: Optional test name to use for the input data directory and output filename.
     @param is_aggregated: Whether or not the data has been aggregated.
     @param for_scatter: Whether or not the data is for a scatter plot (keep_all_cols).
     @return: A tuple of (stat_data, parms).
     """
-    parms, is_tcst = build_dispatch_test_config(linetype, is_aggregated, for_scatter)
+    parms, is_tcst = build_dispatch_test_config(linetype, test_name, is_aggregated, for_scatter)
     stat_data, parms = read_input(parms, is_tcst=is_tcst)
     return stat_data, parms
 
@@ -263,7 +275,7 @@ def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implement
     linetype so the tests remain focused on dispatch behavior, while still
     producing a unique output file per parameter combination.
     """
-    stat_data, parms = setup_test_linetype(linetype, is_aggregated)
+    stat_data, parms = setup_test_linetype(linetype, is_aggregated=is_aggregated)
     wsa = WriteStatAscii(parms, logger)
 
     if not is_implemented:
@@ -741,7 +753,7 @@ def test_point_stat_vcnt_met13_consistency():
     # the inclusion of the 12 new VCNT columns was
     # added in the MET 12.0.0 release. Use VCNT data used in
     # MET v13 regression tests
-    stat_data, parms = setup_test('VCNT_for_MET13.yaml')
+    stat_data, parms = setup_test_linetype('VCNT', test_name='VCNT_for_MET13')
 
     # Relevant columns for the VCNT line type
     linetype: str = cn.VCNT
@@ -942,7 +954,7 @@ def test_pct_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test('PCT_ROC.yaml')
+    stat_data, config = setup_test_linetype('PCT', test_name='PCT_ROC')
 
     # Relevant columns for the PCT line type
     wsa = WriteStatAscii(config, logger)
@@ -1312,7 +1324,7 @@ def test_mpr_for_line_with_regression_data():
             None passes or fails
     """
 
-    stat_data, config = setup_test("mpr_for_line_regression_data.yaml")
+    stat_data, config = setup_test_linetype("MPR", test_name="mpr_for_line")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
@@ -1390,7 +1402,7 @@ def test_mpr_for_scatter_with_regression_data():
             None passes or fails
     """
 
-    stat_data, config = setup_test("mpr_for_scatter_regression_data.yaml")
+    stat_data, config = setup_test_linetype("MPR", test_name="mpr_for_scatter", for_scatter=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
@@ -1442,7 +1454,7 @@ def test_mpr_for_climo_data():
             None: passes or fails
     """
 
-    stat_data, config = setup_test("mpr_climo_data.yaml")
+    stat_data, config = setup_test_linetype("MPR", test_name="mpr_climo_data", for_scatter=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
@@ -1468,7 +1480,7 @@ def test_dmap_for_scatter():
             None passes or fails
     """
 
-    stat_data, config = setup_test("dmap_for_scatter.yaml")
+    stat_data, config = setup_test_linetype("DMAP", test_name="dmap_for_scatter", for_scatter=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_dmap(stat_data)
     reformatted_df.to_csv("./dmap_for_scatter.data", sep="\t")
@@ -1550,7 +1562,7 @@ def test_dmap_for_lineplot():
             None passes or fails
     """
 
-    stat_data, config = setup_test("dmap_for_line.yaml")
+    stat_data, config = setup_test_linetype("DMAP", test_name="dmap_for_line")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_dmap(stat_data)
 
@@ -1625,10 +1637,10 @@ def test_tcst_with_cts():
         redd_data_files.py module are correctly reading in the CTC and CTS
         lines in tcst files.
     """
-    tcst_data, config = setup_test("./reformat_tcst_cts.yaml")
+    tcst_data, config = setup_test_linetype("CTS", test_name="reformat_tcst_cts")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.write_stat_ascii(tcst_data, config)
-    stat_data, sconfig = setup_test("./reformat_stat_cts.yaml")
+    stat_data, sconfig = setup_test_linetype("CTS", test_name="reformat_stat_cts")
     wsa_stat = WriteStatAscii(sconfig, logger)
     expected_cts = wsa_stat.write_stat_ascii(stat_data, sconfig)
 
@@ -1651,11 +1663,11 @@ def test_tcst_with_ctc():
         redd_data_files.py module are correctly reading in the CTC and CTS
         lines in tcst files.
     """
-    tcst_data, config = setup_test("./reformat_tcst_ctc.yaml")
+    tcst_data, config = setup_test_linetype("CTC", test_name="reformat_tcst_ctc")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.write_stat_ascii(tcst_data, config)
 
-    stat_data, sconfig = setup_test("./reformat_stat_ctc.yaml")
+    stat_data, sconfig = setup_test_linetype("CTC", test_name="reformat_stat_ctc")
     wsa_stat = WriteStatAscii(sconfig, logger)
     expected_ctc = wsa_stat.write_stat_ascii(stat_data, sconfig)
 
@@ -1674,7 +1686,7 @@ def test_write_stat_ascii_type_error():
     """ Deliberately input the incorrect/unexpected
           types to the WriteStatAscii constructor
     """
-    tcst_data, config = setup_test("./reformat_tcst_ctc.yaml")
+    tcst_data, config = setup_test_linetype("CTC", test_name="reformat_tcst_ctc")
     bad_config = []
     logger = None
     with pytest.raises(TypeError):
@@ -1684,7 +1696,7 @@ def test_write_stat_ascii_type_error():
 def test_NA():
     """ Verify that nan's are replaced by NA in write_stat_ascii()"""
 
-    _, parms = setup_test("./FHO_nan.yaml")
+    _, parms = setup_test_linetype("FHO", test_name="FHO_nan")
     dir = os.getcwd()
     parms['log_directory'] = dir
     wsa = WriteStatAscii(parms, logger)
