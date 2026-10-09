@@ -22,6 +22,26 @@ from metcalcpy.util.read_env_vars_in_config import parse_config
 
 TEST_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'output')
 DEFAULT_TEST_OUTPUT_DIR = os.path.abspath(TEST_OUTPUT_DIR)
+DEFAULT_TEST_INPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
+
+
+def get_test_input_dir():
+    """Return the top-level directory that contains the METreformat test input data.
+
+    The directory is read from the METREFORMAT_TEST_INPUT_DIR environment variable. If it is
+    not set, METreformat/test/data is used. Fail the calling test with an explanation if the
+    directory does not exist, so missing input data is not mistaken for a reformatting bug.
+
+    @return: The absolute path of the test input data directory.
+    """
+    input_dir = os.path.abspath(os.environ.get('METREFORMAT_TEST_INPUT_DIR', DEFAULT_TEST_INPUT_DIR))
+    if not os.path.isdir(input_dir):
+        pytest.fail(
+            f'METreformat test input data directory not found: {input_dir}. Set the '
+            'METREFORMAT_TEST_INPUT_DIR environment variable to the directory that contains '
+            f'the test input data, or make it available at {DEFAULT_TEST_INPUT_DIR}.'
+        )
+    return input_dir
 
 
 def prepare_test_output_dir(output_dir=None):
@@ -71,7 +91,8 @@ def read_input(config_file, is_tcst):
        Read in the input .stat data file, return a data frame representation of all the data in the specified
        input data directory.
 
-    :param input_data_dir: The full path of the directory where the input data is located.
+    :param config_file: The YAML config file or config dictionary. Its input_data_dir is relative
+                        to the test input data directory (see get_test_input_dir).
     :param is_tcst: If the linetype is a TCMPR or TCDiag (.tcst file)
     :return: file_df, the dataframe representation of the input data
     """
@@ -88,7 +109,9 @@ def read_input(config_file, is_tcst):
     pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
 
     input_data_dir = parms['input_data_dir']
-    input_data_full_path = os.path.join(os.path.dirname(__file__), input_data_dir)
+    input_data_full_path = os.path.join(get_test_input_dir(), input_data_dir)
+    if not os.path.isdir(input_data_full_path):
+        pytest.fail(f'Test input data directory not found: {input_data_full_path}')
 
     # Replacing the need for an XML specification file, pass in the XMLLoadFile and
     # ReadDataFile parameters
@@ -149,26 +172,26 @@ def build_dispatch_test_config(linetype, test_name=None, is_aggregated=True, for
         test_name = line_type
 
     input_data_dir_lookup = {
-        cn.ECNT: './data/ensemble_stat',
-        cn.MCTS: './data/grid_stat/mctc_mcts',
-        cn.RHIST: './data/rhist_phist_relp_orank',
-        cn.SAL1L2: './data/point_stat/sal1l2',
-        cn.PCT: './data/RRFS_PCT_PRC_PJC_PSTD/2022050600',
-        cn.TCMPR: './data/tcdiag_tcmpr',
-        cn.TCDIAG: './data/tcdiag_tcmpr',
-        cn.MPR: './data/mpr/from_regression_data',
-        cn.DMAP: './data/grid_stat/dmap',
-        cn.VL1L2: './data/point_stat/vl1l2_MET13',
-        cn.VCNT: './data/point_stat/vl1l2_MET13',
-        'VCNT_for_MET13': './data/point_stat/vcnt_MET13',
-        'FHO_nan': './data/point_stat_nan',
-        'mpr_climo_data': './data/mpr/climo_data',
-        'reformat_stat_ctc': './data/tc_stat_rirw_cts_ctc/stat',
-        'reformat_stat_cts': './data/tc_stat_rirw_cts_ctc/stat',
-        'reformat_tcst_ctc': './data/tc_stat_rirw_cts_ctc',
-        'reformat_tcst_cts': './data/tc_stat_rirw_cts_ctc',
+        cn.ECNT: 'ensemble_stat',
+        cn.MCTS: 'grid_stat/mctc_mcts',
+        cn.RHIST: 'rhist_phist_relp_orank',
+        cn.SAL1L2: 'point_stat/sal1l2',
+        cn.PCT: 'RRFS_PCT_PRC_PJC_PSTD/2022050600',
+        cn.TCMPR: 'tcdiag_tcmpr',
+        cn.TCDIAG: 'tcdiag_tcmpr',
+        cn.MPR: 'mpr/from_regression_data',
+        cn.DMAP: 'grid_stat/dmap',
+        cn.VL1L2: 'point_stat/vl1l2_MET13',
+        cn.VCNT: 'point_stat/vl1l2_MET13',
+        'VCNT_for_MET13': 'point_stat/vcnt_MET13',
+        'FHO_nan': 'point_stat_nan',
+        'mpr_climo_data': 'mpr/climo_data',
+        'reformat_stat_ctc': 'tc_stat_rirw_cts_ctc/stat',
+        'reformat_stat_cts': 'tc_stat_rirw_cts_ctc/stat',
+        'reformat_tcst_ctc': 'tc_stat_rirw_cts_ctc',
+        'reformat_tcst_cts': 'tc_stat_rirw_cts_ctc',
     }
-    input_data_dir = input_data_dir_lookup.get(test_name) or input_data_dir_lookup.get(line_type, './data/point_stat')
+    input_data_dir = input_data_dir_lookup.get(test_name) or input_data_dir_lookup.get(line_type, 'point_stat')
     suffix = '' if is_aggregated else '_for_agg'
     output_filename = f'{test_name.lower()}{suffix}_reformatted.data'
     is_tcst = line_type in {cn.TCMPR, cn.TCDIAG}

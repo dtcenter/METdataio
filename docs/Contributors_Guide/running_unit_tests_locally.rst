@@ -157,7 +157,8 @@ Step 1: Implement the Line Type Handler
 Step 2: Add Input Data (if needed)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Test input data is in `METreformat/test/data/`. First check whether an existing directory already has
+Test input data is in `METreformat/test/data/` by default (see :ref:`Test Input Location <metreformat_test_input_location>`
+to read it from another directory). First check whether an existing directory already has
 `.stat` files with the new line type, e.g. by running:
 
 .. code-block:: console
@@ -187,18 +188,18 @@ sets the input data directory:
 .. code-block:: python
 
     input_data_dir_lookup = {
-        cn.ECNT: './data/ensemble_stat',
+        cn.ECNT: 'ensemble_stat',
         ...
-        cn.VAL1L2: './data/point_stat/val1l2',      # new line type
-        'VAL1L2_for_MET13': './data/point_stat/val1l2_MET13',  # optional test_name-specific data
+        cn.VAL1L2: 'point_stat/val1l2',      # new line type
+        'VAL1L2_for_MET13': 'point_stat/val1l2_MET13',  # optional test_name-specific data
     }
 
 How the lookup works:
 
-* Paths are relative to `METreformat/test/`.
+* Paths are relative to the test input data directory (`METreformat/test/data/` by default).
 * The key can be either a line type constant (e.g. `cn.VAL1L2`) or a custom `test_name` string.
   The lookup tries `test_name` first and then the line type. If neither matches, it falls back to
-  `./data/point_stat`. Because of this fallback, a missing entry may not cause an error, but the test may
+  `point_stat`. Because of this fallback, a missing entry may not cause an error, but the test may
   read the wrong data. Always add an entry for a new line type.
 * Use a `test_name` key when one line type needs different input data for different tests, e.g.
   `'VCNT_for_MET13'` or `'mpr_climo_data'`.
@@ -328,6 +329,23 @@ Tips for writing these tests:
   but `setup_test()` is preferred.
 * Remove or update any older test that expects a `NotImplementedError` for the newly implemented
   handler (e.g. `test_process_ctc_agg` checks that `process_ctc_for_agg` raises `NotImplementedError`).
+
+.. _metreformat_test_input_location:
+
+Test Input Location
+~~~~~~~~~~~~~~~~~~~
+
+By default, the tests read input data from `METreformat/test/data/`. To read it from another directory, set
+the `METREFORMAT_TEST_INPUT_DIR` environment variable to a directory with the same layout (e.g. it contains
+`ensemble_stat/`, `point_stat/`, etc.):
+
+.. code-block:: console
+
+    $ export METREFORMAT_TEST_INPUT_DIR=/path/to/metreformat_test_data
+    $ pytest METreformat/test/test_reformatting.py
+
+If the input data directory does not exist, each test that reads input data fails with a message that
+names the missing directory. Tests that do not read input data still run.
 
 Test Output Location
 ~~~~~~~~~~~~~~~~~~~~
