@@ -29,7 +29,7 @@ if [ -z ${SONAR_TOKEN+x} ]; then
 fi
 
 # Define the version string
-SONAR_PROJECT_VERSION=$(awk 'NF { print; exit }' docs/version | tr -d '" ')
+SONAR_PROJECT_VERSION=$(grep -v '^[[:space:]]*$' docs/version | head -n1 | tr -d '" ')
 
 #
 # Define the $SONAR_REFERENCE_BRANCH as the
