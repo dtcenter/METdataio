@@ -10,11 +10,11 @@ Create Database
 ---------------
 
 Before using the METdbLoad module, the database **must** exist and have the proper permissions
-(i.e. grant privileges to insert, delete, update, and index).
+(i.e., grant privileges to insert, delete, update, and index).
 
 
-Data must be loaded into a database which has the prefix \'\mv_\'\,
-(e.g. mv_met_data). This database must be structured with the METviewer
+Data must be loaded into a database which has the prefix 'mv\_'
+(e.g., mv_met_data). This database must be structured with the METviewer
 mv_mysql.sql schema:
 
 .. code-block:: ini
@@ -24,11 +24,11 @@ mv_mysql.sql schema:
   mysql -u[db_username] -p[db_password] [db_name] < sql/mv_mysql.sql
 
 
-- Replace *db_usenamer* with the username
+- Replace *db_username* with the username
 
-- Replace *db_passwd* with the password
+- Replace *db_password* with the password
 
-- Replace *db_name* with the appropriate database name that begins with **mv** (e.g. mv_xyz )
+- Replace *db_name* with the appropriate database name that begins with **mv** (e.g., mv_xyz )
 
 
 
@@ -45,7 +45,7 @@ mv_mysql.sql schema:
 
     - Replace *dbuser* with the username
     - Replace *dbpasswd* with the password
-    - Replace *dbtable_name* with the appropriate database name that begins with **mv** (e.g. mv_xyz )
+    - Replace *dbtable_name* with the appropriate database name that begins with **mv** (e.g., mv_xyz )
     - Replace *path-to-METdataio* with the path where the METdataio source code is saved
     - Note the use of the redirection symbol '<' in the command
 
@@ -100,16 +100,16 @@ as this file contains the database password.**
 
 - Replace the *path-to-your-dir* with the actual path to where this file will be saved.
 
-Change directory to the location where the *example_load_specification.xml* file was copied.
+Change directory to the location where the *load_specification.xml* file was copied.
 
 .. code-block:: ini
 
-   cd path-to-your-dir/load_specification.xml
+   cd path-to-your-dir
 
 - Replace *path-to-your-dir* with the full path where the XML specification file will be saved.
 
 Make the necessary edits to the required elements and delete any optional, unused/irrelevant elements, based on the explanation below (click to
-expand). Remember to update the username and password that is applicable to the database.
+expand). Remember to update the username and password that are applicable to the database.
 
 
 .. note::
@@ -219,7 +219,7 @@ expand). Remember to update the username and password that is applicable to the 
             - multiple date_list elements are allowed
 
               - maximum number of date_lists is 5
-              - differentiate different date_list definitions by the *name* attribute (i.e. name=)
+              - differentiate different date_list definitions by the *name* attribute (i.e., name=)
 
                 **Example**:
 
@@ -228,14 +228,14 @@ expand). Remember to update the username and password that is applicable to the 
                   - the *fcst_init* and *valid_times* subdirectories are based on datetime
                   - assign the fcst_init subdirectory to a descriptively named date_list attribute:
 
-                        e.g. <date_list name="folder_dates">
+                        e.g., <date_list name="folder_dates">
 
                         - this attribute name will be used in the load_val element within the folder_tmpl element to describe the
                           {fcst_init} subdirectory template
 
                   - assign the valid_times subdirectory to a descriptively named date_list attribute:
 
-                        e.g. <date_list name="valid_dates">
+                        e.g., <date_list name="valid_dates">
 
                         - this attribute name will be used in the load_val element within the folder_tmpl element to describe the {valid_times} subdirectory template
 
@@ -289,7 +289,7 @@ expand). Remember to update the username and password that is applicable to the 
          - indicate whether a database query check for stat header information should be performed
          - True or False (case insensitive)
 
-           - **WARNING** enabling this feature (i.e. set to True) could significantly increase load time
+           - **WARNING** enabling this feature (i.e., set to True) could significantly increase load time
 
      .. dropdown:: mode_header_db_check
 
@@ -297,7 +297,7 @@ expand). Remember to update the username and password that is applicable to the 
        - indicate whether a database query check for the MODE header information should be performed
        - True or False (case insensitive)
 
-         - **WARNING** enabling this feature (i.e. set to True) could significantly increase load time
+         - **WARNING** enabling this feature (i.e., set to True) could significantly increase load time
 
      .. dropdown:: mtd_header_db_check
 
@@ -305,7 +305,7 @@ expand). Remember to update the username and password that is applicable to the 
        - indicate whether a database query check for the MODE TD header information should be performed
        - True or False (case insensitive)
 
-         - **WARNING** enabling this feature (i.e. set to True) could significantly increase load time
+         - **WARNING** enabling this feature (i.e., set to True) could significantly increase load time
 
      .. dropdown::  drop_indexes
 
@@ -355,12 +355,12 @@ expand). Remember to update the username and password that is applicable to the 
        - indicate whether or not to force load paths/files that already exist
        - True or False (case insensitive)
 
-    *The following elements indicate which group the database should be assigned and a description.*
+    *The following elements indicate which group the database should be assigned to and a description.*
 
      .. dropdown::  group
 
        - **optional**
-       - the name of the database group (databases are grouped in METviewer: e.g. Testing)
+       - the name of the database group (databases are grouped in METviewer: e.g., Testing)
        - if undefined, the database will be placed under the NO GROUP group
        - minimum number of characters is 1
        - maximum number of characters is 300
@@ -389,7 +389,7 @@ expand). Remember to update the username and password that is applicable to the 
      .. dropdown:: folder_tmpl
 
         - for data in subdirectories that are datetimes *OR* data that resides under one directory
-        - only one folder template element is permitted (i.e. only one <folder_tmpl> ... </folder_tmpl> )
+        - only one folder template element is permitted (i.e., only one <folder_tmpl> ... </folder_tmpl> )
         - **NOTE** the *date_list* element **MUST BE DEFINED** (see above in the *date_list* description) if **any subdirectories are based on datetime**
 
         *Specify the directory where the data is located in one of the following methods:*
@@ -419,23 +419,23 @@ expand). Remember to update the username and password that is applicable to the 
         - **optional** if *folder_tmpl* specifies a single directory where all data resides
 
         - **mandatory** if folder_tmpl has datetime subdirectories
-           - *field* elements correspond to each attribute value template (i.e. variable names enclosed in {})
+           - *field* elements correspond to each attribute value template (i.e., variable names enclosed in {})
 
 
         .. dropdown:: field
 
           - **mandatory** if *folder_tmpl* has subdirectories that are datetimes
-          - each *field* element defines the attribute value template in the directory structure (i.e. the variable inside the {})
+          - each *field* element defines the attribute value template in the directory structure (i.e., the variable inside the {})
             - *val* elements that can specify more subdirectories
 
               - **optional**
-              - necessary when specifying subdirectories that are not datetimes (e.g. /path-to/model_A/air_quality/)
+              - necessary when specifying subdirectories that are not datetimes (e.g., /path-to/model_A/air_quality/)
               - maximum number of val elements: 100
 
             - *date_list* elements for subdirectories that are datetimes
 
               - **optional**
-              - mandatory when subdirectories are datetimes (e.g. /path-to/20240101/model/)
+              - mandatory when subdirectories are datetimes (e.g., /path-to/20240101/model/)
               - maximum number of date_list elements: 5
 
           *For this folder_tmpl example, which has datetime subdirectories:*
@@ -714,7 +714,7 @@ If logging is desired, redirect output to a log file (via &> command):
 
   python met_db_load.py /path-to/load_specification.xml  &> log/your_logname.log &
 
-- Replace *path-to-METdataio-source* to the path to the location of the cloned or forked METdataio source code.
+- Replace *path-to-METdataio-source* with the path to the location of the cloned or forked METdataio source code.
 - Replace the *path-to* with the location where the load_specification.xml XML load specification file was saved.
 
 Refer to the section **Create the XML Specification File** and expand the drop-down instructions
@@ -760,11 +760,11 @@ Troubleshooting
     -  /full-path-to/xyz.xml is not valid and may contain a recursive payload or an excessively large payload
 
   * - Solution:
-    - This error is typically encountered when one of the following conditions exist as a result of failing the XML validation step:
+    - This error is typically encountered when one of the following conditions exists as a result of failing the XML validation step:
 
         - the order of the elements in the XML load specification file is inconsistent with the order expected
         - the XML load specification file is missing one or more mandatory elements
         - one or more elements has exceeded size limits specified in the XML schema
         - there are additional XML elements that are not expected
 
-       **Refer to the section **Create the XML Load Specification File** to verify that the XML load specification file is correct.**
+       **Refer to the section "Create the XML Specification File" to verify that the XML load specification file is correct.**

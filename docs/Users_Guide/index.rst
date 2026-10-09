@@ -4,10 +4,11 @@ User's Guide
 
 **Foreword: A note to METdataio users**
 
-This User's guide is provided as an aid to users of METdataio.  METdataio is a
-Python rewrite of the capabilities in METviewer. The METviewer tool reads MET
-verification statistics output from a database and creates plots using the R
-statistical package. METdataio is also a component of the unified METplus
+This User's guide is provided as an aid to users of METdataio.  METdataio provides
+Python tools to read, reformat, and load MET verification output, including
+capabilities previously provided by METviewer's data loader. The METviewer tool
+reads MET verification statistics output from a database and creates plots
+using the R statistical package. METdataio is also a component of the unified METplus
 verification framework. More details about METplus can be found on the
 `METplus website <http://dtcenter.org/community-code/metplus>`_.
 
@@ -21,7 +22,7 @@ in the
 We will then determine if we will be able to include the contribution in a
 future version.
 
-**Model Evaluation Tools Datadb (METdataio)  TERMS OF USE - IMPORTANT!**
+**Model Evaluation Tools Data IO (METdataio)  TERMS OF USE - IMPORTANT!**
 
 Copyright |copyright|
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,16 +50,16 @@ Available at: https://github.com/dtcenter/METdataio/releases.
 
 **Acknowledgments**
 
-We thank the the National Science Foundation (NSF) along with three
+We thank the National Science Foundation (NSF) along with three
 organizations within the National Oceanic and Atmospheric Administration
 (NOAA): 1) Office of Atmospheric Research (OAR); 2) Next Generation
-Global Predition System project (NGGPS); and 3) United State Weather
+Global Prediction System project (NGGPS); and 3) United States Weather
 Research Program (USWRP) for their support of this work. Thanks also go
 to the staff at the Developmental Testbed Center for their help, advice,
 and many types of support. We released METplus Alpha in February 2017
 and would not have made a decade of cutting-edge verification support
 without those who participated in DTC planning workshops and the NGGPS
-United Forecast System Strategic Implementation Plan Working Groups
+Unified Forecast System Strategic Implementation Plan Working Groups
 (NGGPS UFS SIP WGs).
 
 The DTC is sponsored by the National Oceanic and Atmospheric
