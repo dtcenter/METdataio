@@ -8,7 +8,7 @@ from METdataio.METdbLoad.ush.read_data_files import ReadDataFiles
 from METdataio.METdbLoad.ush.read_load_xml import XmlLoadFile
 from METdataio.METreformat.write_stat_ascii import WriteStatAscii
 import METdataio.METreformat.util as util
-from METdataio.METreformat.test.test_reformatting import setup_test_linetype
+from METdataio.METreformat.test.test_reformatting import setup_test
 from metcalcpy.util.read_env_vars_in_config import parse_config
 
 full_log_filename = os.path.join('../output', 'test_benchmarking_log.txt')
@@ -74,14 +74,14 @@ def setup_test(yaml_file, is_tcst=False):
 
 # BENCHMARKING
 def test_tcdiag_benchmark(benchmark):
-    stat_data, config = setup_test_linetype("TCDIAG")
+    stat_data, config = setup_test("TCDIAG")
     wsa = WriteStatAscii(config, logger)
     # reformatted_df = wsa.process_tcdiag(stat_data)
     result = benchmark(wsa.process_tcdiag, stat_data)
 
 
 def test_ecnt_benchmark(benchmark):
-    stat_data, config = setup_test_linetype("ECNT", is_aggregated=False)
+    stat_data, config = setup_test("ECNT", is_aggregated=False)
 
     wsa = WriteStatAscii(config, logger)
 

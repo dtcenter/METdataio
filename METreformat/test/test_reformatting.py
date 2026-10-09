@@ -118,9 +118,10 @@ def read_input(config_file, is_tcst):
     return file_df, parms
 
 
-def setup_test(yaml_file, is_tcst=False):
-    """
-       Read in the YAML config settings, then generate the input data as a data frame and perform reformatting.
+def _setup_test_from_yaml(yaml_file, is_tcst=False):
+    """Read in the YAML config settings, then generate the input data as a data frame and perform reformatting.
+    It is preferred to use setup_test to generate a config file instead of reading an existing yaml file.
+    This function is left here in case there is a need to read in an existing yaml file for testing purposes.
 
     """
 
@@ -185,7 +186,7 @@ def build_dispatch_test_config(linetype, test_name=None, is_aggregated=True, for
     }, is_tcst
 
 
-def setup_test_linetype(linetype, test_name=None, is_aggregated=True, for_scatter=False):
+def setup_test(linetype, test_name=None, is_aggregated=True, for_scatter=False):
     """Build a minimal config for a linetype test and read its input data.
 
     This is the common path for tests that previously needed:
@@ -269,7 +270,7 @@ def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implement
     linetype so the tests remain focused on dispatch behavior, while still
     producing a unique output file per parameter combination.
     """
-    stat_data, parms = setup_test_linetype(linetype, is_aggregated=is_aggregated)
+    stat_data, parms = setup_test(linetype, is_aggregated=is_aggregated)
     wsa = WriteStatAscii(parms, logger)
 
     if not is_implemented:
@@ -300,7 +301,7 @@ def test_write_stat_ascii_bad_input():
         Test that an AttributeError is raised when the input dataframe
         is nonexistent.
     '''
-    stat_data, parms = setup_test_linetype("FHO", is_aggregated=True)
+    stat_data, parms = setup_test("FHO", is_aggregated=True)
 
     # After creating the WriteStatAscii object, the log directory should exist
     with pytest.raises(AttributeError):
@@ -314,7 +315,7 @@ def test_unsupported_linetype():
         is requested.  The MTD (mode time domain) line type is currently not
         supported.
     '''
-    stat_data, parms = setup_test_linetype("MTD", is_aggregated=False)
+    stat_data, parms = setup_test("MTD", is_aggregated=False)
     wsa = WriteStatAscii(parms, logger)
     with pytest.raises(NotImplementedError):
         wsa.write_stat_ascii(stat_data, parms)
@@ -329,7 +330,7 @@ def test_point_stat_FHO_consistency():
     '''
 
     # Subset the input dataframe to include only the FHO linetype
-    stat_data, parms = setup_test_linetype("FHO", is_aggregated=True)
+    stat_data, parms = setup_test("FHO", is_aggregated=True)
     end = cn.NUM_STAT_FHO_COLS
     fho_columns_to_use = np.arange(0, end).tolist()
     linetype = cn.FHO
@@ -382,7 +383,7 @@ def test_point_stat_sl1l2_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test_linetype('SL1L2', is_aggregated=True)
+    stat_data, parms = setup_test('SL1L2', is_aggregated=True)
 
     # Relevant columns for the SL1L2 line type
     linetype: str = cn.SL1L2
@@ -429,7 +430,7 @@ def test_point_stat_sl1l2_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 def test_point_stat_sal1l2_consistency():
-    stat_data, parms = setup_test_linetype('SAL1L2', is_aggregated=True)
+    stat_data, parms = setup_test('SAL1L2', is_aggregated=True)
 
     linetype: str = cn.SAL1L2
     sal1l2_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_SAL1L2_COLS).tolist()
@@ -472,7 +473,7 @@ def test_point_stat_vl1l2_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test_linetype('VL1L2', is_aggregated=True)
+    stat_data, parms = setup_test('VL1L2', is_aggregated=True)
 
     # Relevant columns for the VL1L2 line type
     linetype: str = cn.VL1L2
@@ -541,7 +542,7 @@ def test_point_stat_ctc_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test_linetype('CTC')
+    stat_data, parms = setup_test('CTC')
 
     # Relevant columns for the CTC line type
     linetype: str = cn.CTC
@@ -593,7 +594,7 @@ def test_process_ctc_agg():
     """ verify that the NotImplementedError is raised  when
           invoking the process_ctc_agg
     """
-    stat_data, parms = setup_test_linetype('CTC')
+    stat_data, parms = setup_test('CTC')
     parms['input_stats_aggregated'] = False
     wsa = WriteStatAscii(parms, logger)
     with pytest.raises(NotImplementedError):
@@ -611,7 +612,7 @@ def test_point_stat_cts_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test_linetype('CTS')
+    stat_data, parms = setup_test('CTS')
 
     # Relevant columns for the CTS line type
     linetype: str = cn.CTS
@@ -678,7 +679,7 @@ def test_point_stat_cnt_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test_linetype('CNT')
+    stat_data, parms = setup_test('CNT')
 
     # Relevant columns for the CNT line type
     linetype: str = cn.CNT
@@ -747,7 +748,7 @@ def test_point_stat_vcnt_met13_consistency():
     # the inclusion of the 12 new VCNT columns was
     # added in the MET 12.0.0 release. Use VCNT data used in
     # MET v13 regression tests
-    stat_data, parms = setup_test_linetype('VCNT', test_name='VCNT_for_MET13')
+    stat_data, parms = setup_test('VCNT', test_name='VCNT_for_MET13')
 
     # Relevant columns for the VCNT line type
     linetype: str = cn.VCNT
@@ -803,7 +804,7 @@ def test_point_stat_mcts_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test_linetype('MCTS')
+    stat_data, parms = setup_test('MCTS')
 
     # Relevant columns for the MCTS line type
     linetype: str = cn.MCTS
@@ -869,7 +870,7 @@ def test_ensemble_stat_ecnt_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test_linetype('ECNT')
+    stat_data, config = setup_test('ECNT')
 
     # Relevant columns for the ECNT line type
     linetype: str = cn.ECNT
@@ -948,7 +949,7 @@ def test_pct_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test_linetype('PCT', test_name='PCT_ROC')
+    stat_data, config = setup_test('PCT', test_name='PCT_ROC')
 
     # Relevant columns for the PCT line type
     wsa = WriteStatAscii(config, logger)
@@ -1003,7 +1004,7 @@ def test_rhist_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test_linetype('RHIST')
+    stat_data, config = setup_test('RHIST')
 
     # Relevant columns for the RHIST line type
     linetype: str = cn.RHIST
@@ -1064,7 +1065,7 @@ def test_ecnt_reformat_for_agg():
        '''
 
     # Original unreformatted data
-    stat_data, config = setup_test_linetype('ECNT', is_aggregated=False)
+    stat_data, config = setup_test('ECNT', is_aggregated=False)
 
     # Reformatted data
     wsa = WriteStatAscii(config, logger)
@@ -1119,7 +1120,7 @@ def test_ecnt_reformat():
        '''
 
     # Original unreformatted data
-    stat_data, config = setup_test_linetype('ECNT')
+    stat_data, config = setup_test('ECNT')
     # Reformatted data
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_ecnt(stat_data)
@@ -1165,7 +1166,7 @@ def test_fho_reformat_for_agg():
     :return:
     '''
 
-    stat_data, parms = setup_test_linetype("FHO", is_aggregated=False)
+    stat_data, parms = setup_test("FHO", is_aggregated=False)
     wsa = WriteStatAscii(parms, logger)
 
     # Expect error when invoking the process_fho_for_agg directly
@@ -1181,7 +1182,7 @@ def test_fho_reformat():
     :return:
     '''
 
-    stat_data, parms = setup_test_linetype("FHO", is_aggregated=False)
+    stat_data, parms = setup_test("FHO", is_aggregated=False)
     wsa = WriteStatAscii(parms, logger)
 
     result_df = wsa.process_fho(stat_data)
@@ -1193,7 +1194,7 @@ def test_tcdiag_from_tcpairs():
         Test that the reformatting is correct by comparing values in the original data to the reformatted data
 
     '''
-    stat_data, config = setup_test_linetype('TCDIAG')
+    stat_data, config = setup_test('TCDIAG')
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_tcdiag(stat_data)
     pathlib.Path(config['output_dir']).mkdir(parents=True, exist_ok=True)
@@ -1318,7 +1319,7 @@ def test_mpr_for_line_with_regression_data():
             None passes or fails
     """
 
-    stat_data, config = setup_test_linetype("MPR", test_name="mpr_for_line")
+    stat_data, config = setup_test("MPR", test_name="mpr_for_line")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
@@ -1396,7 +1397,7 @@ def test_mpr_for_scatter_with_regression_data():
             None passes or fails
     """
 
-    stat_data, config = setup_test_linetype("MPR", test_name="mpr_for_scatter", for_scatter=True)
+    stat_data, config = setup_test("MPR", test_name="mpr_for_scatter", for_scatter=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
@@ -1448,7 +1449,7 @@ def test_mpr_for_climo_data():
             None: passes or fails
     """
 
-    stat_data, config = setup_test_linetype("MPR", test_name="mpr_climo_data", for_scatter=True)
+    stat_data, config = setup_test("MPR", test_name="mpr_climo_data", for_scatter=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
@@ -1480,7 +1481,7 @@ def test_dmap_for_scatter():
             None passes or fails
     """
 
-    stat_data, config = setup_test_linetype("DMAP", test_name="dmap_for_scatter", for_scatter=True)
+    stat_data, config = setup_test("DMAP", test_name="dmap_for_scatter", for_scatter=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_dmap(stat_data)
     output_path = os.path.join(config['output_dir'], config['output_filename'])
@@ -1560,7 +1561,7 @@ def test_dmap_for_lineplot():
             None passes or fails
     """
 
-    stat_data, config = setup_test_linetype("DMAP", test_name="dmap_for_line")
+    stat_data, config = setup_test("DMAP", test_name="dmap_for_line")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_dmap(stat_data)
 
@@ -1635,10 +1636,10 @@ def test_tcst_with_cts():
         redd_data_files.py module are correctly reading in the CTC and CTS
         lines in tcst files.
     """
-    tcst_data, config = setup_test_linetype("CTS", test_name="reformat_tcst_cts")
+    tcst_data, config = setup_test("CTS", test_name="reformat_tcst_cts")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.write_stat_ascii(tcst_data, config)
-    stat_data, sconfig = setup_test_linetype("CTS", test_name="reformat_stat_cts")
+    stat_data, sconfig = setup_test("CTS", test_name="reformat_stat_cts")
     wsa_stat = WriteStatAscii(sconfig, logger)
     expected_cts = wsa_stat.write_stat_ascii(stat_data, sconfig)
 
@@ -1661,11 +1662,11 @@ def test_tcst_with_ctc():
         redd_data_files.py module are correctly reading in the CTC and CTS
         lines in tcst files.
     """
-    tcst_data, config = setup_test_linetype("CTC", test_name="reformat_tcst_ctc")
+    tcst_data, config = setup_test("CTC", test_name="reformat_tcst_ctc")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.write_stat_ascii(tcst_data, config)
 
-    stat_data, sconfig = setup_test_linetype("CTC", test_name="reformat_stat_ctc")
+    stat_data, sconfig = setup_test("CTC", test_name="reformat_stat_ctc")
     wsa_stat = WriteStatAscii(sconfig, logger)
     expected_ctc = wsa_stat.write_stat_ascii(stat_data, sconfig)
 
@@ -1684,7 +1685,7 @@ def test_write_stat_ascii_type_error():
     """ Deliberately input the incorrect/unexpected
           types to the WriteStatAscii constructor
     """
-    tcst_data, config = setup_test_linetype("CTC", test_name="reformat_tcst_ctc")
+    tcst_data, config = setup_test("CTC", test_name="reformat_tcst_ctc")
     bad_config = []
     logger = None
     with pytest.raises(TypeError):
@@ -1694,7 +1695,7 @@ def test_write_stat_ascii_type_error():
 def test_NA():
     """ Verify that nan's are replaced by NA in write_stat_ascii()"""
 
-    _, parms = setup_test_linetype("FHO", test_name="FHO_nan")
+    _, parms = setup_test("FHO", test_name="FHO_nan")
     dir = os.getcwd()
     parms['log_directory'] = dir
     wsa = WriteStatAscii(parms, logger)
