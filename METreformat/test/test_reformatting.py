@@ -1459,9 +1459,15 @@ def test_mpr_for_climo_data():
     reformatted_df = wsa.process_mpr(stat_data)
 
     # Check for expected column name changes and new columns
-    expected_col_headers = ['OBS_CLIMO_STDEV', 'OBS_CLIMO_MEAN', 'OBS_CLIMO_CDF', 'FCST_CLIMO_MEAN', 'FCST_CLIMO_STDEV']
+    expected_col_headers = [
+        'obs_climo_stdev',
+        'obs_climo_mean',
+        'obs_climo_cdf',
+        'fcst_climo_mean',
+        'fcst_climo_stdev'
+    ]
     reformatted_col_headers = reformatted_df.columns.to_list()
-    for cur_col in reformatted_col_headers:
+    for cur_col in expected_col_headers:
         assert cur_col in reformatted_col_headers
 
 
