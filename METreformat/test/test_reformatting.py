@@ -343,8 +343,8 @@ def test_write_stat_ascii_bad_input():
 
     fail_if_output_exists(parms)
     # After creating the WriteStatAscii object, the log directory should exist
+    wsa = WriteStatAscii(parms, logger)
     with pytest.raises(AttributeError):
-        wsa = WriteStatAscii(parms, logger)
         wsa.write_stat_ascii(None, parms)
 
 
@@ -408,8 +408,8 @@ def test_point_stat_FHO_consistency():
 
     # Checking for consistency between the reformatted/reshaped data and the
     # "original" data.
-    assert expected_val == actual_value
-    assert expected_name == actual_name
+    assert actual_value == expected_val
+    assert actual_name == expected_name
 
 
 def test_point_stat_sl1l2_consistency():
