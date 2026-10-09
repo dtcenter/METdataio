@@ -18,24 +18,24 @@ If no changes exist, then an update to the database schema is unnecessary.
 Steps
 =====
 
-1. Create a Github issue in the METdataio repository.
+1. Create a GitHub issue in the METdataio repository.
 
 *  Click on the **Issues** tab at the top of the `METdataio Repository page <https://github.com/dtcenter/METdataio>`_
 *  Click on the green **New issue** button on the top right of the issues page.
 *  Click on the green **Get started** button corresponding to the **Task** template
 *  Assign the appropriate settings under
-   the *Assignees*, *Labels*, *Projects* and *Milestones* links to the right side of the Github issues
+   the *Assignees*, *Labels*, *Projects* and *Milestones* links to the right side of the GitHub issues
    page.
 *  Fill in relevant information under the **Add a description** window
 
 
-2. Create a feature branch corresponding to this Github issue in the METdataio repository:
+2. Create a feature branch corresponding to this GitHub issue in the METdataio repository:
 
 .. code-block:: ini
 
     feature_xyz_update_db_schema
 
-where **xyz** corresponds to the Github issue number and is branched from the *develop* branch
+where **xyz** corresponds to the GitHub issue number and is branched from the *develop* branch
 
 .. code-block:: ini
 
@@ -46,7 +46,7 @@ where **xyz** corresponds to the Github issue number and is branched from the *d
 
    * $BASE_DIR corresponds to the directory where the METdataio source code resides
 
-4. In the **update_for_x_y.sql** file created above, make any changes to reflect updates to the schema
+4. In the **update_for_x_y.sql** file created above, make any changes to reflect updates to the schema.
    The `MET Release Notes  <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/release-notes.html>`_
    are a useful resource for determining which linetypes were added or modified.
    Test that this loads the schema updates correctly.
@@ -81,7 +81,7 @@ Remember to include the *DELIMITER |*  at the beginning/top of the file and *DEL
 
 - Create tests like those in the METdataio/METdbLoad/tests directory, creating a new subdirectory following the naming convention:
 
- - update_schema_release_beta (e.g. update_schema_6.0_beta4).
+ - update_schema_release_beta (e.g., update_schema_6.0_beta4).
 
 The update_schema_6.0_beta4
 directory indicates that these tests and data correspond to the METplus 6.0 beta 4 release.
@@ -110,13 +110,13 @@ In the $BASE_DIR/METdataio/METdbLoad/sql directory:
 
 
 
-* The git commit will generate a pop-up box for adding comments.  Include the Github issue number in
+* The git commit will generate a pop-up box for adding comments.  Include the GitHub issue number in
   the comment and provide a concise description of what was done.
 
-9. Submit a Github PR (at least one reviewer is required).
+9. Submit a GitHub PR (at least one reviewer is required).
 10. Perform a Squash and Merge once the PR has been approved.
 
-11. Close the PR and close the Github issue
+11. Close the PR and close the GitHub issue
 
 
 
