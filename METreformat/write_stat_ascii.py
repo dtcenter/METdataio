@@ -195,6 +195,44 @@ class WriteStatAscii:
                 'aggregated': 'process_prc',
                 'non_aggregated': 'process_prc_for_agg',
             },
+            # Line types that are not supported and may not be implemented.
+            # Add handler method names here if support is added.
+            cn.ISC: {
+                'aggregated': None,
+                'non_aggregated': None,
+            },
+            cn.PHIST: {
+                'aggregated': None,
+                'non_aggregated': None,
+            },
+            cn.ORANK: {
+                'aggregated': None,
+                'non_aggregated': None,
+            },
+            cn.RELP: {
+                'aggregated': None,
+                'non_aggregated': None,
+            },
+            cn.ENSCNT: {
+                'aggregated': None,
+                'non_aggregated': None,
+            },
+            cn.PERC: {
+                'aggregated': None,
+                'non_aggregated': None,
+            },
+            cn.SSIDX: {
+                'aggregated': None,
+                'non_aggregated': None,
+            },
+            cn.SEEPS: {
+                'aggregated': None,
+                'non_aggregated': None,
+            },
+            cn.SEEPS_MPR: {
+                'aggregated': None,
+                'non_aggregated': None,
+            },
         }
 
     def _validate_handler_support(self, linetype: str, is_aggregated: bool) -> str:
@@ -227,6 +265,9 @@ class WriteStatAscii:
                 k for k, v in handler_config.items()
                 if v is not None
             ]
+            if not supported_modes:
+                raise NotImplementedError(f"{linetype} is not yet supported")
+
             supported_str = ' or '.join(supported_modes)
             msg = (
                 f"{linetype} does not support {agg_str} input. "

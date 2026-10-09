@@ -118,7 +118,10 @@ Step 1: Implement the Line Type Handler
 
 2. Check the line type's entry in `_build_handler_registry()`. Many line types (e.g. VAL1L2, MCTC, NBRCTC,
    NBRCTS, NBRCNT, SSVAR, GRAD, RPS, ECLV, PSTD, PJC, PRC) are already registered and point to stub methods.
-   For a line type that is not yet registered, add an entry:
+   Other line types that may never be implemented (ISC, PHIST, ORANK, RELP, ENSCNT, PERC, SSIDX, SEEPS,
+   SEEPS_MPR) are registered with `None` for both modes and have no stub methods. To add support for one
+   of these, replace `None` with the handler method name and add the method. For a line type that is not
+   registered at all, add an entry:
 
    .. code-block:: python
 
@@ -258,6 +261,14 @@ The output file is written to `<output_dir>/<test_name lowercase>[_for_agg]_refo
 `test_name`, they write to the same file and the second test's output is appended to the first.
 Give each new test that calls `write_stat_ascii` a unique `test_name`.
 
+To catch these duplicates, call `fail_if_output_exists(parms)` before **every** call to `write_stat_ascii`
+in a test. Do this even if the call is expected to raise an exception. If the output file already exists,
+the test fails with a message telling you to resolve the duplicate. Because the default output directory
+is emptied at the start of each test run, an existing file means that another test in the same run uses
+the same output filename. To fix it, pass a unique `test_name` to `setup_test`. If no
+`input_data_dir_lookup` entry matches the new `test_name`, the lookup uses the line type's entry, so the
+test still reads the same input data.
+
 Example test for the aggregated mode that compares one value in the input data with the reformatted output:
 
 .. code-block:: python
@@ -276,6 +287,7 @@ Example test for the aggregated mode that compares one value in the input data w
 
         # Reformat the data and write the output file
         wsa = WriteStatAscii(parms, logger)
+        fail_if_output_exists(parms)
         reformatted_df = wsa.write_stat_ascii(stat_data, parms)
         output_file = os.path.join(parms['output_dir'], parms['output_filename'])
         assert os.path.exists(output_file)
@@ -346,6 +358,7 @@ When adding support for a new line type:
    to `is_tcst` if it is read from `.tcst` files.
 #. Change `is_implemented` to `True` for the implemented mode(s) in the
    `test_process_by_stat_linetype_dispatch` parameters.
-#. Add tests that use `setup_test()` to check the output values, using a unique `test_name`.
+#. Add tests that use `setup_test()` to check the output values, using a unique `test_name` and calling
+   `fail_if_output_exists()` before each call to `write_stat_ascii`.
 #. Remove or update older tests that expect a `NotImplementedError`.
 #. Update the User's Guide documentation for METreformat.

@@ -205,6 +205,24 @@ def setup_test(linetype, test_name=None, is_aggregated=True, for_scatter=False):
     return stat_data, parms
 
 
+def fail_if_output_exists(parms):
+    """Fail the test if the output file that write_stat_ascii will write already exists.
+
+    write_stat_ascii appends to the output file, so an existing file means another
+    test uses the same output filename (same linetype/test_name/is_aggregated) and
+    the output from both tests would be combined. Call this before each call to
+    write_stat_ascii.
+
+    @param parms: The config dictionary returned by setup_test.
+    """
+    output_path = os.path.join(parms['output_dir'], parms['output_filename'])
+    if os.path.exists(output_path):
+        pytest.fail(
+            f'Output file already exists: {output_path}. Another test likely writes to the '
+            'same output file. Pass a unique test_name to setup_test to resolve the duplicate.'
+        )
+
+
 @pytest.mark.parametrize(
     'linetype, is_aggregated, is_implemented',
     [
@@ -261,6 +279,24 @@ def setup_test(linetype, test_name=None, is_aggregated=True, for_scatter=False):
         (cn.PJC, False, False),
         (cn.PRC, True, False),
         (cn.PRC, False, False),
+        (cn.ISC, True, False),
+        (cn.ISC, False, False),
+        (cn.PHIST, True, False),
+        (cn.PHIST, False, False),
+        (cn.ORANK, True, False),
+        (cn.ORANK, False, False),
+        (cn.RELP, True, False),
+        (cn.RELP, False, False),
+        (cn.ENSCNT, True, False),
+        (cn.ENSCNT, False, False),
+        (cn.PERC, True, False),
+        (cn.PERC, False, False),
+        (cn.SSIDX, True, False),
+        (cn.SSIDX, False, False),
+        (cn.SEEPS, True, False),
+        (cn.SEEPS, False, False),
+        (cn.SEEPS_MPR, True, False),
+        (cn.SEEPS_MPR, False, False),
     ],
 )
 def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implemented):
@@ -274,12 +310,14 @@ def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implement
     wsa = WriteStatAscii(parms, logger)
 
     if not is_implemented:
+        fail_if_output_exists(parms)
         with pytest.raises(NotImplementedError):
             wsa.write_stat_ascii(stat_data, parms)
         output_path = os.path.join(parms['output_dir'], parms['output_filename'])
         assert not os.path.exists(output_path)
         return
 
+    fail_if_output_exists(parms)
     result_df = wsa.write_stat_ascii(stat_data, parms)
     output_path = os.path.join(parms['output_dir'], parms['output_filename'])
     assert isinstance(result_df, pd.DataFrame)
@@ -301,8 +339,9 @@ def test_write_stat_ascii_bad_input():
         Test that an AttributeError is raised when the input dataframe
         is nonexistent.
     '''
-    stat_data, parms = setup_test("FHO", is_aggregated=True)
+    stat_data, parms = setup_test("FHO", test_name="write_stat_ascii_bad_input", is_aggregated=True)
 
+    fail_if_output_exists(parms)
     # After creating the WriteStatAscii object, the log directory should exist
     with pytest.raises(AttributeError):
         wsa = WriteStatAscii(parms, logger)
@@ -317,6 +356,7 @@ def test_unsupported_linetype():
     '''
     stat_data, parms = setup_test("MTD", is_aggregated=False)
     wsa = WriteStatAscii(parms, logger)
+    fail_if_output_exists(parms)
     with pytest.raises(NotImplementedError):
         wsa.write_stat_ascii(stat_data, parms)
 
@@ -778,6 +818,7 @@ def test_point_stat_vcnt_met13_consistency():
     expected_row: pd.Series = expected_df.iloc[0]
     expected_name: str = "FBAR"
     wsa = WriteStatAscii(parms, logger)
+    fail_if_output_exists(parms)
     reshaped_df = wsa.write_stat_ascii(stat_data, parms)
     actual_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) &
                                               (reshaped_df['obs_var'] == obs_var) &
@@ -1638,9 +1679,11 @@ def test_tcst_with_cts():
     """
     tcst_data, config = setup_test("CTS", test_name="reformat_tcst_cts")
     wsa = WriteStatAscii(config, logger)
+    fail_if_output_exists(config)
     reformatted_df = wsa.write_stat_ascii(tcst_data, config)
     stat_data, sconfig = setup_test("CTS", test_name="reformat_stat_cts")
     wsa_stat = WriteStatAscii(sconfig, logger)
+    fail_if_output_exists(sconfig)
     expected_cts = wsa_stat.write_stat_ascii(stat_data, sconfig)
 
     # reformatted_df and expected_cts should have the same number of rows
@@ -1664,10 +1707,12 @@ def test_tcst_with_ctc():
     """
     tcst_data, config = setup_test("CTC", test_name="reformat_tcst_ctc")
     wsa = WriteStatAscii(config, logger)
+    fail_if_output_exists(config)
     reformatted_df = wsa.write_stat_ascii(tcst_data, config)
 
     stat_data, sconfig = setup_test("CTC", test_name="reformat_stat_ctc")
     wsa_stat = WriteStatAscii(sconfig, logger)
+    fail_if_output_exists(sconfig)
     expected_ctc = wsa_stat.write_stat_ascii(stat_data, sconfig)
 
     # reformatted_df and expected_cts should have the same number of rows
@@ -1699,6 +1744,7 @@ def test_NA():
     dir = os.getcwd()
     parms['log_directory'] = dir
     wsa = WriteStatAscii(parms, logger)
+    fail_if_output_exists(parms)
     result = wsa.write_stat_ascii(_, parms)
     desc = result['desc']
 
