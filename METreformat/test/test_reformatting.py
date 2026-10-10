@@ -1,6 +1,7 @@
 import os
-import shutil
 import pathlib
+import shutil
+import warnings
 from argparse import Namespace
 from collections import namedtuple
 from dataclasses import make_dataclass
@@ -17,8 +18,71 @@ from METdbLoad.ush.read_data_files import ReadDataFiles
 from METdbLoad.ush.read_load_xml import XmlLoadFile
 from METreformat.write_stat_ascii import WriteStatAscii
 import METreformat.util as util
+from metcalcpy.util.read_env_vars_in_config import parse_config
 
-full_log_filename = os.path.join('../output', 'test_reformatting_log.txt')
+TEST_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'output')
+DEFAULT_TEST_OUTPUT_DIR = os.path.abspath(TEST_OUTPUT_DIR)
+DEFAULT_TEST_INPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
+
+
+def get_test_input_dir():
+    """Return the top-level directory that contains the METreformat test input data.
+
+    The directory is read from the METREFORMAT_TEST_INPUT_DIR environment variable. If it is
+    not set, METreformat/test/data is used. Fail the calling test with an explanation if the
+    directory does not exist, so missing input data is not mistaken for a reformatting bug.
+
+    @return: The absolute path of the test input data directory.
+    """
+    input_dir = os.path.abspath(os.environ.get('METREFORMAT_TEST_INPUT_DIR', DEFAULT_TEST_INPUT_DIR))
+    if not os.path.isdir(input_dir):
+        pytest.fail(
+            f'METreformat test input data directory not found: {input_dir}. Set the '
+            'METREFORMAT_TEST_INPUT_DIR environment variable to the directory that contains '
+            f'the test input data, or make it available at {DEFAULT_TEST_INPUT_DIR}.'
+        )
+    return input_dir
+
+
+def prepare_test_output_dir(output_dir=None):
+    """Set up a predictable output directory for the METreformat tests.
+
+    The default test output directory is repo-local and is safe to scrub before
+    each run. When a custom directory is supplied via the environment, warn and
+    leave it alone to avoid deleting user data.
+    """
+    if output_dir is None:
+        output_dir = os.environ.get('METREFORMAT_TEST_OUTPUT_DIR', DEFAULT_TEST_OUTPUT_DIR)
+
+    output_dir = os.path.abspath(output_dir)
+    pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+    if os.path.abspath(output_dir) == DEFAULT_TEST_OUTPUT_DIR:
+        for child in os.listdir(output_dir):
+            child_path = os.path.join(output_dir, child)
+            if os.path.isdir(child_path) and not os.path.islink(child_path):
+                shutil.rmtree(child_path)
+            else:
+                os.remove(child_path)
+        return output_dir
+
+    if os.listdir(output_dir):
+        warnings.warn(
+            f'METREFORMAT_TEST_OUTPUT_DIR={output_dir} is not empty; the test suite '
+            'will not delete custom output directories automatically. Please clear it '
+            'before running the METreformat tests.',
+            UserWarning,
+            stacklevel=2,
+        )
+
+    return output_dir
+
+
+os.environ.setdefault('METREFORMAT_TEST_OUTPUT_DIR', DEFAULT_TEST_OUTPUT_DIR)
+os.environ['METREFORMAT_TEST_OUTPUT_DIR'] = prepare_test_output_dir(
+    os.environ.get('METREFORMAT_TEST_OUTPUT_DIR')
+)
+full_log_filename = os.path.join(os.environ['METREFORMAT_TEST_OUTPUT_DIR'], 'test_reformatting_log.txt')
 logger = util.get_common_logger('DEBUG', full_log_filename)
 
 
@@ -27,20 +91,27 @@ def read_input(config_file, is_tcst):
        Read in the input .stat data file, return a data frame representation of all the data in the specified
        input data directory.
 
-    :param input_data_dir: The full path of the directory where the input data is located.
+    :param config_file: The YAML config file or config dictionary. Its input_data_dir is relative
+                        to the test input data directory (see get_test_input_dir).
     :param is_tcst: If the linetype is a TCMPR or TCDiag (.tcst file)
     :return: file_df, the dataframe representation of the input data
     """
 
-    with open(config_file, 'r') as stream:
+    if isinstance(config_file, dict):
+        parms = config_file
+    else:
         try:
-            parms: dict = yaml.load(stream, Loader=yaml.FullLoader)
+            parms: dict = parse_config(config_file)
             pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
-        except yaml.YAMLError as exc:
+        except (yaml.YAMLError, ValueError) as exc:
             print(exc)
 
+    pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
+
     input_data_dir = parms['input_data_dir']
-    input_data_full_path = os.path.join(os.path.dirname(__file__), input_data_dir)
+    input_data_full_path = os.path.join(get_test_input_dir(), input_data_dir)
+    if not os.path.isdir(input_data_full_path):
+        pytest.fail(f'Test input data directory not found: {input_data_full_path}')
 
     # Replacing the need for an XML specification file, pass in the XMLLoadFile and
     # ReadDataFile parameters
@@ -64,21 +135,16 @@ def read_input(config_file, is_tcst):
 
     if is_tcst:
         file_df = rdf_obj.tcst_data
-
     else:
         file_df = rdf_obj.stat_data
-    # Check if the output file already exists, if so, delete it to avoid
-    # appending output from subsequent runs into the same file.
-    existing_output_file = os.path.join(parms['output_dir'], parms['output_filename'])
-    if os.path.exists(existing_output_file):
-        os.remove(existing_output_file)
 
     return file_df, parms
 
 
-def setup_test(yaml_file, is_tcst=False):
-    """
-       Read in the YAML config settings, then generate the input data as a data frame and perform reformatting.
+def _setup_test_from_yaml(yaml_file, is_tcst=False):
+    """Read in the YAML config settings, then generate the input data as a data frame and perform reformatting.
+    It is preferred to use setup_test to generate a config file instead of reading an existing yaml file.
+    This function is left here in case there is a need to read in an existing yaml file for testing purposes.
 
     """
 
@@ -87,6 +153,199 @@ def setup_test(yaml_file, is_tcst=False):
     file_df, config = read_input(full_yaml_file, is_tcst)
 
     return file_df, config
+
+
+def build_dispatch_test_config(linetype, test_name=None, is_aggregated=True, for_scatter=False):
+    """Build a minimal config for the generic line-type dispatch tests.
+
+    The dispatch tests only need enough metadata to read the input stat files and
+    create a unique output file per parameter combination without depending on a
+    dedicated YAML file for each linetype.
+
+    @param linetype: The line type to test.
+    @param is_aggregated Whether or not the data has been aggregated
+    @param for_scatter Whether or not the data is for a scatter plot (keep_all_cols)
+    @return: A tuple of (parms, is_tcst), where is_tcst is True for TCMPR/TCDIAG input.
+    """
+    line_type = str(linetype).upper()
+    if test_name is None:
+        test_name = line_type
+
+    input_data_dir_lookup = {
+        cn.ECNT: 'ensemble_stat',
+        cn.MCTS: 'grid_stat/mctc_mcts',
+        cn.RHIST: 'rhist_phist_relp_orank',
+        cn.SAL1L2: 'point_stat/sal1l2',
+        cn.PCT: 'RRFS_PCT_PRC_PJC_PSTD/2022050600',
+        cn.TCMPR: 'tcdiag_tcmpr',
+        cn.TCDIAG: 'tcdiag_tcmpr',
+        cn.MPR: 'mpr/from_regression_data',
+        cn.DMAP: 'grid_stat/dmap',
+        cn.VL1L2: 'point_stat/vl1l2_MET13',
+        cn.VCNT: 'point_stat/vl1l2_MET13',
+        'VCNT_for_MET13': 'point_stat/vcnt_MET13',
+        'FHO_nan': 'point_stat_nan',
+        'mpr_climo_data': 'mpr/climo_data',
+        'reformat_stat_ctc': 'tc_stat_rirw_cts_ctc/stat',
+        'reformat_stat_cts': 'tc_stat_rirw_cts_ctc/stat',
+        'reformat_tcst_ctc': 'tc_stat_rirw_cts_ctc',
+        'reformat_tcst_cts': 'tc_stat_rirw_cts_ctc',
+    }
+    input_data_dir = input_data_dir_lookup.get(test_name) or input_data_dir_lookup.get(line_type, 'point_stat')
+    suffix = '' if is_aggregated else '_for_agg'
+    output_filename = f'{test_name.lower()}{suffix}_reformatted.data'
+    is_tcst = line_type in {cn.TCMPR, cn.TCDIAG}
+
+    return {
+        'input_stats_aggregated': is_aggregated,
+        'output_dir': os.environ['METREFORMAT_TEST_OUTPUT_DIR'],
+        'output_filename': output_filename,
+        'line_type': line_type,
+        'input_data_dir': input_data_dir,
+        'log_directory': os.environ['METREFORMAT_TEST_OUTPUT_DIR'],
+        'log_filename': 'stdout',
+        'log_level': 'INFO',
+        'keep_all_cols': for_scatter,
+    }, is_tcst
+
+
+def setup_test(linetype, test_name=None, is_aggregated=True, for_scatter=False):
+    """Build a minimal config for a linetype test and read its input data.
+
+    This is the common path for tests that previously needed:
+
+        parms = build_dispatch_test_config(...)
+        stat_data, parms = read_input(parms, is_tcst=False)
+
+    @param linetype: The line type to test.
+    @param test_name: Optional test name to use for the input data directory and output filename.
+    @param is_aggregated: Whether or not the data has been aggregated.
+    @param for_scatter: Whether or not the data is for a scatter plot (keep_all_cols).
+    @return: A tuple of (stat_data, parms).
+    """
+    parms, is_tcst = build_dispatch_test_config(linetype, test_name, is_aggregated, for_scatter)
+    stat_data, parms = read_input(parms, is_tcst=is_tcst)
+    return stat_data, parms
+
+
+def fail_if_output_exists(parms):
+    """Fail the test if the output file that write_stat_ascii will write already exists.
+
+    write_stat_ascii appends to the output file, so an existing file means another
+    test uses the same output filename (same linetype/test_name/is_aggregated) and
+    the output from both tests would be combined. Call this before each call to
+    write_stat_ascii.
+
+    @param parms: The config dictionary returned by setup_test.
+    """
+    output_path = os.path.join(parms['output_dir'], parms['output_filename'])
+    if os.path.exists(output_path):
+        pytest.fail(
+            f'Output file already exists: {output_path}. Another test likely writes to the '
+            'same output file. Pass a unique test_name to setup_test to resolve the duplicate.'
+        )
+
+
+@pytest.mark.parametrize(
+    'linetype, is_aggregated, is_implemented',
+    [
+        (cn.FHO, True, True),
+        (cn.FHO, False, False),
+        (cn.CNT, True, True),
+        (cn.CNT, False, False),
+        (cn.VCNT, True, True),
+        (cn.VCNT, False, False),
+        (cn.CTC, True, True),
+        (cn.CTC, False, False),
+        (cn.CTS, True, True),
+        (cn.CTS, False, False),
+        (cn.MCTS, True, True),
+        (cn.MCTS, False, False),
+        (cn.SL1L2, True, True),
+        (cn.SL1L2, False, False),
+        (cn.SAL1L2, True, True),
+        (cn.SAL1L2, False, True),
+        (cn.VL1L2, True, True),
+        (cn.VL1L2, False, False),
+        (cn.ECNT, True, True),
+        (cn.ECNT, False, True),
+        (cn.PCT, True, True),
+        (cn.PCT, False, False),
+        (cn.RHIST, True, True),
+        (cn.TCDIAG, True, True),
+        (cn.TCDIAG, False, False),
+        (cn.MPR, True, True),
+        (cn.MPR, False, False),
+        (cn.DMAP, True, True),
+        (cn.DMAP, False, False),
+        (cn.VAL1L2, True, False),
+        (cn.VAL1L2, False, False),
+        (cn.MCTC, True, False),
+        (cn.MCTC, False, False),
+        (cn.NBRCTC, True, False),
+        (cn.NBRCTC, False, False),
+        (cn.NBRCTS, True, False),
+        (cn.NBRCTS, False, False),
+        (cn.NBRCNT, True, False),
+        (cn.NBRCNT, False, False),
+        (cn.SSVAR, True, False),
+        (cn.SSVAR, False, False),
+        (cn.GRAD, True, False),
+        (cn.GRAD, False, False),
+        (cn.RPS, True, False),
+        (cn.RPS, False, False),
+        (cn.ECLV, True, False),
+        (cn.ECLV, False, False),
+        (cn.PSTD, True, False),
+        (cn.PSTD, False, False),
+        (cn.PJC, True, False),
+        (cn.PJC, False, False),
+        (cn.PRC, True, False),
+        (cn.PRC, False, False),
+        (cn.ISC, True, False),
+        (cn.ISC, False, False),
+        (cn.PHIST, True, False),
+        (cn.PHIST, False, False),
+        (cn.ORANK, True, False),
+        (cn.ORANK, False, False),
+        (cn.RELP, True, False),
+        (cn.RELP, False, False),
+        (cn.ENSCNT, True, False),
+        (cn.ENSCNT, False, False),
+        (cn.PERC, True, False),
+        (cn.PERC, False, False),
+        (cn.SSIDX, True, False),
+        (cn.SSIDX, False, False),
+        (cn.SEEPS, True, False),
+        (cn.SEEPS, False, False),
+        (cn.SEEPS_MPR, True, False),
+        (cn.SEEPS_MPR, False, False),
+    ],
+)
+def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implemented):
+    """Verify dispatch behavior for each aggregated state.
+
+    Use a minimal generated config instead of a dedicated YAML fixture for each
+    linetype so the tests remain focused on dispatch behavior, while still
+    producing a unique output file per parameter combination.
+    """
+    stat_data, parms = setup_test(linetype, is_aggregated=is_aggregated)
+    wsa = WriteStatAscii(parms, logger)
+
+    if not is_implemented:
+        fail_if_output_exists(parms)
+        with pytest.raises(NotImplementedError):
+            wsa.write_stat_ascii(stat_data, parms)
+        output_path = os.path.join(parms['output_dir'], parms['output_filename'])
+        assert not os.path.exists(output_path)
+        return
+
+    fail_if_output_exists(parms)
+    result_df = wsa.write_stat_ascii(stat_data, parms)
+    output_path = os.path.join(parms['output_dir'], parms['output_filename'])
+    assert isinstance(result_df, pd.DataFrame)
+    assert not result_df.empty
+    assert os.path.exists(output_path)
 
 
 def test_bad_yaml():
@@ -103,12 +362,12 @@ def test_write_stat_ascii_bad_input():
         Test that an AttributeError is raised when the input dataframe
         is nonexistent.
     '''
-    stat_data, parms = setup_test("FHO.yaml")
-    cwd = os.getcwd()
+    _, parms = setup_test("FHO", test_name="write_stat_ascii_bad_input", is_aggregated=True)
 
+    fail_if_output_exists(parms)
     # After creating the WriteStatAscii object, the log directory should exist
+    wsa = WriteStatAscii(parms, logger)
     with pytest.raises(AttributeError):
-        wsa = WriteStatAscii(parms, logger)
         wsa.write_stat_ascii(None, parms)
 
 
@@ -118,14 +377,10 @@ def test_unsupported_linetype():
         is requested.  The MTD (mode time domain) line type is currently not
         supported.
     '''
-    stat_data, parms = setup_test("not_supported.yaml")
-    cwd = os.getcwd()
-    parms['log_directory'] = cwd + "/log_output"
-    parms['log_filename'] = "test_log.out"
-
-    # After creating the WriteStatAscii object, the log directory should exist
+    stat_data, parms = setup_test("MTD", is_aggregated=False)
+    wsa = WriteStatAscii(parms, logger)
+    fail_if_output_exists(parms)
     with pytest.raises(NotImplementedError):
-        wsa = WriteStatAscii(parms, logger)
         wsa.write_stat_ascii(stat_data, parms)
 
 
@@ -138,7 +393,7 @@ def test_point_stat_FHO_consistency():
     '''
 
     # Subset the input dataframe to include only the FHO linetype
-    stat_data, parms = setup_test("FHO.yaml")
+    stat_data, parms = setup_test("FHO", is_aggregated=True)
     end = cn.NUM_STAT_FHO_COLS
     fho_columns_to_use = np.arange(0, end).tolist()
     linetype = cn.FHO
@@ -176,8 +431,8 @@ def test_point_stat_FHO_consistency():
 
     # Checking for consistency between the reformatted/reshaped data and the
     # "original" data.
-    assert expected_val == actual_value
-    assert expected_name == actual_name
+    assert actual_value == expected_val
+    assert actual_name == expected_name
 
 
 def test_point_stat_sl1l2_consistency():
@@ -191,7 +446,7 @@ def test_point_stat_sl1l2_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('SL1L2.yaml')
+    stat_data, parms = setup_test('SL1L2', is_aggregated=True)
 
     # Relevant columns for the SL1L2 line type
     linetype: str = cn.SL1L2
@@ -237,6 +492,40 @@ def test_point_stat_sl1l2_consistency():
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
 
+def test_point_stat_sal1l2_consistency():
+    stat_data, parms = setup_test('SAL1L2', is_aggregated=True)
+
+    linetype: str = cn.SAL1L2
+    sal1l2_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_SAL1L2_COLS).tolist()
+    sal1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+                             sal1l2_columns_to_use]
+    sal1l2_df.columns: List[str] = cn.SAL1L2_HEADERS
+
+    total = str(361)
+    obs_var = 'UGRD'
+    obs_level = 'P250'
+    fcst_thresh = 'NA'
+    # --------------------------------------------------------------------------------------
+
+    expected_df: pd.DataFrame = sal1l2_df.loc[
+        (sal1l2_df['total'] == total) & (sal1l2_df['obs_var'] == obs_var) &
+        (sal1l2_df['obs_lev'] == obs_level) &
+        (sal1l2_df['fcst_thresh'] == fcst_thresh)]
+    expected_row: pd.Series = expected_df.iloc[0]
+    expected_name: str = "FABAR"   # or OABAR/FOABAR/FFABAR/OOABAR/MAE
+    expected_val: float = expected_row.loc[expected_name]
+
+    wsa = WriteStatAscii(parms, logger)
+    reshaped_df = wsa.process_sal1l2(stat_data)
+    actual_df: pd.DataFrame = reshaped_df.loc[
+        (reshaped_df['total'] == total) & (reshaped_df['obs_var'] == obs_var) &
+        (reshaped_df['obs_lev'] == obs_level) &
+        (reshaped_df['fcst_thresh'] == fcst_thresh) &
+        (reshaped_df['stat_name'] == expected_name)]
+    actual_value: float = actual_df.iloc[0]['stat_value']
+
+    assert expected_val == actual_value
+
 
 def test_point_stat_vl1l2_consistency():
     '''
@@ -247,7 +536,7 @@ def test_point_stat_vl1l2_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('VL1L2.yaml')
+    stat_data, parms = setup_test('VL1L2', is_aggregated=True)
 
     # Relevant columns for the VL1L2 line type
     linetype: str = cn.VL1L2
@@ -316,7 +605,7 @@ def test_point_stat_ctc_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('CTC.yaml')
+    stat_data, parms = setup_test('CTC')
 
     # Relevant columns for the CTC line type
     linetype: str = cn.CTC
@@ -368,7 +657,7 @@ def test_process_ctc_agg():
     """ verify that the NotImplementedError is raised  when
           invoking the process_ctc_agg
     """
-    stat_data, parms = setup_test('CTC.yaml')
+    stat_data, parms = setup_test('CTC')
     parms['input_stats_aggregated'] = False
     wsa = WriteStatAscii(parms, logger)
     with pytest.raises(NotImplementedError):
@@ -386,7 +675,7 @@ def test_point_stat_cts_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('CTS.yaml')
+    stat_data, parms = setup_test('CTS')
 
     # Relevant columns for the CTS line type
     linetype: str = cn.CTS
@@ -442,17 +731,6 @@ def test_point_stat_cts_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_process_cts_agg():
-    """ verify that the NotImplementedError is raised  when
-          invoking the process_cts_agg
-    """
-    stat_data, parms = setup_test('CTS.yaml')
-    parms['input_stats_aggregated'] = False
-    wsa = WriteStatAscii(parms, logger)
-    with pytest.raises(NotImplementedError):
-        wsa.process_cts_for_agg(stat_data)
-
-
 def test_point_stat_cnt_consistency():
     '''
            For the data frame for the CNT line type, verify that a value in the
@@ -464,7 +742,7 @@ def test_point_stat_cnt_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('CNT.yaml')
+    stat_data, parms = setup_test('CNT')
 
     # Relevant columns for the CNT line type
     linetype: str = cn.CNT
@@ -520,17 +798,6 @@ def test_point_stat_cnt_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_process_cnt_agg():
-    """ verify that the NotImplementedError is raised  when
-          invoking the process_cnt_agg
-    """
-    stat_data, parms = setup_test('CNT.yaml')
-    parms['input_stats_aggregated'] = False
-    wsa = WriteStatAscii(parms, logger)
-    with pytest.raises(NotImplementedError):
-        wsa.process_cnt_for_agg(stat_data)
-
-
 def test_point_stat_vcnt_met13_consistency():
     '''
            For the data frame for the VCNT line type (post-MET v12),
@@ -544,7 +811,7 @@ def test_point_stat_vcnt_met13_consistency():
     # the inclusion of the 12 new VCNT columns was
     # added in the MET 12.0.0 release. Use VCNT data used in
     # MET v13 regression tests
-    stat_data, parms = setup_test('VCNT_for_MET13.yaml')
+    stat_data, parms = setup_test('VCNT', test_name='VCNT_for_MET13')
 
     # Relevant columns for the VCNT line type
     linetype: str = cn.VCNT
@@ -574,6 +841,7 @@ def test_point_stat_vcnt_met13_consistency():
     expected_row: pd.Series = expected_df.iloc[0]
     expected_name: str = "FBAR"
     wsa = WriteStatAscii(parms, logger)
+    fail_if_output_exists(parms)
     reshaped_df = wsa.write_stat_ascii(stat_data, parms)
     actual_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) &
                                               (reshaped_df['obs_var'] == obs_var) &
@@ -600,7 +868,7 @@ def test_point_stat_mcts_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('./MCTS.yaml')
+    stat_data, parms = setup_test('MCTS')
 
     # Relevant columns for the MCTS line type
     linetype: str = cn.MCTS
@@ -666,7 +934,7 @@ def test_ensemble_stat_ecnt_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test('ECNT.yaml')
+    stat_data, config = setup_test('ECNT')
 
     # Relevant columns for the ECNT line type
     linetype: str = cn.ECNT
@@ -745,7 +1013,7 @@ def test_pct_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test('PCT_ROC.yaml')
+    stat_data, config = setup_test('PCT', test_name='PCT_ROC')
 
     # Relevant columns for the PCT line type
     wsa = WriteStatAscii(config, logger)
@@ -800,7 +1068,7 @@ def test_rhist_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test('RHIST.yaml')
+    stat_data, config = setup_test('RHIST')
 
     # Relevant columns for the RHIST line type
     linetype: str = cn.RHIST
@@ -861,7 +1129,7 @@ def test_ecnt_reformat_for_agg():
        '''
 
     # Original unreformatted data
-    stat_data, config = setup_test('ECNT_for_agg.yaml')
+    stat_data, config = setup_test('ECNT', is_aggregated=False)
 
     # Reformatted data
     wsa = WriteStatAscii(config, logger)
@@ -916,7 +1184,7 @@ def test_ecnt_reformat():
        '''
 
     # Original unreformatted data
-    stat_data, config = setup_test('ECNT.yaml')
+    stat_data, config = setup_test('ECNT')
     # Reformatted data
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_ecnt(stat_data)
@@ -962,7 +1230,7 @@ def test_fho_reformat_for_agg():
     :return:
     '''
 
-    stat_data, parms = setup_test("FHO_for_agg.yaml")
+    stat_data, parms = setup_test("FHO", is_aggregated=False)
     wsa = WriteStatAscii(parms, logger)
 
     # Expect error when invoking the process_fho_for_agg directly
@@ -978,7 +1246,7 @@ def test_fho_reformat():
     :return:
     '''
 
-    stat_data, parms = setup_test("FHO_for_agg.yaml")
+    stat_data, parms = setup_test("FHO", is_aggregated=False)
     wsa = WriteStatAscii(parms, logger)
 
     result_df = wsa.process_fho(stat_data)
@@ -990,10 +1258,14 @@ def test_tcdiag_from_tcpairs():
         Test that the reformatting is correct by comparing values in the original data to the reformatted data
 
     '''
-    stat_data, config = setup_test('test_reformat_tcdiag.yaml', is_tcst=True)
+    stat_data, config = setup_test('TCDIAG')
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_tcdiag(stat_data)
-    reformatted_df.to_csv("./tcmpr_reformatted.txt", sep="\t")
+    pathlib.Path(config['output_dir']).mkdir(parents=True, exist_ok=True)
+    output_path = os.path.join(config['output_dir'], config['output_filename'])
+    reformatted_df.to_csv(output_path, sep="\t")
+
+    assert os.path.exists(output_path)
 
     # Compare original data (read in from METdbLoad) to reformatted
 
@@ -1111,7 +1383,7 @@ def test_mpr_for_line_with_regression_data():
             None passes or fails
     """
 
-    stat_data, config = setup_test("mpr_for_line_regression_data.yaml")
+    stat_data, config = setup_test("MPR", test_name="mpr_for_line")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
@@ -1189,7 +1461,7 @@ def test_mpr_for_scatter_with_regression_data():
             None passes or fails
     """
 
-    stat_data, config = setup_test("mpr_for_scatter_regression_data.yaml")
+    stat_data, config = setup_test("MPR", test_name="mpr_for_scatter", for_scatter=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
@@ -1241,14 +1513,20 @@ def test_mpr_for_climo_data():
             None: passes or fails
     """
 
-    stat_data, config = setup_test("mpr_climo_data.yaml")
+    stat_data, config = setup_test("MPR", test_name="mpr_climo_data", for_scatter=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
     # Check for expected column name changes and new columns
-    expected_col_headers = ['OBS_CLIMO_STDEV', 'OBS_CLIMO_MEAN', 'OBS_CLIMO_CDF', 'FCST_CLIMO_MEAN', 'FCST_CLIMO_STDEV']
+    expected_col_headers = [
+        'obs_climo_stdev',
+        'obs_climo_mean',
+        'obs_climo_cdf',
+        'fcst_climo_mean',
+        'fcst_climo_stdev'
+    ]
     reformatted_col_headers = reformatted_df.columns.to_list()
-    for cur_col in reformatted_col_headers:
+    for cur_col in expected_col_headers:
         assert cur_col in reformatted_col_headers
 
 
@@ -1267,10 +1545,11 @@ def test_dmap_for_scatter():
             None passes or fails
     """
 
-    stat_data, config = setup_test("dmap_for_scatter.yaml")
+    stat_data, config = setup_test("DMAP", test_name="dmap_for_scatter", for_scatter=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_dmap(stat_data)
-    reformatted_df.to_csv("./dmap_for_scatter.data", sep="\t")
+    output_path = os.path.join(config['output_dir'], config['output_filename'])
+    reformatted_df.to_csv(output_path, sep="\t")
 
     # Verify that all the DMAP and common headers are present in the reformatted output file.
     expected_headers: list = list(cn.DMAP_HEADERS)
@@ -1328,9 +1607,6 @@ def test_dmap_for_scatter():
     assert expected_gbeta == reformatted_gbeta
     assert expected_beta_value == reformatted_beta_value
 
-    # cleanup
-    os.remove('./dmap_for_scatter.data')
-
 
 def test_dmap_for_lineplot():
     """
@@ -1349,7 +1625,7 @@ def test_dmap_for_lineplot():
             None passes or fails
     """
 
-    stat_data, config = setup_test("dmap_for_line.yaml")
+    stat_data, config = setup_test("DMAP", test_name="dmap_for_line")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_dmap(stat_data)
 
@@ -1424,11 +1700,13 @@ def test_tcst_with_cts():
         redd_data_files.py module are correctly reading in the CTC and CTS
         lines in tcst files.
     """
-    tcst_data, config = setup_test("./reformat_tcst_cts.yaml")
+    tcst_data, config = setup_test("CTS", test_name="reformat_tcst_cts")
     wsa = WriteStatAscii(config, logger)
+    fail_if_output_exists(config)
     reformatted_df = wsa.write_stat_ascii(tcst_data, config)
-    stat_data, sconfig = setup_test("./reformat_stat_cts.yaml")
+    stat_data, sconfig = setup_test("CTS", test_name="reformat_stat_cts")
     wsa_stat = WriteStatAscii(sconfig, logger)
+    fail_if_output_exists(sconfig)
     expected_cts = wsa_stat.write_stat_ascii(stat_data, sconfig)
 
     # reformatted_df and expected_cts should have the same number of rows
@@ -1441,9 +1719,6 @@ def test_tcst_with_cts():
     assert reformatted_df.iloc[:1, :]['stat_name'][0] == expected_cts.iloc[:1, :]['stat_name'][0]
     assert reformatted_df.iloc[:1, :]['stat_value'][0] == expected_cts.iloc[:1, :]['stat_value'][0]
 
-    # cleanup
-    shutil.rmtree('./output/')
-
 
 def test_tcst_with_ctc():
     """
@@ -1453,12 +1728,14 @@ def test_tcst_with_ctc():
         redd_data_files.py module are correctly reading in the CTC and CTS
         lines in tcst files.
     """
-    tcst_data, config = setup_test("./reformat_tcst_ctc.yaml")
+    tcst_data, config = setup_test("CTC", test_name="reformat_tcst_ctc")
     wsa = WriteStatAscii(config, logger)
+    fail_if_output_exists(config)
     reformatted_df = wsa.write_stat_ascii(tcst_data, config)
 
-    stat_data, sconfig = setup_test("./reformat_stat_ctc.yaml")
+    stat_data, sconfig = setup_test("CTC", test_name="reformat_stat_ctc")
     wsa_stat = WriteStatAscii(sconfig, logger)
+    fail_if_output_exists(sconfig)
     expected_ctc = wsa_stat.write_stat_ascii(stat_data, sconfig)
 
     # reformatted_df and expected_cts should have the same number of rows
@@ -1471,28 +1748,25 @@ def test_tcst_with_ctc():
     assert reformatted_df.iloc[:1, :]['stat_name'][0] == expected_ctc.iloc[:1, :]['stat_name'][0]
     assert reformatted_df.iloc[:1, :]['stat_value'][0] == expected_ctc.iloc[:1, :]['stat_value'][0]
 
-    # cleanup
-    shutil.rmtree('./output/')
-
 
 def test_write_stat_ascii_type_error():
     """ Deliberately input the incorrect/unexpected
           types to the WriteStatAscii constructor
     """
-    tcst_data, config = setup_test("./reformat_tcst_ctc.yaml")
     bad_config = []
     logger = None
     with pytest.raises(TypeError):
-        wsa = WriteStatAscii(bad_config, logger)
+        WriteStatAscii(bad_config, logger)
 
 
 def test_NA():
     """ Verify that nan's are replaced by NA in write_stat_ascii()"""
 
-    _, parms = setup_test("./FHO_nan.yaml")
+    _, parms = setup_test("FHO", test_name="FHO_nan")
     dir = os.getcwd()
     parms['log_directory'] = dir
     wsa = WriteStatAscii(parms, logger)
+    fail_if_output_exists(parms)
     result = wsa.write_stat_ascii(_, parms)
     desc = result['desc']
 

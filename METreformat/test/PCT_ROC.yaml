@@ -1,9 +1,0 @@
-input_stats_aggregated: True
-output_dir: ../output
-output_filename: rrfs_pct_reformatted.data.txt
-line_type: PCT
-input_data_dir: ./data/RRFS_PCT_PRC_PJC_PSTD/2022050600
-# Set to log_filename to STDOUT if no log file is to be saved
-log_directory: ../output
-log_filename: stdout
-log_level: info
