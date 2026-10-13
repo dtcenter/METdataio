@@ -91,7 +91,7 @@ jobs:
 
     - name: Run Pytests
       run: |
-        export METREFORMAT_TEST_INPUT_DIR=${{ runner.workspace }}/test_input/METdataio_Data
+        export METDATAIO_TEST_INPUT_DIR=${{ runner.workspace }}/test_input/METdataio_Data
         coverage run --append -m pytest
 
     - name: Output coverage report

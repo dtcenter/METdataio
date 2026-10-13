@@ -106,3 +106,6 @@ METreformat/test/output/
 
 # other METplus components
 /METcalcpy
+
+# Test input data (see docs/Contributors_Guide/running_unit_tests_locally.rst)
+/METdataio_Data/

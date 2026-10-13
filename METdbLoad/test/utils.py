@@ -10,45 +10,57 @@ def abs_path(rel_path):
 # XML Schema for the load specification XML
 LOAD_SPECIFICATION_SCHEMA = os.path.join(abs_path("METdbLoad/ush/"), "load_specification_schema.xsd")
 
+# Top-level directory of the test input data, read from the METDATAIO_TEST_INPUT_DIR
+# environment variable. Defaults to METdataio_Data in the top of the repository, which is
+# where the sample data tarball is extracted if it is unpacked there.
+TEST_INPUT_DIR = os.path.abspath(
+    os.environ.get("METDATAIO_TEST_INPUT_DIR", abs_path("METdataio_Data"))
+)
+
+
+def input_path(rel_path):
+    """Turn a path relative to the test input data directory into an abs path"""
+    return os.path.join(TEST_INPUT_DIR, rel_path)
+
 # Use data from METreformat where available
-ENSEMBLE_STAT_DATA_DIR = abs_path("METreformat/test/data/ensemble_stat")
-GRID_STAT_DATA_DIR = abs_path("METreformat/test/data/grid_stat/mctc_mcts")
-MPR_DATA_DIR = abs_path("METreformat/test/data/mpr/climo_data")
-POINT_STAT_DATA_DIR = abs_path("METreformat/test/data/point_stat")
-TCDIAG_DATA_DIR = abs_path("METreformat/test/data/tcdiag_tcmpr")
-ONE_EMPTY_DIR = abs_path("METreformat/test/data/point_stat/one_empty")
-TCSTAT_DIR = abs_path("METreformat/test/data/tc_stat_rirw_cts_ctc")
-TCSTAT_NO_HEADER = abs_path("METreformat/test/data/tc_stat_rirw_cts_ctc/tc_stat_no_header")
-TCSTAT_EMPTY = abs_path("METreformat/test/data/tc_stat_rirw_cts_ctc/empty")
+ENSEMBLE_STAT_DATA_DIR = input_path("ensemble_stat")
+GRID_STAT_DATA_DIR = input_path("grid_stat/mctc_mcts")
+MPR_DATA_DIR = input_path("mpr/climo_data")
+POINT_STAT_DATA_DIR = input_path("point_stat")
+TCDIAG_DATA_DIR = input_path("tcdiag_tcmpr")
+ONE_EMPTY_DIR = input_path("point_stat/one_empty")
+TCSTAT_DIR = input_path("tc_stat_rirw_cts_ctc")
+TCSTAT_NO_HEADER = input_path("tc_stat_rirw_cts_ctc/tc_stat_no_header")
+TCSTAT_EMPTY = input_path("tc_stat_rirw_cts_ctc/empty")
 
 # Data in METdbLoad
-EMPTY_DIR = abs_path("METdbLoad/test/data/empty")
-VSDB_DIR = abs_path("METdbLoad/test/data/vsdb")
-VSDB_NO_EQUALS_DIR = abs_path("METdbLoad/test/data/vsdb/vsdb_no_equals")
-VSDB_EMPTY = abs_path("METdbLoad/test/data/empty/empty_vsdb")
-VSDB_ONE_EMPTY = abs_path("METdbLoad/test/data/empty/empty_vsdb/one_empty")
-MODE_CTS_EMPTY = abs_path("METdbLoad/test/data/empty/empty_mode_cts/")
-MODE_OBJ_EMPTY = abs_path("METdbLoad/test/data/empty/empty_mode_obj/")
-MODE_NO_HEADER = abs_path("METdbLoad/test/data/mode/no_header")
-MODE_ONLY_CTS = abs_path("METdbLoad/test/data/mode/only_cts")
-MODE_EMPTY = abs_path("METdbLoad/test/data/empty/empty_mode")
-MTD_DATA_DIR = abs_path("METdbLoad/test/data/mtd")
-MTD_EMPTY = abs_path("METdbLoad/test/data/empty/empty_mtd")
-MTD_HEADER_NO_DATA = abs_path("METdbLoad/test/data/mtd/mtd_header_only")
-MTD_INTENSITY_90_LAST_COL = abs_path("METdbLoad/test/data/mtd/intensity_90_last_col")
-MTD_NO_FCST_T_BEG = abs_path("METdbLoad/test/data/mtd/no_fcst_t_beg")
-MTD_ONE_EMPTY = abs_path("METdbLoad/test/data/mtd/one_empty")
-MTD_MISSING_COLUMNS = abs_path("METdbLoad/test/data/mtd/missing_some_columns")
+EMPTY_DIR = input_path("empty")
+VSDB_DIR = input_path("vsdb")
+VSDB_NO_EQUALS_DIR = input_path("vsdb/vsdb_no_equals")
+VSDB_EMPTY = input_path("empty/empty_vsdb")
+VSDB_ONE_EMPTY = input_path("empty/empty_vsdb/one_empty")
+MODE_CTS_EMPTY = input_path("empty/empty_mode_cts/")
+MODE_OBJ_EMPTY = input_path("empty/empty_mode_obj/")
+MODE_NO_HEADER = input_path("mode/no_header")
+MODE_ONLY_CTS = input_path("mode/only_cts")
+MODE_EMPTY = input_path("empty/empty_mode")
+MTD_DATA_DIR = input_path("mtd")
+MTD_EMPTY = input_path("empty/empty_mtd")
+MTD_HEADER_NO_DATA = input_path("mtd/mtd_header_only")
+MTD_INTENSITY_90_LAST_COL = input_path("mtd/intensity_90_last_col")
+MTD_NO_FCST_T_BEG = input_path("mtd/no_fcst_t_beg")
+MTD_ONE_EMPTY = input_path("mtd/one_empty")
+MTD_MISSING_COLUMNS = input_path("mtd/missing_some_columns")
 
 
 # This data is copied from MET test data
 # https://hub.docker.com/r/dtcenter/met-data-output
-MTD_DATA_DIR = abs_path("METdbLoad/test/data/mtd/")
-MODE_DATA_DIR = abs_path("METdbLoad/test/data/mode/")
+MTD_DATA_DIR = input_path("mtd/")
+MODE_DATA_DIR = input_path("mode/")
 
 # Very small data sample for testing
-VSDB_DATA_DIR = abs_path("METdbLoad/test/data/vsdb/")
-RHIST_DATA_DIR = abs_path("METdbLoad/test/data/rhist")
+VSDB_DATA_DIR = input_path("vsdb/")
+RHIST_DATA_DIR = input_path("rhist")
 
 DEFAULT_LOAD_FLAGS = {
     "stat_header_db_check": "true",

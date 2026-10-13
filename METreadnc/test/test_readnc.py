@@ -6,7 +6,13 @@ import pytest
 
 from METreadnc.util import read_netcdf as rn
 
-cwd = os.path.dirname(__file__)
+# Top-level directory of the test input data, read from the METDATAIO_TEST_INPUT_DIR
+# environment variable. Defaults to METdataio_Data in the top of the repository.
+input_dir = os.path.abspath(os.environ.get(
+    'METDATAIO_TEST_INPUT_DIR',
+    os.path.join(os.path.dirname(__file__), '..', '..', 'METdataio_Data')
+))
+
 @pytest.mark.filterwarnings("ignore")
 def test_xarray_one_file():
     # Test direct invocation with various input file types:
@@ -14,7 +20,7 @@ def test_xarray_one_file():
 
     # Single input file
     file_reader = rn.ReadNetCDF()
-    load_files = f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180201_000000.nc'
+    load_files = f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180201_000000.nc'
     netcdf_data_set = file_reader.read_into_xarray(load_files)
     assert isinstance(netcdf_data_set[0], xarray.Dataset)
 
@@ -22,10 +28,10 @@ def test_xarray_one_file():
 def test_xarray_list_files():
     # List of input files
     file_reader = rn.ReadNetCDF()
-    load_files = [f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180201_000000.nc',
-                  f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180210_000000.nc',
-                  f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180214_000000.nc',
-                  f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180228_000000.nc']
+    load_files = [f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180201_000000.nc',
+                  f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180210_000000.nc',
+                  f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180214_000000.nc',
+                  f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180228_000000.nc']
     netcdf_data_set_list = file_reader.read_into_xarray(load_files)
     for cur in netcdf_data_set_list:
         assert isinstance(cur, xarray.Dataset)
@@ -35,10 +41,10 @@ def test_xarray_tuple_files():
     # Test on data with only lat and level dimensions (no longitude)
 
     file_reader = rn.ReadNetCDF()
-    load_files = [f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180201_000000.nc',
-                  f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180210_000000.nc',
-                  f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180214_000000.nc',
-                  f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180228_000000.nc']
+    load_files = [f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180201_000000.nc',
+                  f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180210_000000.nc',
+                  f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180214_000000.nc',
+                  f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180228_000000.nc']
     netcdf_data_set_tup = file_reader.read_into_xarray(load_files)
     for cur in netcdf_data_set_tup:
         assert isinstance(cur, xarray.Dataset)
@@ -46,10 +52,10 @@ def test_xarray_tuple_files():
 # @pytest.mark.filterwarnings("ignore")
 def test_pandas_list():
     file_reader = rn.ReadNetCDF()
-    load_files = [f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180201_000000.nc',
-                  f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180210_000000.nc',
-                  f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180214_000000.nc',
-                  f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180228_000000.nc']
+    load_files = [f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180201_000000.nc',
+                  f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180210_000000.nc',
+                  f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180214_000000.nc',
+                  f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180228_000000.nc']
     netcdf_data_set_list = file_reader.read_into_pandas(load_files)
 
     assert isinstance(netcdf_data_set_list, pd.DataFrame)
@@ -60,10 +66,10 @@ def test_pandas_no_lon():
     # Verify that the resulting dataframe contains a level and
     # latitude column for this test data.
     file_reader = rn.ReadNetCDF()
-    load_files = [f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180201_000000.nc',
-                  f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180210_000000.nc',
-                  f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180214_000000.nc',
-                  f'{cwd}/data/lat_level/FCST_zonal_mean_U_T_20180228_000000.nc']
+    load_files = [f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180201_000000.nc',
+                  f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180210_000000.nc',
+                  f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180214_000000.nc',
+                  f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180228_000000.nc']
     netcdf_data_set_list = file_reader.read_into_pandas(load_files)
 
     # if the dataframe is correct, then there should be lat and level columns

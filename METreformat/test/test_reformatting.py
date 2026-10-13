@@ -22,23 +22,23 @@ from metcalcpy.util.read_env_vars_in_config import parse_config
 
 TEST_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'output')
 DEFAULT_TEST_OUTPUT_DIR = os.path.abspath(TEST_OUTPUT_DIR)
-DEFAULT_TEST_INPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
+DEFAULT_TEST_INPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'METdataio_Data'))
 
 
 def get_test_input_dir():
     """Return the top-level directory that contains the METreformat test input data.
 
-    The directory is read from the METREFORMAT_TEST_INPUT_DIR environment variable. If it is
-    not set, METreformat/test/data is used. Fail the calling test with an explanation if the
+    The directory is read from the METDATAIO_TEST_INPUT_DIR environment variable. If it is
+    not set, METdataio_Data in the top of the repository is used. Fail the calling test with an explanation if the
     directory does not exist, so missing input data is not mistaken for a reformatting bug.
 
     @return: The absolute path of the test input data directory.
     """
-    input_dir = os.path.abspath(os.environ.get('METREFORMAT_TEST_INPUT_DIR', DEFAULT_TEST_INPUT_DIR))
+    input_dir = os.path.abspath(os.environ.get('METDATAIO_TEST_INPUT_DIR', DEFAULT_TEST_INPUT_DIR))
     if not os.path.isdir(input_dir):
         pytest.fail(
             f'METreformat test input data directory not found: {input_dir}. Set the '
-            'METREFORMAT_TEST_INPUT_DIR environment variable to the directory that contains '
+            'METDATAIO_TEST_INPUT_DIR environment variable to the directory that contains '
             f'the test input data, or make it available at {DEFAULT_TEST_INPUT_DIR}.'
         )
     return input_dir

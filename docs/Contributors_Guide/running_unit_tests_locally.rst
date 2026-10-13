@@ -157,17 +157,17 @@ Step 1: Implement the Line Type Handler
 Step 2: Add Input Data (if needed)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Test input data is in `METreformat/test/data/` by default (see :ref:`Test Input Location <metreformat_test_input_location>`
-to read it from another directory). First check whether an existing directory already has
+Test input data is in `METdataio_Data/` by default (see :ref:`Test Input Location <metreformat_test_input_location>`
+to download it or read it from another directory). First check whether an existing directory already has
 `.stat` files with the new line type, e.g. by running:
 
 .. code-block:: console
 
-    $ grep -rl " VAL1L2 " METreformat/test/data
+    $ grep -rl " VAL1L2 " METdataio_Data
 
 If none exists, add a small set of MET output files that contain the line type:
 
-* Put the files in a **new directory** for the line type, e.g. `METreformat/test/data/point_stat/val1l2`.
+* Put the files in a **new directory** for the line type, e.g. `METdataio_Data/point_stat/val1l2`.
   The test reader loads every file directly in the directory (it does not recurse into subdirectories).
   If you add files to a shared directory, other tests that read that directory also load them, which can
   change their results.
@@ -177,6 +177,9 @@ If none exists, add a small set of MET output files that contain the line type:
   version in separate directories (e.g. `vl1l2_MET13`).
 * For aggregated tests, the data should come from stat-analysis. For non-aggregated tests, the data
   should come directly from the MET tool. One directory may contain both if the line type appears in both.
+* The test data is not stored in the repository, so new files must also be added to the sample data tarball
+  (`sample_data_METdataio.tgz`) for the tests to pass in the GitHub Actions workflows. Note in your pull
+  request which files need to be added.
 
 Step 3: Add an Entry to `input_data_dir_lookup`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -196,7 +199,7 @@ sets the input data directory:
 
 How the lookup works:
 
-* Paths are relative to the test input data directory (`METreformat/test/data/` by default).
+* Paths are relative to the test input data directory (`METdataio_Data/` by default).
 * The key can be either a line type constant (e.g. `cn.VAL1L2`) or a custom `test_name` string.
   The lookup tries `test_name` first and then the line type. If neither matches, it falls back to
   `point_stat`. Because of this fallback, a missing entry may not cause an error, but the test may
@@ -335,17 +338,26 @@ Tips for writing these tests:
 Test Input Location
 ~~~~~~~~~~~~~~~~~~~
 
-By default, the tests read input data from `METreformat/test/data/`. To read it from another directory, set
-the `METREFORMAT_TEST_INPUT_DIR` environment variable to a directory with the same layout (e.g. it contains
-`ensemble_stat/`, `point_stat/`, etc.):
+The test input data for METdbLoad, METreadnc, and METreformat is not stored in the repository. Download
+the sample data tarball and extract it:
 
 .. code-block:: console
 
-    $ export METREFORMAT_TEST_INPUT_DIR=/path/to/metreformat_test_data
+    $ wget https://dtcenter.ucar.edu/dfiles/code/METplus/METdataio_Data/develop/sample_data_METdataio.tgz
+    $ tar -xzf sample_data_METdataio.tgz
+
+This creates a `METdataio_Data/` directory. By default, the tests read input data from `METdataio_Data/` in
+the top of the METdataio repository, so extracting the tarball there requires no other setup. To read it
+from another directory, set the `METDATAIO_TEST_INPUT_DIR` environment variable to the `METdataio_Data`
+directory (e.g. it contains `ensemble_stat/`, `point_stat/`, etc.):
+
+.. code-block:: console
+
+    $ export METDATAIO_TEST_INPUT_DIR=/path/to/METdataio_Data
     $ pytest METreformat/test/test_reformatting.py
 
-If the input data directory does not exist, each test that reads input data fails with a message that
-names the missing directory. Tests that do not read input data still run.
+If the input data directory does not exist, each METreformat test that reads input data fails with a
+message that names the missing directory. Tests that do not read input data still run.
 
 Test Output Location
 ~~~~~~~~~~~~~~~~~~~~
@@ -371,7 +383,7 @@ When adding support for a new line type:
 #. Add or confirm the line type constants in `METdbLoad/ush/constants.py`.
 #. Add or update the registry entry in `WriteStatAscii._build_handler_registry()`.
 #. Implement `process_<linetype>` and/or `process_<linetype>_for_agg`.
-#. Add input data in its own directory under `METreformat/test/data/`, if needed.
+#. Add input data in its own directory under `METdataio_Data/`, if needed.
 #. Add the data directory to `input_data_dir_lookup` in `build_dispatch_test_config()`, and add the line type
    to `is_tcst` if it is read from `.tcst` files.
 #. Change `is_implemented` to `True` for the implemented mode(s) in the
