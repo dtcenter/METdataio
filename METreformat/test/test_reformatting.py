@@ -347,6 +347,14 @@ def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implement
     assert not result_df.empty
     assert os.path.exists(output_path)
 
+    # All statistic columns have the <statname>_ prefix, where statname is
+    # the statistics name in all-caps.
+    if not is_aggregated:
+        expected_prefix = linetype.upper() + "_"
+        written = pd.read_csv(output_path, sep='\t')
+        assert all(name.startswith(expected_prefix) for name in written['stat_name'].unique())
+
+
 
 def test_bad_yaml():
     """
@@ -492,13 +500,14 @@ def test_point_stat_sl1l2_consistency():
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
 
+
 def test_point_stat_sal1l2_consistency():
     stat_data, parms = setup_test('SAL1L2', is_aggregated=True)
 
     linetype: str = cn.SAL1L2
     sal1l2_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_SAL1L2_COLS).tolist()
     sal1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                             sal1l2_columns_to_use]
+    sal1l2_columns_to_use]
     sal1l2_df.columns: List[str] = cn.SAL1L2_HEADERS
 
     total = str(361)
@@ -512,7 +521,7 @@ def test_point_stat_sal1l2_consistency():
         (sal1l2_df['obs_lev'] == obs_level) &
         (sal1l2_df['fcst_thresh'] == fcst_thresh)]
     expected_row: pd.Series = expected_df.iloc[0]
-    expected_name: str = "FABAR"   # or OABAR/FOABAR/FFABAR/OOABAR/MAE
+    expected_name: str = "FABAR"  # or OABAR/FOABAR/FFABAR/OOABAR/MAE
     expected_val: float = expected_row.loc[expected_name]
 
     wsa = WriteStatAscii(parms, logger)
@@ -1005,6 +1014,7 @@ def test_ensemble_stat_ecnt_consistency():
 
     assert num_matches == num_ecnt_headers
 
+
 def test_pct_consistency():
     '''
         test PCT linetype reformatting has kept data consistent with original
@@ -1160,9 +1170,9 @@ def test_vl1l2_reformat_for_agg():
         assert expected_row[col] == actual_row[col]
 
 
-    def test_vl1l2_for_agg_write_output():
-        '''
-       Verify that write_stat_ascii produces output for non-aggregated VL1L2 input.
+def test_vl1l2_for_agg_write_output():
+    '''
+      Verify that write_stat_ascii produces output for non-aggregated VL1L2 input.
     '''
 
 
@@ -1171,7 +1181,6 @@ def test_vl1l2_reformat_for_agg():
     wsa = WriteStatAscii(parms, logger)
     result_df = wsa.write_stat_ascii(stat_data, parms)
 
-
     # Output file exists/was created
     output_path = os.path.join(parms['output_dir'], parms['output_filename'])
     assert os.path.exists(output_path)
@@ -1179,9 +1188,6 @@ def test_vl1l2_reformat_for_agg():
     # Dataframe that is created is not empty
     written = pd.read_csv(output_path, sep='\t')
     assert written.shape[0] == result_df.shape[0]
-
-    # All statistic columns have the VL1L2_ prefix
-    assert all(name.startswith('VL1L2_') for name in written['stat_name'].unique())
 
 
 def test_ecnt_reformat_for_agg():
@@ -1212,11 +1218,6 @@ def test_ecnt_reformat_for_agg():
     for expected in cn.LC_ECNT_SPECIFIC:
         # convert the columns to upper case
         expected_ecnt_cols.append(prefix + expected.upper())
-
-    # Verify that all the expected ECNT_ prefixed columns are present in the reformatted data
-    stat_names = reformatted_df['stat_name'].unique().tolist()
-    for cur_stat in stat_names:
-        assert cur_stat in expected_ecnt_cols
 
     specific_vals: pd.Series = reformatted_df[(reformatted_df['total'] == expected_total) &
                                               (reformatted_df['n_ens'] == expected_n_ens) &
@@ -1281,10 +1282,10 @@ def test_ecnt_reformat():
     expecteds = [expected_n_ens, expected_crps, expected_ign]
     zipped_stats = zip(stats, expecteds)
 
-
     for z in zipped_stats:
-       z_df = reformatted_df.loc[(reformatted_df['total'] == expected_total) & (reformatted_df['stat_name']== z[0])]
-       assert z_df['stat_value'].item() == z[1]
+        z_df = reformatted_df.loc[(reformatted_df['total'] == expected_total) & (reformatted_df['stat_name'] == z[0])]
+        assert z_df['stat_value'].item() == z[1]
+
 
 def test_fho_reformat_for_agg():
     '''
@@ -1587,7 +1588,7 @@ def test_mpr_for_climo_data():
         'obs_climo_mean',
         'obs_climo_cdf',
         'fcst_climo_mean',
-        'fcst_climo_stdev'
+        'fcst_climo_stdev',
     ]
     reformatted_col_headers = reformatted_df.columns.to_list()
     for cur_col in expected_col_headers:
@@ -1651,7 +1652,7 @@ def test_dmap_for_scatter():
     # with the values above.
     specific_reformatted = reformatted_df[(reformatted_df['model'] == 'FCST') & (reformatted_df['fcst_var'] == 'TMP') &
                                           (reformatted_df['vx_mask'] == 'FULL') & (
-                                                      reformatted_df['fcst_thresh'] == '<300')]
+                                                  reformatted_df['fcst_thresh'] == '<300')]
     reformatted_total = list(specific_reformatted['total'])[0]
     reformatted_fy = list(specific_reformatted['fy'])[0]
     reformatted_baddeley = list(specific_reformatted['baddeley'])[0]
@@ -1836,6 +1837,7 @@ def test_NA():
 
     assert 'nan' not in desc
 
+
 def test_init_with_bad_parm():
     """
          Verify that a bad parms input raises an TypeError
@@ -1847,5 +1849,4 @@ def test_init_with_bad_parm():
     parms = []
     logger = "bogus"
     with pytest.raises(TypeError):
-       wsa = WriteStatAscii(parms, logger)
-
+        wsa = WriteStatAscii(parms, logger)
