@@ -266,7 +266,7 @@ def fail_if_output_exists(parms):
         (cn.SAL1L2, True, True),
         (cn.SAL1L2, False, True),
         (cn.VL1L2, True, True),
-        (cn.VL1L2, False, False),
+        (cn.VL1L2, False, True),
         (cn.ECNT, True, True),
         (cn.ECNT, False, True),
         (cn.PCT, True, True),
@@ -1118,6 +1118,70 @@ def test_rhist_consistency():
 
         assert str(expected_rank) == cur_rank
         assert expected_val == cur_val
+
+
+def test_vl1l2_reformat_for_agg():
+    '''
+        Verify the VL1L2 reformatting for METcalcpy agg_stat: VL1L2_-prefixed stat names,
+        one row per VL1L2 statistic for each raw VL1L2 line, and stat_value initialized to NaN.
+
+        :return:  None
+    '''
+
+    # Original unreformatted data
+    stat_data, parms = setup_test('VL1L2_for_agg.yaml')
+
+    wsa = WriteStatAscii(parms, logger)
+    reformatted_df = wsa.process_vl1l2_for_agg(stat_data)
+
+    # Check that the reformatting worked and produced results
+
+    # Resulting output is not an empty dataframe
+    assert reformatted_df.shape[0] > 0
+
+    # All stat names should be VL1L2_ prefixed, upper-case versions of the VL1L2-specific statistics
+    expected_stat_names = ['VL1L2_' + stat.upper() for stat in cn.LC_VL1L2_SPECIFIC]
+    assert sorted(reformatted_df['stat_name'].unique().tolist()) == sorted(expected_stat_names)
+
+    # Each raw VL1L2 line should produce one row per statistic (VAL1L2 and other line types excluded)
+    num_vl1l2_lines = stat_data[stat_data['line_type'] == cn.VL1L2].shape[0]
+    assert reformatted_df.shape[0] == num_vl1l2_lines * len(expected_stat_names)
+
+    # stat_value is a placeholder to be filled by METcalcpy agg_stat
+    assert reformatted_df['stat_value'].isnull().all()
+
+    # The VL1L2 statistic columns are retained in the reformatted data and match the raw data
+    vl1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == cn.VL1L2].iloc[
+        :, np.arange(0, cn.NUM_STAT_VL1L2_COLS).tolist()]
+    vl1l2_df.columns = [hdr.lower() for hdr in cn.VL1L2_HEADERS]
+    expected_row = vl1l2_df.iloc[0]
+    actual_row = reformatted_df[reformatted_df['stat_name'] == 'VL1L2_UFBAR'].iloc[0]
+    for col in ['total', 'ufbar', 'vfbar', 'dir_mse']:
+        assert expected_row[col] == actual_row[col]
+
+
+    def test_vl1l2_for_agg_write_output():
+        '''
+       Verify that write_stat_ascii produces output for non-aggregated VL1L2 input.
+    '''
+
+
+    stat_data, parms = setup_test('VL1L2', test_name='vl1l2_write_for_agg', is_aggregated=False)
+    fail_if_output_exists(parms)
+    wsa = WriteStatAscii(parms, logger)
+    result_df = wsa.write_stat_ascii(stat_data, parms)
+
+
+    # Output file exists/was created
+    output_path = os.path.join(parms['output_dir'], parms['output_filename'])
+    assert os.path.exists(output_path)
+
+    # Dataframe that is created is not empty
+    written = pd.read_csv(output_path, sep='\t')
+    assert written.shape[0] == result_df.shape[0]
+
+    # All statistic columns have the VL1L2_ prefix
+    assert all(name.startswith('VL1L2_') for name in written['stat_name'].unique())
 
 
 def test_ecnt_reformat_for_agg():
