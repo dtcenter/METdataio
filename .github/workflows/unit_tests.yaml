@@ -74,9 +74,26 @@ jobs:
       #       run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
       #       id: extract_branch
 
+      - name: Download additional input data
+        run: |
+          mkdir -p ${{ runner.workspace }}/test_input
+          wget -P ${{ runner.workspace }}/test_input \
+          https://dtcenter.ucar.edu/dfiles/code/METplus/METdataio_Data/develop/sample_data_METdataio.tgz
+          tar -xzf ${{ runner.workspace }}/test_input/sample_data_METdataio.tgz -C ${{ runner.workspace }}/test_input
+
       - name: Test with pytest
         run: |
+          export METREFORMAT_TEST_INPUT_DIR=${{ runner.workspace }}/test_input/METdataio_Data
+          export METREFORMAT_TEST_OUTPUT_DIR=${{ runner.workspace }}/test_output
           coverage run --append -m pytest
           coverage report -m
           echo "Finished unit tests and coverage"
+
+      - name: Upload output data artifact
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: test_output_${{ matrix.python-version }}
+          path: ${{ runner.workspace }}/test_output
+          if-no-files-found: ignore
 

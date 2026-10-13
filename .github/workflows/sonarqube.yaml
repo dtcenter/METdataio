@@ -82,8 +82,16 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         python -m pip install pytest-cov
 
+    - name: Download additional input data
+      run: |
+        mkdir -p ${{ runner.workspace }}/test_input
+        wget -P ${{ runner.workspace }}/test_input \
+        https://dtcenter.ucar.edu/dfiles/code/METplus/METdataio_Data/develop/sample_data_METdataio.tgz
+        tar -xzf ${{ runner.workspace }}/test_input/sample_data_METdataio.tgz -C ${{ runner.workspace }}/test_input
+
     - name: Run Pytests
       run: |
+        export METREFORMAT_TEST_INPUT_DIR=${{ runner.workspace }}/test_input/METdataio_Data
         coverage run --append -m pytest
 
     - name: Output coverage report
