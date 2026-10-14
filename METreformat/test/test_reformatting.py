@@ -1140,7 +1140,7 @@ def test_vl1l2_reformat_for_agg():
     '''
 
     # Original unreformatted data
-    stat_data, parms = setup_test('VL1L2_for_agg.yaml')
+    stat_data, parms = setup_test('VL1L2', is_aggregated=False)
 
     wsa = WriteStatAscii(parms, logger)
     reformatted_df = wsa.process_vl1l2_for_agg(stat_data)
