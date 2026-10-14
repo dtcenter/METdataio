@@ -24,10 +24,10 @@ METdataio Version 13.0.0-beta2 Release Notes (20260507)
 
    * None
      
-.. dropdown::	Repository, build, and test
+.. dropdown:: Repository, build, and test
 
    * **Add testing for Python 3.14** (`#410 <https://github.com/dtcenter/METdataio/pull/410>`_)
-   * Remove python-dateutil from nco_requirements.txt and requirements.txt (`#409 <https://github.com/dtcenter/METdataio/pull/409>`_)
+   * Remove python-dateutil from nco_requirements.txt and requirements.txt (`#409 <https://github.com/dtcenter/METdataio/issues/409>`_)
 
 
 METdataio Version 13.0.0-beta1 Release Notes (20260204)
@@ -45,7 +45,7 @@ METdataio Version 13.0.0-beta1 Release Notes (20260204)
 
    * None
      
-.. dropdown::	Repository, build, and test
+.. dropdown:: Repository, build, and test
 
    * None
 
