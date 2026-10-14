@@ -499,7 +499,7 @@ def test_mtd_intensity_90_last_col(tmp_path, get_generic_xml_loadfile):
 
     assert len(rdf.mtd_2d_data.iloc[idx_intensity_90 + 1]) > 0
     assert rdf.mtd_2d_data['intensity_nn'].shape[0] > 0
-    rdf.mtd_2d_data.to_csv("./intensity_90.txt", header=True, sep=" ")
+    rdf.mtd_2d_data.to_csv(tmp_path / "intensity_90.txt", header=True, sep=" ")
 
 
 @pytest.mark.parametrize("get_generic_xml_loadfile", ['tcst'], indirect=True)
