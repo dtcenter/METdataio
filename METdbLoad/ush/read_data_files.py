@@ -896,7 +896,7 @@ class ReadDataFiles:
             except (RuntimeError, TypeError, NameError, KeyError):
                 self.logger.error(
                     f"*** Error concatenating data frames prior to load: {sys.exc_info()[0]}*** ")
-                self.logger.debug("Exception details:", exc_info=True)
+                self.logger.debug("", exc_info=True)
                 sys.exit("*** Error concatenating data frames prior to load")
 
             try:
@@ -910,7 +910,7 @@ class ReadDataFiles:
             except (RuntimeError, TypeError, NameError, KeyError):
                 self.logger.error(
                     f"*** Error concatenating tcst data frames prior to load: {sys.exc_info()[0]}*** ")
-                self.logger.debug("Exception details:", exc_info=True)
+                self.logger.debug("", exc_info=True)
                 sys.exit("*** Error concatenating tcst data frames prior to load")
 
             try:
@@ -1234,7 +1234,7 @@ class ReadDataFiles:
             except (RuntimeError, TypeError, NameError, KeyError):
                 self.logger.error(
                     f"*** Error concatenating vsdb data frames prior to load: {sys.exc_info()[0]}*** ")
-                self.logger.debug("Exception details:", exc_info=True)
+                self.logger.debug("", exc_info=True)
                 sys.exit("*** Error concatenating vsdb data frames prior to load")
 
             try:
