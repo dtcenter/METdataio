@@ -353,6 +353,7 @@ def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implement
         expected_prefix = linetype.upper() + "_"
         written = pd.read_csv(output_path, sep='\t')
         assert all(name.startswith(expected_prefix) for name in written['stat_name'].unique())
+        assert written.shape[0] == result_df.shape[0]
 
 
 
@@ -1168,26 +1169,6 @@ def test_vl1l2_reformat_for_agg():
     actual_row = reformatted_df[reformatted_df['stat_name'] == 'VL1L2_UFBAR'].iloc[0]
     for col in ['total', 'ufbar', 'vfbar', 'dir_mse']:
         assert expected_row[col] == actual_row[col]
-
-
-def test_vl1l2_for_agg_write_output():
-    '''
-      Verify that write_stat_ascii produces output for non-aggregated VL1L2 input.
-    '''
-
-
-    stat_data, parms = setup_test('VL1L2', test_name='vl1l2_write_for_agg', is_aggregated=False)
-    fail_if_output_exists(parms)
-    wsa = WriteStatAscii(parms, logger)
-    result_df = wsa.write_stat_ascii(stat_data, parms)
-
-    # Output file exists/was created
-    output_path = os.path.join(parms['output_dir'], parms['output_filename'])
-    assert os.path.exists(output_path)
-
-    # Dataframe that is created is not empty
-    written = pd.read_csv(output_path, sep='\t')
-    assert written.shape[0] == result_df.shape[0]
 
 
 def test_ecnt_reformat_for_agg():
