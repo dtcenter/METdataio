@@ -1281,6 +1281,7 @@ NUM_STAT_CTC_COLS = 31
 NUM_STAT_SL1L2_COLS = 32
 NUM_STAT_SAL1L2_COLS = 32
 NUM_STAT_VL1L2_COLS = 39
+NUM_STAT_VAL1L2_COLS = 39
 NUM_STAT_CTS_COLS = 122
 NUM_STAT_MCTC_COLS = 28
 NUM_STAT_MCTS_COLS = 45
@@ -1555,27 +1556,30 @@ MCTC_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
 MCTC_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + MCTC_STATISTICS_HEADERS
 
 #### SL1L2 Line type ####
-
 LC_SL1L2_SPECIFIC = ['fbar', 'obar', 'fobar', 'ffbar', 'oobar', 'mae']
 SL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
                             LC_SL1L2_SPECIFIC]
 SL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + SL1L2_STATISTICS_HEADERS
 
 #### SAL1L2 Line type ####
-
 LC_SAL1L2_SPECIFIC = ['fabar', 'oabar', 'foabar', 'ffabar', 'ooabar', 'mae']
 SAL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
                              LC_SAL1L2_SPECIFIC]
 SAL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + SAL1L2_STATISTICS_HEADERS
 
 #### VL1L2 Line type ####
-
 LC_VL1L2_SPECIFIC = ['ufbar', 'vfbar', 'uobar', 'vobar', 'uvfobar', 'uvffbar',
                      'uvoobar', 'f_speed_bar', 'o_speed_bar', 'total_dir', 'dir_me', 'dir_mae', 'dir_mse']
 VL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
                             LC_VL1L2_SPECIFIC]
 VL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + VL1L2_STATISTICS_HEADERS
 
+#### VAL1L2 Line type ####
+LC_VAL1L2_SPECIFIC = ['ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar', 'uvffabar',
+                     'uvooabar', 'fa_speed_bar', 'oa_speed_bar', 'total_dir', 'dira_me', 'dira_mae', 'dira_mse']
+VAL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                            LC_VAL1L2_SPECIFIC]
+VAL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + VAL1L2_STATISTICS_HEADERS
 
 #### CTS Line type ####
 LC_CTS_SPECIFIC = [BASER, 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',
