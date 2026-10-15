@@ -3,8 +3,8 @@
         <management_system>mariadb</management_system>
         <host>localhost:3306</host>
         <database>mv_test</database>
-        <user>root</user>
-        <password>root_password</password>
+        <user>met_test</user>
+        <password>met_test_password</password>
     </connection>
 
     <verbose>true</verbose>

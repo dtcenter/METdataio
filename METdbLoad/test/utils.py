@@ -1,5 +1,6 @@
 from pathlib import Path
 from argparse import Namespace
+from xml.sax.saxutils import escape
 import os
 
 
@@ -16,6 +17,18 @@ LOAD_SPECIFICATION_SCHEMA = os.path.join(abs_path("METdbLoad/ush/"), "load_speci
 TEST_INPUT_DIR = os.path.abspath(
     os.environ.get("METDATAIO_TEST_INPUT_DIR", abs_path("METdataio_Data"))
 )
+
+
+# Connection info for the MySQL/MariaDB test database. The user must have all privileges
+# on the mv_test database, which is dropped and recreated by the tests.
+# Each value can be overridden by setting the corresponding environment variable.
+# The default user and password are throwaway credentials for a local/CI test database
+# that only holds test data. They are not sensitive and are intentionally hard-coded.
+TEST_DB_HOST = os.environ.get("METDATAIO_TEST_DB_HOST", "localhost")
+TEST_DB_PORT = int(os.environ.get("METDATAIO_TEST_DB_PORT", "3306"))
+TEST_DB_USER = os.environ.get("METDATAIO_TEST_DB_USER", "met_test")
+TEST_DB_PASSWORD = os.environ.get("METDATAIO_TEST_DB_PASSWORD", "met_test_password")
+TEST_DB_NAME = "mv_test"
 
 
 def input_path(rel_path):
@@ -101,10 +114,10 @@ def populate_xml_load_spec(met_data_dir, met_tool, load_flags=DEFAULT_LOAD_FLAGS
     return f"""<load_spec>
     <connection>
         <management_system>mysql</management_system>
-        <host>localhost:3306</host>
-        <database>mv_test</database>
-        <user>root</user>
-        <password>root_password</password>
+        <host>{escape(TEST_DB_HOST)}:{TEST_DB_PORT}</host>
+        <database>{TEST_DB_NAME}</database>
+        <user>{escape(TEST_DB_USER)}</user>
+        <password>{escape(TEST_DB_PASSWORD)}</password>
         <local_infile>{local_infile}</local_infile>
     </connection>
 

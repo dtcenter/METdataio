@@ -12,6 +12,11 @@ from METdataio.METdbLoad.test.utils import (
     VSDB_NO_EQUALS_DIR,
     VSDB_DATA_DIR,
     VSDB_DIR,
+    TEST_DB_HOST,
+    TEST_DB_PORT,
+    TEST_DB_USER,
+    TEST_DB_PASSWORD,
+    TEST_DB_NAME,
 )
 from METdataio.METdbLoad.ush.read_load_xml import XmlLoadFile
 
@@ -53,10 +58,10 @@ def maria_conn():
     """
     try:
         conn = pymysql.connect(
-            host="localhost",
-            port=3306,
-            user="root",
-            password="root_password",
+            host=TEST_DB_HOST,
+            port=TEST_DB_PORT,
+            user=TEST_DB_USER,
+            password=TEST_DB_PASSWORD,
         )
 
     except Exception as e:
@@ -76,17 +81,17 @@ def emptyDB():
 
     conn = maria_conn()
     with conn.cursor() as cur:
-        cur.execute("DROP DATABASE IF EXISTS mv_test;")
-        cur.execute("CREATE DATABASE mv_test;")
+        cur.execute(f"DROP DATABASE IF EXISTS {TEST_DB_NAME};")
+        cur.execute(f"CREATE DATABASE {TEST_DB_NAME};")
     conn.commit()
     conn.close()
 
     db_conn = pymysql.connect(
-        host="localhost",
-        port=3306,
-        user="root",
-        password="root_password",
-        database="mv_test",
+        host=TEST_DB_HOST,
+        port=TEST_DB_PORT,
+        user=TEST_DB_USER,
+        password=TEST_DB_PASSWORD,
+        database=TEST_DB_NAME,
         autocommit=True,
     )
 
@@ -103,11 +108,11 @@ def emptyDB():
 def testRunSql():
     """Return an instance of RunSql with a connection."""
     connection = {
-        "db_host": "localhost",
-        "db_port": 3306,
-        "db_user": "root",
-        "db_password": "root_password",
-        "db_database": "mv_test",
+        "db_host": TEST_DB_HOST,
+        "db_port": TEST_DB_PORT,
+        "db_user": TEST_DB_USER,
+        "db_password": TEST_DB_PASSWORD,
+        "db_database": TEST_DB_NAME,
     }
 
     testRunSql = RunSql()

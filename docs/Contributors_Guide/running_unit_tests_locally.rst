@@ -25,19 +25,44 @@ Below is an example setup on CentOS.
 
     $ sudo yum install mariadb-server
 
-2. Start mariadb and change the root password. Note that by default there is no password for the root user:
-
-.. code-block:: console
-
-    $ sudo mariadb -u root -p
-    [MariaDB]> ALTER USER 'root'@'localhost' IDENTIFIED BY 'root_password';
-    [MariaDB]> exit;
-
-3. Start the mariadb service:
+2. Start the mariadb service:
 
 .. code-block:: console
 
     $ sudo systemctl start mariadb
+
+3. Create a `met_test` user for the tests and give it all privileges on the `mv_test` database.
+   The tests drop and recreate `mv_test`, so do not use this database name for anything else.
+   You can choose a different password, but you must then set it as described in the next section:
+
+.. code-block:: console
+
+    $ sudo mariadb -u root -p
+    [MariaDB]> CREATE USER 'met_test'@'localhost' IDENTIFIED BY 'met_test_password';
+    [MariaDB]> GRANT ALL PRIVILEGES ON mv_test.* TO 'met_test'@'localhost';
+    [MariaDB]> exit;
+
+The tests do not need the root password or any privileges on other databases.
+
+Test Database Connection Settings
+---------------------------------
+
+By default, the tests connect to `localhost` on port `3306` as user `met_test` with the password
+`met_test_password`. To use other values, set these environment variables before running the tests:
+
+* `METDATAIO_TEST_DB_USER`: database user (default: `met_test`)
+* `METDATAIO_TEST_DB_PASSWORD`: password for the user (default: `met_test_password`)
+* `METDATAIO_TEST_DB_HOST`: database host (default: `localhost`)
+* `METDATAIO_TEST_DB_PORT`: database port (default: `3306`)
+
+For example:
+
+.. code-block:: console
+
+    $ export METDATAIO_TEST_DB_PASSWORD=my_test_password
+    $ pytest METdbLoad/test/
+
+The tests always use the database `mv_test`.
 
 Running Tests
 =============

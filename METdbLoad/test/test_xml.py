@@ -36,10 +36,10 @@ def test_loadgroup(tmp_path, get_xml_loadfile):
 def test_connection(tmp_path, get_xml_loadfile):
     """Read connection tags from XML file."""
     XML_LOADFILE = get_xml_loadfile(tmp_path)
-    assert XML_LOADFILE.connection['db_host'] == "localhost"
-    assert XML_LOADFILE.connection['db_port'] == 3306
-    assert XML_LOADFILE.connection['db_database'] == "mv_test"
-    assert XML_LOADFILE.connection['db_user'] == "root"
+    assert XML_LOADFILE.connection['db_host'] == utils.TEST_DB_HOST
+    assert XML_LOADFILE.connection['db_port'] == utils.TEST_DB_PORT
+    assert XML_LOADFILE.connection['db_database'] == utils.TEST_DB_NAME
+    assert XML_LOADFILE.connection['db_user'] == utils.TEST_DB_USER
     assert XML_LOADFILE.connection['db_management_system'] == "mysql"
 
 def test_insertsize(tmp_path, get_xml_loadfile):

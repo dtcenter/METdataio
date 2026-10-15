@@ -45,7 +45,12 @@ jobs:
       mariadb:
         image: mariadb:latest
         env:
-          MARIADB_ROOT_PASSWORD: root_password
+          # Throwaway credentials for a temporary test database. Not sensitive.
+          # Must match the defaults in METdbLoad/test/utils.py.
+          MARIADB_RANDOM_ROOT_PASSWORD: 1
+          MARIADB_USER: met_test
+          MARIADB_PASSWORD: met_test_password
+          MARIADB_DATABASE: mv_test
         ports:
           - 3306:3306
         options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -61,10 +66,10 @@ jobs:
         # Disable shallow clones for better analysis
         fetch-depth: 0
 
-    - name: Set up Python 3.12
+    - name: Set up Python 3.14
       uses: actions/setup-python@v6
       with:
-        python-version: "3.12"
+        python-version: "3.14"
 
     - name: Retrieve METcalcpy repository develop branch
       run: |
@@ -77,8 +82,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install pytest>=8.3.4
-        python -m pip install netcdf4==1.7.2
+        python -m pip install "pytest>=8.3.4"
+        python -m pip install netcdf4==1.7.4
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         python -m pip install pytest-cov
 
