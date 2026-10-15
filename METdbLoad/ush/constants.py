@@ -597,7 +597,7 @@ LINE_DATA_FIELDS[VL1L2] = TOT_LINE_DATA_FIELDS + \
 LINE_DATA_FIELDS[VAL1L2] = TOT_LINE_DATA_FIELDS + \
                            ['ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar',
                             'uvffabar',
-                            'uvooabar', 'fa_speed_bar', 'oa_speed_bar', 'dira_me', 'dira_mae', 'dira_mse']
+                            'uvooabar', 'fa_speed_bar', 'oa_speed_bar', 'total_dir','dira_me', 'dira_mae', 'dira_mse']
 
 LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
                          ['fbar', 'fbar_bcl', 'fbar_bcu', 'obar', 'obar_bcl',
