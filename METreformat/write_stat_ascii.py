@@ -2304,7 +2304,7 @@ class WriteStatAscii:
         """
              Reshape the data from the original MET output file (stat_data) into new
              statistics columns:
-             stat_name, stat_value specifically for the VL1L2 line type data.
+             stat_name, stat_value specifically for the VAL1L2 line type data.
 
              Arguments:
              @param stat_data: the dataframe containing all data from the MET
@@ -2319,7 +2319,7 @@ class WriteStatAscii:
         # Relevant columns for the VAL1L2 line type
         linetype: str = cn.VAL1L2
         end = cn.NUM_STAT_VAL1L2_COLS
-        val1l2_columns_to_use: List[str] = (
+        val1l2_columns_to_use: List[int] = (
             np.arange(0, end).tolist())
 
         # Subset original dataframe to one containing only the VAL1L2 data
@@ -2421,8 +2421,6 @@ class WriteStatAscii:
         merged_dfs.replace('N/A', pd.NA)
 
         return merged_dfs
-
-
 
     def process_mctc(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """

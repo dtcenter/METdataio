@@ -618,12 +618,12 @@ def test_point_stat_val1l2_consistency():
 
     # Relevant columns for the VAL1L2 line type
     linetype: str = cn.VAL1L2
-    val1l2_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_VAL1L2_COLS).tolist()
+    val1l2_columns_to_use: List[int] = np.arange(0, cn.NUM_STAT_VAL1L2_COLS).tolist()
 
     # Subset original dataframe to one containing only the VAL1L2 data
     val1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
     val1l2_columns_to_use]
-    # Add the stat columns header names for the VL1L2 line type
+    # Add the stat columns header names for the VAL1L2 line type
     val1l2_columns: List[str] = cn.VAL1L2_HEADERS
     val1l2_df.columns: List[str] = val1l2_columns
 
@@ -1272,7 +1272,6 @@ def test_val1l2_reformat_for_agg():
     actual_row = reformatted_df[reformatted_df['stat_name'] == 'VAL1L2_UFABAR'].iloc[0]
     for col in ['total', 'ufabar', 'vfabar', 'dira_mse']:
         assert expected_row[col] == actual_row[col]
-
 
 
 def test_ecnt_reformat_for_agg():

@@ -597,7 +597,7 @@ LINE_DATA_FIELDS[VL1L2] = TOT_LINE_DATA_FIELDS + \
 LINE_DATA_FIELDS[VAL1L2] = TOT_LINE_DATA_FIELDS + \
                            ['ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar',
                             'uvffabar',
-                            'uvooabar', 'fa_speed_bar', 'oa_speed_bar', 'total_dir','dira_me', 'dira_mae', 'dira_mse']
+                            'uvooabar', 'fa_speed_bar', 'oa_speed_bar', 'total_dir', 'dira_me', 'dira_mae', 'dira_mse']
 
 LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
                          ['fbar', 'fbar_bcl', 'fbar_bcu', 'obar', 'obar_bcl',
@@ -1576,9 +1576,9 @@ VL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + VL1L2_STATISTICS_HEADERS
 
 #### VAL1L2 Line type ####
 LC_VAL1L2_SPECIFIC = ['ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar', 'uvffabar',
-                     'uvooabar', 'fa_speed_bar', 'oa_speed_bar', 'total_dir', 'dira_me', 'dira_mae', 'dira_mse']
+                      'uvooabar', 'fa_speed_bar', 'oa_speed_bar', 'total_dir', 'dira_me', 'dira_mae', 'dira_mse']
 VAL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
-                            LC_VAL1L2_SPECIFIC]
+                             LC_VAL1L2_SPECIFIC]
 VAL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + VAL1L2_STATISTICS_HEADERS
 
 #### CTS Line type ####
