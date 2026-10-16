@@ -177,6 +177,26 @@ command line.
           * revision series
           * Taylor Diagram
 
+     .. dropdown:: VAL1L2
+
+        **Vector Anomaly L1L2 Partial Sums**
+
+        From MET tools:
+
+          * Point-Stat
+          * Grid-Stat
+
+        Used by the following METplotpy plot types:
+
+          * line
+          * bar
+          * box
+          * contour
+          * performance diagram
+          * revision box
+          * revision series
+          * Taylor Diagram
+
      .. dropdown:: ECNT
 
         **Ensemble Continuous Statistics**
@@ -804,6 +824,7 @@ was saved to the working directory.
            * CTS
            * SL1L2
            * VL1L2
+           * VAL1L2
            * ECNT
            * MCTS
            * VCNT
