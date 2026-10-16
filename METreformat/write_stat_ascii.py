@@ -1563,7 +1563,7 @@ class WriteStatAscii:
         vl1l2_columns_to_use: List[str] = (
             np.arange(0, end).tolist())
 
-        # Subset original dataframe to one containing only the Sl1L2 data
+        # Subset original dataframe to one containing only the VL1L2 data
         vl1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
                                                                                     vl1l2_columns_to_use]
 
@@ -1576,7 +1576,7 @@ class WriteStatAscii:
         # containing the original data from the MET output file).
         idx = list(vl1l2_df.index)
 
-        # Work on a copy of thesl1l2_df dataframe to avoid a possible PerformanceWarning
+        # Work on a copy of the vl1l2_df dataframe to avoid a possible PerformanceWarning
         # message due to a fragmented dataframe.
         vl1l2_df_copy = vl1l2_df.copy()
         vl1l2_df_copy.insert(loc=0, column='Idx', value=idx)
@@ -2302,31 +2302,127 @@ class WriteStatAscii:
 
     def process_val1l2(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
-        Retrieve the VAL1L2 line type data and reshape it.
-        
-        VAL1L2 is similar to VL1L2 (Vector L1L2 Partial Sums) with additional information.
-        
-        Arguments:
-            @param stat_data: The dataframe containing the data from the MET .stat file.
-        
-        Returns:
-            linetype_data: The dataframe with the reshaped data for the VAL1L2 line type
+             Reshape the data from the original MET output file (stat_data) into new
+             statistics columns:
+             stat_name, stat_value specifically for the VL1L2 line type data.
+
+             Arguments:
+             @param stat_data: the dataframe containing all data from the MET
+             .stat file.
+
+             Returns:
+                 linetype_data: the reshaped pandas dataframe with statistics data
+                 reorganized into the stat_name and stat_value columns.
+
         """
-        raise NotImplementedError("VAL1L2 aggregated processing not yet implemented")
+
+        # Relevant columns for the VAL1L2 line type
+        linetype: str = cn.VAL1L2
+        end = cn.NUM_STAT_VAL1L2_COLS
+        val1l2_columns_to_use: List[str] = (
+            np.arange(0, end).tolist())
+
+        # Subset original dataframe to one containing only the VAL1L2 data
+        val1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:, val1l2_columns_to_use]
+        # Add the stat columns header names for the VAL1L2 line type
+        val1l2_columns: List[str] = cn.VAL1L2_HEADERS
+        val1l2_df.columns: List[str] = val1l2_columns
+
+        # Create another index column to preserve the index values from the stat_data
+        # dataframe (ie the dataframe
+        # containing the original data from the MET output file).
+        idx = list(val1l2_df.index)
+
+        # Work on a copy of the val1l2_df dataframe to avoid a possible PerformanceWarning
+        # message due to a fragmented dataframe.
+        val1l2_df_copy = val1l2_df.copy()
+        val1l2_df_copy.insert(loc=0, column='Idx', value=idx)
+
+        # Now apply melt to get the stat_name and stat_values from the statistics
+
+        # Columns we don't want to stack (i.e. treat these columns as a multi index)
+        id_vars_list = ['Idx'] + cn.LC_COMMON_STAT_HEADER + ['total']
+        reshaped = val1l2_df_copy.melt(id_vars=id_vars_list,
+                                      value_vars=cn.VAL1L2_STATISTICS_HEADERS,
+                                      var_name='stat_name',
+                                      value_name='stat_value').sort_values('Idx')
+
+        # VAL1L2 line type doesn't have the bcl and bcu stat values set these to NA
+        na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
+
+        reshaped['stat_ncl']: pd.Series = na_column
+        reshaped['stat_ncu']: pd.Series = na_column
+        reshaped['stat_bcl']: pd.Series = na_column
+        reshaped['stat_bcu']: pd.Series = na_column
+
+        return reshaped
+
 
     def process_val1l2_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
-        Retrieve the VAL1L2 line type data and reformat for METcalcpy agg_stat.
-        
-        Reformat raw VAL1L2 data from the MET output file for aggregation.
-        
+        Retrieve the VAL1L2 line type data from
+        the original MET output file (stat_data). Reformat this data into
+        statistics columns corresponding to the statistic name for the MET VAL1L2
+        linetype, as defined in constants.py in the METdbLoad module:
+        'ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar', 'uvffabar', 'uvooabar',
+       'fa_speed_bar', 'oa_speed_bar', 'total_dir', 'dira_me', 'dira_mae', 'dira_mse'
+
+        The reformatted data will have a stat_name column with the VAL1L2_ prefix
+        to the stat name.  This is required by the METcalcpy agg_stat module to
+        calculate aggregation statistics.
+
         Arguments:
             @param stat_data: The dataframe containing the data from the MET .stat file.
         
         Returns:
-            linetype_data: The reformatted dataframe for agg_stat input
+            linetype_data (pd.DataFrame): The reformatted dataframe with statistics
+            data reorganized into columns based on the VAL1L2 statistic names
         """
-        raise NotImplementedError("VAL1L2 non-aggregated processing not yet implemented")
+
+        # Relevant columns for the VAL1L2 line type
+        linetype: str = cn.VAL1L2
+        end = cn.NUM_STAT_VAL1L2_COLS
+        val1l2_columns_to_use: List[int] = (
+            np.arange(0, end).tolist())
+
+        # Subset original dataframe to one containing only the VAL1L2 data
+        val1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+                                                                                     val1l2_columns_to_use].copy()
+
+        # Replace the column numbers with the name of the corresponding statistic as specified in MET
+        # User's Guide for the VAL1L2 linetype in the point-stat/grid-stat table.
+        all_headers = cn.VAL1L2_HEADERS
+        all_headers_lc = [cur_hdr.lower() for cur_hdr in all_headers]
+        val1l2_df.columns = all_headers_lc
+
+        # Add the stat_name column and stat_value columns.  Populate the stat_name column with the
+        # 'VAL1L2_' prefixed statistic names (e.g. for ufabar, this becomes VAL1L2_UFABAR).  Do this for
+        # each VAL1L2-specific statistic.  This will result in a very large dataframe.
+        linetype_str = linetype.upper() + '_'
+        val1l2_headers = cn.LC_VAL1L2_SPECIFIC
+        renamed_val1l2 = [linetype_str + cur_hdr.upper()
+                          for cur_hdr in val1l2_headers]
+
+        # Create a list of dataframes, each corresponding to the VAL1L2 statistics, then merge them
+        # all into one final dataframe.
+        dfs_to_merge = []
+
+        for renamed in renamed_val1l2:
+            tmp_df: pd.DataFrame = val1l2_df.copy()
+            tmp_df['stat_name'] = renamed
+            dfs_to_merge.append(tmp_df)
+
+        # Merge all the statistics dataframes into one, then add the
+        # stat_value column. Initialize the stat_values to NaN/NA.  These
+        # values will be filled by the METcalcpy agg_stat calculation.
+        merged_dfs: pd.DataFrame = pd.concat(
+            dfs_to_merge, axis=0, ignore_index=True)
+        merged_dfs['stat_value'] = np.nan
+        merged_dfs.replace('N/A', pd.NA)
+
+        return merged_dfs
+
+
 
     def process_mctc(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
