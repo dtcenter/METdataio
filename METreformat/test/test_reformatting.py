@@ -182,6 +182,7 @@ def build_dispatch_test_config(linetype, test_name=None, is_aggregated=True, for
         cn.MPR: 'mpr/from_regression_data',
         cn.DMAP: 'grid_stat/dmap',
         cn.VL1L2: 'point_stat/vl1l2_MET13',
+        cn.VAL1L2: 'point_stat/vl1l2_MET13',
         cn.VCNT: 'point_stat/vl1l2_MET13',
         'VCNT_for_MET13': 'point_stat/vcnt_MET13',
         'FHO_nan': 'point_stat_nan',
@@ -278,8 +279,8 @@ def fail_if_output_exists(parms):
         (cn.MPR, False, False),
         (cn.DMAP, True, True),
         (cn.DMAP, False, False),
-        (cn.VAL1L2, True, False),
-        (cn.VAL1L2, False, False),
+        (cn.VAL1L2, True, True),
+        (cn.VAL1L2, False, True),
         (cn.MCTC, True, False),
         (cn.MCTC, False, False),
         (cn.NBRCTC, True, False),
@@ -559,7 +560,7 @@ def test_point_stat_vl1l2_consistency():
     vl1l2_columns: List[str] = cn.VL1L2_HEADERS
     vl1l2_df.columns: List[str] = vl1l2_columns
 
-    # get the value of the record corresponding to line_type Vl1L2, total number of
+    # get the value of the record corresponding to line_type VL1L2, total number of
     # pairs, obs_var, obs_lev, and fcst_thresh, for the DIR_MSE statistic.
     total = str(4474)
     interp = 'NEAREST'
@@ -585,6 +586,73 @@ def test_point_stat_vl1l2_consistency():
     wsa = WriteStatAscii(parms, logger)
     obs_var = 'UGRD_VGRD'
     reshaped_df = wsa.process_vl1l2(stat_data)
+    actual_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) &
+                                              (reshaped_df['interp_mthd'] == interp) &
+                                              (reshaped_df['obs_var'] == obs_var) &
+                                              (reshaped_df['obs_lev'] == obs_level) &
+                                              (reshaped_df[
+                                                   'fcst_thresh'] == fcst_thresh) &
+                                              (reshaped_df[
+                                                   'stat_name'] == expected_name)]
+    actual_row: pd.Series = actual_df.iloc[0]
+    actual_value: float = actual_row['stat_value']
+
+    # Checking for consistency between the reformatted/reshaped data and the
+    # "original" data.
+    assert expected_val == actual_value
+
+    # Check for any nan values in the dataframe
+    assert reshaped_df.isnull().values.any() == False
+
+
+def test_point_stat_val1l2_consistency():
+    '''
+           For the data frame for the VAL1L2 line type, verify that a value in the
+           original data corresponds to the value identified with the same criteria
+           in the newly reformatted dataframe.
+
+    '''
+
+    # Original data
+    stat_data, parms = setup_test('VAL1L2', is_aggregated=True)
+
+    # Relevant columns for the VAL1L2 line type
+    linetype: str = cn.VAL1L2
+    val1l2_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_VAL1L2_COLS).tolist()
+
+    # Subset original dataframe to one containing only the VAL1L2 data
+    val1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+    val1l2_columns_to_use]
+    # Add the stat columns header names for the VL1L2 line type
+    val1l2_columns: List[str] = cn.VAL1L2_HEADERS
+    val1l2_df.columns: List[str] = val1l2_columns
+
+    # get the value of the record corresponding to line_type VAL1L2, total number of
+    # pairs, obs_var, obs_lev, and fcst_thresh, for the DIRA_MSE statistic.
+    total = str(1110)
+    interp = 'NEAREST'
+    obs_level = 'Z10'
+    fcst_thresh = '>=5||'
+    fcst_var = 'UGRD_VGRD'
+    obtype = 'ADPSFC'
+    desc = 'WIND_UNION'
+    # Filter the original dataframe to a particular UGRD_VGRD row
+    expected_df: pd.DataFrame = val1l2_df.loc[(val1l2_df['total'] == total) &
+                                             (val1l2_df['interp_mthd'] == interp) &
+                                             (val1l2_df['obs_lev'] == obs_level) &
+                                             (val1l2_df['fcst_thresh'] == fcst_thresh) &
+                                             (val1l2_df['fcst_var'] == fcst_var) &
+                                             (val1l2_df['obtype'] == obtype) &
+                                             (val1l2_df['desc'] == desc)
+                                             ]
+
+    expected_row: pd.Series = expected_df.iloc[0]
+    expected_name: str = "DIRA_MSE"
+    expected_val: float = expected_row.loc[expected_name]
+
+    wsa = WriteStatAscii(parms, logger)
+    obs_var = 'UGRD_VGRD'
+    reshaped_df = wsa.process_val1l2(stat_data)
     actual_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) &
                                               (reshaped_df['interp_mthd'] == interp) &
                                               (reshaped_df['obs_var'] == obs_var) &
@@ -1169,6 +1237,42 @@ def test_vl1l2_reformat_for_agg():
     actual_row = reformatted_df[reformatted_df['stat_name'] == 'VL1L2_UFBAR'].iloc[0]
     for col in ['total', 'ufbar', 'vfbar', 'dir_mse']:
         assert expected_row[col] == actual_row[col]
+
+
+def test_val1l2_reformat_for_agg():
+    '''
+        Verify the VAL1L2 reformatting for METcalcpy agg_stat: VAL1L2_-prefixed stat names,
+        one row per VAL1L2 statistic for each raw VAL1L2 line, and stat_value initialized to NaN.
+
+        :return:  None
+    '''
+
+    stat_data, parms = setup_test('VAL1L2', is_aggregated=False)
+
+    wsa = WriteStatAscii(parms, logger)
+    reformatted_df = wsa.process_val1l2_for_agg(stat_data)
+
+    assert reformatted_df.shape[0] > 0
+
+    expected_stat_names = ['VAL1L2_' + stat.upper() for stat in cn.LC_VAL1L2_SPECIFIC]
+    assert sorted(reformatted_df['stat_name'].unique().tolist()) == sorted(expected_stat_names)
+
+    # Each raw VAL1L2 line should produce one row per statistic (VL1L2 and other line types excluded)
+    num_val1l2_lines = stat_data[stat_data['line_type'] == cn.VAL1L2].shape[0]
+    assert reformatted_df.shape[0] == num_val1l2_lines * len(expected_stat_names)
+
+    # stat_value is a placeholder to be filled by METcalcpy agg_stat
+    assert reformatted_df['stat_value'].isnull().all()
+
+    # The VAL1L2 statistic columns are retained and match the raw data
+    val1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == cn.VAL1L2].iloc[
+        :, np.arange(0, cn.NUM_STAT_VAL1L2_COLS).tolist()]
+    val1l2_df.columns = [hdr.lower() for hdr in cn.VAL1L2_HEADERS]
+    expected_row = val1l2_df.iloc[0]
+    actual_row = reformatted_df[reformatted_df['stat_name'] == 'VAL1L2_UFABAR'].iloc[0]
+    for col in ['total', 'ufabar', 'vfabar', 'dira_mse']:
+        assert expected_row[col] == actual_row[col]
+
 
 
 def test_ecnt_reformat_for_agg():
