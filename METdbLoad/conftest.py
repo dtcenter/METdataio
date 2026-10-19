@@ -81,6 +81,9 @@ def emptyDB():
 
     conn = maria_conn()
     with conn.cursor() as cur:
+        # If a connection from an earlier test was left open, fail instead of
+        # waiting (the default is a year) for its locks to be released.
+        cur.execute("SET SESSION lock_wait_timeout = 30;")
         cur.execute(f"DROP DATABASE IF EXISTS {TEST_DB_NAME};")
         cur.execute(f"CREATE DATABASE {TEST_DB_NAME};")
     conn.commit()
