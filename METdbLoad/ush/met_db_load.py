@@ -213,7 +213,8 @@ def main(args):
                 logger.error(
                     "*** %s occurred in Main reading data ***", sys.exc_info()[0])
                 sys.exit("*** Error when reading data files")
-            except Exception:
+            except BaseException:
+                # also catches SystemExit from errors handled in the read/write classes
                 close_connection(sql_run)
                 raise
 
@@ -345,7 +346,8 @@ def main(args):
                 logger.error(
                     "*** %s occurred in Main writing data ***", sys.exc_info()[0])
                 sys.exit("*** Error when writing data to database")
-            except Exception:
+            except BaseException:
+                # also catches SystemExit from errors handled in the read/write classes
                 close_connection(sql_run)
                 raise
 
