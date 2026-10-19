@@ -197,7 +197,8 @@ def test_percentile_thresholds(emptyDB, testRunSql, tmp_path):
     raises=SystemExit,
     strict=True,
     reason="write_stat_sql copies n_rank (a string column) into float column '1' for old"
-    " RHIST lines, which pandas 3 rejects with a TypeError",
+    " RHIST lines, which pandas 3 rejects with a TypeError"
+    " (see dtcenter/METdataio#441)",
 )
 def test_old_rhist_creates_ecnt(emptyDB, testRunSql, tmp_path):
     """RHIST lines from MET 4 contain ECNT statistics, which are written to line_data_ecnt"""
@@ -288,7 +289,8 @@ def test_pstd_pjc_values(emptyDB, testRunSql, tmp_path):
 @pytest.mark.xfail(
     strict=True,
     reason="write_stat_sql assumes 10 statistics between N_THRESH and the thresholds in"
-    " PSTD lines, but MET 10 and later write 15, so the thresholds are shifted by 5",
+    " PSTD lines, but MET 10 and later write 15, so the thresholds are shifted by 5"
+    " (see dtcenter/METdataio#441)",
 )
 def test_pstd_thresholds(emptyDB, testRunSql, tmp_path):
     """The thresholds at the end of a PSTD line are written to line_data_pstd_thresh"""
