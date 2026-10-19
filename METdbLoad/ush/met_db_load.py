@@ -371,7 +371,7 @@ def main(args):
         logger.info("--- *** --- End METdbLoad --- *** ---")
 
     except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
-        self.logger.error(
+        logger.error(
             "*** %s occurred in main function of met_db_load ***", sys.exc_info()[0])
         sys.exit("*** Error loading data")
 

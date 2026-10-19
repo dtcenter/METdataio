@@ -712,3 +712,9 @@ def test_tcst_dups(emptyDB, testRunSql, tmp_path):
     assert_count_rows(testRunSql.cur, "line_data_tcdiag", 168)
     assert_count_rows(testRunSql.cur, "data_file", file_count)
 
+
+def test_load_unexpected_error(emptyDB, tmp_path):
+    """An error outside the read and write steps is logged and exits"""
+    with patch("METdbLoad.ush.met_db_load.timedelta", side_effect=TypeError):
+        with pytest.raises(SystemExit, match="Error loading data"):
+            load_main(load_args(tmp_path, POINT_STAT_DATA_DIR, "point_stat"))
