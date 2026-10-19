@@ -169,6 +169,7 @@ def main(args):
         line_counts = {"Stat": 0, "Mode CTS": 0, "Mode Obj": 0, "Tcst": 0,
                        "MTD 2D": 0, "MTD 3D Single": 0, "MTD 3D Pair": 0}
 
+        sql_run = None
         while mid_file <= last_file:
             try:
                 # Keep track of which set of files is being processed
@@ -208,9 +209,13 @@ def main(args):
                     continue
 
             except (RuntimeError, TypeError, NameError, KeyError):
+                close_connection(sql_run)
                 logger.error(
                     "*** %s occurred in Main reading data ***", sys.exc_info()[0])
                 sys.exit("*** Error when reading data files")
+            except Exception:
+                close_connection(sql_run)
+                raise
 
             #
             #  Write the data to a database
@@ -336,9 +341,13 @@ def main(args):
                 first_file, mid_file, last_file = next_set(mid_file, last_file)
 
             except (RuntimeError, TypeError, NameError, KeyError):
+                close_connection(sql_run)
                 logger.error(
                     "*** %s occurred in Main writing data ***", sys.exc_info()[0])
                 sys.exit("*** Error when writing data to database")
+            except Exception:
+                close_connection(sql_run)
+                raise
 
         if not file_data.data_files.empty:
             if sql_run.conn.open:
@@ -382,6 +391,16 @@ def print_version(logger):
         logger.error(
             "*** %s occurred in Main printing version ***", sys.exc_info()[0])
         sys.exit("*** Error in print version")
+
+
+def close_connection(sql_run):
+    """ close the database connection without committing, e.g. after an error,
+        so it does not keep holding table locks
+        Returns:
+           N/A
+    """
+    if sql_run is not None and sql_run.conn is not None and sql_run.conn.open:
+        sql_run.conn.close()
 
 
 def next_set(mid_file, last_file):

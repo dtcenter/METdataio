@@ -117,7 +117,12 @@ def testRunSql():
 
     testRunSql = RunSql()
     testRunSql.sql_on(connection)
-    return testRunSql
+    yield testRunSql
+
+    # Close the connection, even if the test failed. Otherwise the open
+    # transaction holds metadata locks and the next test's DROP DATABASE hangs.
+    if testRunSql.conn.open:
+        testRunSql.conn.close()
 
 
 @pytest.fixture
