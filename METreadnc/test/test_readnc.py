@@ -1,5 +1,9 @@
 
 import os
+import sys
+from unittest.mock import MagicMock
+
+import numpy as np
 import pandas as pd
 import xarray
 import pytest
@@ -139,3 +143,57 @@ def test_read_into_xarray_bogus_files():
             with pytest.raises(ValueError):
                 file_reader = rn.ReadNetCDF()
                 netcdf_data_set_list = file_reader.read_into_xarray(5)
+
+LAT_LON_FILES = [
+    'Z500_daily_19980216_NH.nc',
+    'Z500_daily_20080106_NH.nc',
+    'Z500_daily_20170224_NH.nc',
+]
+
+
+def test_read_yaml_config_env(monkeypatch):
+    # test_readnc_env.yaml lists the files relative to the CALCPY_DATA env var
+    monkeypatch.setenv('CALCPY_DATA', f'{input_dir}/lat_lon')
+    file_reader = rn.ReadNetCDF()
+    files = file_reader.readYAMLConfig(
+        os.path.join(os.path.dirname(__file__), 'test_readnc_env.yaml'))
+    assert files == [f'{input_dir}/lat_lon/{name}' for name in LAT_LON_FILES]
+
+
+@pytest.mark.filterwarnings("ignore")
+def test_pandas_one_file():
+    file_reader = rn.ReadNetCDF()
+    load_file = f'{input_dir}/lat_level/FCST_zonal_mean_U_T_20180201_000000.nc'
+    df = file_reader.read_into_pandas(load_file)
+
+    # one row for each combination of the dimensions
+    data_set = xarray.open_dataset(load_file)
+    assert len(df) == np.prod(list(data_set.sizes.values()))
+    assert set(data_set.data_vars) <= set(df.columns)
+
+
+@pytest.mark.filterwarnings("ignore")
+def test_main(tmp_path, monkeypatch):
+    config = tmp_path / 'config.yaml'
+    config.write_text(
+        'files:\n' + ''.join(f"  - '{input_dir}/lat_lon/{name}'\n" for name in LAT_LON_FILES))
+    monkeypatch.setattr(sys, 'argv', ['read_netcdf.py', str(config)])
+
+    read_into_xarray = rn.ReadNetCDF.read_into_xarray
+    data_sets = []
+
+    def keep_result(self, load_files):
+        data_sets.extend(read_into_xarray(self, load_files))
+        return data_sets
+
+    monkeypatch.setattr(rn.ReadNetCDF, 'read_into_xarray', keep_result)
+    rn.main()
+    assert len(data_sets) == 3
+    assert all(isinstance(ds, xarray.Dataset) for ds in data_sets)
+
+
+def test_main_error(tmp_path, monkeypatch):
+    monkeypatch.setattr(sys, 'argv', ['read_netcdf.py', str(tmp_path / 'config.yaml')])
+    monkeypatch.setattr(rn.ReadNetCDF, 'readYAMLConfig', MagicMock(side_effect=RuntimeError))
+    with pytest.raises(SystemExit, match='Error setting up read_netcdf'):
+        rn.main()

@@ -1,10 +1,17 @@
 import pytest
 import sys
+from pathlib import Path
+
+import pymysql
 from unittest.mock import patch, MagicMock, Mock
 from METdbLoad.ush.met_db_load import main as load_main
 from METdbLoad.ush.met_db_load import purge_files, parse_args, next_set, print_version
 from METdbLoad.ush.run_sql import RunSql
 from METdbLoad.test.utils import dict_to_args
+from METdbLoad.ush import constants as CN
+from METdbLoad.ush.read_data_files import ReadDataFiles
+from METdbLoad.ush.write_stat_sql import WriteStatSql
+import METdbLoad.test.utils as utils
 
 from METdataio.METdbLoad.test.utils import (
     get_xml_test_file,
@@ -554,3 +561,154 @@ def test_parse_args():
     with pytest.raises(SystemExit):
         with patch.object(sys, "argv", bad_args):
             parse_args()
+
+
+def load_args(tmp_path, met_data_dir, met_tool, load_flags={}, index=False):
+    return dict_to_args(
+        {
+            "xmlfile": str(
+                get_xml_test_file(tmp_path, met_data_dir, met_tool, load_flags=load_flags)
+            ),
+            "index": index,
+            "tmpdir": [str(tmp_path)],
+            "loglevel": None,
+        }
+    )
+
+
+def test_load_in_sets(emptyDB, testRunSql, tmp_path, monkeypatch):
+    """Files are loaded in sets of at most MAX_FILES files, with the same result"""
+    # MTD_DATA_DIR has 3 files. With MAX_FILES = 1 they are loaded in 2 sets.
+    monkeypatch.setattr(CN, "MAX_FILES", 1)
+    load_main(load_args(tmp_path, MTD_DATA_DIR, "mtd", {"mtd_header_db_check": "true"}))
+
+    expected_counts = {
+        "mtd_2d_obj": 278,
+        "mtd_3d_obj_single": 8,
+        "mtd_3d_obj_pair": 4,
+        "mtd_header": 24,
+        "data_file": 3,
+    }
+    for table, expected_count in expected_counts.items():
+        assert_count_rows(testRunSql.cur, table, expected_count)
+
+
+def test_load_drop_and_apply_indexes(emptyDB, testRunSql, tmp_path):
+    """drop_indexes and apply_indexes drop the indexes before loading and add them after"""
+    load_main(
+        load_args(
+            tmp_path,
+            POINT_STAT_DATA_DIR,
+            "point_stat",
+            {"drop_indexes": "true", "apply_indexes": "true"},
+        )
+    )
+    # file_id and stat_header indexes, plus the 3 applied after loading
+    assert testRunSql.cur.execute("SHOW INDEX FROM line_data_fho") == 5
+    assert_count_rows(testRunSql.cur, "line_data_fho", 24)
+
+
+def assert_db_not_locked():
+    """Fail if a connection left open by a load still holds locks on the test database"""
+    conn = pymysql.connect(
+        host=utils.TEST_DB_HOST,
+        port=utils.TEST_DB_PORT,
+        user=utils.TEST_DB_USER,
+        password=utils.TEST_DB_PASSWORD,
+    )
+    try:
+        with conn.cursor() as cur:
+            # an open transaction on any table would make this wait, then fail
+            cur.execute("SET SESSION lock_wait_timeout = 5")
+            cur.execute(f"DROP DATABASE {utils.TEST_DB_NAME}")
+    finally:
+        conn.close()
+
+
+@pytest.mark.parametrize(
+    "error, expected",
+    [
+        # error not handled by met_db_load is raised
+        (pymysql.err.DataError(1265, "Data truncated"), pymysql.err.DataError),
+        # error handled by met_db_load exits
+        (RuntimeError("write failed"), SystemExit),
+        # error handled by the write class, which exits
+        (SystemExit("*** Error writing stat SQL line data"), SystemExit),
+    ],
+)
+def test_write_error_closes_connection(emptyDB, tmp_path, error, expected):
+    """The database connection is closed when writing the data fails"""
+    with patch.object(WriteStatSql, "write_stat_data", side_effect=error):
+        with pytest.raises(expected):
+            load_main(load_args(tmp_path, POINT_STAT_DATA_DIR, "point_stat"))
+
+    assert_db_not_locked()
+
+
+@pytest.mark.parametrize(
+    "error, expected",
+    [
+        (RuntimeError("read failed"), SystemExit),
+        (ValueError("read failed"), ValueError),
+    ],
+)
+def test_read_error_closes_connection(emptyDB, tmp_path, monkeypatch, error, expected):
+    """The database connection opened for the first set of files is closed when
+    reading the second set fails"""
+    monkeypatch.setattr(CN, "MAX_FILES", 1)
+    read_data = ReadDataFiles.read_data
+    calls = []
+
+    def read_then_fail(self, *args):
+        calls.append(args)
+        if len(calls) > 1:
+            raise error
+        return read_data(self, *args)
+
+    with patch.object(ReadDataFiles, "read_data", read_then_fail):
+        with pytest.raises(expected):
+            load_main(load_args(tmp_path, MTD_DATA_DIR, "mtd"))
+
+    assert len(calls) == 2
+    assert_db_not_locked()
+
+
+def test_load_missing_tmp_dir(tmp_path):
+    args = load_args(tmp_path, POINT_STAT_DATA_DIR, "point_stat")
+    args.tmpdir = [str(tmp_path / "missing")]
+    with pytest.raises(SystemExit, match="tmp dir"):
+        load_main(args)
+
+
+def test_load_no_files_to_load(tmp_path):
+    """No files are left to load when the only file type is not selected"""
+    with pytest.raises(SystemExit, match="No files to load"):
+        load_main(load_args(tmp_path, POINT_STAT_DATA_DIR, "point_stat", {"load_stat": "false"}))
+
+
+def test_metadata_updated(emptyDB, testRunSql, tmp_path):
+    """The group and description in the metadata table are updated by a later load"""
+    args = load_args(tmp_path, POINT_STAT_DATA_DIR, "point_stat")
+    load_main(args)
+    testRunSql.cur.execute("SELECT category, description FROM metadata")
+    assert testRunSql.cur.fetchall() == (("Testing", "testing with pytest"),)
+
+    xml = Path(args.xmlfile).read_text()
+    Path(args.xmlfile).write_text(xml.replace("testing with pytest", "second load"))
+    load_main(args)
+    testRunSql.cur.execute("SELECT category, description FROM metadata")
+    assert testRunSql.cur.fetchall() == (("Testing", "second load"),)
+
+
+def test_tcst_dups(emptyDB, testRunSql, tmp_path):
+    """Loading the same TC-ST files again does not add duplicate lines"""
+    args = load_args(tmp_path, TCDIAG_DATA_DIR, "tc_diag", {"force_dup_file": "false"})
+    load_main(args)
+    testRunSql.cur.execute("SELECT COUNT(*) FROM data_file")
+    file_count = testRunSql.cur.fetchone()[0]
+    load_main(args)
+    # same counts as test_met_db_table_counts
+    assert_count_rows(testRunSql.cur, "line_data_tcmpr", 703)
+    assert_count_rows(testRunSql.cur, "line_data_tcdiag", 168)
+    assert_count_rows(testRunSql.cur, "data_file", file_count)
+
