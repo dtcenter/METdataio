@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Test reading data files."""
 import logging
-from pathlib import Path
 import pandas as pd
 import pytest
 
@@ -16,6 +15,7 @@ from METdataio.METdbLoad.ush.write_stat_sql import WriteStatSql
 from METdataio.METdbLoad.ush.read_load_xml import XmlLoadFile
 from METdataio.METdbLoad.ush import write_mode_sql
 from METdataio.METdbLoad.ush.write_mode_sql import WriteModeSql
+from METdataio.METdbLoad.test.utils import input_path
 
 
 def test_counts(get_xml_loadfile):
@@ -206,8 +206,7 @@ def test_empty_mode_obj_data():
     obj_data = pd.DataFrame()
 
     # Non-empty cts_data but empty obj_data
-    TOP_DIR = str(Path(__file__).parents[1])
-    DUMMY_MODE_DATA = os.path.join(TOP_DIR, "test/data/mode/test_mode_cts/mode_cts_test.txt")
+    DUMMY_MODE_DATA = input_path("mode/test_mode_cts/mode_cts_test.txt")
     cts_df = pd.read_csv(DUMMY_MODE_DATA, engine='python', sep="/s+")
 
     uc_cols = cts_df.columns.to_list()

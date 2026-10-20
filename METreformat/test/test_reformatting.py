@@ -2,7 +2,6 @@ import os
 import pathlib
 import shutil
 import warnings
-from argparse import Namespace
 from collections import namedtuple
 from dataclasses import make_dataclass
 from typing import List
@@ -12,7 +11,6 @@ import pandas as pd
 import pytest
 import yaml
 
-# import METdataio.METdbLoad.ush.constants as cn
 import METdbLoad.ush.constants as cn
 from METdbLoad.ush.read_data_files import ReadDataFiles
 from METdbLoad.ush.read_load_xml import XmlLoadFile
@@ -22,23 +20,23 @@ from metcalcpy.util.read_env_vars_in_config import parse_config
 
 TEST_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'output')
 DEFAULT_TEST_OUTPUT_DIR = os.path.abspath(TEST_OUTPUT_DIR)
-DEFAULT_TEST_INPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
+DEFAULT_TEST_INPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'METdataio_Data'))
 
 
 def get_test_input_dir():
     """Return the top-level directory that contains the METreformat test input data.
 
-    The directory is read from the METREFORMAT_TEST_INPUT_DIR environment variable. If it is
-    not set, METreformat/test/data is used. Fail the calling test with an explanation if the
+    The directory is read from the METDATAIO_TEST_INPUT_DIR environment variable. If it is
+    not set, METdataio_Data in the top of the repository is used. Fail the calling test with an explanation if the
     directory does not exist, so missing input data is not mistaken for a reformatting bug.
 
     @return: The absolute path of the test input data directory.
     """
-    input_dir = os.path.abspath(os.environ.get('METREFORMAT_TEST_INPUT_DIR', DEFAULT_TEST_INPUT_DIR))
+    input_dir = os.path.abspath(os.environ.get('METDATAIO_TEST_INPUT_DIR', DEFAULT_TEST_INPUT_DIR))
     if not os.path.isdir(input_dir):
         pytest.fail(
             f'METreformat test input data directory not found: {input_dir}. Set the '
-            'METREFORMAT_TEST_INPUT_DIR environment variable to the directory that contains '
+            'METDATAIO_TEST_INPUT_DIR environment variable to the directory that contains '
             f'the test input data, or make it available at {DEFAULT_TEST_INPUT_DIR}.'
         )
     return input_dir
@@ -364,7 +362,7 @@ def test_bad_yaml():
     """
 
     with pytest.raises(TypeError):
-        wsa = WriteStatAscii(None, logger)
+        WriteStatAscii(None, logger)
 
 
 def test_write_stat_ascii_bad_input():
@@ -394,7 +392,7 @@ def test_unsupported_linetype():
         wsa.write_stat_ascii(stat_data, parms)
 
 
-def test_point_stat_FHO_consistency():
+def test_point_stat_fho_consistency():
     '''
            For the data frame for the FHO line type, verify that a value in the`
            original data corresponds to the value identified with the same
@@ -1148,12 +1146,7 @@ def test_rhist_consistency():
 
     # Original data
     stat_data, config = setup_test('RHIST')
-
-    # Relevant columns for the RHIST line type
-    linetype: str = cn.RHIST
-
-    wsa = WriteStatAscii(config, logger)
-    reshaped_df = wsa.process_rhist(stat_data)
+    reshaped_df = WriteStatAscii(config, logger).process_rhist(stat_data)
 
     # Verify that the following values are found for the rows with these columns + values (corresponding to the
     # last row of data in the raw RHIST input dataframe):
@@ -1352,10 +1345,6 @@ def test_ecnt_reformat():
 
     for cur_stat in stat_names:
         assert str(cur_stat).upper() in expected_ecnt_stat_cols
-
-    # Retrieve the values from the reformatted data
-    # The subsetting above should result in a unique result with the same number of rows as ECNT columns
-    expected_number_cols = len(expected_ecnt_stat_cols)
 
     # The number of rows of the reformatted_df should equal the number
     # of ECNT specific columns, for a unique total value, and the following
@@ -1908,17 +1897,14 @@ def test_write_stat_ascii_type_error():
         WriteStatAscii(bad_config, logger)
 
 
-def test_NA():
+def test_na():
     """ Verify that nan's are replaced by NA in write_stat_ascii()"""
 
     _, parms = setup_test("FHO", test_name="FHO_nan")
-    dir = os.getcwd()
-    parms['log_directory'] = dir
     wsa = WriteStatAscii(parms, logger)
     fail_if_output_exists(parms)
     result = wsa.write_stat_ascii(_, parms)
     desc = result['desc']
-
     assert 'nan' not in desc
 
 
@@ -1933,4 +1919,4 @@ def test_init_with_bad_parm():
     parms = []
     logger = "bogus"
     with pytest.raises(TypeError):
-        wsa = WriteStatAscii(parms, logger)
+        WriteStatAscii(parms, logger)

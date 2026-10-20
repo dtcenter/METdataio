@@ -896,7 +896,7 @@ class ReadDataFiles:
             except (RuntimeError, TypeError, NameError, KeyError):
                 self.logger.error(
                     f"*** Error concatenating data frames prior to load: {sys.exc_info()[0]}*** ")
-                self.logger.debug("Exception details:", exc_info=True)
+                self.logger.debug("", exc_info=True)
                 sys.exit("*** Error concatenating data frames prior to load")
 
             try:
@@ -910,7 +910,7 @@ class ReadDataFiles:
             except (RuntimeError, TypeError, NameError, KeyError):
                 self.logger.error(
                     f"*** Error concatenating tcst data frames prior to load: {sys.exc_info()[0]}*** ")
-                self.logger.debug("Exception details:", exc_info=True)
+                self.logger.debug("", exc_info=True)
                 sys.exit("*** Error concatenating tcst data frames prior to load")
 
             try:
@@ -1227,14 +1227,16 @@ class ReadDataFiles:
                     # combine stat and vsdb
                     all_vsdb = pd.concat(
                         list_vsdb, ignore_index=True, sort=False)
+                    # copy to consolidate the many column blocks created by the
+                    # VSDB transforms above, which avoids a PerformanceWarning
                     all_stat = pd.concat([all_stat, all_vsdb],
-                                         ignore_index=True, sort=False)
+                                         ignore_index=True, sort=False).copy()
                     all_vsdb = all_vsdb.iloc[0:0]
 
             except (RuntimeError, TypeError, NameError, KeyError):
                 self.logger.error(
                     f"*** Error concatenating vsdb data frames prior to load: {sys.exc_info()[0]}*** ")
-                self.logger.debug("Exception details:", exc_info=True)
+                self.logger.debug("", exc_info=True)
                 sys.exit("*** Error concatenating vsdb data frames prior to load")
 
             try:
