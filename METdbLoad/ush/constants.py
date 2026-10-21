@@ -810,6 +810,13 @@ RHIST_OLD = ['V7.0', 'V6.1', 'V6.0', 'V5.2', 'V5.1', 'V5.0',
 RHIST_5 = ['V5.2', 'V5.1']
 RHIST_6 = ['V6.1', 'V6.0', 'V7.0']
 
+# number of statistics between N_THRESH and the thresholds in PSTD lines
+# BRIERCL, BRIERCL_NCL, BRIERCL_NCU and BSS were added in V5.1, BSS_SMPL in V7.0
+PSTD_STAT_COUNT = 15
+PSTD_STAT_COUNT_OLD = {'V5.0': 10, 'V4.2': 10, 'V4.1': 10, 'V4.0': 10,
+                       'V3.1': 10, 'V3.0': 10,
+                       'V6.1': 14, 'V6.0': 14, 'V5.2': 14, 'V5.1': 14}
+
 X_POINTS_ECON = [0.952380952, 0.909090909, 0.800000000, 0.666666667, 0.500000000,
                  0.333333333, 0.200000000, 0.125000000, 0.100000000, 0.055555556,
                  0.037037037, 0.025000000, 0.016666667, 0.011111111, 0.007142857,

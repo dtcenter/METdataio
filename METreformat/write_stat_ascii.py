@@ -2909,7 +2909,11 @@ def main():
         # Create the log directory if it doesn't already exist
         os.makedirs(log_dir, exist_ok=True)
 
-        full_log_filename = os.path.join(log_dir, parms['log_filename'])
+        # get_common_logger only logs to the console if the name is exactly stdout
+        if parms['log_filename'].lower() == 'stdout':
+            full_log_filename = parms['log_filename']
+        else:
+            full_log_filename = os.path.join(log_dir, parms['log_filename'])
         logger = util.get_common_logger(parms['log_level'], full_log_filename)
 
         file_df: pd.DataFrame = read_input(parms, logger)
