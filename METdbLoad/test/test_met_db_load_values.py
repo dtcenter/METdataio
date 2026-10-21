@@ -193,13 +193,6 @@ def test_percentile_thresholds(emptyDB, testRunSql, tmp_path):
     assert perc[0]["obs_perc"] == 293.05
 
 
-@pytest.mark.xfail(
-    raises=SystemExit,
-    strict=True,
-    reason="write_stat_sql copies n_rank (a string column) into float column '1' for old"
-    " RHIST lines, which pandas 3 rejects with a TypeError"
-    " (see dtcenter/METdataio#441)",
-)
 def test_old_rhist_creates_ecnt(emptyDB, testRunSql, tmp_path):
     """RHIST lines from MET 4 contain ECNT statistics, which are written to line_data_ecnt"""
     # MET 4 RHIST columns: TOTAL CRPS IGN N_RANK RANK_1 ... RANK_N
@@ -286,12 +279,6 @@ def test_pstd_pjc_values(emptyDB, testRunSql, tmp_path):
             last["refinement_i"], last["likelihood_i"], last["baser_i"]) == (0.9, 1, 0, 1, 1, 1, 1)
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="write_stat_sql assumes 10 statistics between N_THRESH and the thresholds in"
-    " PSTD lines, but MET 10 and later write 15, so the thresholds are shifted by 5"
-    " (see dtcenter/METdataio#441)",
-)
 def test_pstd_thresholds(emptyDB, testRunSql, tmp_path):
     """The thresholds at the end of a PSTD line are written to line_data_pstd_thresh"""
     load_rrfs_file(tmp_path)
@@ -327,3 +314,87 @@ def test_variable_length_record_too_long(emptyDB, testRunSql, tmp_path):
         testRunSql.cur, "SELECT * FROM line_data_pct_thresh ORDER BY i_value"
     )
     assert [(r["thresh_i"], r["oy_i"], r["on_i"]) for r in thresh] == [(0, 10, 40), (0.5, 30, 20)]
+
+
+def test_variable_length_record_too_long_second_load(emptyDB, testRunSql, tmp_path):
+    """A variable length line that is too long is not loaded when the table already has rows"""
+    data_dir = write_data_file(
+        tmp_path,
+        "pct.stat",
+        STAT_HEADER + STAT_PREFIX + "==0.5 >273 NA NA PCT 100 3 0 10 40 0.5 30 20 1\n",
+    )
+    load_data(tmp_path, data_dir, "point_stat")
+
+    (tmp_path / "data" / "pct.stat").unlink()
+    write_data_file(
+        tmp_path,
+        "pct_long.stat",
+        STAT_HEADER
+        + STAT_PREFIX + "==0.5 >273 NA NA PCT 100 500 0 10 40 0.5 30 20 1\n"
+        + STAT_PREFIX + "==0.5 >273 NA NA PCT 100 3 0 11 41 0.5 31 21 1\n",
+    )
+    load_data(tmp_path, data_dir, "point_stat")
+
+    pct = fetch_dicts(
+        testRunSql.cur,
+        "SELECT d.filename, l.line_num, l.line_data_id FROM line_data_pct l"
+        " JOIN data_file d USING (data_file_id) ORDER BY l.line_data_id",
+    )
+    assert [(r["filename"], r["line_num"]) for r in pct] == [
+        ("pct.stat", 2), ("pct_long.stat", 3)
+    ]
+    thresh = fetch_dicts(
+        testRunSql.cur, "SELECT * FROM line_data_pct_thresh ORDER BY line_data_id, i_value"
+    )
+    assert [(r["line_data_id"], r["thresh_i"], r["oy_i"], r["on_i"]) for r in thresh] == [
+        (pct[0]["line_data_id"], 0, 10, 40), (pct[0]["line_data_id"], 0.5, 30, 20),
+        (pct[1]["line_data_id"], 0, 11, 41), (pct[1]["line_data_id"], 0.5, 31, 21),
+    ]
+
+
+# Header line of a MET 6 and 7 .stat file, which has DESC but no units columns
+V6_STAT_HEADER = (
+    "VERSION MODEL DESC FCST_LEAD FCST_VALID_BEG FCST_VALID_END OBS_LEAD OBS_VALID_BEG"
+    " OBS_VALID_END FCST_VAR FCST_LEV OBS_VAR OBS_LEV OBTYPE VX_MASK INTERP_MTHD"
+    " INTERP_PNTS FCST_THRESH OBS_THRESH COV_THRESH ALPHA LINE_TYPE\n"
+)
+
+
+@pytest.mark.parametrize(
+    "header, version, n_stats",
+    [
+        (OLD_STAT_HEADER, "V4.2 GFS", 10),
+        (V6_STAT_HEADER, "V6.0 GFS NA", 14),
+        (V6_STAT_HEADER, "V7.0 GFS NA", 15),
+        (STAT_HEADER, "V10.1.1 GFS NA", 15),
+    ],
+    ids=["V4.2", "V6.0", "V7.0", "V10.1.1"],
+)
+def test_pstd_thresholds_by_version(emptyDB, testRunSql, tmp_path, header, version, n_stats):
+    """The number of statistics before the PSTD thresholds depends on the MET version"""
+    units = "K " if header == STAT_HEADER else ""
+    # BASER is 0.4, BRIER is 0.2, the other statistics are NA
+    stats = ["0.4"] + ["NA"] * 6 + ["0.2"] + ["NA"] * (n_stats - 8)
+    data_dir = write_data_file(
+        tmp_path,
+        "pstd.stat",
+        header
+        + f"{version} 010000 20190615_010000 20190615_010000 000000 20190615_003001"
+        f" 20190615_013000 TMP {units}Z2 TMP {units}Z2 ADPSFC CONUS BILIN 4"
+        f" ==0.5 >273 NA 0.05 PSTD 100 3 {' '.join(stats)} 0 0.5 1\n",
+    )
+    load_data(tmp_path, data_dir, "point_stat")
+
+    pstd = fetch_row(testRunSql.cur, "line_data_pstd", "pstd.stat", 2)
+    assert pstd["n_thresh"] == 3
+    assert pstd["baser"] == 0.4
+    assert pstd["brier"] == 0.2
+    # columns after the statistics in the file do not get threshold values
+    assert pstd["bss_smpl"] == MV_NOTAV
+    thresh = fetch_dicts(
+        testRunSql.cur,
+        "SELECT i_value, thresh_i FROM line_data_pstd_thresh WHERE line_data_id = %s"
+        " ORDER BY i_value",
+        (pstd["line_data_id"],),
+    )
+    assert [(r["i_value"], r["thresh_i"]) for r in thresh] == [(1, 0), (2, 0.5), (3, 1)]

@@ -168,12 +168,11 @@ class WriteStatSql:
                         var_index = line_data.columns.get_loc(
                             CN.LINE_VAR_COUNTER[line_type]) + 1
 
-                        # There are 10 extra variables after n_thresh in PSTD records
-                        if line_type == CN.PSTD:
-                            var_index = var_index + 10
-
-                        # need this later for old RHIST
+                        # need this later for old RHIST and PSTD
                         orig_index = var_index
+
+                        # rows of lines that are too long to load
+                        drop_rows = []
 
                         # process each variable line one at a time for different versions
                         for row_num, file_line in line_data.iterrows():
@@ -184,12 +183,15 @@ class WriteStatSql:
                             if line_type in [CN.PJC, CN.PRC]:
                                 var_count = var_count - 1
 
-                            # VSDB and STAT values for sets of repeating vars may be different
-                            if line_type == 'CN.ECLV':
-                                var_count = var_index - 1
-
                             # reset to original value
                             var_index = orig_index
+
+                            # PSTD has statistics between n_thresh and the thresholds
+                            # the number of statistics depends on the MET version
+                            if line_type == CN.PSTD:
+                                var_index = orig_index + \
+                                    CN.PSTD_STAT_COUNT_OLD.get(file_line[CN.VERSION],
+                                                               CN.PSTD_STAT_COUNT)
 
                             # older versions of RHIST have varying ECNT data in them
                             if line_type == CN.RHIST and file_line[CN.VERSION] in CN.RHIST_OLD:
@@ -218,8 +220,8 @@ class WriteStatSql:
                                 logger.error('*** Variable length record from file %s line %s '
                                              'type %s deleted as longer than %s ***',
                                              file_name, row_num, line_type, CN.MAX_COL + 25)
-                                line_data.drop(line_data[line_data.line_data_id == row_num].index,
-                                               inplace=True)
+                                # drop after the loop so row_num still matches the row position
+                                drop_rows.append(row_num)
                             else:
                                 # pull out just the repeating data
                                 list_var_data = file_line.iloc[var_index:var_index + repeat_width]
@@ -274,6 +276,8 @@ class WriteStatSql:
                                 list_var.append(var_data)
 
                         # end for row_num, file_line
+                        line_data.drop(drop_rows, inplace=True)
+
                         if list_var:
                             all_var = pd.concat(
                                 list_var, ignore_index=True, sort=False)
@@ -301,8 +305,9 @@ class WriteStatSql:
                                 line_data2 = line_data2.iloc[0:0]
 
                                 # copy the value of n_rank two columns earlier for old RHIST
-                                line_data.loc[line_data[CN.VERSION].isin(CN.RHIST_OLD), '1'] = \
-                                    line_data['3']
+                                rhist_old = line_data[CN.VERSION].isin(CN.RHIST_OLD)
+                                line_data.loc[rhist_old, '1'] = \
+                                    line_data.loc[rhist_old, '3'].astype(line_data['1'].dtype)
 
                     # write the lines out to a CSV file, and then load them into database
                     if not line_data.empty:

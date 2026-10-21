@@ -711,13 +711,6 @@ def test_alpha_warning(tmp_path):
     )
 
 
-@pytest.mark.xfail(
-    raises=SystemExit,
-    strict=True,
-    reason="read_data_files sets the missing RPS_COMP to a float in a string column,"
-    " which pandas 3 rejects with a TypeError"
-    " (see dtcenter/METdataio#441)",
-)
 def test_rps_missing_rps_comp(tmp_path):
     """RPS lines from older MET versions have no RPS_COMP, so it is set to 1 - RPS"""
     # RPS columns: TOTAL N_PROB RPS_REL RPS_RES RPS_UNC RPS RPSS RPSS_SMPL RPS_COMP
@@ -893,13 +886,6 @@ def test_vsdb_ensemble_line_types(tmp_path):
     ]
 
 
-@pytest.mark.xfail(
-    raises=SystemExit,
-    strict=True,
-    reason="read_data_files reads n_var for VSDB HIST and RELP lines from the row"
-    " with index 1, so a file with only one such line fails to load"
-    " (see dtcenter/METdataio#441)",
-)
 def test_vsdb_single_hist_line(tmp_path):
     file_data = read_files(
         tmp_path,
@@ -909,12 +895,6 @@ def test_vsdb_single_hist_line(tmp_path):
     assert file_data.stat_data["1"].tolist() == [4]
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="read_data_files uses n_var of the row with index 1 for all VSDB HIST lines,"
-    " so lines with a different number of ranks lose values"
-    " (see dtcenter/METdataio#441)",
-)
 def test_vsdb_hist_lines_with_different_ranks(tmp_path):
     file_data = read_files(
         tmp_path,

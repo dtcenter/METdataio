@@ -16,6 +16,7 @@ Copyright 2025 UCAR/NSF NCAR/RAL, CSU/CIRES, Regents of the University of Colora
 # constants exist in constants.py
 
 import sys
+import logging
 import os
 from pathlib import Path
 import time
@@ -24,7 +25,6 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-import METreformat.util as util
 from METdbLoad.ush import constants as CN
 
 
@@ -45,9 +45,9 @@ class ReadDataFiles:
         self.mtd_2d_data = pd.DataFrame()
         self.mtd_3d_single_data = pd.DataFrame()
         self.mtd_3d_pair_data = pd.DataFrame()
+        # do not create a log file if no logger is passed in
         if logger is None:
-            full_logfile = os.path.join(os.getcwd(), __name__ + "_log.txt")
-            self.logger = util.get_common_logger('DEBUG', full_logfile)
+            self.logger = logging.getLogger(__name__)
         else:
             self.logger = logger
 
@@ -860,13 +860,15 @@ class ReadDataFiles:
                     # RPS lines in stat files may be missing rps_comp
                     # if rps_comp IS null and rps is NOT null,
                     # set rps_comp to 1 minus rps
+                    # set value to string if the column holds strings -- for pandas 3.x
                     if all_stat[CN.LINE_TYPE].eq(CN.RPS).any():
-                        all_stat.loc[(all_stat.line_type == CN.RPS) &
-                                     (all_stat['8'].isnull()) &
-                                     (~all_stat['5'].isnull()), '8'] = \
-                            1 - all_stat.loc[(all_stat.line_type == CN.RPS) &
-                                             (all_stat['8'].isnull()) &
-                                             (~all_stat['5'].isnull()), '5'].astype(float)
+                        mask = ((all_stat.line_type == CN.RPS) &
+                                (all_stat['8'].isnull()) &
+                                (~all_stat['5'].isnull()))
+                        rps_comp = 1 - all_stat.loc[mask, '5'].astype(float)
+                        if not pd.api.types.is_numeric_dtype(all_stat['8']):
+                            rps_comp = rps_comp.astype(str)
+                        all_stat.loc[mask, '8'] = rps_comp
 
                     # Some lines in stat files may be missing ec_value
                     # CTC and CTS, set to .5
@@ -1056,15 +1058,8 @@ class ReadDataFiles:
                                                  CN.COL_NAS[:93] + [CN.LINE_NUM, CN.FILE_ROW]]
 
                         elif vsdb_type == CN.RHIST:
-                            # rhist ranks need to be multiplied by 100. First convert to float.
-                            vsdb_data[CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1]]] = \
-                                vsdb_data[CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1]]].astype(
-                                    float)
-                            vsdb_data[CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1]]] *= 100
-                            one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC, CN.N_VAR] +
-                                                 CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1]] +
-                                                 CN.COL_NAS[:(99 - vsdb_data[CN.N_VAR][1])] +
-                                                 [CN.LINE_NUM, CN.FILE_ROW]]
+                            # rhist ranks need to be multiplied by 100
+                            one_file = self.vsdb_rank_lines(vsdb_data, 100)
 
                         elif vsdb_type == CN.PCT:
                             # the total needs to be float
@@ -1108,10 +1103,7 @@ class ReadDataFiles:
                                                  [CN.LINE_NUM, CN.FILE_ROW]]
 
                         elif vsdb_type == CN.RELP:
-                            one_file = vsdb_data[CN.LONG_HEADER + [CN.TOTAL_LC, CN.N_VAR] +
-                                                 CN.COL_NUMS[0:vsdb_data[CN.N_VAR][1]] +
-                                                 CN.COL_NAS[:(99 - vsdb_data[CN.N_VAR][1])] +
-                                                 [CN.LINE_NUM, CN.FILE_ROW]]
+                            one_file = self.vsdb_rank_lines(vsdb_data)
 
                         elif vsdb_type == CN.ECLV:
                             n_var = vsdb_data.loc[0, CN.N_VAR]
@@ -1532,6 +1524,30 @@ class ReadDataFiles:
         elif lc_filename.endswith(".tcst"):
             lu_type = CN.TCST
         return lu_type
+
+    @staticmethod
+    def vsdb_rank_lines(vsdb_data, multiplier=None):
+        """ Select the columns of VSDB HIST or RELP lines. Lines may have different
+            numbers of ranks (n_var), so each group of lines with the same n_var
+            is handled separately.
+            Returns:
+               dataframe with the header, total, n_var, ranks, padding, line_num, file_row
+        """
+        list_ranks = []
+        for n_var, rank_data in vsdb_data.groupby(CN.N_VAR, sort=False):
+            n_var = int(n_var)
+            rank_data = rank_data.copy()
+            rank_cols = CN.COL_NUMS[0:n_var]
+            if multiplier is not None:
+                rank_data[rank_cols] = rank_data[rank_cols].astype(float) * multiplier
+            rank_data = rank_data[CN.LONG_HEADER + [CN.TOTAL_LC, CN.N_VAR] +
+                                  rank_cols + CN.COL_NAS[:(99 - n_var)] +
+                                  [CN.LINE_NUM, CN.FILE_ROW]]
+            # use the same column names for every n_var so the groups line up
+            rank_data.columns = CN.LONG_HEADER + \
+                CN.COL_NUMS[:101] + [CN.LINE_NUM, CN.FILE_ROW]
+            list_ranks.append(rank_data)
+        return pd.concat(list_ranks, sort=False).sort_index()
 
     def read_stat(self, filename, hdr_names):
         """ Read stat files without assuming read_csv can pad lines
