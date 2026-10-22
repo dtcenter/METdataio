@@ -20,7 +20,8 @@ print(sys.path)
 project = 'METdataio'
 author = 'UCAR/NSF NCAR, NOAA, CSU/CIRA, and CU/CIRES'
 author_list = 'Smith, M., T. Burek,  H. Fisher, M. Win-Gildenmeister, and V. Hagerty'
-version = '13.0.0-beta3-dev'
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'version')) as version_file:
+    version = version_file.read().strip()
 verinfo = version
 release = f'{version}'
 release_year = '2026'
