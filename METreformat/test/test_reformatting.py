@@ -8,6 +8,7 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+import pandas.testing
 import pytest
 import yaml
 
@@ -251,7 +252,7 @@ def fail_if_output_exists(parms):
         (cn.FHO, True, True),
         (cn.FHO, False, False),
         (cn.CNT, True, True),
-        (cn.CNT, False, False),
+        (cn.CNT, False, True),
         (cn.VCNT, True, True),
         (cn.VCNT, False, False),
         (cn.CTC, True, True),
@@ -328,6 +329,11 @@ def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implement
     linetype so the tests remain focused on dispatch behavior, while still
     producing a unique output file per parameter combination.
     """
+
+    # an outlier linetype is a linetype that does not need to run agg_stat to
+    # compute CI for its stats, the MET tool already calculates the CIs.
+    OUTLIER_LINETYPES = [cn.CNT,]
+
     stat_data, parms = setup_test(linetype, is_aggregated=is_aggregated)
     wsa = WriteStatAscii(parms, logger)
 
@@ -346,13 +352,16 @@ def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implement
     assert not result_df.empty
     assert os.path.exists(output_path)
 
-    # All statistic columns have the <statname>_ prefix, where statname is
-    # the statistics name in all-caps.
-    if not is_aggregated:
-        expected_prefix = linetype.upper() + "_"
-        written = pd.read_csv(output_path, sep='\t')
-        assert all(name.startswith(expected_prefix) for name in written['stat_name'].unique())
-        assert written.shape[0] == result_df.shape[0]
+    # Most statistic columns have the <statname>_ prefix, where statname is
+    # the statistics name in all-caps. Exceptions are listed in the OUTLIER_LINETYPES
+    # The OUTLIER_LINETYPES are linetypes whose statistics already have CI's
+    # calculated by the MET tool.
+    if linetype not in OUTLIER_LINETYPES:
+       if not is_aggregated:
+           expected_prefix = linetype.upper() + "_"
+           written = pd.read_csv(output_path, sep='\t')
+           assert all(name.startswith(expected_prefix) for name in written['stat_name'].unique())
+           assert written.shape[0] == result_df.shape[0]
 
 
 
@@ -872,6 +881,39 @@ def test_point_stat_cnt_consistency():
 
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
+
+
+def test_point_stat_cnt_for_agg():
+    """
+       The CNT linetype has CI's for its statistics and does not require process_cnt_for_agg().
+
+
+    """
+
+    # Original data
+    # os.environ['METDATAIO_TEST_INPUT_DIR'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), "METdataio_Data")
+    stat_data, parms = setup_test('CNT')
+    # Relevant columns for the CNT line type
+    linetype: str = cn.CNT
+    end = cn.NUM_STAT_CNT_COLS
+    cnt_columns_to_use: List[str] = np.arange(0, end).tolist()
+
+    # Subset original dataframe to one containing only the CNT data
+    cnt_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+    cnt_columns_to_use]
+
+    # Add the stat columns for the CNT line type
+    cnt_columns: List[str] = cn.FULL_CNT_HEADER
+    cnt_df.columns: List[str] = cnt_columns
+
+    wsa = WriteStatAscii(parms, logger)
+    reshaped_df = wsa.process_cnt(stat_data)
+    agg_df = wsa.process_cnt_for_agg(stat_data)
+
+
+    # DataFrame from process_cnt_for_agg() should be identical to the DataFrame
+    # from process_cnt()
+    pandas.testing.assert_frame_equal(reshaped_df, agg_df)
 
 
 def test_point_stat_vcnt_met13_consistency():
