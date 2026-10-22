@@ -891,7 +891,6 @@ def test_point_stat_cnt_for_agg():
     """
 
     # Original data
-    # os.environ['METDATAIO_TEST_INPUT_DIR'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), "METdataio_Data")
     stat_data, parms = setup_test('CNT')
     # Relevant columns for the CNT line type
     linetype: str = cn.CNT
