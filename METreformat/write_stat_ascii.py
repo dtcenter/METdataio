@@ -993,8 +993,19 @@ class WriteStatAscii:
         return linetype_data
 
     def process_cnt_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        No reformatting for METcalcpy agg_stat.py is necessary, the CNT linetype
+        has CI for its stats.  Return the reformatted data via process_cnt.
 
-        raise NotImplementedError
+        Args:
+           stat_data (pd.DataFrame):  the input dataframe
+
+        Returns:
+           the reformatted input data (via process_cnt())
+
+        """
+
+        return self.process_cnt(stat_data)
 
     def process_vcnt(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
