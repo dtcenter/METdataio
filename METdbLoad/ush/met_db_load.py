@@ -25,6 +25,7 @@ from datetime import timedelta
 import sys
 import os
 import getpass
+from importlib import metadata
 
 import METdbLoad.ush.constants as CN
 
@@ -377,15 +378,20 @@ def main(args):
 
 
 def print_version(logger):
-    """ Get version number from docs folder and print it
+    """ Get version number from docs folder and print it.
+        Falls back to the installed package metadata (which is set from
+        the same file) when running from an installed package.
         Returns:
            N/A
     """
     try:
         base_dir = os.path.dirname(os.path.realpath(__file__))
         version_file = "{}/../../docs/version".format(base_dir)
-        file = open(version_file, mode='r')
-        code_version = str.strip(file.read())
+        if os.path.exists(version_file):
+            with open(version_file, mode='r') as file:
+                code_version = str.strip(file.read())
+        else:
+            code_version = metadata.version("metdataio")
         logger.info("METdbload Version: %s", code_version)
 
     except (RuntimeError, TypeError, NameError, KeyError):
