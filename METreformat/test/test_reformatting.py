@@ -257,7 +257,7 @@ def fail_if_output_exists(parms):
         (cn.CTC, True, True),
         (cn.CTC, False, False),
         (cn.CTS, True, True),
-        (cn.CTS, False, False),
+        (cn.CTS, False, True),
         (cn.MCTS, True, True),
         (cn.MCTS, False, False),
         (cn.SL1L2, True, True),
@@ -347,8 +347,9 @@ def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implement
     assert os.path.exists(output_path)
 
     # All statistic columns have the <statname>_ prefix, where statname is
-    # the statistics name in all-caps.
-    if not is_aggregated:
+    # the statistics name in all-caps.  CTS is the exception, its statistics are
+    # calculated by agg_stat from the CTC counts using the unprefixed names.
+    if not is_aggregated and linetype != cn.CTS:
         expected_prefix = linetype.upper() + "_"
         written = pd.read_csv(output_path, sep='\t')
         assert all(name.startswith(expected_prefix) for name in written['stat_name'].unique())
@@ -805,6 +806,66 @@ def test_point_stat_cts_consistency():
 
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
+
+
+def test_cts_reformat_for_agg():
+    '''
+        Verify the CTS reformatting for METcalcpy agg_stat: the CTS statistics are built
+        from the CTC lines (as MET stat-analysis -job aggregate_stat -line_type CTC
+        -out_line_type CTS does), one row per CTS statistic for each CTC line, with the
+        CTC counts in lowercase columns and stat_value initialized to NaN.
+    '''
+    from metcalcpy.util import ctc_statistics
+    from METreformat.write_stat_ascii import CTS_AGG_STATS
+
+    stat_data, parms = setup_test('CTS', is_aggregated=False)
+    wsa = WriteStatAscii(parms, logger)
+    reformatted_df = wsa.process_by_stat_linetype(cn.CTS, stat_data, is_aggregated=False)
+
+    # One row per CTS statistic for every CTC line, the CTS lines aren't used
+    num_ctc_lines = stat_data[stat_data['line_type'] == cn.CTC].shape[0]
+    assert num_ctc_lines > 0
+    assert reformatted_df.shape[0] == num_ctc_lines * len(CTS_AGG_STATS)
+    assert (reformatted_df['line_type'] == cn.CTC).all()
+    assert sorted(reformatted_df['stat_name'].unique()) == sorted(CTS_AGG_STATS)
+    assert reformatted_df['stat_value'].isnull().all()
+
+    # Columns are the lowercase CTC headers plus stat_name and stat_value
+    expected_cols = [hdr.lower() for hdr in cn.CTC_HEADERS] + ['stat_name', 'stat_value']
+    assert list(reformatted_df.columns) == expected_cols
+
+    # Every CTS statistic has a corresponding METcalcpy calculate_<stat> function
+    for stat in CTS_AGG_STATS:
+        assert hasattr(ctc_statistics, f'calculate_{stat.lower()}')
+
+    # The agg_stat calculation on a single CTC line reproduces the MET CTS value for
+    # the same case (total=3956, CEILING, L0, <152).
+    case = ((reformatted_df['total'] == '3956') & (reformatted_df['obs_var'] == 'CEILING') &
+            (reformatted_df['obs_lev'] == 'L0') & (reformatted_df['fcst_thresh'] == '<152'))
+    pody_row = reformatted_df.loc[case & (reformatted_df['stat_name'] == 'PODY')]
+    assert pody_row.shape[0] == 1
+    count_cols = ['total', 'fy_oy', 'fy_on', 'fn_oy', 'fn_on']
+    values = pody_row[count_cols].astype(float).to_numpy()
+    calc_pody = ctc_statistics.calculate_pody(values, np.array(count_cols))
+
+    cts_df = stat_data[stat_data['line_type'] == cn.CTS].iloc[:, 0:cn.NUM_STAT_CTS_COLS]
+    cts_df.columns = cn.CTS_SPECIFIC_HEADERS
+    met_pody = cts_df.loc[(cts_df['total'] == '3956') & (cts_df['obs_var'] == 'CEILING') &
+                          (cts_df['obs_lev'] == 'L0') &
+                          (cts_df['fcst_thresh'] == '<152'), 'PODY'].iloc[0]
+    assert calc_pody == pytest.approx(float(met_pody), abs=1e-5)
+
+
+def test_cts_reformat_for_agg_without_ctc():
+    '''
+        Verify that reformatting CTS for agg_stat raises a ValueError when the input
+        has no CTC lines, the CTS statistics can't be aggregated without the counts.
+    '''
+    stat_data, parms = setup_test('CTS', test_name='CTS_no_ctc', is_aggregated=False)
+    cts_only = stat_data[stat_data['line_type'] == cn.CTS]
+    wsa = WriteStatAscii(parms, logger)
+    with pytest.raises(ValueError, match='CTC'):
+        wsa.process_by_stat_linetype(cn.CTS, cts_only, is_aggregated=False)
 
 
 def test_point_stat_cnt_consistency():

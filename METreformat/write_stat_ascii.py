@@ -39,6 +39,20 @@ from metcalcpy.util.read_env_vars_in_config import parse_config
 LABEL_IDX_FORMAT = "{label}_{idx}"
 VALUE_REGEX_PATTERN = r'(value_)(\d+)'
 
+# Line types whose non-aggregated (METcalcpy agg_stat) reformatting is built from
+# a different line type than the requested one.  The CTS statistics are calculated
+# by agg_stat from the CTC counts, so the input must contain CTC lines.
+AGG_SOURCE_LINETYPES = {
+    cn.CTS: [cn.CTC],
+}
+
+# CTS statistics that METcalcpy agg_stat calculates from the CTC counts.  The stat_name
+# is NOT prefixed with CTS_, agg_stat invokes calculate_<stat_name> (e.g. calculate_pody)
+# from METcalcpy's ctc_statistics module, which uses the same equations as MET.
+# HSS_EC (no METcalcpy equivalent) and EC_VALUE (an input parameter) are excluded.
+CTS_AGG_STATS = [cur_stat.upper() for cur_stat in cn.CTS_STATS_ONLY
+                 if cur_stat not in ('hss_ec', cn.EC_VALUE)]
+
 
 class WriteStatAscii:
     """ Class to write MET .stat files to an ASCII file that contains the reformatted input data
@@ -327,14 +341,15 @@ class WriteStatAscii:
             # stat_bcl/bcu, stat_ncl/ncu columns.  Other plots, like the histogram plots (rank, relative, probability)
             # and ROC diagrams require specific formatting.
 
-            working_df = stat_data.copy(deep=True)
+            # Setting to indicate whether .stat files were processed with MET stat-analysis (True)
+            # or directly from the MET point-stat, grid-stat, or ensemble-stat tool (False)
+            is_aggregated = parms['input_stats_aggregated']
 
-            # If the TCDiag linetype is requested, keep both the TCDiag and TCMPR linetypes.
-            if linetype_requested == cn.TCDIAG:
-                working_df = working_df.loc[(working_df['line_type'] == linetype_requested) |
-                                            (working_df['line_type'] == cn.TCMPR)]
-            else:
-                working_df = working_df.loc[working_df['line_type'] == linetype_requested]
+            # Keep only the rows of the line type(s) needed for the requested line type
+            # (e.g. TCDiag also needs TCMPR, CTS for agg_stat is built from CTC).
+            # Subset before copying so only the needed rows are copied.
+            working_df = self._select_linetype_rows(stat_data, linetype_requested,
+                                                    is_aggregated).copy(deep=True)
 
             # --------------------
             # Write Stat Headers
@@ -351,10 +366,6 @@ class WriteStatAscii:
             # ------------------------------
             # Based on the line type, extract the statistics information and save it in a
             # dataframe.
-
-            # Setting to indicate whether .stat files were processed with MET stat-analysis (True)
-            # or directly from the MET point-stat, grid-stat, or ensemble-stat tool (False)
-            is_aggregated = parms['input_stats_aggregated']
 
             # Replace any nan records with 'NA'.  These nan values were set by the
             # METdbLoad read_data_files module.
@@ -426,23 +437,60 @@ class WriteStatAscii:
         """
         linetype_upper = linetype.upper()
 
-        # Special handling for TCDIAG: include both TCDIAG and TCMPR rows
-        if linetype_upper == cn.TCDIAG:
-            stat_data = stat_data.loc[
-                (stat_data['line_type'] == linetype_upper) |
-                (stat_data['line_type'] == cn.TCMPR)
-            ]
-        else:
-            stat_data = stat_data.loc[stat_data['line_type'] == linetype_upper]
-
         # Validate handler exists and mode is supported
         method_name = self._validate_handler_support(linetype_upper, is_aggregated)
+
+        stat_data = self._select_linetype_rows(stat_data, linetype_upper, is_aggregated)
 
         # Get the handler method and invoke it
         handler_method = getattr(self, method_name)
         linetype_data = handler_method(stat_data)
 
         return linetype_data
+
+    def _select_linetype_rows(self, stat_data: pd.DataFrame, linetype: str,
+                              is_aggregated: bool) -> pd.DataFrame:
+        """!Subset the input data to the rows of the line type(s) needed to reformat the
+            requested line type.  Most line types only need their own rows. TCDIAG also
+            needs the TCMPR rows, and the line types in AGG_SOURCE_LINETYPES are built
+            from other line types when reformatting for agg_stat (non-aggregated input).
+
+        @arg stat_data The MET data read in from the .stat/.tcst file(s)
+        @arg linetype The requested line type (uppercase)
+        @arg is_aggregated Boolean whether input is aggregated
+        @returns The subset of stat_data
+        @raises ValueError If a line type required for agg_stat reformatting is missing
+        """
+        if linetype == cn.TCDIAG:
+            needed_linetypes = [cn.TCDIAG, cn.TCMPR]
+        elif not is_aggregated and linetype in AGG_SOURCE_LINETYPES:
+            needed_linetypes = AGG_SOURCE_LINETYPES[linetype]
+            self._check_required_linetypes(stat_data, linetype, needed_linetypes)
+        else:
+            needed_linetypes = [linetype]
+
+        return stat_data.loc[stat_data['line_type'].isin(needed_linetypes)]
+
+    def _check_required_linetypes(self, stat_data: pd.DataFrame, linetype: str,
+                                  required_linetypes: List[str]):
+        """!Verify that the input data contains every line type needed to reformat the
+            requested line type for METcalcpy agg_stat (e.g. CTS requires CTC).
+
+        @arg stat_data The MET data read in from the .stat file(s)
+        @arg linetype The requested line type
+        @arg required_linetypes The line types that must be present in stat_data
+        @raises ValueError If any of the required line types are missing
+        """
+        present = set(stat_data['line_type'].unique())
+        missing = [cur_lt for cur_lt in required_linetypes if cur_lt not in present]
+        if missing:
+            msg = (
+                f"Reformatting {linetype} for agg_stat requires the "
+                f"{' and '.join(required_linetypes)} line type(s) in the input data, "
+                f"missing: {', '.join(missing)}"
+            )
+            self.logger.error(msg)
+            raise ValueError(msg)
 
     def process_pct(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -1251,8 +1299,65 @@ class WriteStatAscii:
         return linetype_data
 
     def process_cts_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+             Reformatting for using METcalcpy agg_stat. For input data that does NOT
+             have aggregation statistics and confidence values calculated from the
+             MET stat-analysis tool.
 
-        raise NotImplementedError
+             The CTS statistics can't be aggregated directly, agg_stat sums the CTC
+             counts (total, fy_oy, fy_on, fn_oy, fn_on) and then calculates the CTS
+             statistics from the sums, as MET stat-analysis does for
+             -job aggregate_stat -line_type CTC -out_line_type CTS.  Therefore, the
+             input must contain the CTC line type.
+
+             Reformat the CTC rows into columns named after the CTC counts and create a
+             stat_name column with each CTS statistic name (e.g. PODY, CSI, see
+             CTS_AGG_STATS).  The stat_value column is empty, it will be filled by the
+             METcalcpy agg_stat calculation.
+
+             Arguments:
+             @param stat_data: the dataframe containing the CTC data from the MET
+             .stat file.
+
+             Returns:
+                 linetype_data: the reformatted pandas dataframe with the CTC counts in
+                 columns and one row per (CTC row, CTS statistic).
+
+        """
+
+        # Relevant columns for the CTC line type, lowercase as required by agg_stat
+        end = cn.NUM_STAT_CTC_COLS
+        ctc_df: pd.DataFrame = stat_data[stat_data['line_type'] == cn.CTC].iloc[:, 0:end]
+        ctc_df.columns = [cur_hdr.lower() for cur_hdr in cn.CTC_HEADERS]
+
+        return self._repeat_rows_per_stat(ctc_df, CTS_AGG_STATS)
+
+    @staticmethod
+    def _repeat_rows_per_stat(linetype_df: pd.DataFrame,
+                              stat_names: List[str]) -> pd.DataFrame:
+        """
+             Repeat each row once for every statistic in stat_names, in the long format
+             required by METcalcpy agg_stat.
+
+             This is done in one step rather than concatenating a copy of the dataframe
+             per statistic.  Positions are used rather than index labels, the index may
+             contain duplicates when data from several files is combined.
+
+             Arguments:
+             @param linetype_df: the dataframe with the line type columns labelled.
+             @param stat_names: the statistic names for the stat_name column.
+
+             Returns:
+                 the reformatted dataframe with stat_name and (empty) stat_value columns.
+
+        """
+        num_rows = linetype_df.shape[0]
+        repeated = linetype_df.iloc[np.repeat(np.arange(num_rows), len(stat_names))]
+        repeated = repeated.reset_index(drop=True)
+        repeated['stat_name'] = np.tile(stat_names, num_rows)
+        repeated['stat_value'] = np.nan
+
+        return repeated
 
     def process_mcts(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
