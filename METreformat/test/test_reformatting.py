@@ -868,6 +868,35 @@ def test_cts_reformat_for_agg_without_ctc():
         wsa.process_by_stat_linetype(cn.CTS, cts_only, is_aggregated=False)
 
 
+def test_repeat_rows_per_stat():
+    '''
+        Verify that _repeat_rows_per_stat repeats each row once per statistic, in the
+        original row order, with the statistics cycling within each row, even when the
+        input index has duplicate labels (e.g. data combined from several files).
+    '''
+    linetype_df = pd.DataFrame({'total': ['10', '20', '30'], 'fy_oy': ['1', '2', '3']},
+                               index=[5, 5, 7])
+    stat_names = ['PODY', 'FAR']
+
+    repeated = WriteStatAscii._repeat_rows_per_stat(linetype_df, stat_names)
+
+    assert list(repeated.columns) == ['total', 'fy_oy', 'stat_name', 'stat_value']
+    assert list(repeated.index) == list(range(6))
+    assert list(repeated['total']) == ['10', '10', '20', '20', '30', '30']
+    assert list(repeated['fy_oy']) == ['1', '1', '2', '2', '3', '3']
+    assert list(repeated['stat_name']) == ['PODY', 'FAR'] * 3
+    assert repeated['stat_value'].isnull().all()
+
+    # The input dataframe is not modified
+    assert list(linetype_df.columns) == ['total', 'fy_oy']
+    assert list(linetype_df.index) == [5, 5, 7]
+
+    # No input rows results in an empty dataframe with the added columns
+    empty = WriteStatAscii._repeat_rows_per_stat(linetype_df.iloc[0:0], stat_names)
+    assert empty.empty
+    assert list(empty.columns) == ['total', 'fy_oy', 'stat_name', 'stat_value']
+
+
 def test_point_stat_cnt_consistency():
     '''
            For the data frame for the CNT line type, verify that a value in the
