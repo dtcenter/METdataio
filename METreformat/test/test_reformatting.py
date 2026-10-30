@@ -1706,7 +1706,7 @@ def test_mpr_for_line_with_regression_data():
 
     # Verify that the reformatted dataframe is consistent with the input data
     subset_input = stat_data.loc[(stat_data['2'] == 'KSTK') & (stat_data['interp_mthd'] == 'NEAREST') &
-                                 (stat_data['0'] == '4529') & (stat_data['1'].convert_dtypes(int) == 651)]
+                                 (stat_data['0'] == '4529') & (stat_data['1'].astype(int) == 651)]
 
     # Set expected values, convert the series to a list
     expected_obs_lat = subset_input['3'].to_list()[0]
@@ -1720,37 +1720,37 @@ def test_mpr_for_line_with_regression_data():
     reformatted_obs_sid = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_sid') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs_lat = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lat') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs_lon = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lon') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs_lvl = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lvl') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs_elv = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_elv') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_fcst = reformatted_df.loc[(reformatted_df['stat_name'] == 'fcst') &
                                           (reformatted_df['interp_mthd'] == 'NEAREST') &
                                           (reformatted_df['total'] == '4529') &
-                                          (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                          (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs') &
                                          (reformatted_df['interp_mthd'] == 'NEAREST') &
                                          (reformatted_df['total'] == '4529') &
-                                         (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                         (reformatted_df['index'].astype(int) == 651)]
 
     assert reformatted_obs_sid['stat_value'].to_list()[0] == 'KSTK'
     assert reformatted_obs_lat['stat_value'].to_list()[0] == expected_obs_lat
@@ -1785,7 +1785,7 @@ def test_mpr_for_scatter_with_regression_data():
     # Verify that the reformatted dataframe is consistent with the input data for the stat_name and stat_values
     # columns in the reformatted data
     subset_input = stat_data.loc[(stat_data['2'] == 'KSTK') & (stat_data['interp_mthd'] == 'NEAREST') &
-                                 (stat_data['0'] == '4529') & (stat_data['1'].convert_dtypes(int) == 651)]
+                                 (stat_data['0'] == '4529') & (stat_data['1'].astype(int) == 651)]
 
     # Set expected values, convert the series to a list
     expected_obs_lat = subset_input['3'].to_list()[0]
@@ -1799,7 +1799,7 @@ def test_mpr_for_scatter_with_regression_data():
     reformatted_subset = reformatted_df.loc[(reformatted_df['obs_sid'] == 'KSTK') &
                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
                                             (reformatted_df['total'] == '4529') &
-                                            (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                            (reformatted_df['index'].astype(int) == 651)]
 
     # Test that the MPR-specific columns (obs_sid, ..., climo_cdf) in the reformatted file are consistent with the
     # corresponding columns in the input data file.
