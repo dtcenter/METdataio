@@ -746,7 +746,8 @@ The output from the Stat-Analysis tool can then be used
 as input to the METdataio METreformat reformatter.  If filtering of data is not needed, the .stat files from the MET
 Point-Stat, Grid-Stat, and Ensemble-Stat tools can be used as input to the reformatter. If aggregation statistics
 are needed, then the METcalcpy agg_stat.py module can be used following the reformatting step.
-Reformatting to accommodate METcalcpy agg_stat is currently only available for the **ECNT linetype**.
+Reformatting to accommodate METcalcpy agg_stat is available for line types such as **ECNT** and **CTS**
+(CTS requires the CTC lines in the input, see *input_stats_aggregated* below).
 The *input_stats_aggregated* setting is used to indicate whether the reformatter needs to
 reformat the output for the METcalcpy agg_stat module.
 
