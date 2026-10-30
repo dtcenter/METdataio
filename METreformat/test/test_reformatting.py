@@ -856,6 +856,95 @@ def test_cts_reformat_for_agg():
     assert calc_pody == pytest.approx(float(met_pody), abs=1e-5)
 
 
+def test_cts_reformat_for_agg_with_agg_stat():
+    '''
+        End-to-end check: write the CTS reformatted output for METcalcpy agg_stat, run
+        agg_stat on it and verify the aggregated CTS statistics.
+
+        - A single CTC line (CEILING >=914) reproduces the CTS values written by MET
+        - A group of CTC lines (CEILING <3040 and >=914) gives the statistics calculated
+          from the summed CTC counts, as MET stat-analysis aggregate_stat does
+    '''
+    from metcalcpy.agg_stat import AggStat
+    from METreformat.write_stat_ascii import CTS_AGG_STATS
+
+    stat_data, parms = setup_test('CTS', test_name='CTS_agg_stat', is_aggregated=False)
+    fail_if_output_exists(parms)
+    wsa = WriteStatAscii(parms, logger)
+    wsa.write_stat_ascii(stat_data, parms)
+
+    single_thresh = '>=914'
+    group_thresh = '<3040:>=914'
+    output_dir = parms['output_dir']
+    agg_parms = {
+        'agg_stat_input': os.path.join(output_dir, parms['output_filename']),
+        'agg_stat_output': os.path.join(output_dir, 'cts_agg_stat_output.data'),
+        'alpha': 0.05,
+        'append_to_file': None,
+        'circular_block_bootstrap': True,
+        'derived_series_1': [],
+        'derived_series_2': [],
+        'event_equal': False,
+        'fcst_var_val_1': {'HGT': CTS_AGG_STATS},
+        'fcst_var_val_2': {},
+        'indy_vals': ['10000'],
+        'indy_var': 'fcst_lead',
+        'line_type': 'ctc',
+        'list_stat_1': CTS_AGG_STATS,
+        'list_stat_2': [],
+        'method': 'perc',
+        'num_iterations': 1,
+        'num_threads': -1,
+        'random_seed': None,
+        'series_val_1': {'fcst_thresh': [single_thresh, group_thresh]},
+        'series_val_2': {},
+        'log_dir': output_dir,
+        'log_filename': 'cts_agg_stat_log.txt',
+        'log_level': 'WARNING',
+    }
+    AggStat(agg_parms).calculate_stats_and_ci()
+    agg_df = pd.read_csv(agg_parms['agg_stat_output'], sep='\t')
+
+    # One aggregated value per CTS statistic for each fcst_thresh series
+    assert agg_df.shape[0] == 2 * len(CTS_AGG_STATS)
+
+    # Single CTC line: agg_stat reproduces the CTS line from MET for the same case
+    cts_df = stat_data[stat_data['line_type'] == cn.CTS].iloc[:, 0:cn.NUM_STAT_CTS_COLS]
+    cts_df.columns = cn.CTS_SPECIFIC_HEADERS
+    met_cts = cts_df.loc[(cts_df['fcst_var'] == 'HGT') &
+                         (cts_df['fcst_thresh'] == single_thresh)]
+    assert met_cts.shape[0] == 1
+    single = agg_df.loc[agg_df['fcst_thresh'] == single_thresh].set_index('stat_name')
+    for stat in CTS_AGG_STATS:
+        met_value = pd.to_numeric(met_cts[stat].iloc[0], errors='coerce')
+        calc_value = single.loc[stat, 'stat_value']
+        if np.isnan(met_value):
+            assert np.isnan(calc_value), stat
+        else:
+            assert calc_value == pytest.approx(met_value, abs=1e-4), stat
+
+    # Group of CTC lines: the statistics are calculated from the summed counts
+    ctc_df = stat_data[stat_data['line_type'] == cn.CTC].iloc[:, 0:cn.NUM_STAT_CTC_COLS]
+    ctc_df.columns = [hdr.lower() for hdr in cn.CTC_HEADERS]
+    group_rows = ctc_df.loc[(ctc_df['fcst_var'] == 'HGT') &
+                            (ctc_df['fcst_thresh'].isin(group_thresh.split(':')))]
+    assert group_rows.shape[0] == 2
+    sums = group_rows[['total', 'fy_oy', 'fy_on', 'fn_oy', 'fn_on']].astype(float).sum()
+    expected = {
+        'BASER': (sums['fy_oy'] + sums['fn_oy']) / sums['total'],
+        'ACC': (sums['fy_oy'] + sums['fn_on']) / sums['total'],
+        'FBIAS': (sums['fy_oy'] + sums['fy_on']) / (sums['fy_oy'] + sums['fn_oy']),
+        'PODY': sums['fy_oy'] / (sums['fy_oy'] + sums['fn_oy']),
+        'POFD': sums['fy_on'] / (sums['fy_on'] + sums['fn_on']),
+        'FAR': sums['fy_on'] / (sums['fy_oy'] + sums['fy_on']),
+        'CSI': sums['fy_oy'] / (sums['fy_oy'] + sums['fy_on'] + sums['fn_oy']),
+    }
+    group = agg_df.loc[agg_df['fcst_thresh'] == group_thresh].set_index('stat_name')
+    assert (group['nstats'] == 2).all()
+    for stat, value in expected.items():
+        assert group.loc[stat, 'stat_value'] == pytest.approx(value, abs=1e-5), stat
+
+
 def test_cts_reformat_for_agg_without_ctc():
     '''
         Verify that reformatting CTS for agg_stat raises a ValueError when the input

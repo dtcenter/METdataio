@@ -783,6 +783,19 @@ was saved to the working directory.
 
             * Otherwise, set this to *False* if aggregation statistics need to be calculated (METcalcpy agg_stat module).
 
+            * **NOTE**: When *line_type* is CTS and *input_stats_aggregated* is *False*, the input .stat files
+              **must contain CTC lines**. The CTS statistics can't be aggregated directly, so agg_stat sums the
+              CTC counts and calculates the CTS statistics from the sums (as MET Stat-Analysis does for
+              *-job aggregate_stat -line_type CTC -out_line_type CTS*). The CTS lines in the input are not used.
+
+              * The reformatted output has the lowercase CTC count columns (total, fy_oy, fy_on, fn_oy, fn_on,
+                ec_value), one row per CTS statistic (e.g. PODY, CSI) for each CTC line, and an empty
+                stat_value column.
+              * The line_type column of the output is CTC, so set *line_type: ctc* in the METcalcpy agg_stat
+                configuration file.
+              * HSS_EC and EC_VALUE are not included.
+              * Reformatting fails with an error if the input has no CTC lines.
+
        .. dropdown:: input_data_dir
 
          * The full path (no environment variables) to the directory that contains all the input .stat files from the MET Point-Stat, Grid-Stat, or Ensemble-Stat tool
