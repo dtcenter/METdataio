@@ -56,9 +56,9 @@ class WriteTcstSql:
                 # find the unique headers for this current load job
                 # Do not include Version, as MVLoad does not
                 tcst_headers = tcst_data[CN.TCST_HEADER_KEYS].copy()
-                tcst_headers.drop_duplicates(
-                    CN.TCST_HEADER_KEYS[1:], keep='first', inplace=True)
-                tcst_headers.reset_index(drop=True, inplace=True)
+                tcst_headers = tcst_headers.drop_duplicates(
+                    CN.TCST_HEADER_KEYS[1:], keep='first')
+                tcst_headers = tcst_headers.reset_index(drop=True)
 
                 # At first, we do not know if the headers already exist, so we have no keys
                 tcst_headers[CN.TCST_HEADER_ID] = CN.NO_KEY
@@ -137,7 +137,7 @@ class WriteTcstSql:
                     # get the line data of just this type and re-index
                     line_data = tcst_data[tcst_data[CN.LINE_TYPE]
                                           == line_type].copy()
-                    line_data.reset_index(drop=True, inplace=True)
+                    line_data = line_data.reset_index(drop=True)
                     logger.info("%s: %s rows", line_type,
                                 str(len(line_data.index)))
 

@@ -112,61 +112,54 @@ class WriteFileSql:
                     # delete line data rows that match index of duplicated file
                     if not stat_data.empty and list_dupes:
                         if stat_data.file_row.isin(list_dupes).any():
-                            stat_data.drop(stat_data[stat_data.file_row
-                                                     .isin(list_dupes)].index,
-                                           inplace=True)
+                            stat_data = stat_data.drop(stat_data[stat_data.file_row
+                                                                 .isin(list_dupes)].index)
 
                     if not tcst_data.empty and list_dupes:
                         if tcst_data.file_row.isin(list_dupes).any():
-                            tcst_data.drop(tcst_data[tcst_data.file_row
-                                                     .isin(list_dupes)].index,
-                                           inplace=True)
+                            tcst_data = tcst_data.drop(tcst_data[tcst_data.file_row
+                                                                 .isin(list_dupes)].index)
 
                     if not mode_cts_data.empty and list_dupes:
                         if mode_cts_data.file_row.isin(list_dupes).any():
-                            mode_cts_data.drop(mode_cts_data[mode_cts_data.file_row
-                                                             .isin(list_dupes)].index,
-                                               inplace=True)
+                            mode_cts_data = mode_cts_data.drop(mode_cts_data[mode_cts_data.file_row
+                                                                             .isin(list_dupes)].index)
 
                     if not mode_obj_data.empty and list_dupes:
                         if mode_obj_data.file_row.isin(list_dupes).any():
-                            mode_obj_data.drop(mode_obj_data[mode_obj_data.file_row
-                                                             .isin(list_dupes)].index,
-                                               inplace=True)
+                            mode_obj_data = mode_obj_data.drop(mode_obj_data[mode_obj_data.file_row
+                                                                             .isin(list_dupes)].index)
 
                     if not mtd_2d_data.empty and list_dupes:
                         if mtd_2d_data.file_row.isin(list_dupes).any():
-                            mtd_2d_data.drop(mtd_2d_data[mtd_2d_data.file_row
-                                                         .isin(list_dupes)].index,
-                                             inplace=True)
+                            mtd_2d_data = mtd_2d_data.drop(mtd_2d_data[mtd_2d_data.file_row
+                                                                       .isin(list_dupes)].index)
 
                     if not mtd_3d_single_data.empty and list_dupes:
                         if mtd_3d_single_data.file_row.isin(list_dupes).any():
-                            mtd_3d_single_data.drop(mtd_3d_single_data[mtd_3d_single_data.file_row
-                                                                       .isin(list_dupes)].index,
-                                                    inplace=True)
+                            mtd_3d_single_data = mtd_3d_single_data.drop(mtd_3d_single_data[mtd_3d_single_data.file_row
+                                                                                            .isin(list_dupes)].index)
 
                     if not mtd_3d_pair_data.empty and list_dupes:
                         if mtd_3d_pair_data.file_row.isin(list_dupes).any():
-                            mtd_3d_pair_data.drop(mtd_3d_pair_data[mtd_3d_pair_data.file_row
-                                                                   .isin(list_dupes)].index,
-                                                  inplace=True)
+                            mtd_3d_pair_data = mtd_3d_pair_data.drop(mtd_3d_pair_data[mtd_3d_pair_data.file_row
+                                                                                      .isin(list_dupes)].index)
 
                 # delete duplicate file entries
                 index_names = data_files[data_files.data_file_id ==
                                          CN.NO_KEY].index
-                data_files.drop(index_names, inplace=True)
+                data_files = data_files.drop(index_names)
 
                 if not data_files.empty:
 
                     # reset indexes in case any records were dropped
-                    stat_data.reset_index(drop=True, inplace=True)
-                    mode_cts_data.reset_index(drop=True, inplace=True)
-                    mode_obj_data.reset_index(drop=True, inplace=True)
-                    mtd_2d_data.reset_index(drop=True, inplace=True)
-                    mtd_3d_single_data.reset_index(drop=True, inplace=True)
-                    mtd_3d_pair_data.reset_index(drop=True, inplace=True)
-                    tcst_data.reset_index(drop=True, inplace=True)
+                    stat_data = stat_data.reset_index(drop=True)
+                    mode_cts_data = mode_cts_data.reset_index(drop=True)
+                    mode_obj_data = mode_obj_data.reset_index(drop=True)
+                    mtd_2d_data = mtd_2d_data.reset_index(drop=True)
+                    mtd_3d_single_data = mtd_3d_single_data.reset_index(drop=True)
+                    mtd_3d_pair_data = mtd_3d_pair_data.reset_index(drop=True)
+                    tcst_data = tcst_data.reset_index(drop=True)
 
                     # Replace the temporary id value with the actual index in the line data
                     for row_num, row in data_files.iterrows():

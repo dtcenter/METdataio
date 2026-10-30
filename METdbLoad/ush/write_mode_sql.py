@@ -72,9 +72,9 @@ class WriteModeSql:
                 mode_headers = mode_headers.sort_values(
                     by=[CN.DATA_FILE_ID, CN.LINENUMBER])
                 # get unique values, keeping the first of the duplicate records
-                mode_headers.drop_duplicates(
-                    CN.MODE_HEADER_KEYS, keep='first', inplace=True)
-                mode_headers.reset_index(drop=True, inplace=True)
+                mode_headers = mode_headers.drop_duplicates(
+                    CN.MODE_HEADER_KEYS, keep='first')
+                mode_headers = mode_headers.reset_index(drop=True)
 
                 # At first, we do not know if the headers already exist, so we have no keys
                 mode_headers[CN.MODE_HEADER_ID] = CN.NO_KEY
@@ -156,19 +156,18 @@ class WriteModeSql:
 
                     # intensity values can be NA, which causes MySQL warning
                     # replace is done to achieve desired MySQL output of NULL
-                    obj_data.replace({'intensity_10': CN.NOTAV, 'intensity_25': CN.NOTAV,
-                                      'intensity_50': CN.NOTAV, 'intensity_75': CN.NOTAV,
-                                      'intensity_90': CN.NOTAV, 'intensity_nn': CN.NOTAV},
-                                     CN.MV_NULL, inplace=True)
+                    obj_data = obj_data.replace({'intensity_10': CN.NOTAV, 'intensity_25': CN.NOTAV,
+                                                 'intensity_50': CN.NOTAV, 'intensity_75': CN.NOTAV,
+                                                 'intensity_90': CN.NOTAV, 'intensity_nn': CN.NOTAV},
+                                                CN.MV_NULL)
 
                     # pairs have an underscore in the object id - singles do not
                     all_pair = obj_data[obj_data[CN.OBJECT_ID].str.contains(
                         CN.U_SCORE)].copy()
-                    obj_data.drop(obj_data[obj_data[CN.OBJECT_ID].str.contains(CN.U_SCORE)].index,
-                                  inplace=True)
+                    obj_data = obj_data.drop(obj_data[obj_data[CN.OBJECT_ID].str.contains(CN.U_SCORE)].index)
 
                     # reset the index so mode_obj_ids are set correctly
-                    obj_data.reset_index(drop=True, inplace=True)
+                    obj_data = obj_data.reset_index(drop=True)
 
                     # get next valid mode object id. Set it to zero (first valid id) if no records yet
                     next_line_id = sql_met.get_next_id(
@@ -206,7 +205,7 @@ class WriteModeSql:
 
                 if not all_pair.empty:
 
-                    all_pair.reset_index(drop=True, inplace=True)
+                    all_pair = all_pair.reset_index(drop=True)
 
                     # split out the paired object ids for processing
                     all_pair[[CN.F_OBJECT_ID, CN.O_OBJECT_ID]] = \
@@ -228,18 +227,18 @@ class WriteModeSql:
                     # get mode objects ids for forecasts
                     all_pair = pd.merge(left=all_pair, right=obj_data,
                                         on=[CN.MODE_HEADER_ID, CN.F_OBJECT_ID])
-                    all_pair.rename(
-                        columns={CN.MODE_OBJ_ID: CN.MODE_OBJ_FCST_ID}, inplace=True)
+                    all_pair = all_pair.rename(
+                        columns={CN.MODE_OBJ_ID: CN.MODE_OBJ_FCST_ID})
 
                     # rename the object id column to match observations
-                    obj_data.rename(
-                        columns={CN.F_OBJECT_ID: CN.O_OBJECT_ID}, inplace=True)
+                    obj_data = obj_data.rename(
+                        columns={CN.F_OBJECT_ID: CN.O_OBJECT_ID})
 
                     # get mode objects ids for observations
                     all_pair = pd.merge(left=all_pair, right=obj_data,
                                         on=[CN.MODE_HEADER_ID, CN.O_OBJECT_ID])
-                    all_pair.rename(
-                        columns={CN.MODE_OBJ_ID: CN.MODE_OBJ_OBS_ID}, inplace=True)
+                    all_pair = all_pair.rename(
+                        columns={CN.MODE_OBJ_ID: CN.MODE_OBJ_OBS_ID})
 
                     obj_data = obj_data.iloc[0:0]
 

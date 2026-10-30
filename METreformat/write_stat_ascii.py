@@ -553,16 +553,16 @@ class WriteStatAscii:
         gc.collect()
 
         # Replace the first two numbered labels (following the LINETYPE column) with the TOTAL and N_THRESH labels
-        working_df.rename(
-            columns={'0': 'total', cn.LINE_VAR_COUNTER[cn.PCT]: 'n_thresh'}, inplace=True)
+        working_df = working_df.rename(
+            columns={'0': 'total', cn.LINE_VAR_COUNTER[cn.PCT]: 'n_thresh'})
 
         # Relabel the remaining numbered column headers
         last_column_name = len(working_df.columns) - cn.NUM_STATIC_PCT_COLS
 
         # The THRESH_n column is the last column
         thresh_n_col_name = 'thresh_' + str(num_thresh + 1)
-        working_df.rename(
-            columns={str(last_column_name): thresh_n_col_name}, inplace=True)
+        working_df = working_df.rename(
+            columns={str(last_column_name): thresh_n_col_name})
 
         # Relabel the repeating columns (THRESH_i, OY_i, ON_i)
         # column names are numbered '1','2','3',...,etc. Give them descriptive labels: thresh_1, oy_1, on_1, etc.
@@ -573,8 +573,8 @@ class WriteStatAscii:
             for column in cn.LC_PCT_VARIABLE_HEADERS:
                 column_name = str(column_name_value)
                 column_label = LABEL_IDX_FORMAT.format(label=column, idx=i)
-                working_df.rename(
-                    columns={column_name: column_label}, inplace=True)
+                working_df = working_df.rename(
+                    columns={column_name: column_label})
                 column_name_value += 1
 
             # Add a list used to facilitate creating the value_i column when reformatting.
@@ -664,21 +664,21 @@ class WriteStatAscii:
                                          value_name='i_value')
 
         # Drop the unused var_names in the melted dataframes
-        df_thresh.drop('thresh', axis=1, inplace=True)
-        df_oy.drop('oy', axis=1, inplace=True)
-        df_on.drop('on', axis=1, inplace=True)
-        df_values.drop('values', axis=1, inplace=True)
+        df_thresh = df_thresh.drop('thresh', axis=1)
+        df_oy = df_oy.drop('oy', axis=1)
+        df_on = df_on.drop('on', axis=1)
+        df_values = df_values.drop('values', axis=1)
 
         # Reindex to use the common columns before concatenating the melted dataframes to avoid duplication of
         # common columns.
         df_thresh_reindex = df_thresh.set_index(
-            common_list, drop=True, append=False, inplace=False)
+            common_list, drop=True, append=False)
         df_oy_reindex = df_oy.set_index(
-            common_list, drop=True, append=False, inplace=False)
+            common_list, drop=True, append=False)
         df_on_reindex = df_on.set_index(
-            common_list, drop=True, append=False, inplace=False)
+            common_list, drop=True, append=False)
         df_values_reindex = df_values.set_index(
-            common_list, drop=True, append=False, inplace=False)
+            common_list, drop=True, append=False)
         reformatted_df = pd.concat(
             [df_thresh_reindex, df_oy_reindex, df_on_reindex, df_values_reindex], axis=1)
 
@@ -752,8 +752,8 @@ class WriteStatAscii:
         gc.collect()
 
         # Replace the first two numbered labels (following the LINETYPE column) with the TOTAL and N_RANK labels
-        working_df.rename(
-            columns={'0': 'total', cn.LINE_VAR_COUNTER[cn.RHIST]: 'n_rank'}, inplace=True)
+        working_df = working_df.rename(
+            columns={'0': 'total', cn.LINE_VAR_COUNTER[cn.RHIST]: 'n_rank'})
 
         # Relabel the repeating columns (RANK_1, ..., RANK_n)
         # column names are numbered '1','2','3',...,etc. by METdbLoad.
@@ -765,8 +765,8 @@ class WriteStatAscii:
             for column in cn.LC_RHIST_VARIABLE_HEADERS:
                 column_name = str(column_name_value)
                 column_label = LABEL_IDX_FORMAT.format(label=column, idx=i)
-                working_df.rename(
-                    columns={column_name: column_label}, inplace=True)
+                working_df = working_df.rename(
+                    columns={column_name: column_label})
                 column_name_value += 1
 
             # Add a list used to facilitate creating the value_i column when reformatting.
@@ -840,15 +840,15 @@ class WriteStatAscii:
                                          value_name='i_value')
 
         # Drop the unused var_names in the melted dataframes
-        df_rank.drop('rank', axis=1, inplace=True)
-        df_values.drop('values', axis=1, inplace=True)
+        df_rank = df_rank.drop('rank', axis=1)
+        df_values = df_values.drop('values', axis=1)
 
         # Reindex to use the common columns before concatenating the melted dataframes to avoid duplication of
         # common columns.
         df_rank_reindex = df_rank.set_index(
-            common_list, drop=True, append=False, inplace=False)
+            common_list, drop=True, append=False)
         df_values_reindex = df_values.set_index(
-            common_list, drop=True, append=False, inplace=False)
+            common_list, drop=True, append=False)
         reformatted_df = pd.concat(
             [df_rank_reindex, df_values_reindex], axis=1)
 
@@ -2029,8 +2029,8 @@ class WriteStatAscii:
         cleanup_df = full_df.copy(deep=True)
         cleanup_df = cleanup_df.drop('TOTAL_y', axis=1)
         cleanup_df = cleanup_df.drop('LINE_TYPE_x', axis=1)
-        cleanup_df.rename(
-            {'TOTAL_x': 'TOTAL', 'LINE_TYPE_y': 'LINE_TYPE'}, axis=1, inplace=True)
+        cleanup_df = cleanup_df.rename(
+            {'TOTAL_x': 'TOTAL', 'LINE_TYPE_y': 'LINE_TYPE'}, axis=1)
 
         end_tcdiag = time.perf_counter()
         time_to_process_tcdiag = end_tcdiag - begin_tcdiag
@@ -2103,8 +2103,8 @@ class WriteStatAscii:
             diag_name = diag_names[0]
 
             # Replace the VALUE_i column corresponding to the DIAG_i with the name of the diagnostic
-            ds_df.rename({start_value: diag_name},
-                         axis='columns', inplace=True)
+            ds_df = ds_df.rename({start_value: diag_name},
+                                 axis='columns')
             diag_to_drop.append(start_diag)
             next_diag = str(int(start_diag) + 2)
             next_value = str(int(start_value) + 2)
@@ -2112,32 +2112,32 @@ class WriteStatAscii:
             start_value = next_value
 
         # Drop the columns containing the DIAG types
-        ds_df.drop(diag_to_drop, axis=1, inplace=True)
+        ds_df = ds_df.drop(diag_to_drop, axis=1)
         reformatted = ds_df.copy(deep=True)
-        reformatted.rename(
+        reformatted = reformatted.rename(
             {'0': 'total', '1': 'index_pairs', '2': 'diag_source', '3': 'track_source', '4': 'field_source',
-             '5': 'n_diag'},
-            axis='columns', inplace=True)
+                           '5': 'n_diag'},
+            axis='columns')
 
         # Replace the shear magnitude column with the common name since different DIAG_SOURCES use different
         # 4 letter abbreviations for the same field (e.g. SHRD in SHIPS and SHR_MAG in CIRA RT are the identifiers
         # for shear magnitude
         reformatted_cols = reformatted.columns.to_list()
         if 'SHR_MAG' in reformatted_cols:
-            reformatted.rename(
-                {'SHR_MAG': cn.TCDIAG_COMMON_NAMES['SHR_MAG']}, axis='columns', inplace=True)
+            reformatted = reformatted.rename(
+                {'SHR_MAG': cn.TCDIAG_COMMON_NAMES['SHR_MAG']}, axis='columns')
         elif 'SHRD' in reformatted_cols:
-            reformatted.rename(
-                {'SHRD': cn.TCDIAG_COMMON_NAMES['SHRD']}, axis='columns', inplace=True)
+            reformatted = reformatted.rename(
+                {'SHRD': cn.TCDIAG_COMMON_NAMES['SHRD']}, axis='columns')
         if 'LAND' in reformatted_cols:
-            reformatted.rename(
-                {'LAND': cn.TCDIAG_COMMON_NAMES['LAND']}, axis='columns', inplace=True)
+            reformatted = reformatted.rename(
+                {'LAND': cn.TCDIAG_COMMON_NAMES['LAND']}, axis='columns')
         elif 'DTL' in reformatted_cols:
-            reformatted.rename(
-                {'DTL': cn.TCDIAG_COMMON_NAMES['DTL']}, axis='columns', inplace=True)
+            reformatted = reformatted.rename(
+                {'DTL': cn.TCDIAG_COMMON_NAMES['DTL']}, axis='columns')
         if 'STM_SPD' in reformatted_cols:
-            reformatted.rename(
-                {'STM_SPD': cn.TCDIAG_COMMON_NAMES['STM_SPD']}, axis='columns', inplace=True)
+            reformatted = reformatted.rename(
+                {'STM_SPD': cn.TCDIAG_COMMON_NAMES['STM_SPD']}, axis='columns')
 
         # Clean up intermediate dataframes
         del ds_df
