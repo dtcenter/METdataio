@@ -744,8 +744,23 @@ def test_process_ctc_agg():
     stat_data, parms = setup_test('CTC')
     parms['input_stats_aggregated'] = False
     wsa = WriteStatAscii(parms, logger)
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(NotImplementedError, match='Set line_type to CTS'):
         wsa.process_ctc_for_agg(stat_data)
+
+
+def test_ctc_stat_name_order():
+    '''
+        Verify that the reshaped CTC data keeps each line's statistics in the order of
+        the CTC columns (the sort by Idx is stable).
+    '''
+    stat_data, parms = setup_test('CTC', test_name='CTC_order')
+    wsa = WriteStatAscii(parms, logger)
+    reshaped_df = wsa.process_ctc(stat_data)
+
+    orders = reshaped_df.groupby('Idx', sort=False)['stat_name'].apply(list)
+    assert len(orders) == stat_data[stat_data['line_type'] == cn.CTC].shape[0]
+    for order in orders:
+        assert order == cn.CTC_STATISTICS_HEADERS
 
 
 def test_point_stat_cts_consistency():

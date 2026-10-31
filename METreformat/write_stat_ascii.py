@@ -419,7 +419,7 @@ class WriteStatAscii:
             necessary format based on whether the data is already aggregated (via MET stat-analysis) or
             if the data is un-aggregated and requires the METcalcpy agg_stat module for performing the aggregation
             statistics calculations.  **NOTE** Support for reformatting into agg_stat's required input format is currently
-            available for the *ECNT* linetype.  This support will be extended to the other supported linetypes.
+            available for the *ECNT*, *CTS* (from the CTC lines), *VL1L2*, *VAL1L2*, and *SAL1L2* linetypes.
 
 
         Args:
@@ -1033,7 +1033,7 @@ class WriteStatAscii:
                                                         j='stat_name',
                                                         sep='_',
                                                         suffix='.+'
-                                                        ).sort_values('Idx')
+                                                        ).sort_values('Idx', kind='stable')
 
         # Rename the BCL, BCU, NCL, NCU, and STAT columns to stat_bcl, stat_bcu,
         # stat_ncl, stat_ncu, and stat_value
@@ -1129,7 +1129,7 @@ class WriteStatAscii:
                                                         j='stat_name',
                                                         sep='_',
                                                         suffix='.+'
-                                                        ).sort_values('Idx')
+                                                        ).sort_values('Idx', kind='stable')
 
         # Rename the BCL, BCU, NCL, NCU, and STAT columns to stat_bcl, stat_bcu,
         # stat_ncl, stat_ncu, and stat_value
@@ -1200,7 +1200,7 @@ class WriteStatAscii:
         linetype_data = ctc_df_copy.melt(id_vars=id_vars_list,
                                          value_vars=cn.CTC_STATISTICS_HEADERS,
                                          var_name='stat_name',
-                                         value_name='stat_value').sort_values('Idx')
+                                         value_name='stat_value').sort_values('Idx', kind='stable')
 
         # CTC line type doesn't have the ncl, ncu, bcl and bcu stat values set these
         # to NA
@@ -1214,8 +1214,17 @@ class WriteStatAscii:
         return linetype_data
 
     def process_ctc_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+             The CTC counts aren't statistics that METcalcpy agg_stat calculates, agg_stat
+             sums them to calculate the CTS statistics.  Request the CTS line type to
+             reformat the CTC lines for agg_stat.
 
-        raise NotImplementedError
+             raises NotImplementedError
+        """
+
+        raise NotImplementedError(
+            "CTC can't be reformatted for METcalcpy agg_stat. Set line_type to CTS to "
+            "reformat the CTC lines for the CTS statistics agg_stat calculates from them.")
 
     def process_cts(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -1291,7 +1300,7 @@ class WriteStatAscii:
                                                         j='stat_name',
                                                         sep='_',
                                                         suffix='.+'
-                                                        ).sort_values('Idx')
+                                                        ).sort_values('Idx', kind='stable')
 
         # Rename the BCL, BCU, NCL, NCU, and STAT columns to stat_bcl, stat_bcu,
         # stat_ncl, stat_ncu, and stat_value
@@ -1445,7 +1454,7 @@ class WriteStatAscii:
                                                         j='stat_name',
                                                         sep='_',
                                                         suffix='.+'
-                                                        ).sort_values('Idx')
+                                                        ).sort_values('Idx', kind='stable')
 
         # Rename the BCL, BCU, NCL, NCU, and STAT columns to stat_bcl, stat_bcu,
         # stat_ncl, stat_ncu, and stat_value
@@ -1515,7 +1524,7 @@ class WriteStatAscii:
         reshaped = sl1l2_df_copy.melt(id_vars=id_vars_list,
                                       value_vars=cn.SL1L2_STATISTICS_HEADERS,
                                       var_name='stat_name',
-                                      value_name='stat_value').sort_values('Idx')
+                                      value_name='stat_value').sort_values('Idx', kind='stable')
 
         # SL1L2 line type doesn't have the bcl and bcu stat values set these to NA
         na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
@@ -1575,7 +1584,7 @@ class WriteStatAscii:
         reshaped = sal1l2_df_copy.melt(id_vars=id_vars_list,
                                        value_vars=cn.SAL1L2_STATISTICS_HEADERS,
                                        var_name='stat_name',
-                                       value_name='stat_value').sort_values('Idx')
+                                       value_name='stat_value').sort_values('Idx', kind='stable')
 
         # SAL1L2 line type doesn't have bcl/bcu stat values (same as SL1L2) -- set to NA
         na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
@@ -1668,7 +1677,7 @@ class WriteStatAscii:
         reshaped = vl1l2_df_copy.melt(id_vars=id_vars_list,
                                       value_vars=cn.VL1L2_STATISTICS_HEADERS,
                                       var_name='stat_name',
-                                      value_name='stat_value').sort_values('Idx')
+                                      value_name='stat_value').sort_values('Idx', kind='stable')
 
         # VL1L2 line type doesn't have the bcl and bcu stat values set these to NA
         na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
@@ -1764,7 +1773,7 @@ class WriteStatAscii:
         reshaped = ecnt_df_copy.melt(id_vars=id_vars_list,
                                      value_vars=cn.ECNT_STATISTICS_HEADERS,
                                      var_name='stat_name',
-                                     value_name='stat_value').sort_values('Idx')
+                                     value_name='stat_value').sort_values('Idx', kind='stable')
 
         # ECNT line type doesn't have the bcl and bcu stat values set these to NA
         na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
@@ -2385,7 +2394,7 @@ class WriteStatAscii:
         reshaped = val1l2_df_copy.melt(id_vars=id_vars_list,
                                       value_vars=cn.VAL1L2_STATISTICS_HEADERS,
                                       var_name='stat_name',
-                                      value_name='stat_value').sort_values('Idx')
+                                      value_name='stat_value').sort_values('Idx', kind='stable')
 
         # VAL1L2 line type doesn't have the bcl and bcu stat values set these to NA
         na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
