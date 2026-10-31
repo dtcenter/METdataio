@@ -53,6 +53,17 @@ AGG_SOURCE_LINETYPES = {
 CTS_AGG_STATS = [cur_stat.upper() for cur_stat in cn.CTS_STATS_ONLY
                  if cur_stat not in ('hss_ec', cn.EC_VALUE)]
 
+# Statistics that METcalcpy agg_stat calculates from the VL1L2, VAL1L2 and SAL1L2 partial
+# sums (the keys of AggStat.STATISTIC_TO_FIELDS for these line types).  agg_stat invokes
+# calculate_<stat_name> (e.g. calculate_vl1l2_bias) from METcalcpy's vl1l2_statistics,
+# val1l2_statistics and sal1l2_statistics modules.  The SAL1L2 statistics aren't prefixed.
+VL1L2_AGG_STATS = ['VL1L2_BIAS', 'VL1L2_FVAR', 'VL1L2_OVAR', 'VL1L2_SPEED_ERR',
+                   'VL1L2_RMSVE', 'VL1L2_MSVE', 'VL1L2_DIR_ME', 'VL1L2_DIR_MAE',
+                   'VL1L2_DIR_MSE']
+VAL1L2_AGG_STATS = ['VAL1L2_ANOM_CORR', 'VAL1L2_DIRA_ME', 'VAL1L2_DIRA_MAE',
+                    'VAL1L2_DIRA_MSE']
+SAL1L2_AGG_STATS = ['ANOM_CORR', 'ANOM_CORR_RAW', 'RMSFA', 'RMSOA', 'MAE']
+
 
 class WriteStatAscii:
     """ Class to write MET .stat files to an ASCII file that contains the reformatted input data
@@ -1577,73 +1588,37 @@ class WriteStatAscii:
         return reshaped
 
     def process_sal1l2_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
-         """
-         Reformatting for using METcalcpy agg_stat. For input data that does NOT
-         have aggregation statistics and confidence values calculated from the
-         MET point-stat/grid-stat tool.
+        """
+             Reformatting for using METcalcpy agg_stat. For input data that does NOT
+             have aggregation statistics and confidence values calculated from the
+             MET stat-analysis tool.
 
-         Reformat the data from the original MET output file (stat_data) into
-         statistics columns corresponding to the statistic name for the MET SAL1L2
-         linetype, as defined in constants.py in the METdbLoad module:
+             agg_stat sums the SAL1L2 partial sums (fabar, oabar, foabar, ffabar,
+             ooabar, mae), weighted by total, and then calculates the statistics from
+             the sums.
 
-             'fabar', 'oabar', 'foabar', 'ffabar', 'ooabar', 'mae'
+             Reformat the SAL1L2 rows into columns named after the SAL1L2 headers and
+             create a stat_name column with each statistic that agg_stat calculates from
+             the SAL1L2 partial sums (e.g. ANOM_CORR, RMSFA, see SAL1L2_AGG_STATS). The
+             stat_value column is empty, it will be filled by the METcalcpy agg_stat
+             calculation.
 
-         In addition, create a stat_name column with SAL1L2_<stat> (where stat is the name of the stat).
-         This format is *required* for using the METcalcpy agg_stat.py module to calculate aggregation
-         statistics.
+             Arguments:
+             @param stat_data: the dataframe containing the SAL1L2 data from the MET
+             .stat file.
 
-         Arguments:
-         @param stat_data: the dataframe containing all the data from the MET
-         .stat file.
+             Returns:
+                 linetype_data: the reformatted pandas dataframe with the SAL1L2 partial
+                 sums in columns and one row per (SAL1L2 row, statistic).
 
-         Returns:
-             linetype_data: the reformatted pandas dataframe with statistics data
-             reorganized into columns based on the individual SAL1L2 statistic names.
+        """
 
-         """
+        # Relevant columns for the SAL1L2 line type, lowercase as required by agg_stat
+        end = cn.NUM_STAT_SAL1L2_COLS
+        sal1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == cn.SAL1L2].iloc[:, 0:end]
+        sal1l2_df.columns = [cur_hdr.lower() for cur_hdr in cn.SAL1L2_HEADERS]
 
-         # Relevant columns for the SAL1L2 line type
-         linetype: str = cn.SAL1L2
-         end = cn.NUM_STAT_SAL1L2_COLS
-         sal1l2_columns_to_use: List[str] = (
-             np.arange(0, end).tolist())
-
-         # Subset original dataframe to one containing only the SAL1L2 data
-         sal1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                                                                                sal1l2_columns_to_use]
-
-         # Replace the column numbers with the name of the corresponding statistic as specified in MET
-         # User's Guide for the SAL1L2 linetype in the point-stat/grid-stat table.
-         all_headers = cn.SAL1L2_HEADERS
-         all_headers_lc = [cur_hdr.lower() for cur_hdr in all_headers]
-         sal1l2_df.columns = all_headers_lc
-
-         # Add the stat_name column and stat_value columns.  Populate the stat_name column with the
-         # 'SAL1L2_' prefixed statistic names (e.g. for fabar, this becomes SAL1L2_FABAR).  Do this for
-         # each SAL1L2-specific statistic.  This will result in a very large dataframe.
-         linetype_str = linetype.upper() + '_'
-         sal1l2_headers = cn.LC_SAL1L2_SPECIFIC
-         renamed_sal1l2 = [linetype_str + cur_hdr.upper()
-                           for cur_hdr in sal1l2_headers]
-
-         # Create a list of dataframes, each corresponding to the SAL1L2 statistics, then merge them
-         # all into one final dataframe.
-         dfs_to_merge = []
-
-         for renamed in renamed_sal1l2:
-             tmp_df: pd.DataFrame = sal1l2_df.copy()
-             tmp_df['stat_name'] = renamed
-             dfs_to_merge.append(tmp_df)
-
-         # Merge all the statistics dataframes into one, then add the
-         # stat_value column. Initialize the stat_values to NaN/NA.  These
-         # values will be filled by the METcalcpy agg_stat calculation.
-         merged_dfs: pd.DataFrame = pd.concat(
-             dfs_to_merge, axis=0, ignore_index=True)
-         merged_dfs['stat_value'] = np.nan
-         merged_dfs.replace('N/A', pd.NA)
-
-         return merged_dfs
+        return self._repeat_rows_per_stat(sal1l2_df, SAL1L2_AGG_STATS)
 
     def process_vl1l2(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -1707,78 +1682,38 @@ class WriteStatAscii:
 
 
     def process_vl1l2_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
-
         """
-        Reformatting for using METcalcpy agg_stat. For input data that does NOT
-        have aggregation statistics and confidence values calculated from the
-        MET point-stat/grid-stat tool.
+             Reformatting for using METcalcpy agg_stat. For input data that does NOT
+             have aggregation statistics and confidence values calculated from the
+             MET stat-analysis tool.
 
-        raises NotImplementedError
+             agg_stat sums the VL1L2 partial sums (ufbar, vfbar, uobar, vobar, uvfobar,
+             uvffbar, uvoobar, f_speed_bar, o_speed_bar, dir_me, dir_mae, dir_mse),
+             weighted by total_dir (total for MET versions before 12.0), and then
+             calculates the statistics from the sums.
 
-        Reformat the data from the original MET output file (stat_data) into
-        statistics columns corresponding to the statistic name for the MET VL1L2
-        linetype, as defined in constants.py in the METdbLoad module:
+             Reformat the VL1L2 rows into columns named after the VL1L2 headers and
+             create a stat_name column with each statistic that agg_stat calculates from
+             the VL1L2 partial sums (e.g. VL1L2_BIAS, VL1L2_RMSVE, see VL1L2_AGG_STATS).
+             The stat_value column is empty, it will be filled by the METcalcpy agg_stat
+             calculation.
 
-            'ufbar', 'vfbar', 'uobar', 'vobar', 'uvfobar', 'uvffbar', 'uvoobar',
-            'f_speed_bar', 'o_speed_bar', 'total_dir', 'dir_me', 'dir_mae', 'dir_mse'
+             Arguments:
+             @param stat_data: the dataframe containing the VL1L2 data from the MET
+             .stat file.
 
-        In addition, create a stat_name column with VL1L2_<stat> (where stat is the name of the stat).
-        This format is *required* for using the METcalcpy agg_stat.py module to calculate aggregation
-        statistics.
-
-        Arguments:
-        @param stat_data: the dataframe containing all the data from the MET
-        .stat file.
-
-        Returns:
-            linetype_data: the reformatted pandas dataframe with statistics data
-            reorganized into columns based on the individual VL1L2 statistic names.
+             Returns:
+                 linetype_data: the reformatted pandas dataframe with the VL1L2 partial
+                 sums in columns and one row per (VL1L2 row, statistic).
 
         """
 
-        # Relevant columns for the VL1L2 line type
-        linetype: str = cn.VL1L2
+        # Relevant columns for the VL1L2 line type, lowercase as required by agg_stat
         end = cn.NUM_STAT_VL1L2_COLS
-        vl1l2_columns_to_use: List[str] = (
-            np.arange(0, end).tolist())
+        vl1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == cn.VL1L2].iloc[:, 0:end]
+        vl1l2_df.columns = [cur_hdr.lower() for cur_hdr in cn.VL1L2_HEADERS]
 
-        # Subset original dataframe to one containing only the VL1L2 data
-        vl1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-        vl1l2_columns_to_use]
-
-        # Replace the column numbers with the name of the corresponding statistic as specified in MET
-        # User's Guide for the VL1L2 linetype in the point-stat/grid-stat table.
-        all_headers = cn.VL1L2_HEADERS
-        all_headers_lc = [cur_hdr.lower() for cur_hdr in all_headers]
-        vl1l2_df.columns = all_headers_lc
-
-        # Add the stat_name column and stat_value columns.  Populate the stat_name column with the
-        # 'VL1L2_' prefixed statistic names (e.g. for ufbar, this becomes VL1L2_UFBAR).  Do this for
-        # each VL1L2-specific statistic.  This will result in a very large dataframe.
-        linetype_str = linetype.upper() + '_'
-        vl1l2_headers = cn.LC_VL1L2_SPECIFIC
-        renamed_vl1l2 = [linetype_str + cur_hdr.upper()
-                         for cur_hdr in vl1l2_headers]
-
-        # Create a list of dataframes, each corresponding to the VL1L2 statistics, then merge them
-        # all into one final dataframe.
-        dfs_to_merge = []
-
-        for renamed in renamed_vl1l2:
-            tmp_df: pd.DataFrame = vl1l2_df.copy()
-            tmp_df['stat_name'] = renamed
-            dfs_to_merge.append(tmp_df)
-
-        # Merge all the statistics dataframes into one, then add the
-        # stat_value column. Initialize the stat_values to NaN/NA.  These
-        # values will be filled by the METcalcpy agg_stat calculation.
-        merged_dfs: pd.DataFrame = pd.concat(
-            dfs_to_merge, axis=0, ignore_index=True)
-        merged_dfs['stat_value'] = np.nan
-        merged_dfs.replace('N/A', pd.NA)
-
-        return merged_dfs
-
+        return self._repeat_rows_per_stat(vl1l2_df, VL1L2_AGG_STATS)
 
     def process_ecnt(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -2465,67 +2400,37 @@ class WriteStatAscii:
 
     def process_val1l2_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
-        Retrieve the VAL1L2 line type data from
-        the original MET output file (stat_data). Reformat this data into
-        statistics columns corresponding to the statistic name for the MET VAL1L2
-        linetype, as defined in constants.py in the METdbLoad module:
-        'ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar', 'uvffabar', 'uvooabar',
-       'fa_speed_bar', 'oa_speed_bar', 'total_dir', 'dira_me', 'dira_mae', 'dira_mse'
+             Reformatting for using METcalcpy agg_stat. For input data that does NOT
+             have aggregation statistics and confidence values calculated from the
+             MET stat-analysis tool.
 
-        The reformatted data will have a stat_name column with the VAL1L2_ prefix
-        to the stat name.  This is required by the METcalcpy agg_stat module to
-        calculate aggregation statistics.
+             agg_stat sums the VAL1L2 partial sums (ufabar, vfabar, uoabar, voabar,
+             uvfoabar, uvffabar, uvooabar, fa_speed_bar, oa_speed_bar, dira_me,
+             dira_mae, dira_mse), weighted by total_dir (total for MET versions before
+             12.0), and then calculates the statistics from the sums.
 
-        Arguments:
-            @param stat_data: The dataframe containing the data from the MET .stat file.
-        
-        Returns:
-            linetype_data (pd.DataFrame): The reformatted dataframe with statistics
-            data reorganized into columns based on the VAL1L2 statistic names
+             Reformat the VAL1L2 rows into columns named after the VAL1L2 headers and
+             create a stat_name column with each statistic that agg_stat calculates from
+             the VAL1L2 partial sums (e.g. VAL1L2_ANOM_CORR, VAL1L2_DIRA_ME, see
+             VAL1L2_AGG_STATS). The stat_value column is empty, it will be filled by the
+             METcalcpy agg_stat calculation.
+
+             Arguments:
+             @param stat_data: the dataframe containing the VAL1L2 data from the MET
+             .stat file.
+
+             Returns:
+                 linetype_data: the reformatted pandas dataframe with the VAL1L2 partial
+                 sums in columns and one row per (VAL1L2 row, statistic).
+
         """
 
-        # Relevant columns for the VAL1L2 line type
-        linetype: str = cn.VAL1L2
+        # Relevant columns for the VAL1L2 line type, lowercase as required by agg_stat
         end = cn.NUM_STAT_VAL1L2_COLS
-        val1l2_columns_to_use: List[int] = (
-            np.arange(0, end).tolist())
+        val1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == cn.VAL1L2].iloc[:, 0:end]
+        val1l2_df.columns = [cur_hdr.lower() for cur_hdr in cn.VAL1L2_HEADERS]
 
-        # Subset original dataframe to one containing only the VAL1L2 data
-        val1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                                                                                     val1l2_columns_to_use].copy()
-
-        # Replace the column numbers with the name of the corresponding statistic as specified in MET
-        # User's Guide for the VAL1L2 linetype in the point-stat/grid-stat table.
-        all_headers = cn.VAL1L2_HEADERS
-        all_headers_lc = [cur_hdr.lower() for cur_hdr in all_headers]
-        val1l2_df.columns = all_headers_lc
-
-        # Add the stat_name column and stat_value columns.  Populate the stat_name column with the
-        # 'VAL1L2_' prefixed statistic names (e.g. for ufabar, this becomes VAL1L2_UFABAR).  Do this for
-        # each VAL1L2-specific statistic.  This will result in a very large dataframe.
-        linetype_str = linetype.upper() + '_'
-        val1l2_headers = cn.LC_VAL1L2_SPECIFIC
-        renamed_val1l2 = [linetype_str + cur_hdr.upper()
-                          for cur_hdr in val1l2_headers]
-
-        # Create a list of dataframes, each corresponding to the VAL1L2 statistics, then merge them
-        # all into one final dataframe.
-        dfs_to_merge = []
-
-        for renamed in renamed_val1l2:
-            tmp_df: pd.DataFrame = val1l2_df.copy()
-            tmp_df['stat_name'] = renamed
-            dfs_to_merge.append(tmp_df)
-
-        # Merge all the statistics dataframes into one, then add the
-        # stat_value column. Initialize the stat_values to NaN/NA.  These
-        # values will be filled by the METcalcpy agg_stat calculation.
-        merged_dfs: pd.DataFrame = pd.concat(
-            dfs_to_merge, axis=0, ignore_index=True)
-        merged_dfs['stat_value'] = np.nan
-        merged_dfs.replace('N/A', pd.NA)
-
-        return merged_dfs
+        return self._repeat_rows_per_stat(val1l2_df, VAL1L2_AGG_STATS)
 
     def process_mctc(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
