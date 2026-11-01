@@ -257,7 +257,7 @@ def fail_if_output_exists(parms):
         (cn.CTC, True, True),
         (cn.CTC, False, False),
         (cn.CTS, True, True),
-        (cn.CTS, False, False),
+        (cn.CTS, False, True),
         (cn.MCTS, True, True),
         (cn.MCTS, False, False),
         (cn.SL1L2, True, True),
@@ -346,12 +346,20 @@ def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implement
     assert not result_df.empty
     assert os.path.exists(output_path)
 
-    # All statistic columns have the <statname>_ prefix, where statname is
-    # the statistics name in all-caps.
+    # For agg_stat, the stat_name column holds the statistics agg_stat calculates (CTS,
+    # VL1L2, VAL1L2 and SAL1L2), the other line types have the <linetype>_ prefix.
     if not is_aggregated:
-        expected_prefix = linetype.upper() + "_"
+        from METreformat.write_stat_ascii import (CTS_AGG_STATS, SAL1L2_AGG_STATS,
+                                                  VAL1L2_AGG_STATS, VL1L2_AGG_STATS)
+        agg_stats = {cn.CTS: CTS_AGG_STATS, cn.VL1L2: VL1L2_AGG_STATS,
+                     cn.VAL1L2: VAL1L2_AGG_STATS, cn.SAL1L2: SAL1L2_AGG_STATS}
         written = pd.read_csv(output_path, sep='\t')
-        assert all(name.startswith(expected_prefix) for name in written['stat_name'].unique())
+        stat_names = written['stat_name'].unique()
+        if linetype in agg_stats:
+            assert sorted(stat_names) == sorted(agg_stats[linetype])
+        else:
+            expected_prefix = linetype.upper() + "_"
+            assert all(name.startswith(expected_prefix) for name in stat_names)
         assert written.shape[0] == result_df.shape[0]
 
 
@@ -736,8 +744,23 @@ def test_process_ctc_agg():
     stat_data, parms = setup_test('CTC')
     parms['input_stats_aggregated'] = False
     wsa = WriteStatAscii(parms, logger)
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(NotImplementedError, match='Set line_type to CTS'):
         wsa.process_ctc_for_agg(stat_data)
+
+
+def test_ctc_stat_name_order():
+    '''
+        Verify that the reshaped CTC data keeps each line's statistics in the order of
+        the CTC columns (the sort by Idx is stable).
+    '''
+    stat_data, parms = setup_test('CTC', test_name='CTC_order')
+    wsa = WriteStatAscii(parms, logger)
+    reshaped_df = wsa.process_ctc(stat_data)
+
+    orders = reshaped_df.groupby('Idx', sort=False)['stat_name'].apply(list)
+    assert len(orders) == stat_data[stat_data['line_type'] == cn.CTC].shape[0]
+    for order in orders:
+        assert order == cn.CTC_STATISTICS_HEADERS
 
 
 def test_point_stat_cts_consistency():
@@ -805,6 +828,184 @@ def test_point_stat_cts_consistency():
 
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
+
+
+def test_cts_reformat_for_agg():
+    '''
+        Verify the CTS reformatting for METcalcpy agg_stat: the CTS statistics are built
+        from the CTC lines (as MET stat-analysis -job aggregate_stat -line_type CTC
+        -out_line_type CTS does), one row per CTS statistic for each CTC line, with the
+        CTC counts in lowercase columns and stat_value initialized to NaN.
+    '''
+    from metcalcpy.util import ctc_statistics
+    from METreformat.write_stat_ascii import CTS_AGG_STATS
+
+    stat_data, parms = setup_test('CTS', is_aggregated=False)
+    wsa = WriteStatAscii(parms, logger)
+    reformatted_df = wsa.process_by_stat_linetype(cn.CTS, stat_data, is_aggregated=False)
+
+    # One row per CTS statistic for every CTC line, the CTS lines aren't used
+    num_ctc_lines = stat_data[stat_data['line_type'] == cn.CTC].shape[0]
+    assert num_ctc_lines > 0
+    assert reformatted_df.shape[0] == num_ctc_lines * len(CTS_AGG_STATS)
+    assert (reformatted_df['line_type'] == cn.CTC).all()
+    assert sorted(reformatted_df['stat_name'].unique()) == sorted(CTS_AGG_STATS)
+    assert reformatted_df['stat_value'].isnull().all()
+
+    # Columns are the lowercase CTC headers plus stat_name and stat_value
+    expected_cols = [hdr.lower() for hdr in cn.CTC_HEADERS] + ['stat_name', 'stat_value']
+    assert list(reformatted_df.columns) == expected_cols
+
+    # Every CTS statistic has a corresponding METcalcpy calculate_<stat> function
+    for stat in CTS_AGG_STATS:
+        assert hasattr(ctc_statistics, f'calculate_{stat.lower()}')
+
+    # The agg_stat calculation on a single CTC line reproduces the MET CTS value for
+    # the same case (total=3956, CEILING, L0, <152).
+    case = ((reformatted_df['total'] == '3956') & (reformatted_df['obs_var'] == 'CEILING') &
+            (reformatted_df['obs_lev'] == 'L0') & (reformatted_df['fcst_thresh'] == '<152'))
+    pody_row = reformatted_df.loc[case & (reformatted_df['stat_name'] == 'PODY')]
+    assert pody_row.shape[0] == 1
+    count_cols = ['total', 'fy_oy', 'fy_on', 'fn_oy', 'fn_on']
+    values = pody_row[count_cols].astype(float).to_numpy()
+    calc_pody = ctc_statistics.calculate_pody(values, np.array(count_cols))
+
+    cts_df = stat_data[stat_data['line_type'] == cn.CTS].iloc[:, 0:cn.NUM_STAT_CTS_COLS]
+    cts_df.columns = cn.CTS_SPECIFIC_HEADERS
+    met_pody = cts_df.loc[(cts_df['total'] == '3956') & (cts_df['obs_var'] == 'CEILING') &
+                          (cts_df['obs_lev'] == 'L0') &
+                          (cts_df['fcst_thresh'] == '<152'), 'PODY'].iloc[0]
+    assert calc_pody == pytest.approx(float(met_pody), abs=1e-5)
+
+
+def test_cts_reformat_for_agg_with_agg_stat():
+    '''
+        End-to-end check: write the CTS reformatted output for METcalcpy agg_stat, run
+        agg_stat on it and verify the aggregated CTS statistics.
+
+        - A single CTC line (CEILING >=914) reproduces the CTS values written by MET
+        - A group of CTC lines (CEILING <3040 and >=914) gives the statistics calculated
+          from the summed CTC counts, as MET stat-analysis aggregate_stat does
+    '''
+    from metcalcpy.agg_stat import AggStat
+    from METreformat.write_stat_ascii import CTS_AGG_STATS
+
+    stat_data, parms = setup_test('CTS', test_name='CTS_agg_stat', is_aggregated=False)
+    fail_if_output_exists(parms)
+    wsa = WriteStatAscii(parms, logger)
+    wsa.write_stat_ascii(stat_data, parms)
+
+    single_thresh = '>=914'
+    group_thresh = '<3040:>=914'
+    output_dir = parms['output_dir']
+    agg_parms = {
+        'agg_stat_input': os.path.join(output_dir, parms['output_filename']),
+        'agg_stat_output': os.path.join(output_dir, 'cts_agg_stat_output.data'),
+        'alpha': 0.05,
+        'append_to_file': None,
+        'circular_block_bootstrap': True,
+        'derived_series_1': [],
+        'derived_series_2': [],
+        'event_equal': False,
+        'fcst_var_val_1': {'HGT': CTS_AGG_STATS},
+        'fcst_var_val_2': {},
+        'indy_vals': ['10000'],
+        'indy_var': 'fcst_lead',
+        'line_type': 'ctc',
+        'list_stat_1': CTS_AGG_STATS,
+        'list_stat_2': [],
+        'method': 'perc',
+        'num_iterations': 1,
+        'num_threads': -1,
+        'random_seed': None,
+        'series_val_1': {'fcst_thresh': [single_thresh, group_thresh]},
+        'series_val_2': {},
+        'log_dir': output_dir,
+        'log_filename': 'cts_agg_stat_log.txt',
+        'log_level': 'WARNING',
+    }
+    AggStat(agg_parms).calculate_stats_and_ci()
+    agg_df = pd.read_csv(agg_parms['agg_stat_output'], sep='\t')
+
+    # One aggregated value per CTS statistic for each fcst_thresh series
+    assert agg_df.shape[0] == 2 * len(CTS_AGG_STATS)
+
+    # Single CTC line: agg_stat reproduces the CTS line from MET for the same case
+    cts_df = stat_data[stat_data['line_type'] == cn.CTS].iloc[:, 0:cn.NUM_STAT_CTS_COLS]
+    cts_df.columns = cn.CTS_SPECIFIC_HEADERS
+    met_cts = cts_df.loc[(cts_df['fcst_var'] == 'HGT') &
+                         (cts_df['fcst_thresh'] == single_thresh)]
+    assert met_cts.shape[0] == 1
+    single = agg_df.loc[agg_df['fcst_thresh'] == single_thresh].set_index('stat_name')
+    for stat in CTS_AGG_STATS:
+        met_value = pd.to_numeric(met_cts[stat].iloc[0], errors='coerce')
+        calc_value = single.loc[stat, 'stat_value']
+        if np.isnan(met_value):
+            assert np.isnan(calc_value), stat
+        else:
+            assert calc_value == pytest.approx(met_value, abs=1e-4), stat
+
+    # Group of CTC lines: the statistics are calculated from the summed counts
+    ctc_df = stat_data[stat_data['line_type'] == cn.CTC].iloc[:, 0:cn.NUM_STAT_CTC_COLS]
+    ctc_df.columns = [hdr.lower() for hdr in cn.CTC_HEADERS]
+    group_rows = ctc_df.loc[(ctc_df['fcst_var'] == 'HGT') &
+                            (ctc_df['fcst_thresh'].isin(group_thresh.split(':')))]
+    assert group_rows.shape[0] == 2
+    sums = group_rows[['total', 'fy_oy', 'fy_on', 'fn_oy', 'fn_on']].astype(float).sum()
+    expected = {
+        'BASER': (sums['fy_oy'] + sums['fn_oy']) / sums['total'],
+        'ACC': (sums['fy_oy'] + sums['fn_on']) / sums['total'],
+        'FBIAS': (sums['fy_oy'] + sums['fy_on']) / (sums['fy_oy'] + sums['fn_oy']),
+        'PODY': sums['fy_oy'] / (sums['fy_oy'] + sums['fn_oy']),
+        'POFD': sums['fy_on'] / (sums['fy_on'] + sums['fn_on']),
+        'FAR': sums['fy_on'] / (sums['fy_oy'] + sums['fy_on']),
+        'CSI': sums['fy_oy'] / (sums['fy_oy'] + sums['fy_on'] + sums['fn_oy']),
+    }
+    group = agg_df.loc[agg_df['fcst_thresh'] == group_thresh].set_index('stat_name')
+    assert (group['nstats'] == 2).all()
+    for stat, value in expected.items():
+        assert group.loc[stat, 'stat_value'] == pytest.approx(value, abs=1e-5), stat
+
+
+def test_cts_reformat_for_agg_without_ctc():
+    '''
+        Verify that reformatting CTS for agg_stat raises a ValueError when the input
+        has no CTC lines, the CTS statistics can't be aggregated without the counts.
+    '''
+    stat_data, parms = setup_test('CTS', test_name='CTS_no_ctc', is_aggregated=False)
+    cts_only = stat_data[stat_data['line_type'] == cn.CTS]
+    wsa = WriteStatAscii(parms, logger)
+    with pytest.raises(ValueError, match='CTC'):
+        wsa.process_by_stat_linetype(cn.CTS, cts_only, is_aggregated=False)
+
+
+def test_repeat_rows_per_stat():
+    '''
+        Verify that _repeat_rows_per_stat repeats each row once per statistic, in the
+        original row order, with the statistics cycling within each row, even when the
+        input index has duplicate labels (e.g. data combined from several files).
+    '''
+    linetype_df = pd.DataFrame({'total': ['10', '20', '30'], 'fy_oy': ['1', '2', '3']},
+                               index=[5, 5, 7])
+    stat_names = ['PODY', 'FAR']
+
+    repeated = WriteStatAscii._repeat_rows_per_stat(linetype_df, stat_names)
+
+    assert list(repeated.columns) == ['total', 'fy_oy', 'stat_name', 'stat_value']
+    assert list(repeated.index) == list(range(6))
+    assert list(repeated['total']) == ['10', '10', '20', '20', '30', '30']
+    assert list(repeated['fy_oy']) == ['1', '1', '2', '2', '3', '3']
+    assert list(repeated['stat_name']) == ['PODY', 'FAR'] * 3
+    assert repeated['stat_value'].isnull().all()
+
+    # The input dataframe is not modified
+    assert list(linetype_df.columns) == ['total', 'fy_oy']
+    assert list(linetype_df.index) == [5, 5, 7]
+
+    # No input rows results in an empty dataframe with the added columns
+    empty = WriteStatAscii._repeat_rows_per_stat(linetype_df.iloc[0:0], stat_names)
+    assert empty.empty
+    assert list(empty.columns) == ['total', 'fy_oy', 'stat_name', 'stat_value']
 
 
 def test_point_stat_cnt_consistency():
@@ -1194,11 +1395,14 @@ def test_rhist_consistency():
 
 def test_vl1l2_reformat_for_agg():
     '''
-        Verify the VL1L2 reformatting for METcalcpy agg_stat: VL1L2_-prefixed stat names,
-        one row per VL1L2 statistic for each raw VL1L2 line, and stat_value initialized to NaN.
+        Verify the VL1L2 reformatting for METcalcpy agg_stat: one row per statistic that
+        agg_stat calculates from the VL1L2 partial sums (VL1L2_AGG_STATS) for each raw
+        VL1L2 line, and stat_value initialized to NaN.
 
         :return:  None
     '''
+
+    from METreformat.write_stat_ascii import VL1L2_AGG_STATS
 
     # Original unreformatted data
     stat_data, parms = setup_test('VL1L2', is_aggregated=False)
@@ -1211,8 +1415,8 @@ def test_vl1l2_reformat_for_agg():
     # Resulting output is not an empty dataframe
     assert reformatted_df.shape[0] > 0
 
-    # All stat names should be VL1L2_ prefixed, upper-case versions of the VL1L2-specific statistics
-    expected_stat_names = ['VL1L2_' + stat.upper() for stat in cn.LC_VL1L2_SPECIFIC]
+    # The stat names are the statistics agg_stat calculates from the VL1L2 partial sums
+    expected_stat_names = VL1L2_AGG_STATS
     assert sorted(reformatted_df['stat_name'].unique().tolist()) == sorted(expected_stat_names)
 
     # Each raw VL1L2 line should produce one row per statistic (VAL1L2 and other line types excluded)
@@ -1227,18 +1431,21 @@ def test_vl1l2_reformat_for_agg():
         :, np.arange(0, cn.NUM_STAT_VL1L2_COLS).tolist()]
     vl1l2_df.columns = [hdr.lower() for hdr in cn.VL1L2_HEADERS]
     expected_row = vl1l2_df.iloc[0]
-    actual_row = reformatted_df[reformatted_df['stat_name'] == 'VL1L2_UFBAR'].iloc[0]
+    actual_row = reformatted_df[reformatted_df['stat_name'] == 'VL1L2_BIAS'].iloc[0]
     for col in ['total', 'ufbar', 'vfbar', 'dir_mse']:
         assert expected_row[col] == actual_row[col]
 
 
 def test_val1l2_reformat_for_agg():
     '''
-        Verify the VAL1L2 reformatting for METcalcpy agg_stat: VAL1L2_-prefixed stat names,
-        one row per VAL1L2 statistic for each raw VAL1L2 line, and stat_value initialized to NaN.
+        Verify the VAL1L2 reformatting for METcalcpy agg_stat: one row per statistic that
+        agg_stat calculates from the VAL1L2 partial sums (VAL1L2_AGG_STATS) for each raw
+        VAL1L2 line, and stat_value initialized to NaN.
 
         :return:  None
     '''
+
+    from METreformat.write_stat_ascii import VAL1L2_AGG_STATS
 
     stat_data, parms = setup_test('VAL1L2', is_aggregated=False)
 
@@ -1247,7 +1454,7 @@ def test_val1l2_reformat_for_agg():
 
     assert reformatted_df.shape[0] > 0
 
-    expected_stat_names = ['VAL1L2_' + stat.upper() for stat in cn.LC_VAL1L2_SPECIFIC]
+    expected_stat_names = VAL1L2_AGG_STATS
     assert sorted(reformatted_df['stat_name'].unique().tolist()) == sorted(expected_stat_names)
 
     # Each raw VAL1L2 line should produce one row per statistic (VL1L2 and other line types excluded)
@@ -1262,9 +1469,252 @@ def test_val1l2_reformat_for_agg():
         :, np.arange(0, cn.NUM_STAT_VAL1L2_COLS).tolist()]
     val1l2_df.columns = [hdr.lower() for hdr in cn.VAL1L2_HEADERS]
     expected_row = val1l2_df.iloc[0]
-    actual_row = reformatted_df[reformatted_df['stat_name'] == 'VAL1L2_UFABAR'].iloc[0]
+    actual_row = reformatted_df[reformatted_df['stat_name'] == 'VAL1L2_ANOM_CORR'].iloc[0]
     for col in ['total', 'ufabar', 'vfabar', 'dira_mse']:
         assert expected_row[col] == actual_row[col]
+
+
+def test_sal1l2_reformat_for_agg():
+    '''
+        Verify the SAL1L2 reformatting for METcalcpy agg_stat: one row per statistic that
+        agg_stat calculates from the SAL1L2 partial sums (SAL1L2_AGG_STATS) for each raw
+        SAL1L2 line, and stat_value initialized to NaN.
+    '''
+    from METreformat.write_stat_ascii import SAL1L2_AGG_STATS
+
+    stat_data, parms = setup_test('SAL1L2', is_aggregated=False)
+    wsa = WriteStatAscii(parms, logger)
+    reformatted_df = wsa.process_by_stat_linetype(cn.SAL1L2, stat_data, is_aggregated=False)
+
+    num_sal1l2_lines = stat_data[stat_data['line_type'] == cn.SAL1L2].shape[0]
+    assert num_sal1l2_lines > 0
+    assert reformatted_df.shape[0] == num_sal1l2_lines * len(SAL1L2_AGG_STATS)
+    assert sorted(reformatted_df['stat_name'].unique()) == sorted(SAL1L2_AGG_STATS)
+    assert reformatted_df['stat_value'].isnull().all()
+
+    # Columns are the lowercase SAL1L2 headers plus stat_name and stat_value
+    expected_cols = [hdr.lower() for hdr in cn.SAL1L2_HEADERS] + ['stat_name', 'stat_value']
+    assert list(reformatted_df.columns) == expected_cols
+
+
+def run_agg_stat_on_reformatted(parms, line_type, fcst_var, stats, indy_var, indy_vals,
+                                series_val):
+    '''
+        Run METcalcpy agg_stat on the output file written by write_stat_ascii.
+
+        @param parms: the config dictionary returned by setup_test.
+        @param line_type: the agg_stat line type (lowercase), e.g. vl1l2.
+        @param fcst_var: the fcst_var of the lines to aggregate.
+        @param stats: the statistics to calculate.
+        @param indy_var: the independent variable.
+        @param indy_vals: the values of the independent variable.
+        @param series_val: the series variable and values, ':' joins values into a group.
+        @return: the agg_stat output as a dataframe, indexed by (series value, stat_name).
+    '''
+    from metcalcpy.agg_stat import AggStat
+
+    output_dir = parms['output_dir']
+    agg_parms = {
+        'agg_stat_input': os.path.join(output_dir, parms['output_filename']),
+        'agg_stat_output': os.path.join(output_dir, f'{line_type}_agg_stat_output.data'),
+        'alpha': 0.05,
+        'append_to_file': None,
+        'circular_block_bootstrap': True,
+        'derived_series_1': [],
+        'derived_series_2': [],
+        'event_equal': False,
+        'fcst_var_val_1': {fcst_var: stats},
+        'fcst_var_val_2': {},
+        'indy_vals': indy_vals,
+        'indy_var': indy_var,
+        'line_type': line_type,
+        'list_stat_1': stats,
+        'list_stat_2': [],
+        'method': 'perc',
+        'num_iterations': 1,
+        'num_threads': -1,
+        'random_seed': None,
+        'series_val_1': series_val,
+        'series_val_2': {},
+        'log_dir': output_dir,
+        'log_filename': f'{line_type}_agg_stat_log.txt',
+        'log_level': 'WARNING',
+    }
+    AggStat(agg_parms).calculate_stats_and_ci()
+    agg_df = pd.read_csv(agg_parms['agg_stat_output'], sep='\t', dtype={indy_var: str})
+    series_var = list(series_val.keys())[0]
+    agg_df[series_var] = agg_df[series_var].astype(str)
+    return agg_df.set_index([series_var, 'stat_name'])
+
+
+def weighted_means(lines, weight_col, cols):
+    '''
+        Aggregate partial sums as MET stat-analysis does: the mean of each column
+        weighted by the number of matched pairs (weight_col).
+    '''
+    weights = lines[weight_col].astype(float)
+    return {col: (lines[col].astype(float) * weights).sum() / weights.sum() for col in cols}
+
+
+# METcalcpy agg_stat multiplies the VL1L2 partial sums by total_dir for MET 12.0 and later
+# but divides by the sum of total, so these statistics are wrong when total != total_dir.
+# MET weights the partial sums by total and only the DIR statistics by total_dir.
+VL1L2_TOTAL_DIR_BUG = pytest.mark.xfail(
+    strict=True, reason='METcalcpy agg_stat weights the VL1L2 partial sums by total_dir '
+                        'but divides by total')
+
+
+@pytest.fixture(scope='module')
+def vl1l2_agg_stat_result():
+    '''
+        Write the VL1L2 reformatted output for METcalcpy agg_stat once and run agg_stat
+        on it for a single observation type and for a group of observation types.
+        @return: (agg_stat output, VL1L2 lines from the input, series values)
+    '''
+    from METreformat.write_stat_ascii import VL1L2_AGG_STATS
+
+    stat_data, parms = setup_test('VL1L2', test_name='VL1L2_agg_stat', is_aggregated=False)
+    fail_if_output_exists(parms)
+    wsa = WriteStatAscii(parms, logger)
+    wsa.write_stat_ascii(stat_data, parms)
+
+    series = ['ADPSFC', 'SFCSHP:USERSF']
+    agg_df = run_agg_stat_on_reformatted(parms, 'vl1l2', 'UGRD_VGRD', VL1L2_AGG_STATS,
+                                         'fcst_lead', ['120000'], {'obtype': series})
+    assert agg_df.shape[0] == len(series) * len(VL1L2_AGG_STATS)
+
+    vl1l2_df = stat_data[stat_data['line_type'] == cn.VL1L2].iloc[:, 0:cn.NUM_STAT_VL1L2_COLS]
+    vl1l2_df.columns = [hdr.lower() for hdr in cn.VL1L2_HEADERS]
+    return agg_df, vl1l2_df, series
+
+
+def expected_vl1l2_stats(lines):
+    '''
+        The VL1L2 statistics for a group of VL1L2 lines, as MET stat-analysis aggregates
+        them: the partial sums are weighted by total and the DIR statistics by total_dir.
+    '''
+    m = weighted_means(lines, 'total', cn.LC_VL1L2_SPECIFIC)
+    m_dir = weighted_means(lines, 'total_dir', ['dir_me', 'dir_mae', 'dir_mse'])
+    msve = m['uvffbar'] - 2.0 * m['uvfobar'] + m['uvoobar']
+    return {
+        'VL1L2_BIAS': np.sqrt(m['uvffbar']) - np.sqrt(m['uvoobar']),
+        'VL1L2_FVAR': m['uvffbar'] - m['f_speed_bar'] ** 2,
+        'VL1L2_OVAR': m['uvoobar'] - m['o_speed_bar'] ** 2,
+        'VL1L2_SPEED_ERR': (np.hypot(m['ufbar'], m['vfbar']) -
+                            np.hypot(m['uobar'], m['vobar'])),
+        'VL1L2_MSVE': msve,
+        'VL1L2_RMSVE': np.sqrt(msve),
+        'VL1L2_DIR_ME': m_dir['dir_me'],
+        'VL1L2_DIR_MAE': m_dir['dir_mae'],
+        'VL1L2_DIR_MSE': m_dir['dir_mse'],
+    }
+
+
+@pytest.mark.parametrize(
+    'stat',
+    [pytest.param(stat, marks=VL1L2_TOTAL_DIR_BUG)
+     for stat in ['VL1L2_BIAS', 'VL1L2_FVAR', 'VL1L2_OVAR', 'VL1L2_SPEED_ERR',
+                  'VL1L2_MSVE', 'VL1L2_RMSVE']] +
+    ['VL1L2_DIR_ME', 'VL1L2_DIR_MAE', 'VL1L2_DIR_MSE'])
+def test_vl1l2_reformat_for_agg_with_agg_stat(vl1l2_agg_stat_result, stat):
+    '''
+        End-to-end check: run agg_stat on the VL1L2 reformatted output and verify each
+        statistic in VL1L2_AGG_STATS against the value MET stat-analysis calculates from
+        the aggregated partial sums, for a single observation type and for a group of
+        observation types.
+    '''
+    from METreformat.write_stat_ascii import VL1L2_AGG_STATS
+
+    agg_df, vl1l2_df, series = vl1l2_agg_stat_result
+    for obtype in series:
+        lines = vl1l2_df.loc[vl1l2_df['obtype'].isin(obtype.split(':'))]
+        expected = expected_vl1l2_stats(lines)
+        assert sorted(expected) == sorted(VL1L2_AGG_STATS)
+        row = agg_df.loc[(obtype, stat)]
+        assert row['nstats'] == lines.shape[0], obtype
+        assert row['stat_value'] == pytest.approx(expected[stat], rel=1e-5), obtype
+
+
+def test_val1l2_reformat_for_agg_with_agg_stat():
+    '''
+        End-to-end check: write the VAL1L2 reformatted output for METcalcpy agg_stat, run
+        agg_stat on it and verify every statistic in VAL1L2_AGG_STATS against the value
+        MET stat-analysis calculates from the aggregated partial sums (weighted by total,
+        the DIRA statistics by total_dir).  total equals total_dir in this data, so the
+        VL1L2_TOTAL_DIR_BUG doesn't affect VAL1L2_ANOM_CORR here.
+    '''
+    from METreformat.write_stat_ascii import VAL1L2_AGG_STATS
+
+    stat_data, parms = setup_test('VAL1L2', test_name='VAL1L2_agg_stat', is_aggregated=False)
+    fail_if_output_exists(parms)
+    wsa = WriteStatAscii(parms, logger)
+    wsa.write_stat_ascii(stat_data, parms)
+
+    series = ['ADPSFC', 'SFCSHP:USERSF']
+    agg_df = run_agg_stat_on_reformatted(parms, 'val1l2', 'UGRD_VGRD', VAL1L2_AGG_STATS,
+                                         'fcst_lead', ['120000'], {'obtype': series})
+    assert agg_df.shape[0] == len(series) * len(VAL1L2_AGG_STATS)
+
+    val1l2_df = stat_data[stat_data['line_type'] == cn.VAL1L2].iloc[:, 0:cn.NUM_STAT_VAL1L2_COLS]
+    val1l2_df.columns = [hdr.lower() for hdr in cn.VAL1L2_HEADERS]
+    for obtype in series:
+        lines = val1l2_df.loc[val1l2_df['obtype'].isin(obtype.split(':'))]
+        m = weighted_means(lines, 'total', cn.LC_VAL1L2_SPECIFIC)
+        m.update(weighted_means(lines, 'total_dir', ['dira_me', 'dira_mae', 'dira_mse']))
+        anom_corr = ((m['uvfoabar'] - m['ufabar'] * m['uoabar'] - m['vfabar'] * m['voabar']) /
+                     (np.sqrt(m['uvffabar'] - m['ufabar'] ** 2 - m['vfabar'] ** 2) *
+                      np.sqrt(m['uvooabar'] - m['uoabar'] ** 2 - m['voabar'] ** 2)))
+        expected = {
+            'VAL1L2_ANOM_CORR': anom_corr,
+            'VAL1L2_DIRA_ME': m['dira_me'],
+            'VAL1L2_DIRA_MAE': m['dira_mae'],
+            'VAL1L2_DIRA_MSE': m['dira_mse'],
+        }
+        assert sorted(expected) == sorted(VAL1L2_AGG_STATS)
+        for stat, value in expected.items():
+            row = agg_df.loc[(obtype, stat)]
+            assert row['nstats'] == lines.shape[0], (obtype, stat)
+            assert row['stat_value'] == pytest.approx(value, rel=1e-5), (obtype, stat)
+
+
+def test_sal1l2_reformat_for_agg_with_agg_stat():
+    '''
+        End-to-end check: write the SAL1L2 reformatted output for METcalcpy agg_stat, run
+        agg_stat on it and verify that every statistic in SAL1L2_AGG_STATS is calculated
+        from the partial sums weighted by total, for a single lead and for all leads.
+    '''
+    from METreformat.write_stat_ascii import SAL1L2_AGG_STATS
+
+    stat_data, parms = setup_test('SAL1L2', test_name='SAL1L2_agg_stat', is_aggregated=False)
+    fail_if_output_exists(parms)
+    wsa = WriteStatAscii(parms, logger)
+    wsa.write_stat_ascii(stat_data, parms)
+
+    series = ['0', '0:60000:120000:180000']
+    agg_df = run_agg_stat_on_reformatted(parms, 'sal1l2', 'UGRD', SAL1L2_AGG_STATS,
+                                         'model', ['GEFS'], {'fcst_lead': series})
+    assert agg_df.shape[0] == len(series) * len(SAL1L2_AGG_STATS)
+
+    sal1l2_df = stat_data[stat_data['line_type'] == cn.SAL1L2].iloc[:, 0:cn.NUM_STAT_SAL1L2_COLS]
+    sal1l2_df.columns = [hdr.lower() for hdr in cn.SAL1L2_HEADERS]
+    for leads in series:
+        lines = sal1l2_df.loc[sal1l2_df['fcst_lead'].astype(int).isin(
+            [int(lead) for lead in leads.split(':')])]
+        m = weighted_means(lines, 'total', cn.LC_SAL1L2_SPECIFIC)
+        expected = {
+            'ANOM_CORR': ((m['foabar'] - m['fabar'] * m['oabar']) /
+                          np.sqrt((m['ffabar'] - m['fabar'] ** 2) *
+                                  (m['ooabar'] - m['oabar'] ** 2))),
+            'ANOM_CORR_RAW': m['foabar'] / np.sqrt(m['ffabar'] * m['ooabar']),
+            'RMSFA': np.sqrt(m['ffabar']),
+            'RMSOA': np.sqrt(m['ooabar']),
+            'MAE': m['mae'],
+        }
+        assert sorted(expected) == sorted(SAL1L2_AGG_STATS)
+        for stat, value in expected.items():
+            row = agg_df.loc[(leads, stat)]
+            assert row['nstats'] == lines.shape[0], (leads, stat)
+            assert row['stat_value'] == pytest.approx(value, rel=1e-5), (leads, stat)
 
 
 def test_ecnt_reformat_for_agg():
@@ -1527,7 +1977,7 @@ def test_mpr_for_line_with_regression_data():
 
     # Verify that the reformatted dataframe is consistent with the input data
     subset_input = stat_data.loc[(stat_data['2'] == 'KSTK') & (stat_data['interp_mthd'] == 'NEAREST') &
-                                 (stat_data['0'] == '4529') & (stat_data['1'].convert_dtypes(int) == 651)]
+                                 (stat_data['0'] == '4529') & (stat_data['1'].astype(int) == 651)]
 
     # Set expected values, convert the series to a list
     expected_obs_lat = subset_input['3'].to_list()[0]
@@ -1541,37 +1991,37 @@ def test_mpr_for_line_with_regression_data():
     reformatted_obs_sid = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_sid') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs_lat = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lat') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs_lon = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lon') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs_lvl = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lvl') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs_elv = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_elv') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_fcst = reformatted_df.loc[(reformatted_df['stat_name'] == 'fcst') &
                                           (reformatted_df['interp_mthd'] == 'NEAREST') &
                                           (reformatted_df['total'] == '4529') &
-                                          (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                          (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs') &
                                          (reformatted_df['interp_mthd'] == 'NEAREST') &
                                          (reformatted_df['total'] == '4529') &
-                                         (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                         (reformatted_df['index'].astype(int) == 651)]
 
     assert reformatted_obs_sid['stat_value'].to_list()[0] == 'KSTK'
     assert reformatted_obs_lat['stat_value'].to_list()[0] == expected_obs_lat
@@ -1606,7 +2056,7 @@ def test_mpr_for_scatter_with_regression_data():
     # Verify that the reformatted dataframe is consistent with the input data for the stat_name and stat_values
     # columns in the reformatted data
     subset_input = stat_data.loc[(stat_data['2'] == 'KSTK') & (stat_data['interp_mthd'] == 'NEAREST') &
-                                 (stat_data['0'] == '4529') & (stat_data['1'].convert_dtypes(int) == 651)]
+                                 (stat_data['0'] == '4529') & (stat_data['1'].astype(int) == 651)]
 
     # Set expected values, convert the series to a list
     expected_obs_lat = subset_input['3'].to_list()[0]
@@ -1620,7 +2070,7 @@ def test_mpr_for_scatter_with_regression_data():
     reformatted_subset = reformatted_df.loc[(reformatted_df['obs_sid'] == 'KSTK') &
                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
                                             (reformatted_df['total'] == '4529') &
-                                            (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                            (reformatted_df['index'].astype(int) == 651)]
 
     # Test that the MPR-specific columns (obs_sid, ..., climo_cdf) in the reformatted file are consistent with the
     # corresponding columns in the input data file.

@@ -746,7 +746,17 @@ The output from the Stat-Analysis tool can then be used
 as input to the METdataio METreformat reformatter.  If filtering of data is not needed, the .stat files from the MET
 Point-Stat, Grid-Stat, and Ensemble-Stat tools can be used as input to the reformatter. If aggregation statistics
 are needed, then the METcalcpy agg_stat.py module can be used following the reformatting step.
-Reformatting to accommodate METcalcpy agg_stat is currently only available for the **ECNT linetype**.
+Reformatting to accommodate METcalcpy agg_stat is currently available for:
+
+* **ECNT**
+* **CTS** (requires the CTC lines in the input, see *input_stats_aggregated* below)
+* **VL1L2**
+* **VAL1L2**
+* **SAL1L2**
+
+See *input_stats_aggregated* below for the statistics agg_stat calculates for CTS, VL1L2, VAL1L2,
+and SAL1L2.
+
 The *input_stats_aggregated* setting is used to indicate whether the reformatter needs to
 reformat the output for the METcalcpy agg_stat module.
 
@@ -782,6 +792,36 @@ was saved to the working directory.
                 reformatted data can be used as input to the appropriate METplotpy plotting script.
 
             * Otherwise, set this to *False* if aggregation statistics need to be calculated (METcalcpy agg_stat module).
+
+            * **NOTE**: When *line_type* is CTS and *input_stats_aggregated* is *False*, the input .stat files
+              **must contain CTC lines**. The CTS statistics can't be aggregated directly, so agg_stat sums the
+              CTC counts and calculates the CTS statistics from the sums (as MET Stat-Analysis does for
+              *-job aggregate_stat -line_type CTC -out_line_type CTS*). The CTS lines in the input are not used.
+
+              * The reformatted output has the lowercase CTC count columns (total, fy_oy, fy_on, fn_oy, fn_on,
+                ec_value), one row per CTS statistic (e.g. PODY, CSI) for each CTC line, and an empty
+                stat_value column.
+              * The line_type column of the output is CTC, so set *line_type: ctc* in the METcalcpy agg_stat
+                configuration file.
+              * HSS_EC and EC_VALUE are not included.
+              * Reformatting fails with an error if the input has no CTC lines.
+
+            * **NOTE**: When *line_type* is VL1L2, VAL1L2, or SAL1L2 and *input_stats_aggregated* is *False*,
+              agg_stat sums the partial sums and calculates the statistics from the sums. The reformatted output
+              has the lowercase partial sum columns, one row per statistic for each input line, and an empty
+              stat_value column. The stat_name column holds the statistics agg_stat calculates:
+
+              * VL1L2: VL1L2_BIAS, VL1L2_FVAR, VL1L2_OVAR, VL1L2_SPEED_ERR, VL1L2_MSVE, VL1L2_RMSVE,
+                VL1L2_DIR_ME, VL1L2_DIR_MAE, VL1L2_DIR_MSE
+              * VAL1L2: VAL1L2_ANOM_CORR, VAL1L2_DIRA_ME, VAL1L2_DIRA_MAE, VAL1L2_DIRA_MSE
+              * SAL1L2: ANOM_CORR, ANOM_CORR_RAW, RMSFA, RMSOA, MAE (no SAL1L2\_ prefix)
+
+              Set *line_type* in the METcalcpy agg_stat configuration file to vl1l2, val1l2, or sal1l2 and
+              request the statistics by these names.
+
+              * For VL1L2 data from MET 12.0 and later, METcalcpy agg_stat currently weights the partial sums
+                by TOTAL_DIR but divides by TOTAL, so the VL1L2 statistics other than VL1L2_DIR_ME,
+                VL1L2_DIR_MAE, and VL1L2_DIR_MSE are incorrect for lines where TOTAL and TOTAL_DIR differ.
 
        .. dropdown:: input_data_dir
 

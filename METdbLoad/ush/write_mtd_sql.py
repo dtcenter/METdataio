@@ -70,7 +70,7 @@ class WriteMtdSql:
                 # get unique values, keeping the first of the duplicate records
                 mtd_headers = mtd_headers.drop_duplicates(
                     CN.MTD_2D_HEADER_KEYS, keep='first')
-                mtd_headers.reset_index(drop=True, inplace=True)
+                mtd_headers = mtd_headers.reset_index(drop=True)
 
                 # make sure type of columns is consistent between headers and line data
                 mtd_headers.fcst_lead = mtd_headers.fcst_lead.astype('int64')
