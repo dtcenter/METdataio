@@ -74,7 +74,7 @@ jobs:
           https://dtcenter.ucar.edu/dfiles/code/METplus/METdataio_Data/develop/sample_data_METdataio.tgz
           tar -xzf ${{ runner.workspace }}/test_input/sample_data_METdataio.tgz -C ${{ runner.workspace }}/test_input
 
-      - name: Test with pytest with pandas 2.2
+      - name: Test with pytest with pandas 3.0
         run: |
           export METDATAIO_TEST_INPUT_DIR=${{ runner.workspace }}/test_input/METdataio_Data
           echo "GITHUB wspace: $GITHUB_WORKSPACE"
@@ -85,7 +85,7 @@ jobs:
           py.test run_benchmark.py -v -s --benchmark-autosave
           
           
-          echo "Finished benchmark for pandas 2.2"
+          echo "Finished benchmark for pandas 3.0"
 
 #      - name: Archive benchmark results
 #        uses: actions/upload-artifact@v7
