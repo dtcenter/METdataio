@@ -56,9 +56,9 @@ class WriteStatSql:
                 # find the unique headers for this current load job
                 # Do not include Version, as MVLoad does not
                 stat_headers = stat_data[CN.STAT_HEADER_KEYS].copy()
-                stat_headers.drop_duplicates(
-                    CN.STAT_HEADER_KEYS[1:], keep='first', inplace=True)
-                stat_headers.reset_index(drop=True, inplace=True)
+                stat_headers = stat_headers.drop_duplicates(
+                    CN.STAT_HEADER_KEYS[1:], keep='first')
+                stat_headers = stat_headers.reset_index(drop=True)
 
                 # At first, we do not know if the headers already exist, so we have no keys
                 stat_headers[CN.STAT_HEADER_ID] = CN.NO_KEY
@@ -276,7 +276,7 @@ class WriteStatSql:
                                 list_var.append(var_data)
 
                         # end for row_num, file_line
-                        line_data.drop(drop_rows, inplace=True)
+                        line_data = line_data.drop(drop_rows)
 
                         if list_var:
                             all_var = pd.concat(

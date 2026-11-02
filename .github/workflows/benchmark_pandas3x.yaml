@@ -52,7 +52,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest>=9.0.3
+          # pytest 9.2.0 breaks pytest-benchmark 5.3.0 ('Function' object has no attribute '_nodeid')
+          python -m pip install "pytest>=9.0.3,<9.2"
           python -m pip install pytest_benchmark
           python -m pip install netcdf4==1.7.4
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
@@ -73,7 +74,7 @@ jobs:
           https://dtcenter.ucar.edu/dfiles/code/METplus/METdataio_Data/develop/sample_data_METdataio.tgz
           tar -xzf ${{ runner.workspace }}/test_input/sample_data_METdataio.tgz -C ${{ runner.workspace }}/test_input
 
-      - name: Test with pytest with pandas 2.2
+      - name: Test with pytest with pandas 3.0
         run: |
           export METDATAIO_TEST_INPUT_DIR=${{ runner.workspace }}/test_input/METdataio_Data
           echo "GITHUB wspace: $GITHUB_WORKSPACE"
@@ -84,7 +85,7 @@ jobs:
           py.test run_benchmark.py -v -s --benchmark-autosave
           
           
-          echo "Finished benchmark for pandas 2.2"
+          echo "Finished benchmark for pandas 3.0"
 
 #      - name: Archive benchmark results
 #        uses: actions/upload-artifact@v7

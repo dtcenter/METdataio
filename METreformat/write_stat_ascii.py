@@ -39,6 +39,31 @@ from metcalcpy.util.read_env_vars_in_config import parse_config
 LABEL_IDX_FORMAT = "{label}_{idx}"
 VALUE_REGEX_PATTERN = r'(value_)(\d+)'
 
+# Line types whose non-aggregated (METcalcpy agg_stat) reformatting is built from
+# a different line type than the requested one.  The CTS statistics are calculated
+# by agg_stat from the CTC counts, so the input must contain CTC lines.
+AGG_SOURCE_LINETYPES = {
+    cn.CTS: [cn.CTC],
+}
+
+# CTS statistics that METcalcpy agg_stat calculates from the CTC counts.  The stat_name
+# is NOT prefixed with CTS_, agg_stat invokes calculate_<stat_name> (e.g. calculate_pody)
+# from METcalcpy's ctc_statistics module, which uses the same equations as MET.
+# HSS_EC (no METcalcpy equivalent) and EC_VALUE (an input parameter) are excluded.
+CTS_AGG_STATS = [cur_stat.upper() for cur_stat in cn.CTS_STATS_ONLY
+                 if cur_stat not in ('hss_ec', cn.EC_VALUE)]
+
+# Statistics that METcalcpy agg_stat calculates from the VL1L2, VAL1L2 and SAL1L2 partial
+# sums (the keys of AggStat.STATISTIC_TO_FIELDS for these line types).  agg_stat invokes
+# calculate_<stat_name> (e.g. calculate_vl1l2_bias) from METcalcpy's vl1l2_statistics,
+# val1l2_statistics and sal1l2_statistics modules.  The SAL1L2 statistics aren't prefixed.
+VL1L2_AGG_STATS = ['VL1L2_BIAS', 'VL1L2_FVAR', 'VL1L2_OVAR', 'VL1L2_SPEED_ERR',
+                   'VL1L2_RMSVE', 'VL1L2_MSVE', 'VL1L2_DIR_ME', 'VL1L2_DIR_MAE',
+                   'VL1L2_DIR_MSE']
+VAL1L2_AGG_STATS = ['VAL1L2_ANOM_CORR', 'VAL1L2_DIRA_ME', 'VAL1L2_DIRA_MAE',
+                    'VAL1L2_DIRA_MSE']
+SAL1L2_AGG_STATS = ['ANOM_CORR', 'ANOM_CORR_RAW', 'RMSFA', 'RMSOA', 'MAE']
+
 
 class WriteStatAscii:
     """ Class to write MET .stat files to an ASCII file that contains the reformatted input data
@@ -327,14 +352,15 @@ class WriteStatAscii:
             # stat_bcl/bcu, stat_ncl/ncu columns.  Other plots, like the histogram plots (rank, relative, probability)
             # and ROC diagrams require specific formatting.
 
-            working_df = stat_data.copy(deep=True)
+            # Setting to indicate whether .stat files were processed with MET stat-analysis (True)
+            # or directly from the MET point-stat, grid-stat, or ensemble-stat tool (False)
+            is_aggregated = parms['input_stats_aggregated']
 
-            # If the TCDiag linetype is requested, keep both the TCDiag and TCMPR linetypes.
-            if linetype_requested == cn.TCDIAG:
-                working_df = working_df.loc[(working_df['line_type'] == linetype_requested) |
-                                            (working_df['line_type'] == cn.TCMPR)]
-            else:
-                working_df = working_df.loc[working_df['line_type'] == linetype_requested]
+            # Keep only the rows of the line type(s) needed for the requested line type
+            # (e.g. TCDiag also needs TCMPR, CTS for agg_stat is built from CTC).
+            # Subset before copying so only the needed rows are copied.
+            working_df = self._select_linetype_rows(stat_data, linetype_requested,
+                                                    is_aggregated).copy(deep=True)
 
             # --------------------
             # Write Stat Headers
@@ -351,10 +377,6 @@ class WriteStatAscii:
             # ------------------------------
             # Based on the line type, extract the statistics information and save it in a
             # dataframe.
-
-            # Setting to indicate whether .stat files were processed with MET stat-analysis (True)
-            # or directly from the MET point-stat, grid-stat, or ensemble-stat tool (False)
-            is_aggregated = parms['input_stats_aggregated']
 
             # Replace any nan records with 'NA'.  These nan values were set by the
             # METdbLoad read_data_files module.
@@ -397,7 +419,7 @@ class WriteStatAscii:
             necessary format based on whether the data is already aggregated (via MET stat-analysis) or
             if the data is un-aggregated and requires the METcalcpy agg_stat module for performing the aggregation
             statistics calculations.  **NOTE** Support for reformatting into agg_stat's required input format is currently
-            available for the *ECNT* linetype.  This support will be extended to the other supported linetypes.
+            available for the *ECNT*, *CTS* (from the CTC lines), *VL1L2*, *VAL1L2*, and *SAL1L2* linetypes.
 
 
         Args:
@@ -426,23 +448,60 @@ class WriteStatAscii:
         """
         linetype_upper = linetype.upper()
 
-        # Special handling for TCDIAG: include both TCDIAG and TCMPR rows
-        if linetype_upper == cn.TCDIAG:
-            stat_data = stat_data.loc[
-                (stat_data['line_type'] == linetype_upper) |
-                (stat_data['line_type'] == cn.TCMPR)
-            ]
-        else:
-            stat_data = stat_data.loc[stat_data['line_type'] == linetype_upper]
-
         # Validate handler exists and mode is supported
         method_name = self._validate_handler_support(linetype_upper, is_aggregated)
+
+        stat_data = self._select_linetype_rows(stat_data, linetype_upper, is_aggregated)
 
         # Get the handler method and invoke it
         handler_method = getattr(self, method_name)
         linetype_data = handler_method(stat_data)
 
         return linetype_data
+
+    def _select_linetype_rows(self, stat_data: pd.DataFrame, linetype: str,
+                              is_aggregated: bool) -> pd.DataFrame:
+        """!Subset the input data to the rows of the line type(s) needed to reformat the
+            requested line type.  Most line types only need their own rows. TCDIAG also
+            needs the TCMPR rows, and the line types in AGG_SOURCE_LINETYPES are built
+            from other line types when reformatting for agg_stat (non-aggregated input).
+
+        @arg stat_data The MET data read in from the .stat/.tcst file(s)
+        @arg linetype The requested line type (uppercase)
+        @arg is_aggregated Boolean whether input is aggregated
+        @returns The subset of stat_data
+        @raises ValueError If a line type required for agg_stat reformatting is missing
+        """
+        if linetype == cn.TCDIAG:
+            needed_linetypes = [cn.TCDIAG, cn.TCMPR]
+        elif not is_aggregated and linetype in AGG_SOURCE_LINETYPES:
+            needed_linetypes = AGG_SOURCE_LINETYPES[linetype]
+            self._check_required_linetypes(stat_data, linetype, needed_linetypes)
+        else:
+            needed_linetypes = [linetype]
+
+        return stat_data.loc[stat_data['line_type'].isin(needed_linetypes)]
+
+    def _check_required_linetypes(self, stat_data: pd.DataFrame, linetype: str,
+                                  required_linetypes: List[str]):
+        """!Verify that the input data contains every line type needed to reformat the
+            requested line type for METcalcpy agg_stat (e.g. CTS requires CTC).
+
+        @arg stat_data The MET data read in from the .stat file(s)
+        @arg linetype The requested line type
+        @arg required_linetypes The line types that must be present in stat_data
+        @raises ValueError If any of the required line types are missing
+        """
+        present = set(stat_data['line_type'].unique())
+        missing = [cur_lt for cur_lt in required_linetypes if cur_lt not in present]
+        if missing:
+            msg = (
+                f"Reformatting {linetype} for agg_stat requires the "
+                f"{' and '.join(required_linetypes)} line type(s) in the input data, "
+                f"missing: {', '.join(missing)}"
+            )
+            self.logger.error(msg)
+            raise ValueError(msg)
 
     def process_pct(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -505,16 +564,16 @@ class WriteStatAscii:
         gc.collect()
 
         # Replace the first two numbered labels (following the LINETYPE column) with the TOTAL and N_THRESH labels
-        working_df.rename(
-            columns={'0': 'total', cn.LINE_VAR_COUNTER[cn.PCT]: 'n_thresh'}, inplace=True)
+        working_df = working_df.rename(
+            columns={'0': 'total', cn.LINE_VAR_COUNTER[cn.PCT]: 'n_thresh'})
 
         # Relabel the remaining numbered column headers
         last_column_name = len(working_df.columns) - cn.NUM_STATIC_PCT_COLS
 
         # The THRESH_n column is the last column
         thresh_n_col_name = 'thresh_' + str(num_thresh + 1)
-        working_df.rename(
-            columns={str(last_column_name): thresh_n_col_name}, inplace=True)
+        working_df = working_df.rename(
+            columns={str(last_column_name): thresh_n_col_name})
 
         # Relabel the repeating columns (THRESH_i, OY_i, ON_i)
         # column names are numbered '1','2','3',...,etc. Give them descriptive labels: thresh_1, oy_1, on_1, etc.
@@ -525,8 +584,8 @@ class WriteStatAscii:
             for column in cn.LC_PCT_VARIABLE_HEADERS:
                 column_name = str(column_name_value)
                 column_label = LABEL_IDX_FORMAT.format(label=column, idx=i)
-                working_df.rename(
-                    columns={column_name: column_label}, inplace=True)
+                working_df = working_df.rename(
+                    columns={column_name: column_label})
                 column_name_value += 1
 
             # Add a list used to facilitate creating the value_i column when reformatting.
@@ -616,21 +675,21 @@ class WriteStatAscii:
                                          value_name='i_value')
 
         # Drop the unused var_names in the melted dataframes
-        df_thresh.drop('thresh', axis=1, inplace=True)
-        df_oy.drop('oy', axis=1, inplace=True)
-        df_on.drop('on', axis=1, inplace=True)
-        df_values.drop('values', axis=1, inplace=True)
+        df_thresh = df_thresh.drop('thresh', axis=1)
+        df_oy = df_oy.drop('oy', axis=1)
+        df_on = df_on.drop('on', axis=1)
+        df_values = df_values.drop('values', axis=1)
 
         # Reindex to use the common columns before concatenating the melted dataframes to avoid duplication of
         # common columns.
         df_thresh_reindex = df_thresh.set_index(
-            common_list, drop=True, append=False, inplace=False)
+            common_list, drop=True, append=False)
         df_oy_reindex = df_oy.set_index(
-            common_list, drop=True, append=False, inplace=False)
+            common_list, drop=True, append=False)
         df_on_reindex = df_on.set_index(
-            common_list, drop=True, append=False, inplace=False)
+            common_list, drop=True, append=False)
         df_values_reindex = df_values.set_index(
-            common_list, drop=True, append=False, inplace=False)
+            common_list, drop=True, append=False)
         reformatted_df = pd.concat(
             [df_thresh_reindex, df_oy_reindex, df_on_reindex, df_values_reindex], axis=1)
 
@@ -704,8 +763,8 @@ class WriteStatAscii:
         gc.collect()
 
         # Replace the first two numbered labels (following the LINETYPE column) with the TOTAL and N_RANK labels
-        working_df.rename(
-            columns={'0': 'total', cn.LINE_VAR_COUNTER[cn.RHIST]: 'n_rank'}, inplace=True)
+        working_df = working_df.rename(
+            columns={'0': 'total', cn.LINE_VAR_COUNTER[cn.RHIST]: 'n_rank'})
 
         # Relabel the repeating columns (RANK_1, ..., RANK_n)
         # column names are numbered '1','2','3',...,etc. by METdbLoad.
@@ -717,8 +776,8 @@ class WriteStatAscii:
             for column in cn.LC_RHIST_VARIABLE_HEADERS:
                 column_name = str(column_name_value)
                 column_label = LABEL_IDX_FORMAT.format(label=column, idx=i)
-                working_df.rename(
-                    columns={column_name: column_label}, inplace=True)
+                working_df = working_df.rename(
+                    columns={column_name: column_label})
                 column_name_value += 1
 
             # Add a list used to facilitate creating the value_i column when reformatting.
@@ -792,15 +851,15 @@ class WriteStatAscii:
                                          value_name='i_value')
 
         # Drop the unused var_names in the melted dataframes
-        df_rank.drop('rank', axis=1, inplace=True)
-        df_values.drop('values', axis=1, inplace=True)
+        df_rank = df_rank.drop('rank', axis=1)
+        df_values = df_values.drop('values', axis=1)
 
         # Reindex to use the common columns before concatenating the melted dataframes to avoid duplication of
         # common columns.
         df_rank_reindex = df_rank.set_index(
-            common_list, drop=True, append=False, inplace=False)
+            common_list, drop=True, append=False)
         df_values_reindex = df_values.set_index(
-            common_list, drop=True, append=False, inplace=False)
+            common_list, drop=True, append=False)
         reformatted_df = pd.concat(
             [df_rank_reindex, df_values_reindex], axis=1)
 
@@ -974,7 +1033,7 @@ class WriteStatAscii:
                                                         j='stat_name',
                                                         sep='_',
                                                         suffix='.+'
-                                                        ).sort_values('Idx')
+                                                        ).sort_values('Idx', kind='stable')
 
         # Rename the BCL, BCU, NCL, NCU, and STAT columns to stat_bcl, stat_bcu,
         # stat_ncl, stat_ncu, and stat_value
@@ -1070,7 +1129,7 @@ class WriteStatAscii:
                                                         j='stat_name',
                                                         sep='_',
                                                         suffix='.+'
-                                                        ).sort_values('Idx')
+                                                        ).sort_values('Idx', kind='stable')
 
         # Rename the BCL, BCU, NCL, NCU, and STAT columns to stat_bcl, stat_bcu,
         # stat_ncl, stat_ncu, and stat_value
@@ -1141,7 +1200,7 @@ class WriteStatAscii:
         linetype_data = ctc_df_copy.melt(id_vars=id_vars_list,
                                          value_vars=cn.CTC_STATISTICS_HEADERS,
                                          var_name='stat_name',
-                                         value_name='stat_value').sort_values('Idx')
+                                         value_name='stat_value').sort_values('Idx', kind='stable')
 
         # CTC line type doesn't have the ncl, ncu, bcl and bcu stat values set these
         # to NA
@@ -1155,8 +1214,17 @@ class WriteStatAscii:
         return linetype_data
 
     def process_ctc_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+             The CTC counts aren't statistics that METcalcpy agg_stat calculates, agg_stat
+             sums them to calculate the CTS statistics.  Request the CTS line type to
+             reformat the CTC lines for agg_stat.
 
-        raise NotImplementedError
+             raises NotImplementedError
+        """
+
+        raise NotImplementedError(
+            "CTC can't be reformatted for METcalcpy agg_stat. Set line_type to CTS to "
+            "reformat the CTC lines for the CTS statistics agg_stat calculates from them.")
 
     def process_cts(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -1232,7 +1300,7 @@ class WriteStatAscii:
                                                         j='stat_name',
                                                         sep='_',
                                                         suffix='.+'
-                                                        ).sort_values('Idx')
+                                                        ).sort_values('Idx', kind='stable')
 
         # Rename the BCL, BCU, NCL, NCU, and STAT columns to stat_bcl, stat_bcu,
         # stat_ncl, stat_ncu, and stat_value
@@ -1251,8 +1319,65 @@ class WriteStatAscii:
         return linetype_data
 
     def process_cts_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
+        """
+             Reformatting for using METcalcpy agg_stat. For input data that does NOT
+             have aggregation statistics and confidence values calculated from the
+             MET stat-analysis tool.
 
-        raise NotImplementedError
+             The CTS statistics can't be aggregated directly, agg_stat sums the CTC
+             counts (total, fy_oy, fy_on, fn_oy, fn_on) and then calculates the CTS
+             statistics from the sums, as MET stat-analysis does for
+             -job aggregate_stat -line_type CTC -out_line_type CTS.  Therefore, the
+             input must contain the CTC line type.
+
+             Reformat the CTC rows into columns named after the CTC counts and create a
+             stat_name column with each CTS statistic name (e.g. PODY, CSI, see
+             CTS_AGG_STATS).  The stat_value column is empty, it will be filled by the
+             METcalcpy agg_stat calculation.
+
+             Arguments:
+             @param stat_data: the dataframe containing the CTC data from the MET
+             .stat file.
+
+             Returns:
+                 linetype_data: the reformatted pandas dataframe with the CTC counts in
+                 columns and one row per (CTC row, CTS statistic).
+
+        """
+
+        # Relevant columns for the CTC line type, lowercase as required by agg_stat
+        end = cn.NUM_STAT_CTC_COLS
+        ctc_df: pd.DataFrame = stat_data[stat_data['line_type'] == cn.CTC].iloc[:, 0:end]
+        ctc_df.columns = [cur_hdr.lower() for cur_hdr in cn.CTC_HEADERS]
+
+        return self._repeat_rows_per_stat(ctc_df, CTS_AGG_STATS)
+
+    @staticmethod
+    def _repeat_rows_per_stat(linetype_df: pd.DataFrame,
+                              stat_names: List[str]) -> pd.DataFrame:
+        """
+             Repeat each row once for every statistic in stat_names, in the long format
+             required by METcalcpy agg_stat.
+
+             This is done in one step rather than concatenating a copy of the dataframe
+             per statistic.  Positions are used rather than index labels, the index may
+             contain duplicates when data from several files is combined.
+
+             Arguments:
+             @param linetype_df: the dataframe with the line type columns labelled.
+             @param stat_names: the statistic names for the stat_name column.
+
+             Returns:
+                 the reformatted dataframe with stat_name and (empty) stat_value columns.
+
+        """
+        num_rows = linetype_df.shape[0]
+        repeated = linetype_df.iloc[np.repeat(np.arange(num_rows), len(stat_names))]
+        repeated = repeated.reset_index(drop=True)
+        repeated['stat_name'] = np.tile(stat_names, num_rows)
+        repeated['stat_value'] = np.nan
+
+        return repeated
 
     def process_mcts(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -1329,7 +1454,7 @@ class WriteStatAscii:
                                                         j='stat_name',
                                                         sep='_',
                                                         suffix='.+'
-                                                        ).sort_values('Idx')
+                                                        ).sort_values('Idx', kind='stable')
 
         # Rename the BCL, BCU, NCL, NCU, and STAT columns to stat_bcl, stat_bcu,
         # stat_ncl, stat_ncu, and stat_value
@@ -1399,7 +1524,7 @@ class WriteStatAscii:
         reshaped = sl1l2_df_copy.melt(id_vars=id_vars_list,
                                       value_vars=cn.SL1L2_STATISTICS_HEADERS,
                                       var_name='stat_name',
-                                      value_name='stat_value').sort_values('Idx')
+                                      value_name='stat_value').sort_values('Idx', kind='stable')
 
         # SL1L2 line type doesn't have the bcl and bcu stat values set these to NA
         na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
@@ -1459,7 +1584,7 @@ class WriteStatAscii:
         reshaped = sal1l2_df_copy.melt(id_vars=id_vars_list,
                                        value_vars=cn.SAL1L2_STATISTICS_HEADERS,
                                        var_name='stat_name',
-                                       value_name='stat_value').sort_values('Idx')
+                                       value_name='stat_value').sort_values('Idx', kind='stable')
 
         # SAL1L2 line type doesn't have bcl/bcu stat values (same as SL1L2) -- set to NA
         na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
@@ -1472,73 +1597,37 @@ class WriteStatAscii:
         return reshaped
 
     def process_sal1l2_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
-         """
-         Reformatting for using METcalcpy agg_stat. For input data that does NOT
-         have aggregation statistics and confidence values calculated from the
-         MET point-stat/grid-stat tool.
+        """
+             Reformatting for using METcalcpy agg_stat. For input data that does NOT
+             have aggregation statistics and confidence values calculated from the
+             MET stat-analysis tool.
 
-         Reformat the data from the original MET output file (stat_data) into
-         statistics columns corresponding to the statistic name for the MET SAL1L2
-         linetype, as defined in constants.py in the METdbLoad module:
+             agg_stat sums the SAL1L2 partial sums (fabar, oabar, foabar, ffabar,
+             ooabar, mae), weighted by total, and then calculates the statistics from
+             the sums.
 
-             'fabar', 'oabar', 'foabar', 'ffabar', 'ooabar', 'mae'
+             Reformat the SAL1L2 rows into columns named after the SAL1L2 headers and
+             create a stat_name column with each statistic that agg_stat calculates from
+             the SAL1L2 partial sums (e.g. ANOM_CORR, RMSFA, see SAL1L2_AGG_STATS). The
+             stat_value column is empty, it will be filled by the METcalcpy agg_stat
+             calculation.
 
-         In addition, create a stat_name column with SAL1L2_<stat> (where stat is the name of the stat).
-         This format is *required* for using the METcalcpy agg_stat.py module to calculate aggregation
-         statistics.
+             Arguments:
+             @param stat_data: the dataframe containing the SAL1L2 data from the MET
+             .stat file.
 
-         Arguments:
-         @param stat_data: the dataframe containing all the data from the MET
-         .stat file.
+             Returns:
+                 linetype_data: the reformatted pandas dataframe with the SAL1L2 partial
+                 sums in columns and one row per (SAL1L2 row, statistic).
 
-         Returns:
-             linetype_data: the reformatted pandas dataframe with statistics data
-             reorganized into columns based on the individual SAL1L2 statistic names.
+        """
 
-         """
+        # Relevant columns for the SAL1L2 line type, lowercase as required by agg_stat
+        end = cn.NUM_STAT_SAL1L2_COLS
+        sal1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == cn.SAL1L2].iloc[:, 0:end]
+        sal1l2_df.columns = [cur_hdr.lower() for cur_hdr in cn.SAL1L2_HEADERS]
 
-         # Relevant columns for the SAL1L2 line type
-         linetype: str = cn.SAL1L2
-         end = cn.NUM_STAT_SAL1L2_COLS
-         sal1l2_columns_to_use: List[str] = (
-             np.arange(0, end).tolist())
-
-         # Subset original dataframe to one containing only the SAL1L2 data
-         sal1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                                                                                sal1l2_columns_to_use]
-
-         # Replace the column numbers with the name of the corresponding statistic as specified in MET
-         # User's Guide for the SAL1L2 linetype in the point-stat/grid-stat table.
-         all_headers = cn.SAL1L2_HEADERS
-         all_headers_lc = [cur_hdr.lower() for cur_hdr in all_headers]
-         sal1l2_df.columns = all_headers_lc
-
-         # Add the stat_name column and stat_value columns.  Populate the stat_name column with the
-         # 'SAL1L2_' prefixed statistic names (e.g. for fabar, this becomes SAL1L2_FABAR).  Do this for
-         # each SAL1L2-specific statistic.  This will result in a very large dataframe.
-         linetype_str = linetype.upper() + '_'
-         sal1l2_headers = cn.LC_SAL1L2_SPECIFIC
-         renamed_sal1l2 = [linetype_str + cur_hdr.upper()
-                           for cur_hdr in sal1l2_headers]
-
-         # Create a list of dataframes, each corresponding to the SAL1L2 statistics, then merge them
-         # all into one final dataframe.
-         dfs_to_merge = []
-
-         for renamed in renamed_sal1l2:
-             tmp_df: pd.DataFrame = sal1l2_df.copy()
-             tmp_df['stat_name'] = renamed
-             dfs_to_merge.append(tmp_df)
-
-         # Merge all the statistics dataframes into one, then add the
-         # stat_value column. Initialize the stat_values to NaN/NA.  These
-         # values will be filled by the METcalcpy agg_stat calculation.
-         merged_dfs: pd.DataFrame = pd.concat(
-             dfs_to_merge, axis=0, ignore_index=True)
-         merged_dfs['stat_value'] = np.nan
-         merged_dfs.replace('N/A', pd.NA)
-
-         return merged_dfs
+        return self._repeat_rows_per_stat(sal1l2_df, SAL1L2_AGG_STATS)
 
     def process_vl1l2(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -1588,7 +1677,7 @@ class WriteStatAscii:
         reshaped = vl1l2_df_copy.melt(id_vars=id_vars_list,
                                       value_vars=cn.VL1L2_STATISTICS_HEADERS,
                                       var_name='stat_name',
-                                      value_name='stat_value').sort_values('Idx')
+                                      value_name='stat_value').sort_values('Idx', kind='stable')
 
         # VL1L2 line type doesn't have the bcl and bcu stat values set these to NA
         na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
@@ -1602,78 +1691,38 @@ class WriteStatAscii:
 
 
     def process_vl1l2_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
-
         """
-        Reformatting for using METcalcpy agg_stat. For input data that does NOT
-        have aggregation statistics and confidence values calculated from the
-        MET point-stat/grid-stat tool.
+             Reformatting for using METcalcpy agg_stat. For input data that does NOT
+             have aggregation statistics and confidence values calculated from the
+             MET stat-analysis tool.
 
-        raises NotImplementedError
+             agg_stat sums the VL1L2 partial sums (ufbar, vfbar, uobar, vobar, uvfobar,
+             uvffbar, uvoobar, f_speed_bar, o_speed_bar, dir_me, dir_mae, dir_mse),
+             weighted by total_dir (total for MET versions before 12.0), and then
+             calculates the statistics from the sums.
 
-        Reformat the data from the original MET output file (stat_data) into
-        statistics columns corresponding to the statistic name for the MET VL1L2
-        linetype, as defined in constants.py in the METdbLoad module:
+             Reformat the VL1L2 rows into columns named after the VL1L2 headers and
+             create a stat_name column with each statistic that agg_stat calculates from
+             the VL1L2 partial sums (e.g. VL1L2_BIAS, VL1L2_RMSVE, see VL1L2_AGG_STATS).
+             The stat_value column is empty, it will be filled by the METcalcpy agg_stat
+             calculation.
 
-            'ufbar', 'vfbar', 'uobar', 'vobar', 'uvfobar', 'uvffbar', 'uvoobar',
-            'f_speed_bar', 'o_speed_bar', 'total_dir', 'dir_me', 'dir_mae', 'dir_mse'
+             Arguments:
+             @param stat_data: the dataframe containing the VL1L2 data from the MET
+             .stat file.
 
-        In addition, create a stat_name column with VL1L2_<stat> (where stat is the name of the stat).
-        This format is *required* for using the METcalcpy agg_stat.py module to calculate aggregation
-        statistics.
-
-        Arguments:
-        @param stat_data: the dataframe containing all the data from the MET
-        .stat file.
-
-        Returns:
-            linetype_data: the reformatted pandas dataframe with statistics data
-            reorganized into columns based on the individual VL1L2 statistic names.
+             Returns:
+                 linetype_data: the reformatted pandas dataframe with the VL1L2 partial
+                 sums in columns and one row per (VL1L2 row, statistic).
 
         """
 
-        # Relevant columns for the VL1L2 line type
-        linetype: str = cn.VL1L2
+        # Relevant columns for the VL1L2 line type, lowercase as required by agg_stat
         end = cn.NUM_STAT_VL1L2_COLS
-        vl1l2_columns_to_use: List[str] = (
-            np.arange(0, end).tolist())
+        vl1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == cn.VL1L2].iloc[:, 0:end]
+        vl1l2_df.columns = [cur_hdr.lower() for cur_hdr in cn.VL1L2_HEADERS]
 
-        # Subset original dataframe to one containing only the VL1L2 data
-        vl1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-        vl1l2_columns_to_use]
-
-        # Replace the column numbers with the name of the corresponding statistic as specified in MET
-        # User's Guide for the VL1L2 linetype in the point-stat/grid-stat table.
-        all_headers = cn.VL1L2_HEADERS
-        all_headers_lc = [cur_hdr.lower() for cur_hdr in all_headers]
-        vl1l2_df.columns = all_headers_lc
-
-        # Add the stat_name column and stat_value columns.  Populate the stat_name column with the
-        # 'VL1L2_' prefixed statistic names (e.g. for ufbar, this becomes VL1L2_UFBAR).  Do this for
-        # each VL1L2-specific statistic.  This will result in a very large dataframe.
-        linetype_str = linetype.upper() + '_'
-        vl1l2_headers = cn.LC_VL1L2_SPECIFIC
-        renamed_vl1l2 = [linetype_str + cur_hdr.upper()
-                         for cur_hdr in vl1l2_headers]
-
-        # Create a list of dataframes, each corresponding to the VL1L2 statistics, then merge them
-        # all into one final dataframe.
-        dfs_to_merge = []
-
-        for renamed in renamed_vl1l2:
-            tmp_df: pd.DataFrame = vl1l2_df.copy()
-            tmp_df['stat_name'] = renamed
-            dfs_to_merge.append(tmp_df)
-
-        # Merge all the statistics dataframes into one, then add the
-        # stat_value column. Initialize the stat_values to NaN/NA.  These
-        # values will be filled by the METcalcpy agg_stat calculation.
-        merged_dfs: pd.DataFrame = pd.concat(
-            dfs_to_merge, axis=0, ignore_index=True)
-        merged_dfs['stat_value'] = np.nan
-        merged_dfs.replace('N/A', pd.NA)
-
-        return merged_dfs
-
+        return self._repeat_rows_per_stat(vl1l2_df, VL1L2_AGG_STATS)
 
     def process_ecnt(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -1724,7 +1773,7 @@ class WriteStatAscii:
         reshaped = ecnt_df_copy.melt(id_vars=id_vars_list,
                                      value_vars=cn.ECNT_STATISTICS_HEADERS,
                                      var_name='stat_name',
-                                     value_name='stat_value').sort_values('Idx')
+                                     value_name='stat_value').sort_values('Idx', kind='stable')
 
         # ECNT line type doesn't have the bcl and bcu stat values set these to NA
         na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
@@ -1924,8 +1973,8 @@ class WriteStatAscii:
         cleanup_df = full_df.copy(deep=True)
         cleanup_df = cleanup_df.drop('TOTAL_y', axis=1)
         cleanup_df = cleanup_df.drop('LINE_TYPE_x', axis=1)
-        cleanup_df.rename(
-            {'TOTAL_x': 'TOTAL', 'LINE_TYPE_y': 'LINE_TYPE'}, axis=1, inplace=True)
+        cleanup_df = cleanup_df.rename(
+            {'TOTAL_x': 'TOTAL', 'LINE_TYPE_y': 'LINE_TYPE'}, axis=1)
 
         end_tcdiag = time.perf_counter()
         time_to_process_tcdiag = end_tcdiag - begin_tcdiag
@@ -1998,8 +2047,8 @@ class WriteStatAscii:
             diag_name = diag_names[0]
 
             # Replace the VALUE_i column corresponding to the DIAG_i with the name of the diagnostic
-            ds_df.rename({start_value: diag_name},
-                         axis='columns', inplace=True)
+            ds_df = ds_df.rename({start_value: diag_name},
+                                 axis='columns')
             diag_to_drop.append(start_diag)
             next_diag = str(int(start_diag) + 2)
             next_value = str(int(start_value) + 2)
@@ -2007,32 +2056,32 @@ class WriteStatAscii:
             start_value = next_value
 
         # Drop the columns containing the DIAG types
-        ds_df.drop(diag_to_drop, axis=1, inplace=True)
+        ds_df = ds_df.drop(diag_to_drop, axis=1)
         reformatted = ds_df.copy(deep=True)
-        reformatted.rename(
+        reformatted = reformatted.rename(
             {'0': 'total', '1': 'index_pairs', '2': 'diag_source', '3': 'track_source', '4': 'field_source',
-             '5': 'n_diag'},
-            axis='columns', inplace=True)
+                           '5': 'n_diag'},
+            axis='columns')
 
         # Replace the shear magnitude column with the common name since different DIAG_SOURCES use different
         # 4 letter abbreviations for the same field (e.g. SHRD in SHIPS and SHR_MAG in CIRA RT are the identifiers
         # for shear magnitude
         reformatted_cols = reformatted.columns.to_list()
         if 'SHR_MAG' in reformatted_cols:
-            reformatted.rename(
-                {'SHR_MAG': cn.TCDIAG_COMMON_NAMES['SHR_MAG']}, axis='columns', inplace=True)
+            reformatted = reformatted.rename(
+                {'SHR_MAG': cn.TCDIAG_COMMON_NAMES['SHR_MAG']}, axis='columns')
         elif 'SHRD' in reformatted_cols:
-            reformatted.rename(
-                {'SHRD': cn.TCDIAG_COMMON_NAMES['SHRD']}, axis='columns', inplace=True)
+            reformatted = reformatted.rename(
+                {'SHRD': cn.TCDIAG_COMMON_NAMES['SHRD']}, axis='columns')
         if 'LAND' in reformatted_cols:
-            reformatted.rename(
-                {'LAND': cn.TCDIAG_COMMON_NAMES['LAND']}, axis='columns', inplace=True)
+            reformatted = reformatted.rename(
+                {'LAND': cn.TCDIAG_COMMON_NAMES['LAND']}, axis='columns')
         elif 'DTL' in reformatted_cols:
-            reformatted.rename(
-                {'DTL': cn.TCDIAG_COMMON_NAMES['DTL']}, axis='columns', inplace=True)
+            reformatted = reformatted.rename(
+                {'DTL': cn.TCDIAG_COMMON_NAMES['DTL']}, axis='columns')
         if 'STM_SPD' in reformatted_cols:
-            reformatted.rename(
-                {'STM_SPD': cn.TCDIAG_COMMON_NAMES['STM_SPD']}, axis='columns', inplace=True)
+            reformatted = reformatted.rename(
+                {'STM_SPD': cn.TCDIAG_COMMON_NAMES['STM_SPD']}, axis='columns')
 
         # Clean up intermediate dataframes
         del ds_df
@@ -2345,7 +2394,7 @@ class WriteStatAscii:
         reshaped = val1l2_df_copy.melt(id_vars=id_vars_list,
                                       value_vars=cn.VAL1L2_STATISTICS_HEADERS,
                                       var_name='stat_name',
-                                      value_name='stat_value').sort_values('Idx')
+                                      value_name='stat_value').sort_values('Idx', kind='stable')
 
         # VAL1L2 line type doesn't have the bcl and bcu stat values set these to NA
         na_column: List[str] = ['NA' for _ in range(0, reshaped.shape[0])]
@@ -2360,67 +2409,37 @@ class WriteStatAscii:
 
     def process_val1l2_for_agg(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """
-        Retrieve the VAL1L2 line type data from
-        the original MET output file (stat_data). Reformat this data into
-        statistics columns corresponding to the statistic name for the MET VAL1L2
-        linetype, as defined in constants.py in the METdbLoad module:
-        'ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar', 'uvffabar', 'uvooabar',
-       'fa_speed_bar', 'oa_speed_bar', 'total_dir', 'dira_me', 'dira_mae', 'dira_mse'
+             Reformatting for using METcalcpy agg_stat. For input data that does NOT
+             have aggregation statistics and confidence values calculated from the
+             MET stat-analysis tool.
 
-        The reformatted data will have a stat_name column with the VAL1L2_ prefix
-        to the stat name.  This is required by the METcalcpy agg_stat module to
-        calculate aggregation statistics.
+             agg_stat sums the VAL1L2 partial sums (ufabar, vfabar, uoabar, voabar,
+             uvfoabar, uvffabar, uvooabar, fa_speed_bar, oa_speed_bar, dira_me,
+             dira_mae, dira_mse), weighted by total_dir (total for MET versions before
+             12.0), and then calculates the statistics from the sums.
 
-        Arguments:
-            @param stat_data: The dataframe containing the data from the MET .stat file.
-        
-        Returns:
-            linetype_data (pd.DataFrame): The reformatted dataframe with statistics
-            data reorganized into columns based on the VAL1L2 statistic names
+             Reformat the VAL1L2 rows into columns named after the VAL1L2 headers and
+             create a stat_name column with each statistic that agg_stat calculates from
+             the VAL1L2 partial sums (e.g. VAL1L2_ANOM_CORR, VAL1L2_DIRA_ME, see
+             VAL1L2_AGG_STATS). The stat_value column is empty, it will be filled by the
+             METcalcpy agg_stat calculation.
+
+             Arguments:
+             @param stat_data: the dataframe containing the VAL1L2 data from the MET
+             .stat file.
+
+             Returns:
+                 linetype_data: the reformatted pandas dataframe with the VAL1L2 partial
+                 sums in columns and one row per (VAL1L2 row, statistic).
+
         """
 
-        # Relevant columns for the VAL1L2 line type
-        linetype: str = cn.VAL1L2
+        # Relevant columns for the VAL1L2 line type, lowercase as required by agg_stat
         end = cn.NUM_STAT_VAL1L2_COLS
-        val1l2_columns_to_use: List[int] = (
-            np.arange(0, end).tolist())
+        val1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == cn.VAL1L2].iloc[:, 0:end]
+        val1l2_df.columns = [cur_hdr.lower() for cur_hdr in cn.VAL1L2_HEADERS]
 
-        # Subset original dataframe to one containing only the VAL1L2 data
-        val1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                                                                                     val1l2_columns_to_use].copy()
-
-        # Replace the column numbers with the name of the corresponding statistic as specified in MET
-        # User's Guide for the VAL1L2 linetype in the point-stat/grid-stat table.
-        all_headers = cn.VAL1L2_HEADERS
-        all_headers_lc = [cur_hdr.lower() for cur_hdr in all_headers]
-        val1l2_df.columns = all_headers_lc
-
-        # Add the stat_name column and stat_value columns.  Populate the stat_name column with the
-        # 'VAL1L2_' prefixed statistic names (e.g. for ufabar, this becomes VAL1L2_UFABAR).  Do this for
-        # each VAL1L2-specific statistic.  This will result in a very large dataframe.
-        linetype_str = linetype.upper() + '_'
-        val1l2_headers = cn.LC_VAL1L2_SPECIFIC
-        renamed_val1l2 = [linetype_str + cur_hdr.upper()
-                          for cur_hdr in val1l2_headers]
-
-        # Create a list of dataframes, each corresponding to the VAL1L2 statistics, then merge them
-        # all into one final dataframe.
-        dfs_to_merge = []
-
-        for renamed in renamed_val1l2:
-            tmp_df: pd.DataFrame = val1l2_df.copy()
-            tmp_df['stat_name'] = renamed
-            dfs_to_merge.append(tmp_df)
-
-        # Merge all the statistics dataframes into one, then add the
-        # stat_value column. Initialize the stat_values to NaN/NA.  These
-        # values will be filled by the METcalcpy agg_stat calculation.
-        merged_dfs: pd.DataFrame = pd.concat(
-            dfs_to_merge, axis=0, ignore_index=True)
-        merged_dfs['stat_value'] = np.nan
-        merged_dfs.replace('N/A', pd.NA)
-
-        return merged_dfs
+        return self._repeat_rows_per_stat(val1l2_df, VAL1L2_AGG_STATS)
 
     def process_mctc(self, stat_data: pd.DataFrame) -> pd.DataFrame:
         """

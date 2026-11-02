@@ -106,9 +106,9 @@ class ReadDataFiles:
                         self.data_files[CN.FULL_FILE])
 
                 # Drop files that are not of a valid type
-                self.data_files.drop(self.data_files[self.data_files[CN.DATA_FILE_LU_ID] ==
-                                                     CN.NO_KEY].index, inplace=True)
-                self.data_files.reset_index(drop=True, inplace=True)
+                self.data_files = self.data_files.drop(self.data_files[self.data_files[CN.DATA_FILE_LU_ID] ==
+                                                                       CN.NO_KEY].index)
+                self.data_files = self.data_files.reset_index(drop=True)
 
                 # If no valid files to load, exit
                 if not len(self.data_files):
@@ -1035,7 +1035,7 @@ class ReadDataFiles:
                         # get the line data of just this VSDB type and re-index
                         vsdb_data = all_vsdb[all_vsdb[CN.LINE_TYPE]
                                              == vsdb_type].copy()
-                        vsdb_data.reset_index(drop=True, inplace=True)
+                        vsdb_data = vsdb_data.reset_index(drop=True)
 
                         if vsdb_type in (CN.SL1L2, CN.SAL1L2):
                             # some SL1L2 files do not have MAE
@@ -1322,35 +1322,33 @@ class ReadDataFiles:
                         self.logger.warning(
                             f"line types: {str(all_stat.iloc[invalid_line_indexes].line_type)}")
 
-                        all_stat.drop(invalid_line_indexes,
-                                      axis=0, inplace=True)
+                        all_stat = all_stat.drop(invalid_line_indexes,
+                                                 axis=0)
 
                     # if user specified line types to load, delete the rest
                     if load_flags["line_type_load"]:
-                        all_stat.drop(all_stat[~all_stat.line_type.isin(line_types)].index,
-                                      inplace=True)
+                        all_stat = all_stat.drop(all_stat[~all_stat.line_type.isin(line_types)].index)
 
                     # if load_spec has flag to not load MPR records, delete them
                     if not load_flags["load_mpr"]:
-                        all_stat.drop(
-                            all_stat[all_stat.line_type == CN.MPR].index, inplace=True)
+                        all_stat = all_stat.drop(
+                            all_stat[all_stat.line_type == CN.MPR].index)
 
                     # if load_spec has flag to not load ORANK records, delete them
                     if not load_flags["load_orank"]:
-                        all_stat.drop(
-                            all_stat[all_stat.line_type == CN.ORANK].index, inplace=True)
+                        all_stat = all_stat.drop(
+                            all_stat[all_stat.line_type == CN.ORANK].index)
 
                     # reset the index, in case any lines have been deleted
-                    all_stat.reset_index(drop=True, inplace=True)
+                    all_stat = all_stat.reset_index(drop=True)
 
                     # if all lines from a stat or vsdb file were deleted, remove filename
                     files_to_drop = ~self.data_files.index.isin(
                         all_stat[CN.FILE_ROW])
                     files_stat = self.data_files[CN.DATA_FILE_LU_ID].isin([CN.VSDB_POINT_STAT,
                                                                            CN.STAT])
-                    self.data_files.drop(self.data_files[files_to_drop & files_stat].index,
-                                         inplace=True)
-                    self.data_files.reset_index(drop=True, inplace=True)
+                    self.data_files = self.data_files.drop(self.data_files[files_to_drop & files_stat].index)
+                    self.data_files = self.data_files.reset_index(drop=True)
 
                     if not all_stat.fcst_lead.dtypes == 'int':
                         all_stat.loc[all_stat.fcst_lead ==
@@ -1402,20 +1400,19 @@ class ReadDataFiles:
                         self.logger.warning(
                             f"line types: {str(all_tcst.iloc[invalid_line_indexes].line_types)}")
 
-                        all_tcst.drop(invalid_line_indexes,
-                                      axis=0, inplace=True)
+                        all_tcst = all_tcst.drop(invalid_line_indexes,
+                                                 axis=0)
 
                     # reset the index, in case any lines have been deleted
-                    all_tcst.reset_index(drop=True, inplace=True)
+                    all_tcst = all_tcst.reset_index(drop=True)
 
                     # if all lines from a tcst file were deleted, remove filename
                     files_to_drop = ~self.data_files.index.isin(
                         all_tcst[CN.FILE_ROW])
                     files_tcsp = self.data_files[CN.DATA_FILE_LU_ID] == CN.TCST
-                    self.data_files.drop(self.data_files[files_to_drop & files_tcsp].index,
-                                         inplace=True)
+                    self.data_files = self.data_files.drop(self.data_files[files_to_drop & files_tcsp].index)
 
-                    self.data_files.reset_index(drop=True, inplace=True)
+                    self.data_files = self.data_files.reset_index(drop=True)
 
                     self.tcst_data = all_tcst
                     all_tcst = all_tcst.iloc[0:0]
