@@ -16,12 +16,12 @@ Copyright 2020 UCAR/NCAR/RAL, CSU/CIRES, Regents of the University of Colorado, 
 # constants exist in constants.py
 
 import sys
+import logging
 import os
 import datetime
 from pathlib import Path
 import pandas as pd
 from lxml import etree
-import METreformat.util as util
 from METdbLoad.ush import constants as CN
 from lxml import etree
 from METdbLoad.test import utils as dbload_util
@@ -70,9 +70,9 @@ class XmlLoadFile:
             self.load_files = []
             self.line_types = []
 
+            # do not create a log file if no logger is passed in
             if logger is None:
-                log_filename = os.path.join(os.getcwd(), __name__ + "_log.txt")
-                self.logger = util.get_common_logger('DEBUG', log_filename)
+                self.logger = logging.getLogger(__name__)
             else:
                 self.logger = logger
         except RuntimeError:

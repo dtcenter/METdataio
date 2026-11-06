@@ -16,22 +16,22 @@ from multiple line types, as determined by settings in the MET configuration fil
   Currently, there are MET linetypes that **do not** have reformatter support.  When an unsupported linetype
   is requested, an appropriate error message will be generated.
 
-All MET .stat line types have common columns (refer to `Table 11.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/point-stat.html#id5>`_ in the MET User's Guide) that are labelled
-(i.e. the columns have headers/names).  The remaining columns
-are unlabelled.  When the stat output from the MET Point-Stat, Grid-Stat, Ensemble-Stat, or TC-Pairs tools are
+All MET .stat line types have common columns (refer to `Table 11.1 <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/point-stat.html#id6>`_ in the MET User's Guide) that are labelled
+(i.e., the columns have headers/names).  The remaining columns
+are unlabelled.  When the stat output from the MET Point-Stat, Grid-Stat, Ensemble-Stat, or TC-Pairs tools is
 reformatted, these unlabelled columns are rearranged into a format appropriate
 for the METplotpy plot of interest and on the *line_type* data.
 
 The format of input data used by the METplotpy plots is influenced by METviewer.
-When generating plots in METviewer, the MET .stat input data is first loaded into the
+When generating plots in METviewer, the MET .stat input data is first loaded into
 a database. A database query is then performed to filter the data, based on criteria specified through
 METviewer's graphical user interface.  The query is based on:
 
-* the selected values for the dependent variables (i.e. forecast variable) and the associated statistics of interest
-* series variables (i.e. model and specific model values)
+* the selected values for the dependent variables (i.e., forecast variable) and the associated statistics of interest
+* series variables (i.e., model and specific model values)
 * fixed values (corresponding to columns in the MET output such as forecast lead, vx mask, model, etc.)
 
-Any requested aggregation statistics (i.e. mean, median) are calculated by invoking the METcalcpy agg_stat.py code.
+Any requested aggregation statistics (i.e., mean, median) are calculated by invoking the METcalcpy agg_stat.py code.
 The format of the data from the query result may vary, based on the line type and whether aggregation statistics were
 calculated.
 
@@ -41,11 +41,11 @@ calculated.
   is this format that is expected by the METplotpy scripts**.
 
 Users have the option to generate plots from the command line, by-passing METviewer and its database. **However,
-the MET Stat-Analysis** tool will need to be used for performing any necessary filtering of data (e.g. by any combination of
+the MET Stat-Analysis** tool will need to be used for performing any necessary filtering of data (e.g., by any combination of
 times, models, regions, etc.) prior to reformatting. The METcalcpy agg_stat.py module is used after
-reformatting to calculate aggregation statistics (i.e. total, mean, median, confidence
+reformatting to calculate aggregation statistics (i.e., total, mean, median, confidence
 intervals for a specific statistic, etc.). Not all data requires the calculation of
-aggregation statistics (e.g. histogram plots).
+aggregation statistics (e.g., histogram plots).
 
 Plots that are generated from the command line require a YAML configuration file. The .stat/.tcst output from the Point-Stat,
 Grid-Stat, Ensemble-Stat, or TC-Pairs tool must be reformatted before invoking the METplotpy scripts from the
@@ -88,7 +88,7 @@ command line.
 
         Used by the following METplotpy plot types:
 
-	  * line
+          * line
           * bar
           * box
           * contour
@@ -177,6 +177,26 @@ command line.
           * revision series
           * Taylor Diagram
 
+     .. dropdown:: VAL1L2
+
+        **Vector Anomaly L1L2 Partial Sums**
+
+        From MET tools:
+
+          * Point-Stat
+          * Grid-Stat
+
+        Used by the following METplotpy plot types:
+
+          * line
+          * bar
+          * box
+          * contour
+          * performance diagram
+          * revision box
+          * revision series
+          * Taylor Diagram
+
      .. dropdown:: ECNT
 
         **Ensemble Continuous Statistics**
@@ -241,7 +261,7 @@ command line.
 
         Used by the following METplotpy plot types:
 
-          * ROC diagram (Receiver Operator Curve)
+          * ROC diagram (Receiver Operating Characteristic)
 
 
      .. dropdown::  RHIST
@@ -258,7 +278,7 @@ command line.
 
      .. dropdown::  TCDIAG (with TCMPR)
 
-      | **Tropcial Cyclone Diagnostics**
+      | **Tropical Cyclone Diagnostics**
       | **Tropical Cyclone Matched Pairs**
 
         From MET tool:
@@ -351,12 +371,12 @@ plot and line type.  Formats fall into the following categories:
          corresponding to the same common stat column values).
 
            * The common stat columns are common to all line types for Point-Stat, Grid-Stat, and
-	     Ensemble-Stat (model, vx mask, description, fcst lead, etc.) as described in the
-	     MET User's Guide:
+             Ensemble-Stat (model, vx mask, description, fcst lead, etc.) as described in the
+             MET User's Guide:
 
-              *  `Point-Stat Table 11.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/point-stat.html#id1>`_ (Point-Stat)
-              *  `Grid-Stat Table 12.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/grid-stat.html#id1>`_ (Grid-Stat)
-              *  `Ensemble-Stat Table 13.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/ensemble-stat.html#id1>`_ (Ensemble-Stat)
+              *  `Point-Stat Table 11.1 <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/point-stat.html#id6>`_ (Point-Stat)
+              *  `Grid-Stat Table 13.1 <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/grid-stat.html#id8>`_ (Grid-Stat)
+              *  `Ensemble-Stat Table 14.1 <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/ensemble-stat.html#id1>`_ (Ensemble-Stat)
 
 
 
@@ -368,7 +388,7 @@ plot and line type.  Formats fall into the following categories:
 
            * each row represents unique data (tidy data)
            * the number of columns is different for each row, due to each row representing a different linetype
-             (e.g. DMAP, NBRTC)
+             (e.g., DMAP, NBRTC)
            * numerous columns are unlabelled
 
 
@@ -409,9 +429,9 @@ plot and line type.  Formats fall into the following categories:
            * The common stat columns are common to all line types for Point-Stat, Grid-Stat, and Ensemble-Stat (model, vx mask, description, fcst lead, etc.)
              as described in the MET User's Guide:
 
-              *  `MET Point-Stat: Table 11.1  <https://met.readthedocs.io/en/main_v12.0/Users_Guide/point-stat.html#id1>`_ (Point-Stat)
-              *  `MET Grid-Stat: Table 12.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/grid-stat.html#id1>`_  (Grid-Stat)
-              *  `MET Ensemble-Stat: Table 13.1 <https://met.readthedocs.io/en/main_v12.0/Users_Guide/ensemble-stat.html#id1>`_ (Ensemble-Stat)
+              *  `MET Point-Stat: Table 11.1  <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/point-stat.html#id6>`_ (Point-Stat)
+              *  `MET Grid-Stat: Table 13.1 <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/grid-stat.html#id8>`_  (Grid-Stat)
+              *  `MET Ensemble-Stat: Table 14.1 <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/ensemble-stat.html#id1>`_ (Ensemble-Stat)
 
 
          .. dropdown:: Unformatted Examples:
@@ -422,7 +442,7 @@ plot and line type.  Formats fall into the following categories:
 
            * each row represents unique data (tidy data)
            * the number of columns is different for each row, due to each row representing a different linetype
-             (e.g. DMAP, NBRTC)
+             (e.g., DMAP, NBRTC)
            * numerous columns are unlabelled
 
 
@@ -465,12 +485,12 @@ plot and line type.  Formats fall into the following categories:
 
        * The PCT line type consists of a **variable** number of unlabelled columns/headers
          corresponding to THRESH_i, OY_i, and ON_i, as described in the
-	 `MET User's Guide <https://met.readthedocs.io/en/latest/Users_Guide/>`_.
+         `MET User's Guide <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/>`_.
 
-      *  The columns corresponding to OY_1, OY_2, ,,,. OY_m (where *m*
+      *  The columns corresponding to OY_1, OY_2, ..., OY_m (where *m*
          is the THRESH_ith value) are **unlabelled** when generated by the MET tool.
 
-         *  These unlabelled columns are appropriately labelled to OY_1,..., OY_m values, ON_1, .., ON_m,
+         *  These unlabelled columns are appropriately labelled to OY_1,..., OY_m values, ON_1,..., ON_m,
             and THRESH_1,..., THRESH_m.
 
          * These labelled columns are then ordered into the thresh_i, oy_i, on_i, and i_value
@@ -488,7 +508,7 @@ plot and line type.  Formats fall into the following categories:
 
              * each row represents unique data (tidy data)
              * the number of columns is different for each row, due to each row representing a different linetype
-               (e.g. PCT, PSTD, PJC, PRC)
+               (e.g., PCT, PSTD, PJC, PRC)
              * numerous columns are unlabelled
 
          .. dropdown:: Reformatted Example (truncated):
@@ -503,10 +523,10 @@ plot and line type.  Formats fall into the following categories:
                           * numbers on the far left correspond to index values used in reformatting the original data
                           * TMP forecast variable rows used in the example, other forecast variables were manually
                             removed from the output file
-                          * numerous rows have the same common stat columns (i.e. version, ..., interp_mthd),
+                          * numerous rows have the same common stat columns (i.e., version, ..., interp_mthd),
                             the same line_type, and total value
 
-                               * the data is organized by thresh_i, oy_i, on_i, and i_value using the criteria describe
+                               * the data is organized by thresh_i, oy_i, on_i, and i_value using the criteria described
                                  above
 
 
@@ -533,7 +553,7 @@ plot and line type.  Formats fall into the following categories:
 
           * each row represents unique data (tidy data)
           * the number of columns is different for each row, due to each row representing a different linetype
-            (e.g. ECNT, RHIST, PHIST, RELP, SSVAR)
+            (e.g., ECNT, RHIST, PHIST, RELP, SSVAR)
           * numerous columns are unlabelled
 
 
@@ -620,7 +640,7 @@ plot and line type.  Formats fall into the following categories:
 
          * The data corresponds to the TCDIAG data consolidated with the corresponding TCMPR line
          * The unlabelled first column contains index values created during the reformatting process
-         * The LINE_TYPE column is now located AFTER the last TCMPR column (i.e. MAX_WIND_STDEV)
+         * The LINE_TYPE column is now located AFTER the last TCMPR column (i.e., MAX_WIND_STDEV)
          * The INDEX_PAIRS column corresponds to the INDEX column of TCDIAG (Table 24.3 of the MET User's Guide)
 
            * renamed INDEX_PAIRS to **differentiate it from the INDEX column of TCMPR**
@@ -648,7 +668,7 @@ plot and line type.  Formats fall into the following categories:
 
     .. dropdown::  by specific linetype: ECNT
 
-       * The ECNT linetype (from the MET ensemble-stat tool) can be reformatted to contain all the ECNT statistic values specified in `Table 13.2 of the MET User's Guide <https://met.readthedocs.io/en/develop/Users_Guide/ensemble-stat.html#id2>`_.
+       * The ECNT linetype (from the MET ensemble-stat tool) can be reformatted to contain all the ECNT statistic values specified in the table of `Format information for ECNT output line type <https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/ensemble-stat.html#id2>`_ in the MET User's Guide.
 
          * in addition, the following values are separated into additional columns:
 
@@ -687,14 +707,14 @@ plot and line type.  Formats fall into the following categories:
             * stat_bcl
             * stat_bcu
 
-       * Some plots require aggregation statistics (i.e. mean, sum, confidence levels, etc.)
+       * Some plots require aggregation statistics (i.e., mean, sum, confidence levels, etc.)
 
          * an example of when aggregation statistics are needed is when using the METplotpy line plot to generate an
-           ensemble spread skill plot that consists of ratio lines (e.g. ECNT spread_plus_oerr/rmse)
+           ensemble spread skill plot that consists of ratio lines (e.g., ECNT spread_plus_oerr/rmse)
 
          * the METcalcpy agg_stat.py module can be used to calculate these aggregation statistics, but requires
-           all the ECNT statistic values specified in `Table 13.2 of the MET User's Guide <https://met.readthedocs.io/en/develop/Users_Guide/ensemble-stat.html#id2>`_
-           in addition to a stat_name column and stat_value column
+           all the ECNT statistic values specified in the `Table of Format information for ECNT output line type <https://metplus.readthedocs.io/projects/met/en/develop/Users_Guide/ensemble-stat.html#id2>`_
+           of the MET User's Guide in addition to a stat_name column and stat_value column
 
            * the stat_name column contains all the ECNT statistic names pre-pended with **ECNT_**:
 
@@ -726,7 +746,17 @@ The output from the Stat-Analysis tool can then be used
 as input to the METdataio METreformat reformatter.  If filtering of data is not needed, the .stat files from the MET
 Point-Stat, Grid-Stat, and Ensemble-Stat tools can be used as input to the reformatter. If aggregation statistics
 are needed, then the METcalcpy agg_stat.py module can be used following the reformatting step.
-Reformatting to accommodate METcalcpy agg_stat is currently only available for the **ECNT linetype**.
+Reformatting to accommodate METcalcpy agg_stat is currently available for:
+
+* **ECNT**
+* **CTS** (requires the CTC lines in the input, see *input_stats_aggregated* below)
+* **VL1L2**
+* **VAL1L2**
+* **SAL1L2**
+
+See *input_stats_aggregated* below for the statistics agg_stat calculates for CTS, VL1L2, VAL1L2,
+and SAL1L2.
+
 The *input_stats_aggregated* setting is used to indicate whether the reformatter needs to
 reformat the output for the METcalcpy agg_stat module.
 
@@ -743,7 +773,7 @@ was saved to the working directory.
 
 .. dropdown:: Modify the reformat_stat.yaml configuration file (click to view config file)
 
-    .. literalinclude:: ../../../METdataio/METreformat/reformat_stat.yaml
+    .. literalinclude:: ../../METreformat/reformat_stat.yaml
 
     Refer to the following details for each of the mandatory settings in the configuration file.
 
@@ -762,6 +792,36 @@ was saved to the working directory.
                 reformatted data can be used as input to the appropriate METplotpy plotting script.
 
             * Otherwise, set this to *False* if aggregation statistics need to be calculated (METcalcpy agg_stat module).
+
+            * **NOTE**: When *line_type* is CTS and *input_stats_aggregated* is *False*, the input .stat files
+              **must contain CTC lines**. The CTS statistics can't be aggregated directly, so agg_stat sums the
+              CTC counts and calculates the CTS statistics from the sums (as MET Stat-Analysis does for
+              *-job aggregate_stat -line_type CTC -out_line_type CTS*). The CTS lines in the input are not used.
+
+              * The reformatted output has the lowercase CTC count columns (total, fy_oy, fy_on, fn_oy, fn_on,
+                ec_value), one row per CTS statistic (e.g. PODY, CSI) for each CTC line, and an empty
+                stat_value column.
+              * The line_type column of the output is CTC, so set *line_type: ctc* in the METcalcpy agg_stat
+                configuration file.
+              * HSS_EC and EC_VALUE are not included.
+              * Reformatting fails with an error if the input has no CTC lines.
+
+            * **NOTE**: When *line_type* is VL1L2, VAL1L2, or SAL1L2 and *input_stats_aggregated* is *False*,
+              agg_stat sums the partial sums and calculates the statistics from the sums. The reformatted output
+              has the lowercase partial sum columns, one row per statistic for each input line, and an empty
+              stat_value column. The stat_name column holds the statistics agg_stat calculates:
+
+              * VL1L2: VL1L2_BIAS, VL1L2_FVAR, VL1L2_OVAR, VL1L2_SPEED_ERR, VL1L2_MSVE, VL1L2_RMSVE,
+                VL1L2_DIR_ME, VL1L2_DIR_MAE, VL1L2_DIR_MSE
+              * VAL1L2: VAL1L2_ANOM_CORR, VAL1L2_DIRA_ME, VAL1L2_DIRA_MAE, VAL1L2_DIRA_MSE
+              * SAL1L2: ANOM_CORR, ANOM_CORR_RAW, RMSFA, RMSOA, MAE (no SAL1L2\_ prefix)
+
+              Set *line_type* in the METcalcpy agg_stat configuration file to vl1l2, val1l2, or sal1l2 and
+              request the statistics by these names.
+
+              * For VL1L2 data from MET 12.0 and later, METcalcpy agg_stat currently weights the partial sums
+                by TOTAL_DIR but divides by TOTAL, so the VL1L2 statistics other than VL1L2_DIR_ME,
+                VL1L2_DIR_MAE, and VL1L2_DIR_MSE are incorrect for lines where TOTAL and TOTAL_DIR differ.
 
        .. dropdown:: input_data_dir
 
@@ -790,8 +850,8 @@ was saved to the working directory.
   
        .. dropdown:: log_level
 
-         * The verbosity of the logging: INFO, DEBUG, WARNING, ERROR
-         * INFO is the most verbose, ERROR is least verbose
+         * The verbosity of the logging: DEBUG, INFO, WARNING, ERROR
+         * DEBUG is the most verbose, ERROR is the least verbose
 
        .. dropdown:: line_type
 
@@ -804,6 +864,7 @@ was saved to the working directory.
            * CTS
            * SL1L2
            * VL1L2
+           * VAL1L2
            * ECNT
            * MCTS
            * VCNT
@@ -881,7 +942,7 @@ Generate the reformatted file:
         * specify the *input directory*
         * specify the *output directory*
         * specify the *output file name*
-        * specify the *line stat to reformat*
+        * specify the *line type to reformat*
         * specify the *logging settings*:
 
           * log level

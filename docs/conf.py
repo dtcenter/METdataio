@@ -20,7 +20,8 @@ print(sys.path)
 project = 'METdataio'
 author = 'UCAR/NSF NCAR, NOAA, CSU/CIRA, and CU/CIRES'
 author_list = 'Smith, M., T. Burek,  H. Fisher, M. Win-Gildenmeister, and V. Hagerty'
-version = '13.0.0-beta3-dev'
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'version')) as version_file:
+    version = version_file.read().strip()
 verinfo = version
 release = f'{version}'
 release_year = '2026'
@@ -86,10 +87,8 @@ linkcheck_retries = 2
 linkcheck_workers = 8
 
 linkcheck_ignore = [
-    # add regex patterns for URLs that should be skipped, e.g.:
-    # r'https://dtcenter\.org/.*',   # if this site blocks automated requests
-    # r'https://dev\.mysql\.com/doc/.*',    # occasionally slow/rate-limited, not actually broken
-    # r'https://.*\.rap\.ucar\.edu/.*',     # internal DTC/NCAR-network resources unreachable from CI runners
+    # dev.mysql.com returns 403 Forbidden to automated requests (Akamai bot protection)
+    r'https://dev\.mysql\.com/doc.*',
 ]
 
 linkcheck_allowed_redirects = {

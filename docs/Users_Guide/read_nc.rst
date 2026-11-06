@@ -14,7 +14,7 @@ Requirements
 ============
 
 METreadnc requires the following Python packages that must be installed
-prior to us:
+prior to use:
 
 - xarray
 - netcdf4
@@ -29,7 +29,7 @@ or requirements.txt in the METcalcpy repository (https://github.com/dtcenter/MET
 Setting up
 ==========
 
-- set up a base directory, where the METdataio source code reside
+- set up a base directory, where the METdataio source code resides
 
 .. code-block:: ini
 
@@ -101,7 +101,7 @@ The variable *infile* represents a single file (string) or a list of file names.
 
 .. code-block:: ini
 
-  df = file_reader_read_into_pandas(infile)
+  df = file_reader.read_into_pandas(infile)
 
 The variable *infile* represents a single file (string) or a list of file names.  Specify the full path to the file(s).
 

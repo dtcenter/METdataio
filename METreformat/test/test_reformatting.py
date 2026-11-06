@@ -1,7 +1,7 @@
 import os
-import shutil
 import pathlib
-from argparse import Namespace
+import shutil
+import warnings
 from collections import namedtuple
 from dataclasses import make_dataclass
 from typing import List
@@ -11,14 +11,76 @@ import pandas as pd
 import pytest
 import yaml
 
-# import METdataio.METdbLoad.ush.constants as cn
 import METdbLoad.ush.constants as cn
 from METdbLoad.ush.read_data_files import ReadDataFiles
 from METdbLoad.ush.read_load_xml import XmlLoadFile
 from METreformat.write_stat_ascii import WriteStatAscii
 import METreformat.util as util
+from metcalcpy.util.read_env_vars_in_config import parse_config
 
-full_log_filename = os.path.join('../output', 'test_reformatting_log.txt')
+TEST_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'output')
+DEFAULT_TEST_OUTPUT_DIR = os.path.abspath(TEST_OUTPUT_DIR)
+DEFAULT_TEST_INPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'METdataio_Data'))
+
+
+def get_test_input_dir():
+    """Return the top-level directory that contains the METreformat test input data.
+
+    The directory is read from the METDATAIO_TEST_INPUT_DIR environment variable. If it is
+    not set, METdataio_Data in the top of the repository is used. Fail the calling test with an explanation if the
+    directory does not exist, so missing input data is not mistaken for a reformatting bug.
+
+    @return: The absolute path of the test input data directory.
+    """
+    input_dir = os.path.abspath(os.environ.get('METDATAIO_TEST_INPUT_DIR', DEFAULT_TEST_INPUT_DIR))
+    if not os.path.isdir(input_dir):
+        pytest.fail(
+            f'METreformat test input data directory not found: {input_dir}. Set the '
+            'METDATAIO_TEST_INPUT_DIR environment variable to the directory that contains '
+            f'the test input data, or make it available at {DEFAULT_TEST_INPUT_DIR}.'
+        )
+    return input_dir
+
+
+def prepare_test_output_dir(output_dir=None):
+    """Set up a predictable output directory for the METreformat tests.
+
+    The default test output directory is repo-local and is safe to scrub before
+    each run. When a custom directory is supplied via the environment, warn and
+    leave it alone to avoid deleting user data.
+    """
+    if output_dir is None:
+        output_dir = os.environ.get('METREFORMAT_TEST_OUTPUT_DIR', DEFAULT_TEST_OUTPUT_DIR)
+
+    output_dir = os.path.abspath(output_dir)
+    pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+    if os.path.abspath(output_dir) == DEFAULT_TEST_OUTPUT_DIR:
+        for child in os.listdir(output_dir):
+            child_path = os.path.join(output_dir, child)
+            if os.path.isdir(child_path) and not os.path.islink(child_path):
+                shutil.rmtree(child_path)
+            else:
+                os.remove(child_path)
+        return output_dir
+
+    if os.listdir(output_dir):
+        warnings.warn(
+            f'METREFORMAT_TEST_OUTPUT_DIR={output_dir} is not empty; the test suite '
+            'will not delete custom output directories automatically. Please clear it '
+            'before running the METreformat tests.',
+            UserWarning,
+            stacklevel=2,
+        )
+
+    return output_dir
+
+
+os.environ.setdefault('METREFORMAT_TEST_OUTPUT_DIR', DEFAULT_TEST_OUTPUT_DIR)
+os.environ['METREFORMAT_TEST_OUTPUT_DIR'] = prepare_test_output_dir(
+    os.environ.get('METREFORMAT_TEST_OUTPUT_DIR')
+)
+full_log_filename = os.path.join(os.environ['METREFORMAT_TEST_OUTPUT_DIR'], 'test_reformatting_log.txt')
 logger = util.get_common_logger('DEBUG', full_log_filename)
 
 
@@ -27,20 +89,27 @@ def read_input(config_file, is_tcst):
        Read in the input .stat data file, return a data frame representation of all the data in the specified
        input data directory.
 
-    :param input_data_dir: The full path of the directory where the input data is located.
+    :param config_file: The YAML config file or config dictionary. Its input_data_dir is relative
+                        to the test input data directory (see get_test_input_dir).
     :param is_tcst: If the linetype is a TCMPR or TCDiag (.tcst file)
     :return: file_df, the dataframe representation of the input data
     """
 
-    with open(config_file, 'r') as stream:
+    if isinstance(config_file, dict):
+        parms = config_file
+    else:
         try:
-            parms: dict = yaml.load(stream, Loader=yaml.FullLoader)
+            parms: dict = parse_config(config_file)
             pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
-        except yaml.YAMLError as exc:
+        except (yaml.YAMLError, ValueError) as exc:
             print(exc)
 
+    pathlib.Path(parms['output_dir']).mkdir(parents=True, exist_ok=True)
+
     input_data_dir = parms['input_data_dir']
-    input_data_full_path = os.path.join(os.path.dirname(__file__), input_data_dir)
+    input_data_full_path = os.path.join(get_test_input_dir(), input_data_dir)
+    if not os.path.isdir(input_data_full_path):
+        pytest.fail(f'Test input data directory not found: {input_data_full_path}')
 
     # Replacing the need for an XML specification file, pass in the XMLLoadFile and
     # ReadDataFile parameters
@@ -64,21 +133,16 @@ def read_input(config_file, is_tcst):
 
     if is_tcst:
         file_df = rdf_obj.tcst_data
-
     else:
         file_df = rdf_obj.stat_data
-    # Check if the output file already exists, if so, delete it to avoid
-    # appending output from subsequent runs into the same file.
-    existing_output_file = os.path.join(parms['output_dir'], parms['output_filename'])
-    if os.path.exists(existing_output_file):
-        os.remove(existing_output_file)
 
     return file_df, parms
 
 
-def setup_test(yaml_file, is_tcst=False):
-    """
-       Read in the YAML config settings, then generate the input data as a data frame and perform reformatting.
+def _setup_test_from_yaml(yaml_file, is_tcst=False):
+    """Read in the YAML config settings, then generate the input data as a data frame and perform reformatting.
+    It is preferred to use setup_test to generate a config file instead of reading an existing yaml file.
+    This function is left here in case there is a need to read in an existing yaml file for testing purposes.
 
     """
 
@@ -89,13 +153,224 @@ def setup_test(yaml_file, is_tcst=False):
     return file_df, config
 
 
+def build_dispatch_test_config(linetype, test_name=None, is_aggregated=True, for_scatter=False):
+    """Build a minimal config for the generic line-type dispatch tests.
+
+    The dispatch tests only need enough metadata to read the input stat files and
+    create a unique output file per parameter combination without depending on a
+    dedicated YAML file for each linetype.
+
+    @param linetype: The line type to test.
+    @param is_aggregated Whether or not the data has been aggregated
+    @param for_scatter Whether or not the data is for a scatter plot (keep_all_cols)
+    @return: A tuple of (parms, is_tcst), where is_tcst is True for TCMPR/TCDIAG input.
+    """
+    line_type = str(linetype).upper()
+    if test_name is None:
+        test_name = line_type
+
+    input_data_dir_lookup = {
+        cn.ECNT: 'ensemble_stat',
+        cn.MCTS: 'grid_stat/mctc_mcts',
+        cn.RHIST: 'rhist_phist_relp_orank',
+        cn.SAL1L2: 'point_stat/sal1l2',
+        cn.PCT: 'RRFS_PCT_PRC_PJC_PSTD/2022050600',
+        cn.TCMPR: 'tcdiag_tcmpr',
+        cn.TCDIAG: 'tcdiag_tcmpr',
+        cn.MPR: 'mpr/from_regression_data',
+        cn.DMAP: 'grid_stat/dmap',
+        cn.VL1L2: 'point_stat/vl1l2_MET13',
+        cn.VAL1L2: 'point_stat/vl1l2_MET13',
+        cn.VCNT: 'point_stat/vl1l2_MET13',
+        'VCNT_for_MET13': 'point_stat/vcnt_MET13',
+        'FHO_nan': 'point_stat_nan',
+        'mpr_climo_data': 'mpr/climo_data',
+        'reformat_stat_ctc': 'tc_stat_rirw_cts_ctc/stat',
+        'reformat_stat_cts': 'tc_stat_rirw_cts_ctc/stat',
+        'reformat_tcst_ctc': 'tc_stat_rirw_cts_ctc',
+        'reformat_tcst_cts': 'tc_stat_rirw_cts_ctc',
+    }
+    input_data_dir = input_data_dir_lookup.get(test_name) or input_data_dir_lookup.get(line_type, 'point_stat')
+    suffix = '' if is_aggregated else '_for_agg'
+    output_filename = f'{test_name.lower()}{suffix}_reformatted.data'
+    is_tcst = line_type in {cn.TCMPR, cn.TCDIAG}
+
+    return {
+        'input_stats_aggregated': is_aggregated,
+        'output_dir': os.environ['METREFORMAT_TEST_OUTPUT_DIR'],
+        'output_filename': output_filename,
+        'line_type': line_type,
+        'input_data_dir': input_data_dir,
+        'log_directory': os.environ['METREFORMAT_TEST_OUTPUT_DIR'],
+        'log_filename': 'stdout',
+        'log_level': 'INFO',
+        'keep_all_cols': for_scatter,
+    }, is_tcst
+
+
+def setup_test(linetype, test_name=None, is_aggregated=True, for_scatter=False):
+    """Build a minimal config for a linetype test and read its input data.
+
+    This is the common path for tests that previously needed:
+
+        parms = build_dispatch_test_config(...)
+        stat_data, parms = read_input(parms, is_tcst=False)
+
+    @param linetype: The line type to test.
+    @param test_name: Optional test name to use for the input data directory and output filename.
+    @param is_aggregated: Whether or not the data has been aggregated.
+    @param for_scatter: Whether or not the data is for a scatter plot (keep_all_cols).
+    @return: A tuple of (stat_data, parms).
+    """
+    parms, is_tcst = build_dispatch_test_config(linetype, test_name, is_aggregated, for_scatter)
+    stat_data, parms = read_input(parms, is_tcst=is_tcst)
+    return stat_data, parms
+
+
+def fail_if_output_exists(parms):
+    """Fail the test if the output file that write_stat_ascii will write already exists.
+
+    write_stat_ascii appends to the output file, so an existing file means another
+    test uses the same output filename (same linetype/test_name/is_aggregated) and
+    the output from both tests would be combined. Call this before each call to
+    write_stat_ascii.
+
+    @param parms: The config dictionary returned by setup_test.
+    """
+    output_path = os.path.join(parms['output_dir'], parms['output_filename'])
+    if os.path.exists(output_path):
+        pytest.fail(
+            f'Output file already exists: {output_path}. Another test likely writes to the '
+            'same output file. Pass a unique test_name to setup_test to resolve the duplicate.'
+        )
+
+
+@pytest.mark.parametrize(
+    'linetype, is_aggregated, is_implemented',
+    [
+        (cn.FHO, True, True),
+        (cn.FHO, False, False),
+        (cn.CNT, True, True),
+        (cn.CNT, False, False),
+        (cn.VCNT, True, True),
+        (cn.VCNT, False, False),
+        (cn.CTC, True, True),
+        (cn.CTC, False, False),
+        (cn.CTS, True, True),
+        (cn.CTS, False, True),
+        (cn.MCTS, True, True),
+        (cn.MCTS, False, False),
+        (cn.SL1L2, True, True),
+        (cn.SL1L2, False, False),
+        (cn.SAL1L2, True, True),
+        (cn.SAL1L2, False, True),
+        (cn.VL1L2, True, True),
+        (cn.VL1L2, False, True),
+        (cn.ECNT, True, True),
+        (cn.ECNT, False, True),
+        (cn.PCT, True, True),
+        (cn.PCT, False, False),
+        (cn.RHIST, True, True),
+        (cn.TCDIAG, True, True),
+        (cn.TCDIAG, False, False),
+        (cn.MPR, True, True),
+        (cn.MPR, False, False),
+        (cn.DMAP, True, True),
+        (cn.DMAP, False, False),
+        (cn.VAL1L2, True, True),
+        (cn.VAL1L2, False, True),
+        (cn.MCTC, True, False),
+        (cn.MCTC, False, False),
+        (cn.NBRCTC, True, False),
+        (cn.NBRCTC, False, False),
+        (cn.NBRCTS, True, False),
+        (cn.NBRCTS, False, False),
+        (cn.NBRCNT, True, False),
+        (cn.NBRCNT, False, False),
+        (cn.SSVAR, True, False),
+        (cn.SSVAR, False, False),
+        (cn.GRAD, True, False),
+        (cn.GRAD, False, False),
+        (cn.RPS, True, False),
+        (cn.RPS, False, False),
+        (cn.ECLV, True, False),
+        (cn.ECLV, False, False),
+        (cn.PSTD, True, False),
+        (cn.PSTD, False, False),
+        (cn.PJC, True, False),
+        (cn.PJC, False, False),
+        (cn.PRC, True, False),
+        (cn.PRC, False, False),
+        (cn.ISC, True, False),
+        (cn.ISC, False, False),
+        (cn.PHIST, True, False),
+        (cn.PHIST, False, False),
+        (cn.ORANK, True, False),
+        (cn.ORANK, False, False),
+        (cn.RELP, True, False),
+        (cn.RELP, False, False),
+        (cn.ENSCNT, True, False),
+        (cn.ENSCNT, False, False),
+        (cn.PERC, True, False),
+        (cn.PERC, False, False),
+        (cn.SSIDX, True, False),
+        (cn.SSIDX, False, False),
+        (cn.SEEPS, True, False),
+        (cn.SEEPS, False, False),
+        (cn.SEEPS_MPR, True, False),
+        (cn.SEEPS_MPR, False, False),
+    ],
+)
+def test_process_by_stat_linetype_dispatch(linetype, is_aggregated, is_implemented):
+    """Verify dispatch behavior for each aggregated state.
+
+    Use a minimal generated config instead of a dedicated YAML fixture for each
+    linetype so the tests remain focused on dispatch behavior, while still
+    producing a unique output file per parameter combination.
+    """
+    stat_data, parms = setup_test(linetype, is_aggregated=is_aggregated)
+    wsa = WriteStatAscii(parms, logger)
+
+    if not is_implemented:
+        fail_if_output_exists(parms)
+        with pytest.raises(NotImplementedError):
+            wsa.write_stat_ascii(stat_data, parms)
+        output_path = os.path.join(parms['output_dir'], parms['output_filename'])
+        assert not os.path.exists(output_path)
+        return
+
+    fail_if_output_exists(parms)
+    result_df = wsa.write_stat_ascii(stat_data, parms)
+    output_path = os.path.join(parms['output_dir'], parms['output_filename'])
+    assert isinstance(result_df, pd.DataFrame)
+    assert not result_df.empty
+    assert os.path.exists(output_path)
+
+    # For agg_stat, the stat_name column holds the statistics agg_stat calculates (CTS,
+    # VL1L2, VAL1L2 and SAL1L2), the other line types have the <linetype>_ prefix.
+    if not is_aggregated:
+        from METreformat.write_stat_ascii import (CTS_AGG_STATS, SAL1L2_AGG_STATS,
+                                                  VAL1L2_AGG_STATS, VL1L2_AGG_STATS)
+        agg_stats = {cn.CTS: CTS_AGG_STATS, cn.VL1L2: VL1L2_AGG_STATS,
+                     cn.VAL1L2: VAL1L2_AGG_STATS, cn.SAL1L2: SAL1L2_AGG_STATS}
+        written = pd.read_csv(output_path, sep='\t')
+        stat_names = written['stat_name'].unique()
+        if linetype in agg_stats:
+            assert sorted(stat_names) == sorted(agg_stats[linetype])
+        else:
+            expected_prefix = linetype.upper() + "_"
+            assert all(name.startswith(expected_prefix) for name in stat_names)
+        assert written.shape[0] == result_df.shape[0]
+
+
+
 def test_bad_yaml():
     """
        Force a runtime exception by providing a non-existent yaml file
     """
 
     with pytest.raises(TypeError):
-        wsa = WriteStatAscii(None, logger)
+        WriteStatAscii(None, logger)
 
 
 def test_write_stat_ascii_bad_input():
@@ -103,12 +378,12 @@ def test_write_stat_ascii_bad_input():
         Test that an AttributeError is raised when the input dataframe
         is nonexistent.
     '''
-    stat_data, parms = setup_test("FHO.yaml")
-    cwd = os.getcwd()
+    _, parms = setup_test("FHO", test_name="write_stat_ascii_bad_input", is_aggregated=True)
 
+    fail_if_output_exists(parms)
     # After creating the WriteStatAscii object, the log directory should exist
+    wsa = WriteStatAscii(parms, logger)
     with pytest.raises(AttributeError):
-        wsa = WriteStatAscii(parms, logger)
         wsa.write_stat_ascii(None, parms)
 
 
@@ -118,18 +393,14 @@ def test_unsupported_linetype():
         is requested.  The MTD (mode time domain) line type is currently not
         supported.
     '''
-    stat_data, parms = setup_test("not_supported.yaml")
-    cwd = os.getcwd()
-    parms['log_directory'] = cwd + "/log_output"
-    parms['log_filename'] = "test_log.out"
-
-    # After creating the WriteStatAscii object, the log directory should exist
+    stat_data, parms = setup_test("MTD", is_aggregated=False)
+    wsa = WriteStatAscii(parms, logger)
+    fail_if_output_exists(parms)
     with pytest.raises(NotImplementedError):
-        wsa = WriteStatAscii(parms, logger)
         wsa.write_stat_ascii(stat_data, parms)
 
 
-def test_point_stat_FHO_consistency():
+def test_point_stat_fho_consistency():
     '''
            For the data frame for the FHO line type, verify that a value in the`
            original data corresponds to the value identified with the same
@@ -138,7 +409,7 @@ def test_point_stat_FHO_consistency():
     '''
 
     # Subset the input dataframe to include only the FHO linetype
-    stat_data, parms = setup_test("FHO.yaml")
+    stat_data, parms = setup_test("FHO", is_aggregated=True)
     end = cn.NUM_STAT_FHO_COLS
     fho_columns_to_use = np.arange(0, end).tolist()
     linetype = cn.FHO
@@ -176,8 +447,8 @@ def test_point_stat_FHO_consistency():
 
     # Checking for consistency between the reformatted/reshaped data and the
     # "original" data.
-    assert expected_val == actual_value
-    assert expected_name == actual_name
+    assert actual_value == expected_val
+    assert actual_name == expected_name
 
 
 def test_point_stat_sl1l2_consistency():
@@ -191,7 +462,7 @@ def test_point_stat_sl1l2_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('SL1L2.yaml')
+    stat_data, parms = setup_test('SL1L2', is_aggregated=True)
 
     # Relevant columns for the SL1L2 line type
     linetype: str = cn.SL1L2
@@ -237,13 +508,14 @@ def test_point_stat_sl1l2_consistency():
     # Check for any nan values in the dataframe
     assert reshaped_df.isnull().values.any() == False
 
+
 def test_point_stat_sal1l2_consistency():
-    stat_data, parms = setup_test('SAL1L2.yaml')
+    stat_data, parms = setup_test('SAL1L2', is_aggregated=True)
 
     linetype: str = cn.SAL1L2
     sal1l2_columns_to_use: List[str] = np.arange(0, cn.NUM_STAT_SAL1L2_COLS).tolist()
     sal1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
-                             sal1l2_columns_to_use]
+    sal1l2_columns_to_use]
     sal1l2_df.columns: List[str] = cn.SAL1L2_HEADERS
 
     total = str(361)
@@ -257,7 +529,7 @@ def test_point_stat_sal1l2_consistency():
         (sal1l2_df['obs_lev'] == obs_level) &
         (sal1l2_df['fcst_thresh'] == fcst_thresh)]
     expected_row: pd.Series = expected_df.iloc[0]
-    expected_name: str = "FABAR"   # or OABAR/FOABAR/FFABAR/OOABAR/MAE
+    expected_name: str = "FABAR"  # or OABAR/FOABAR/FFABAR/OOABAR/MAE
     expected_val: float = expected_row.loc[expected_name]
 
     wsa = WriteStatAscii(parms, logger)
@@ -281,7 +553,7 @@ def test_point_stat_vl1l2_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('VL1L2.yaml')
+    stat_data, parms = setup_test('VL1L2', is_aggregated=True)
 
     # Relevant columns for the VL1L2 line type
     linetype: str = cn.VL1L2
@@ -294,7 +566,7 @@ def test_point_stat_vl1l2_consistency():
     vl1l2_columns: List[str] = cn.VL1L2_HEADERS
     vl1l2_df.columns: List[str] = vl1l2_columns
 
-    # get the value of the record corresponding to line_type Vl1L2, total number of
+    # get the value of the record corresponding to line_type VL1L2, total number of
     # pairs, obs_var, obs_lev, and fcst_thresh, for the DIR_MSE statistic.
     total = str(4474)
     interp = 'NEAREST'
@@ -339,6 +611,73 @@ def test_point_stat_vl1l2_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
+def test_point_stat_val1l2_consistency():
+    '''
+           For the data frame for the VAL1L2 line type, verify that a value in the
+           original data corresponds to the value identified with the same criteria
+           in the newly reformatted dataframe.
+
+    '''
+
+    # Original data
+    stat_data, parms = setup_test('VAL1L2', is_aggregated=True)
+
+    # Relevant columns for the VAL1L2 line type
+    linetype: str = cn.VAL1L2
+    val1l2_columns_to_use: List[int] = np.arange(0, cn.NUM_STAT_VAL1L2_COLS).tolist()
+
+    # Subset original dataframe to one containing only the VAL1L2 data
+    val1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == linetype].iloc[:,
+    val1l2_columns_to_use]
+    # Add the stat columns header names for the VAL1L2 line type
+    val1l2_columns: List[str] = cn.VAL1L2_HEADERS
+    val1l2_df.columns: List[str] = val1l2_columns
+
+    # get the value of the record corresponding to line_type VAL1L2, total number of
+    # pairs, obs_var, obs_lev, and fcst_thresh, for the DIRA_MSE statistic.
+    total = str(1110)
+    interp = 'NEAREST'
+    obs_level = 'Z10'
+    fcst_thresh = '>=5||'
+    fcst_var = 'UGRD_VGRD'
+    obtype = 'ADPSFC'
+    desc = 'WIND_UNION'
+    # Filter the original dataframe to a particular UGRD_VGRD row
+    expected_df: pd.DataFrame = val1l2_df.loc[(val1l2_df['total'] == total) &
+                                             (val1l2_df['interp_mthd'] == interp) &
+                                             (val1l2_df['obs_lev'] == obs_level) &
+                                             (val1l2_df['fcst_thresh'] == fcst_thresh) &
+                                             (val1l2_df['fcst_var'] == fcst_var) &
+                                             (val1l2_df['obtype'] == obtype) &
+                                             (val1l2_df['desc'] == desc)
+                                             ]
+
+    expected_row: pd.Series = expected_df.iloc[0]
+    expected_name: str = "DIRA_MSE"
+    expected_val: float = expected_row.loc[expected_name]
+
+    wsa = WriteStatAscii(parms, logger)
+    obs_var = 'UGRD_VGRD'
+    reshaped_df = wsa.process_val1l2(stat_data)
+    actual_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) &
+                                              (reshaped_df['interp_mthd'] == interp) &
+                                              (reshaped_df['obs_var'] == obs_var) &
+                                              (reshaped_df['obs_lev'] == obs_level) &
+                                              (reshaped_df[
+                                                   'fcst_thresh'] == fcst_thresh) &
+                                              (reshaped_df[
+                                                   'stat_name'] == expected_name)]
+    actual_row: pd.Series = actual_df.iloc[0]
+    actual_value: float = actual_row['stat_value']
+
+    # Checking for consistency between the reformatted/reshaped data and the
+    # "original" data.
+    assert expected_val == actual_value
+
+    # Check for any nan values in the dataframe
+    assert reshaped_df.isnull().values.any() == False
+
+
 def test_point_stat_ctc_consistency():
     '''
            For the data frame for the CTC line type, verify that a value in the
@@ -350,7 +689,7 @@ def test_point_stat_ctc_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('CTC.yaml')
+    stat_data, parms = setup_test('CTC')
 
     # Relevant columns for the CTC line type
     linetype: str = cn.CTC
@@ -402,11 +741,26 @@ def test_process_ctc_agg():
     """ verify that the NotImplementedError is raised  when
           invoking the process_ctc_agg
     """
-    stat_data, parms = setup_test('CTC.yaml')
+    stat_data, parms = setup_test('CTC')
     parms['input_stats_aggregated'] = False
     wsa = WriteStatAscii(parms, logger)
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(NotImplementedError, match='Set line_type to CTS'):
         wsa.process_ctc_for_agg(stat_data)
+
+
+def test_ctc_stat_name_order():
+    '''
+        Verify that the reshaped CTC data keeps each line's statistics in the order of
+        the CTC columns (the sort by Idx is stable).
+    '''
+    stat_data, parms = setup_test('CTC', test_name='CTC_order')
+    wsa = WriteStatAscii(parms, logger)
+    reshaped_df = wsa.process_ctc(stat_data)
+
+    orders = reshaped_df.groupby('Idx', sort=False)['stat_name'].apply(list)
+    assert len(orders) == stat_data[stat_data['line_type'] == cn.CTC].shape[0]
+    for order in orders:
+        assert order == cn.CTC_STATISTICS_HEADERS
 
 
 def test_point_stat_cts_consistency():
@@ -420,7 +774,7 @@ def test_point_stat_cts_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('CTS.yaml')
+    stat_data, parms = setup_test('CTS')
 
     # Relevant columns for the CTS line type
     linetype: str = cn.CTS
@@ -476,15 +830,182 @@ def test_point_stat_cts_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_process_cts_agg():
-    """ verify that the NotImplementedError is raised  when
-          invoking the process_cts_agg
-    """
-    stat_data, parms = setup_test('CTS.yaml')
-    parms['input_stats_aggregated'] = False
+def test_cts_reformat_for_agg():
+    '''
+        Verify the CTS reformatting for METcalcpy agg_stat: the CTS statistics are built
+        from the CTC lines (as MET stat-analysis -job aggregate_stat -line_type CTC
+        -out_line_type CTS does), one row per CTS statistic for each CTC line, with the
+        CTC counts in lowercase columns and stat_value initialized to NaN.
+    '''
+    from metcalcpy.util import ctc_statistics
+    from METreformat.write_stat_ascii import CTS_AGG_STATS
+
+    stat_data, parms = setup_test('CTS', is_aggregated=False)
     wsa = WriteStatAscii(parms, logger)
-    with pytest.raises(NotImplementedError):
-        wsa.process_cts_for_agg(stat_data)
+    reformatted_df = wsa.process_by_stat_linetype(cn.CTS, stat_data, is_aggregated=False)
+
+    # One row per CTS statistic for every CTC line, the CTS lines aren't used
+    num_ctc_lines = stat_data[stat_data['line_type'] == cn.CTC].shape[0]
+    assert num_ctc_lines > 0
+    assert reformatted_df.shape[0] == num_ctc_lines * len(CTS_AGG_STATS)
+    assert (reformatted_df['line_type'] == cn.CTC).all()
+    assert sorted(reformatted_df['stat_name'].unique()) == sorted(CTS_AGG_STATS)
+    assert reformatted_df['stat_value'].isnull().all()
+
+    # Columns are the lowercase CTC headers plus stat_name and stat_value
+    expected_cols = [hdr.lower() for hdr in cn.CTC_HEADERS] + ['stat_name', 'stat_value']
+    assert list(reformatted_df.columns) == expected_cols
+
+    # Every CTS statistic has a corresponding METcalcpy calculate_<stat> function
+    for stat in CTS_AGG_STATS:
+        assert hasattr(ctc_statistics, f'calculate_{stat.lower()}')
+
+    # The agg_stat calculation on a single CTC line reproduces the MET CTS value for
+    # the same case (total=3956, CEILING, L0, <152).
+    case = ((reformatted_df['total'] == '3956') & (reformatted_df['obs_var'] == 'CEILING') &
+            (reformatted_df['obs_lev'] == 'L0') & (reformatted_df['fcst_thresh'] == '<152'))
+    pody_row = reformatted_df.loc[case & (reformatted_df['stat_name'] == 'PODY')]
+    assert pody_row.shape[0] == 1
+    count_cols = ['total', 'fy_oy', 'fy_on', 'fn_oy', 'fn_on']
+    values = pody_row[count_cols].astype(float).to_numpy()
+    calc_pody = ctc_statistics.calculate_pody(values, np.array(count_cols))
+
+    cts_df = stat_data[stat_data['line_type'] == cn.CTS].iloc[:, 0:cn.NUM_STAT_CTS_COLS]
+    cts_df.columns = cn.CTS_SPECIFIC_HEADERS
+    met_pody = cts_df.loc[(cts_df['total'] == '3956') & (cts_df['obs_var'] == 'CEILING') &
+                          (cts_df['obs_lev'] == 'L0') &
+                          (cts_df['fcst_thresh'] == '<152'), 'PODY'].iloc[0]
+    assert calc_pody == pytest.approx(float(met_pody), abs=1e-5)
+
+
+def test_cts_reformat_for_agg_with_agg_stat():
+    '''
+        End-to-end check: write the CTS reformatted output for METcalcpy agg_stat, run
+        agg_stat on it and verify the aggregated CTS statistics.
+
+        - A single CTC line (CEILING >=914) reproduces the CTS values written by MET
+        - A group of CTC lines (CEILING <3040 and >=914) gives the statistics calculated
+          from the summed CTC counts, as MET stat-analysis aggregate_stat does
+    '''
+    from metcalcpy.agg_stat import AggStat
+    from METreformat.write_stat_ascii import CTS_AGG_STATS
+
+    stat_data, parms = setup_test('CTS', test_name='CTS_agg_stat', is_aggregated=False)
+    fail_if_output_exists(parms)
+    wsa = WriteStatAscii(parms, logger)
+    wsa.write_stat_ascii(stat_data, parms)
+
+    single_thresh = '>=914'
+    group_thresh = '<3040:>=914'
+    output_dir = parms['output_dir']
+    agg_parms = {
+        'agg_stat_input': os.path.join(output_dir, parms['output_filename']),
+        'agg_stat_output': os.path.join(output_dir, 'cts_agg_stat_output.data'),
+        'alpha': 0.05,
+        'append_to_file': None,
+        'circular_block_bootstrap': True,
+        'derived_series_1': [],
+        'derived_series_2': [],
+        'event_equal': False,
+        'fcst_var_val_1': {'HGT': CTS_AGG_STATS},
+        'fcst_var_val_2': {},
+        'indy_vals': ['10000'],
+        'indy_var': 'fcst_lead',
+        'line_type': 'ctc',
+        'list_stat_1': CTS_AGG_STATS,
+        'list_stat_2': [],
+        'method': 'perc',
+        'num_iterations': 1,
+        'num_threads': -1,
+        'random_seed': None,
+        'series_val_1': {'fcst_thresh': [single_thresh, group_thresh]},
+        'series_val_2': {},
+        'log_dir': output_dir,
+        'log_filename': 'cts_agg_stat_log.txt',
+        'log_level': 'WARNING',
+    }
+    AggStat(agg_parms).calculate_stats_and_ci()
+    agg_df = pd.read_csv(agg_parms['agg_stat_output'], sep='\t')
+
+    # One aggregated value per CTS statistic for each fcst_thresh series
+    assert agg_df.shape[0] == 2 * len(CTS_AGG_STATS)
+
+    # Single CTC line: agg_stat reproduces the CTS line from MET for the same case
+    cts_df = stat_data[stat_data['line_type'] == cn.CTS].iloc[:, 0:cn.NUM_STAT_CTS_COLS]
+    cts_df.columns = cn.CTS_SPECIFIC_HEADERS
+    met_cts = cts_df.loc[(cts_df['fcst_var'] == 'HGT') &
+                         (cts_df['fcst_thresh'] == single_thresh)]
+    assert met_cts.shape[0] == 1
+    single = agg_df.loc[agg_df['fcst_thresh'] == single_thresh].set_index('stat_name')
+    for stat in CTS_AGG_STATS:
+        met_value = pd.to_numeric(met_cts[stat].iloc[0], errors='coerce')
+        calc_value = single.loc[stat, 'stat_value']
+        if np.isnan(met_value):
+            assert np.isnan(calc_value), stat
+        else:
+            assert calc_value == pytest.approx(met_value, abs=1e-4), stat
+
+    # Group of CTC lines: the statistics are calculated from the summed counts
+    ctc_df = stat_data[stat_data['line_type'] == cn.CTC].iloc[:, 0:cn.NUM_STAT_CTC_COLS]
+    ctc_df.columns = [hdr.lower() for hdr in cn.CTC_HEADERS]
+    group_rows = ctc_df.loc[(ctc_df['fcst_var'] == 'HGT') &
+                            (ctc_df['fcst_thresh'].isin(group_thresh.split(':')))]
+    assert group_rows.shape[0] == 2
+    sums = group_rows[['total', 'fy_oy', 'fy_on', 'fn_oy', 'fn_on']].astype(float).sum()
+    expected = {
+        'BASER': (sums['fy_oy'] + sums['fn_oy']) / sums['total'],
+        'ACC': (sums['fy_oy'] + sums['fn_on']) / sums['total'],
+        'FBIAS': (sums['fy_oy'] + sums['fy_on']) / (sums['fy_oy'] + sums['fn_oy']),
+        'PODY': sums['fy_oy'] / (sums['fy_oy'] + sums['fn_oy']),
+        'POFD': sums['fy_on'] / (sums['fy_on'] + sums['fn_on']),
+        'FAR': sums['fy_on'] / (sums['fy_oy'] + sums['fy_on']),
+        'CSI': sums['fy_oy'] / (sums['fy_oy'] + sums['fy_on'] + sums['fn_oy']),
+    }
+    group = agg_df.loc[agg_df['fcst_thresh'] == group_thresh].set_index('stat_name')
+    assert (group['nstats'] == 2).all()
+    for stat, value in expected.items():
+        assert group.loc[stat, 'stat_value'] == pytest.approx(value, abs=1e-5), stat
+
+
+def test_cts_reformat_for_agg_without_ctc():
+    '''
+        Verify that reformatting CTS for agg_stat raises a ValueError when the input
+        has no CTC lines, the CTS statistics can't be aggregated without the counts.
+    '''
+    stat_data, parms = setup_test('CTS', test_name='CTS_no_ctc', is_aggregated=False)
+    cts_only = stat_data[stat_data['line_type'] == cn.CTS]
+    wsa = WriteStatAscii(parms, logger)
+    with pytest.raises(ValueError, match='CTC'):
+        wsa.process_by_stat_linetype(cn.CTS, cts_only, is_aggregated=False)
+
+
+def test_repeat_rows_per_stat():
+    '''
+        Verify that _repeat_rows_per_stat repeats each row once per statistic, in the
+        original row order, with the statistics cycling within each row, even when the
+        input index has duplicate labels (e.g. data combined from several files).
+    '''
+    linetype_df = pd.DataFrame({'total': ['10', '20', '30'], 'fy_oy': ['1', '2', '3']},
+                               index=[5, 5, 7])
+    stat_names = ['PODY', 'FAR']
+
+    repeated = WriteStatAscii._repeat_rows_per_stat(linetype_df, stat_names)
+
+    assert list(repeated.columns) == ['total', 'fy_oy', 'stat_name', 'stat_value']
+    assert list(repeated.index) == list(range(6))
+    assert list(repeated['total']) == ['10', '10', '20', '20', '30', '30']
+    assert list(repeated['fy_oy']) == ['1', '1', '2', '2', '3', '3']
+    assert list(repeated['stat_name']) == ['PODY', 'FAR'] * 3
+    assert repeated['stat_value'].isnull().all()
+
+    # The input dataframe is not modified
+    assert list(linetype_df.columns) == ['total', 'fy_oy']
+    assert list(linetype_df.index) == [5, 5, 7]
+
+    # No input rows results in an empty dataframe with the added columns
+    empty = WriteStatAscii._repeat_rows_per_stat(linetype_df.iloc[0:0], stat_names)
+    assert empty.empty
+    assert list(empty.columns) == ['total', 'fy_oy', 'stat_name', 'stat_value']
 
 
 def test_point_stat_cnt_consistency():
@@ -498,7 +1019,7 @@ def test_point_stat_cnt_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('CNT.yaml')
+    stat_data, parms = setup_test('CNT')
 
     # Relevant columns for the CNT line type
     linetype: str = cn.CNT
@@ -554,17 +1075,6 @@ def test_point_stat_cnt_consistency():
     assert reshaped_df.isnull().values.any() == False
 
 
-def test_process_cnt_agg():
-    """ verify that the NotImplementedError is raised  when
-          invoking the process_cnt_agg
-    """
-    stat_data, parms = setup_test('CNT.yaml')
-    parms['input_stats_aggregated'] = False
-    wsa = WriteStatAscii(parms, logger)
-    with pytest.raises(NotImplementedError):
-        wsa.process_cnt_for_agg(stat_data)
-
-
 def test_point_stat_vcnt_met13_consistency():
     '''
            For the data frame for the VCNT line type (post-MET v12),
@@ -578,7 +1088,7 @@ def test_point_stat_vcnt_met13_consistency():
     # the inclusion of the 12 new VCNT columns was
     # added in the MET 12.0.0 release. Use VCNT data used in
     # MET v13 regression tests
-    stat_data, parms = setup_test('VCNT_for_MET13.yaml')
+    stat_data, parms = setup_test('VCNT', test_name='VCNT_for_MET13')
 
     # Relevant columns for the VCNT line type
     linetype: str = cn.VCNT
@@ -608,6 +1118,7 @@ def test_point_stat_vcnt_met13_consistency():
     expected_row: pd.Series = expected_df.iloc[0]
     expected_name: str = "FBAR"
     wsa = WriteStatAscii(parms, logger)
+    fail_if_output_exists(parms)
     reshaped_df = wsa.write_stat_ascii(stat_data, parms)
     actual_df: pd.DataFrame = reshaped_df.loc[(reshaped_df['total'] == total) &
                                               (reshaped_df['obs_var'] == obs_var) &
@@ -634,7 +1145,7 @@ def test_point_stat_mcts_consistency():
     '''
 
     # Original data
-    stat_data, parms = setup_test('./MCTS.yaml')
+    stat_data, parms = setup_test('MCTS')
 
     # Relevant columns for the MCTS line type
     linetype: str = cn.MCTS
@@ -700,7 +1211,7 @@ def test_ensemble_stat_ecnt_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test('ECNT.yaml')
+    stat_data, config = setup_test('ECNT')
 
     # Relevant columns for the ECNT line type
     linetype: str = cn.ECNT
@@ -771,6 +1282,7 @@ def test_ensemble_stat_ecnt_consistency():
 
     assert num_matches == num_ecnt_headers
 
+
 def test_pct_consistency():
     '''
         test PCT linetype reformatting has kept data consistent with original
@@ -779,7 +1291,7 @@ def test_pct_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test('PCT_ROC.yaml')
+    stat_data, config = setup_test('PCT', test_name='PCT_ROC')
 
     # Relevant columns for the PCT line type
     wsa = WriteStatAscii(config, logger)
@@ -834,13 +1346,8 @@ def test_rhist_consistency():
     '''
 
     # Original data
-    stat_data, config = setup_test('RHIST.yaml')
-
-    # Relevant columns for the RHIST line type
-    linetype: str = cn.RHIST
-
-    wsa = WriteStatAscii(config, logger)
-    reshaped_df = wsa.process_rhist(stat_data)
+    stat_data, config = setup_test('RHIST')
+    reshaped_df = WriteStatAscii(config, logger).process_rhist(stat_data)
 
     # Verify that the following values are found for the rows with these columns + values (corresponding to the
     # last row of data in the raw RHIST input dataframe):
@@ -886,6 +1393,330 @@ def test_rhist_consistency():
         assert expected_val == cur_val
 
 
+def test_vl1l2_reformat_for_agg():
+    '''
+        Verify the VL1L2 reformatting for METcalcpy agg_stat: one row per statistic that
+        agg_stat calculates from the VL1L2 partial sums (VL1L2_AGG_STATS) for each raw
+        VL1L2 line, and stat_value initialized to NaN.
+
+        :return:  None
+    '''
+
+    from METreformat.write_stat_ascii import VL1L2_AGG_STATS
+
+    # Original unreformatted data
+    stat_data, parms = setup_test('VL1L2', is_aggregated=False)
+
+    wsa = WriteStatAscii(parms, logger)
+    reformatted_df = wsa.process_vl1l2_for_agg(stat_data)
+
+    # Check that the reformatting worked and produced results
+
+    # Resulting output is not an empty dataframe
+    assert reformatted_df.shape[0] > 0
+
+    # The stat names are the statistics agg_stat calculates from the VL1L2 partial sums
+    expected_stat_names = VL1L2_AGG_STATS
+    assert sorted(reformatted_df['stat_name'].unique().tolist()) == sorted(expected_stat_names)
+
+    # Each raw VL1L2 line should produce one row per statistic (VAL1L2 and other line types excluded)
+    num_vl1l2_lines = stat_data[stat_data['line_type'] == cn.VL1L2].shape[0]
+    assert reformatted_df.shape[0] == num_vl1l2_lines * len(expected_stat_names)
+
+    # stat_value is a placeholder to be filled by METcalcpy agg_stat
+    assert reformatted_df['stat_value'].isnull().all()
+
+    # The VL1L2 statistic columns are retained in the reformatted data and match the raw data
+    vl1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == cn.VL1L2].iloc[
+        :, np.arange(0, cn.NUM_STAT_VL1L2_COLS).tolist()]
+    vl1l2_df.columns = [hdr.lower() for hdr in cn.VL1L2_HEADERS]
+    expected_row = vl1l2_df.iloc[0]
+    actual_row = reformatted_df[reformatted_df['stat_name'] == 'VL1L2_BIAS'].iloc[0]
+    for col in ['total', 'ufbar', 'vfbar', 'dir_mse']:
+        assert expected_row[col] == actual_row[col]
+
+
+def test_val1l2_reformat_for_agg():
+    '''
+        Verify the VAL1L2 reformatting for METcalcpy agg_stat: one row per statistic that
+        agg_stat calculates from the VAL1L2 partial sums (VAL1L2_AGG_STATS) for each raw
+        VAL1L2 line, and stat_value initialized to NaN.
+
+        :return:  None
+    '''
+
+    from METreformat.write_stat_ascii import VAL1L2_AGG_STATS
+
+    stat_data, parms = setup_test('VAL1L2', is_aggregated=False)
+
+    wsa = WriteStatAscii(parms, logger)
+    reformatted_df = wsa.process_val1l2_for_agg(stat_data)
+
+    assert reformatted_df.shape[0] > 0
+
+    expected_stat_names = VAL1L2_AGG_STATS
+    assert sorted(reformatted_df['stat_name'].unique().tolist()) == sorted(expected_stat_names)
+
+    # Each raw VAL1L2 line should produce one row per statistic (VL1L2 and other line types excluded)
+    num_val1l2_lines = stat_data[stat_data['line_type'] == cn.VAL1L2].shape[0]
+    assert reformatted_df.shape[0] == num_val1l2_lines * len(expected_stat_names)
+
+    # stat_value is a placeholder to be filled by METcalcpy agg_stat
+    assert reformatted_df['stat_value'].isnull().all()
+
+    # The VAL1L2 statistic columns are retained and match the raw data
+    val1l2_df: pd.DataFrame = stat_data[stat_data['line_type'] == cn.VAL1L2].iloc[
+        :, np.arange(0, cn.NUM_STAT_VAL1L2_COLS).tolist()]
+    val1l2_df.columns = [hdr.lower() for hdr in cn.VAL1L2_HEADERS]
+    expected_row = val1l2_df.iloc[0]
+    actual_row = reformatted_df[reformatted_df['stat_name'] == 'VAL1L2_ANOM_CORR'].iloc[0]
+    for col in ['total', 'ufabar', 'vfabar', 'dira_mse']:
+        assert expected_row[col] == actual_row[col]
+
+
+def test_sal1l2_reformat_for_agg():
+    '''
+        Verify the SAL1L2 reformatting for METcalcpy agg_stat: one row per statistic that
+        agg_stat calculates from the SAL1L2 partial sums (SAL1L2_AGG_STATS) for each raw
+        SAL1L2 line, and stat_value initialized to NaN.
+    '''
+    from METreformat.write_stat_ascii import SAL1L2_AGG_STATS
+
+    stat_data, parms = setup_test('SAL1L2', is_aggregated=False)
+    wsa = WriteStatAscii(parms, logger)
+    reformatted_df = wsa.process_by_stat_linetype(cn.SAL1L2, stat_data, is_aggregated=False)
+
+    num_sal1l2_lines = stat_data[stat_data['line_type'] == cn.SAL1L2].shape[0]
+    assert num_sal1l2_lines > 0
+    assert reformatted_df.shape[0] == num_sal1l2_lines * len(SAL1L2_AGG_STATS)
+    assert sorted(reformatted_df['stat_name'].unique()) == sorted(SAL1L2_AGG_STATS)
+    assert reformatted_df['stat_value'].isnull().all()
+
+    # Columns are the lowercase SAL1L2 headers plus stat_name and stat_value
+    expected_cols = [hdr.lower() for hdr in cn.SAL1L2_HEADERS] + ['stat_name', 'stat_value']
+    assert list(reformatted_df.columns) == expected_cols
+
+
+def run_agg_stat_on_reformatted(parms, line_type, fcst_var, stats, indy_var, indy_vals,
+                                series_val):
+    '''
+        Run METcalcpy agg_stat on the output file written by write_stat_ascii.
+
+        @param parms: the config dictionary returned by setup_test.
+        @param line_type: the agg_stat line type (lowercase), e.g. vl1l2.
+        @param fcst_var: the fcst_var of the lines to aggregate.
+        @param stats: the statistics to calculate.
+        @param indy_var: the independent variable.
+        @param indy_vals: the values of the independent variable.
+        @param series_val: the series variable and values, ':' joins values into a group.
+        @return: the agg_stat output as a dataframe, indexed by (series value, stat_name).
+    '''
+    from metcalcpy.agg_stat import AggStat
+
+    output_dir = parms['output_dir']
+    agg_parms = {
+        'agg_stat_input': os.path.join(output_dir, parms['output_filename']),
+        'agg_stat_output': os.path.join(output_dir, f'{line_type}_agg_stat_output.data'),
+        'alpha': 0.05,
+        'append_to_file': None,
+        'circular_block_bootstrap': True,
+        'derived_series_1': [],
+        'derived_series_2': [],
+        'event_equal': False,
+        'fcst_var_val_1': {fcst_var: stats},
+        'fcst_var_val_2': {},
+        'indy_vals': indy_vals,
+        'indy_var': indy_var,
+        'line_type': line_type,
+        'list_stat_1': stats,
+        'list_stat_2': [],
+        'method': 'perc',
+        'num_iterations': 1,
+        'num_threads': -1,
+        'random_seed': None,
+        'series_val_1': series_val,
+        'series_val_2': {},
+        'log_dir': output_dir,
+        'log_filename': f'{line_type}_agg_stat_log.txt',
+        'log_level': 'WARNING',
+    }
+    AggStat(agg_parms).calculate_stats_and_ci()
+    agg_df = pd.read_csv(agg_parms['agg_stat_output'], sep='\t', dtype={indy_var: str})
+    series_var = list(series_val.keys())[0]
+    agg_df[series_var] = agg_df[series_var].astype(str)
+    return agg_df.set_index([series_var, 'stat_name'])
+
+
+def weighted_means(lines, weight_col, cols):
+    '''
+        Aggregate partial sums as MET stat-analysis does: the mean of each column
+        weighted by the number of matched pairs (weight_col).
+    '''
+    weights = lines[weight_col].astype(float)
+    return {col: (lines[col].astype(float) * weights).sum() / weights.sum() for col in cols}
+
+
+# METcalcpy agg_stat multiplies the VL1L2 partial sums by total_dir for MET 12.0 and later
+# but divides by the sum of total, so these statistics are wrong when total != total_dir.
+# MET weights the partial sums by total and only the DIR statistics by total_dir.
+VL1L2_TOTAL_DIR_BUG = pytest.mark.xfail(
+    strict=True, reason='METcalcpy agg_stat weights the VL1L2 partial sums by total_dir '
+                        'but divides by total')
+
+
+@pytest.fixture(scope='module')
+def vl1l2_agg_stat_result():
+    '''
+        Write the VL1L2 reformatted output for METcalcpy agg_stat once and run agg_stat
+        on it for a single observation type and for a group of observation types.
+        @return: (agg_stat output, VL1L2 lines from the input, series values)
+    '''
+    from METreformat.write_stat_ascii import VL1L2_AGG_STATS
+
+    stat_data, parms = setup_test('VL1L2', test_name='VL1L2_agg_stat', is_aggregated=False)
+    fail_if_output_exists(parms)
+    wsa = WriteStatAscii(parms, logger)
+    wsa.write_stat_ascii(stat_data, parms)
+
+    series = ['ADPSFC', 'SFCSHP:USERSF']
+    agg_df = run_agg_stat_on_reformatted(parms, 'vl1l2', 'UGRD_VGRD', VL1L2_AGG_STATS,
+                                         'fcst_lead', ['120000'], {'obtype': series})
+    assert agg_df.shape[0] == len(series) * len(VL1L2_AGG_STATS)
+
+    vl1l2_df = stat_data[stat_data['line_type'] == cn.VL1L2].iloc[:, 0:cn.NUM_STAT_VL1L2_COLS]
+    vl1l2_df.columns = [hdr.lower() for hdr in cn.VL1L2_HEADERS]
+    return agg_df, vl1l2_df, series
+
+
+def expected_vl1l2_stats(lines):
+    '''
+        The VL1L2 statistics for a group of VL1L2 lines, as MET stat-analysis aggregates
+        them: the partial sums are weighted by total and the DIR statistics by total_dir.
+    '''
+    m = weighted_means(lines, 'total', cn.LC_VL1L2_SPECIFIC)
+    m_dir = weighted_means(lines, 'total_dir', ['dir_me', 'dir_mae', 'dir_mse'])
+    msve = m['uvffbar'] - 2.0 * m['uvfobar'] + m['uvoobar']
+    return {
+        'VL1L2_BIAS': np.sqrt(m['uvffbar']) - np.sqrt(m['uvoobar']),
+        'VL1L2_FVAR': m['uvffbar'] - m['f_speed_bar'] ** 2,
+        'VL1L2_OVAR': m['uvoobar'] - m['o_speed_bar'] ** 2,
+        'VL1L2_SPEED_ERR': (np.hypot(m['ufbar'], m['vfbar']) -
+                            np.hypot(m['uobar'], m['vobar'])),
+        'VL1L2_MSVE': msve,
+        'VL1L2_RMSVE': np.sqrt(msve),
+        'VL1L2_DIR_ME': m_dir['dir_me'],
+        'VL1L2_DIR_MAE': m_dir['dir_mae'],
+        'VL1L2_DIR_MSE': m_dir['dir_mse'],
+    }
+
+
+@pytest.mark.parametrize(
+    'stat',
+    [pytest.param(stat, marks=VL1L2_TOTAL_DIR_BUG)
+     for stat in ['VL1L2_BIAS', 'VL1L2_FVAR', 'VL1L2_OVAR', 'VL1L2_SPEED_ERR',
+                  'VL1L2_MSVE', 'VL1L2_RMSVE']] +
+    ['VL1L2_DIR_ME', 'VL1L2_DIR_MAE', 'VL1L2_DIR_MSE'])
+def test_vl1l2_reformat_for_agg_with_agg_stat(vl1l2_agg_stat_result, stat):
+    '''
+        End-to-end check: run agg_stat on the VL1L2 reformatted output and verify each
+        statistic in VL1L2_AGG_STATS against the value MET stat-analysis calculates from
+        the aggregated partial sums, for a single observation type and for a group of
+        observation types.
+    '''
+    from METreformat.write_stat_ascii import VL1L2_AGG_STATS
+
+    agg_df, vl1l2_df, series = vl1l2_agg_stat_result
+    for obtype in series:
+        lines = vl1l2_df.loc[vl1l2_df['obtype'].isin(obtype.split(':'))]
+        expected = expected_vl1l2_stats(lines)
+        assert sorted(expected) == sorted(VL1L2_AGG_STATS)
+        row = agg_df.loc[(obtype, stat)]
+        assert row['nstats'] == lines.shape[0], obtype
+        assert row['stat_value'] == pytest.approx(expected[stat], rel=1e-5), obtype
+
+
+def test_val1l2_reformat_for_agg_with_agg_stat():
+    '''
+        End-to-end check: write the VAL1L2 reformatted output for METcalcpy agg_stat, run
+        agg_stat on it and verify every statistic in VAL1L2_AGG_STATS against the value
+        MET stat-analysis calculates from the aggregated partial sums (weighted by total,
+        the DIRA statistics by total_dir).  total equals total_dir in this data, so the
+        VL1L2_TOTAL_DIR_BUG doesn't affect VAL1L2_ANOM_CORR here.
+    '''
+    from METreformat.write_stat_ascii import VAL1L2_AGG_STATS
+
+    stat_data, parms = setup_test('VAL1L2', test_name='VAL1L2_agg_stat', is_aggregated=False)
+    fail_if_output_exists(parms)
+    wsa = WriteStatAscii(parms, logger)
+    wsa.write_stat_ascii(stat_data, parms)
+
+    series = ['ADPSFC', 'SFCSHP:USERSF']
+    agg_df = run_agg_stat_on_reformatted(parms, 'val1l2', 'UGRD_VGRD', VAL1L2_AGG_STATS,
+                                         'fcst_lead', ['120000'], {'obtype': series})
+    assert agg_df.shape[0] == len(series) * len(VAL1L2_AGG_STATS)
+
+    val1l2_df = stat_data[stat_data['line_type'] == cn.VAL1L2].iloc[:, 0:cn.NUM_STAT_VAL1L2_COLS]
+    val1l2_df.columns = [hdr.lower() for hdr in cn.VAL1L2_HEADERS]
+    for obtype in series:
+        lines = val1l2_df.loc[val1l2_df['obtype'].isin(obtype.split(':'))]
+        m = weighted_means(lines, 'total', cn.LC_VAL1L2_SPECIFIC)
+        m.update(weighted_means(lines, 'total_dir', ['dira_me', 'dira_mae', 'dira_mse']))
+        anom_corr = ((m['uvfoabar'] - m['ufabar'] * m['uoabar'] - m['vfabar'] * m['voabar']) /
+                     (np.sqrt(m['uvffabar'] - m['ufabar'] ** 2 - m['vfabar'] ** 2) *
+                      np.sqrt(m['uvooabar'] - m['uoabar'] ** 2 - m['voabar'] ** 2)))
+        expected = {
+            'VAL1L2_ANOM_CORR': anom_corr,
+            'VAL1L2_DIRA_ME': m['dira_me'],
+            'VAL1L2_DIRA_MAE': m['dira_mae'],
+            'VAL1L2_DIRA_MSE': m['dira_mse'],
+        }
+        assert sorted(expected) == sorted(VAL1L2_AGG_STATS)
+        for stat, value in expected.items():
+            row = agg_df.loc[(obtype, stat)]
+            assert row['nstats'] == lines.shape[0], (obtype, stat)
+            assert row['stat_value'] == pytest.approx(value, rel=1e-5), (obtype, stat)
+
+
+def test_sal1l2_reformat_for_agg_with_agg_stat():
+    '''
+        End-to-end check: write the SAL1L2 reformatted output for METcalcpy agg_stat, run
+        agg_stat on it and verify that every statistic in SAL1L2_AGG_STATS is calculated
+        from the partial sums weighted by total, for a single lead and for all leads.
+    '''
+    from METreformat.write_stat_ascii import SAL1L2_AGG_STATS
+
+    stat_data, parms = setup_test('SAL1L2', test_name='SAL1L2_agg_stat', is_aggregated=False)
+    fail_if_output_exists(parms)
+    wsa = WriteStatAscii(parms, logger)
+    wsa.write_stat_ascii(stat_data, parms)
+
+    series = ['0', '0:60000:120000:180000']
+    agg_df = run_agg_stat_on_reformatted(parms, 'sal1l2', 'UGRD', SAL1L2_AGG_STATS,
+                                         'model', ['GEFS'], {'fcst_lead': series})
+    assert agg_df.shape[0] == len(series) * len(SAL1L2_AGG_STATS)
+
+    sal1l2_df = stat_data[stat_data['line_type'] == cn.SAL1L2].iloc[:, 0:cn.NUM_STAT_SAL1L2_COLS]
+    sal1l2_df.columns = [hdr.lower() for hdr in cn.SAL1L2_HEADERS]
+    for leads in series:
+        lines = sal1l2_df.loc[sal1l2_df['fcst_lead'].astype(int).isin(
+            [int(lead) for lead in leads.split(':')])]
+        m = weighted_means(lines, 'total', cn.LC_SAL1L2_SPECIFIC)
+        expected = {
+            'ANOM_CORR': ((m['foabar'] - m['fabar'] * m['oabar']) /
+                          np.sqrt((m['ffabar'] - m['fabar'] ** 2) *
+                                  (m['ooabar'] - m['oabar'] ** 2))),
+            'ANOM_CORR_RAW': m['foabar'] / np.sqrt(m['ffabar'] * m['ooabar']),
+            'RMSFA': np.sqrt(m['ffabar']),
+            'RMSOA': np.sqrt(m['ooabar']),
+            'MAE': m['mae'],
+        }
+        assert sorted(expected) == sorted(SAL1L2_AGG_STATS)
+        for stat, value in expected.items():
+            row = agg_df.loc[(leads, stat)]
+            assert row['nstats'] == lines.shape[0], (leads, stat)
+            assert row['stat_value'] == pytest.approx(value, rel=1e-5), (leads, stat)
+
+
 def test_ecnt_reformat_for_agg():
     '''
 
@@ -895,7 +1726,7 @@ def test_ecnt_reformat_for_agg():
        '''
 
     # Original unreformatted data
-    stat_data, config = setup_test('ECNT_for_agg.yaml')
+    stat_data, config = setup_test('ECNT', is_aggregated=False)
 
     # Reformatted data
     wsa = WriteStatAscii(config, logger)
@@ -914,11 +1745,6 @@ def test_ecnt_reformat_for_agg():
     for expected in cn.LC_ECNT_SPECIFIC:
         # convert the columns to upper case
         expected_ecnt_cols.append(prefix + expected.upper())
-
-    # Verify that all the expected ECNT_ prefixed columns are present in the reformatted data
-    stat_names = reformatted_df['stat_name'].unique().tolist()
-    for cur_stat in stat_names:
-        assert cur_stat in expected_ecnt_cols
 
     specific_vals: pd.Series = reformatted_df[(reformatted_df['total'] == expected_total) &
                                               (reformatted_df['n_ens'] == expected_n_ens) &
@@ -950,7 +1776,7 @@ def test_ecnt_reformat():
        '''
 
     # Original unreformatted data
-    stat_data, config = setup_test('ECNT.yaml')
+    stat_data, config = setup_test('ECNT')
     # Reformatted data
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_ecnt(stat_data)
@@ -970,10 +1796,6 @@ def test_ecnt_reformat():
     for cur_stat in stat_names:
         assert str(cur_stat).upper() in expected_ecnt_stat_cols
 
-    # Retrieve the values from the reformatted data
-    # The subsetting above should result in a unique result with the same number of rows as ECNT columns
-    expected_number_cols = len(expected_ecnt_stat_cols)
-
     # The number of rows of the reformatted_df should equal the number
     # of ECNT specific columns, for a unique total value, and the following
     # statistics: n_ens, crps, and ign
@@ -983,10 +1805,10 @@ def test_ecnt_reformat():
     expecteds = [expected_n_ens, expected_crps, expected_ign]
     zipped_stats = zip(stats, expecteds)
 
-
     for z in zipped_stats:
-       z_df = reformatted_df.loc[(reformatted_df['total'] == expected_total) & (reformatted_df['stat_name']== z[0])]
-       assert z_df['stat_value'].item() == z[1]
+        z_df = reformatted_df.loc[(reformatted_df['total'] == expected_total) & (reformatted_df['stat_name'] == z[0])]
+        assert z_df['stat_value'].item() == z[1]
+
 
 def test_fho_reformat_for_agg():
     '''
@@ -996,7 +1818,7 @@ def test_fho_reformat_for_agg():
     :return:
     '''
 
-    stat_data, parms = setup_test("FHO_for_agg.yaml")
+    stat_data, parms = setup_test("FHO", is_aggregated=False)
     wsa = WriteStatAscii(parms, logger)
 
     # Expect error when invoking the process_fho_for_agg directly
@@ -1012,7 +1834,7 @@ def test_fho_reformat():
     :return:
     '''
 
-    stat_data, parms = setup_test("FHO_for_agg.yaml")
+    stat_data, parms = setup_test("FHO", is_aggregated=False)
     wsa = WriteStatAscii(parms, logger)
 
     result_df = wsa.process_fho(stat_data)
@@ -1024,10 +1846,14 @@ def test_tcdiag_from_tcpairs():
         Test that the reformatting is correct by comparing values in the original data to the reformatted data
 
     '''
-    stat_data, config = setup_test('test_reformat_tcdiag.yaml', is_tcst=True)
+    stat_data, config = setup_test('TCDIAG')
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_tcdiag(stat_data)
-    reformatted_df.to_csv("./tcmpr_reformatted.txt", sep="\t")
+    pathlib.Path(config['output_dir']).mkdir(parents=True, exist_ok=True)
+    output_path = os.path.join(config['output_dir'], config['output_filename'])
+    reformatted_df.to_csv(output_path, sep="\t")
+
+    assert os.path.exists(output_path)
 
     # Compare original data (read in from METdbLoad) to reformatted
 
@@ -1145,13 +1971,13 @@ def test_mpr_for_line_with_regression_data():
             None passes or fails
     """
 
-    stat_data, config = setup_test("mpr_for_line_regression_data.yaml")
+    stat_data, config = setup_test("MPR", test_name="mpr_for_line")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
     # Verify that the reformatted dataframe is consistent with the input data
     subset_input = stat_data.loc[(stat_data['2'] == 'KSTK') & (stat_data['interp_mthd'] == 'NEAREST') &
-                                 (stat_data['0'] == '4529') & (stat_data['1'].convert_dtypes(int) == 651)]
+                                 (stat_data['0'] == '4529') & (stat_data['1'].astype(int) == 651)]
 
     # Set expected values, convert the series to a list
     expected_obs_lat = subset_input['3'].to_list()[0]
@@ -1165,37 +1991,37 @@ def test_mpr_for_line_with_regression_data():
     reformatted_obs_sid = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_sid') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs_lat = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lat') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs_lon = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lon') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs_lvl = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_lvl') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs_elv = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs_elv') &
                                              (reformatted_df['interp_mthd'] == 'NEAREST') &
                                              (reformatted_df['total'] == '4529') &
-                                             (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                             (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_fcst = reformatted_df.loc[(reformatted_df['stat_name'] == 'fcst') &
                                           (reformatted_df['interp_mthd'] == 'NEAREST') &
                                           (reformatted_df['total'] == '4529') &
-                                          (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                          (reformatted_df['index'].astype(int) == 651)]
 
     reformatted_obs = reformatted_df.loc[(reformatted_df['stat_name'] == 'obs') &
                                          (reformatted_df['interp_mthd'] == 'NEAREST') &
                                          (reformatted_df['total'] == '4529') &
-                                         (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                         (reformatted_df['index'].astype(int) == 651)]
 
     assert reformatted_obs_sid['stat_value'].to_list()[0] == 'KSTK'
     assert reformatted_obs_lat['stat_value'].to_list()[0] == expected_obs_lat
@@ -1223,14 +2049,14 @@ def test_mpr_for_scatter_with_regression_data():
             None passes or fails
     """
 
-    stat_data, config = setup_test("mpr_for_scatter_regression_data.yaml")
+    stat_data, config = setup_test("MPR", test_name="mpr_for_scatter", for_scatter=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
     # Verify that the reformatted dataframe is consistent with the input data for the stat_name and stat_values
     # columns in the reformatted data
     subset_input = stat_data.loc[(stat_data['2'] == 'KSTK') & (stat_data['interp_mthd'] == 'NEAREST') &
-                                 (stat_data['0'] == '4529') & (stat_data['1'].convert_dtypes(int) == 651)]
+                                 (stat_data['0'] == '4529') & (stat_data['1'].astype(int) == 651)]
 
     # Set expected values, convert the series to a list
     expected_obs_lat = subset_input['3'].to_list()[0]
@@ -1244,7 +2070,7 @@ def test_mpr_for_scatter_with_regression_data():
     reformatted_subset = reformatted_df.loc[(reformatted_df['obs_sid'] == 'KSTK') &
                                             (reformatted_df['interp_mthd'] == 'NEAREST') &
                                             (reformatted_df['total'] == '4529') &
-                                            (reformatted_df['index'].convert_dtypes(int) == 651)]
+                                            (reformatted_df['index'].astype(int) == 651)]
 
     # Test that the MPR-specific columns (obs_sid, ..., climo_cdf) in the reformatted file are consistent with the
     # corresponding columns in the input data file.
@@ -1275,14 +2101,20 @@ def test_mpr_for_climo_data():
             None: passes or fails
     """
 
-    stat_data, config = setup_test("mpr_climo_data.yaml")
+    stat_data, config = setup_test("MPR", test_name="mpr_climo_data", for_scatter=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_mpr(stat_data)
 
     # Check for expected column name changes and new columns
-    expected_col_headers = ['OBS_CLIMO_STDEV', 'OBS_CLIMO_MEAN', 'OBS_CLIMO_CDF', 'FCST_CLIMO_MEAN', 'FCST_CLIMO_STDEV']
+    expected_col_headers = [
+        'obs_climo_stdev',
+        'obs_climo_mean',
+        'obs_climo_cdf',
+        'fcst_climo_mean',
+        'fcst_climo_stdev',
+    ]
     reformatted_col_headers = reformatted_df.columns.to_list()
-    for cur_col in reformatted_col_headers:
+    for cur_col in expected_col_headers:
         assert cur_col in reformatted_col_headers
 
 
@@ -1301,10 +2133,11 @@ def test_dmap_for_scatter():
             None passes or fails
     """
 
-    stat_data, config = setup_test("dmap_for_scatter.yaml")
+    stat_data, config = setup_test("DMAP", test_name="dmap_for_scatter", for_scatter=True)
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_dmap(stat_data)
-    reformatted_df.to_csv("./dmap_for_scatter.data", sep="\t")
+    output_path = os.path.join(config['output_dir'], config['output_filename'])
+    reformatted_df.to_csv(output_path, sep="\t")
 
     # Verify that all the DMAP and common headers are present in the reformatted output file.
     expected_headers: list = list(cn.DMAP_HEADERS)
@@ -1342,7 +2175,7 @@ def test_dmap_for_scatter():
     # with the values above.
     specific_reformatted = reformatted_df[(reformatted_df['model'] == 'FCST') & (reformatted_df['fcst_var'] == 'TMP') &
                                           (reformatted_df['vx_mask'] == 'FULL') & (
-                                                      reformatted_df['fcst_thresh'] == '<300')]
+                                                  reformatted_df['fcst_thresh'] == '<300')]
     reformatted_total = list(specific_reformatted['total'])[0]
     reformatted_fy = list(specific_reformatted['fy'])[0]
     reformatted_baddeley = list(specific_reformatted['baddeley'])[0]
@@ -1362,9 +2195,6 @@ def test_dmap_for_scatter():
     assert expected_gbeta == reformatted_gbeta
     assert expected_beta_value == reformatted_beta_value
 
-    # cleanup
-    os.remove('./dmap_for_scatter.data')
-
 
 def test_dmap_for_lineplot():
     """
@@ -1383,7 +2213,7 @@ def test_dmap_for_lineplot():
             None passes or fails
     """
 
-    stat_data, config = setup_test("dmap_for_line.yaml")
+    stat_data, config = setup_test("DMAP", test_name="dmap_for_line")
     wsa = WriteStatAscii(config, logger)
     reformatted_df = wsa.process_dmap(stat_data)
 
@@ -1458,11 +2288,13 @@ def test_tcst_with_cts():
         redd_data_files.py module are correctly reading in the CTC and CTS
         lines in tcst files.
     """
-    tcst_data, config = setup_test("./reformat_tcst_cts.yaml")
+    tcst_data, config = setup_test("CTS", test_name="reformat_tcst_cts")
     wsa = WriteStatAscii(config, logger)
+    fail_if_output_exists(config)
     reformatted_df = wsa.write_stat_ascii(tcst_data, config)
-    stat_data, sconfig = setup_test("./reformat_stat_cts.yaml")
+    stat_data, sconfig = setup_test("CTS", test_name="reformat_stat_cts")
     wsa_stat = WriteStatAscii(sconfig, logger)
+    fail_if_output_exists(sconfig)
     expected_cts = wsa_stat.write_stat_ascii(stat_data, sconfig)
 
     # reformatted_df and expected_cts should have the same number of rows
@@ -1475,9 +2307,6 @@ def test_tcst_with_cts():
     assert reformatted_df.iloc[:1, :]['stat_name'][0] == expected_cts.iloc[:1, :]['stat_name'][0]
     assert reformatted_df.iloc[:1, :]['stat_value'][0] == expected_cts.iloc[:1, :]['stat_value'][0]
 
-    # cleanup
-    shutil.rmtree('./output/')
-
 
 def test_tcst_with_ctc():
     """
@@ -1487,12 +2316,14 @@ def test_tcst_with_ctc():
         redd_data_files.py module are correctly reading in the CTC and CTS
         lines in tcst files.
     """
-    tcst_data, config = setup_test("./reformat_tcst_ctc.yaml")
+    tcst_data, config = setup_test("CTC", test_name="reformat_tcst_ctc")
     wsa = WriteStatAscii(config, logger)
+    fail_if_output_exists(config)
     reformatted_df = wsa.write_stat_ascii(tcst_data, config)
 
-    stat_data, sconfig = setup_test("./reformat_stat_ctc.yaml")
+    stat_data, sconfig = setup_test("CTC", test_name="reformat_stat_ctc")
     wsa_stat = WriteStatAscii(sconfig, logger)
+    fail_if_output_exists(sconfig)
     expected_ctc = wsa_stat.write_stat_ascii(stat_data, sconfig)
 
     # reformatted_df and expected_cts should have the same number of rows
@@ -1505,32 +2336,27 @@ def test_tcst_with_ctc():
     assert reformatted_df.iloc[:1, :]['stat_name'][0] == expected_ctc.iloc[:1, :]['stat_name'][0]
     assert reformatted_df.iloc[:1, :]['stat_value'][0] == expected_ctc.iloc[:1, :]['stat_value'][0]
 
-    # cleanup
-    shutil.rmtree('./output/')
-
 
 def test_write_stat_ascii_type_error():
     """ Deliberately input the incorrect/unexpected
           types to the WriteStatAscii constructor
     """
-    tcst_data, config = setup_test("./reformat_tcst_ctc.yaml")
     bad_config = []
     logger = None
     with pytest.raises(TypeError):
-        wsa = WriteStatAscii(bad_config, logger)
+        WriteStatAscii(bad_config, logger)
 
 
-def test_NA():
+def test_na():
     """ Verify that nan's are replaced by NA in write_stat_ascii()"""
 
-    _, parms = setup_test("./FHO_nan.yaml")
-    dir = os.getcwd()
-    parms['log_directory'] = dir
+    _, parms = setup_test("FHO", test_name="FHO_nan")
     wsa = WriteStatAscii(parms, logger)
+    fail_if_output_exists(parms)
     result = wsa.write_stat_ascii(_, parms)
     desc = result['desc']
-
     assert 'nan' not in desc
+
 
 def test_init_with_bad_parm():
     """
@@ -1543,5 +2369,4 @@ def test_init_with_bad_parm():
     parms = []
     logger = "bogus"
     with pytest.raises(TypeError):
-       wsa = WriteStatAscii(parms, logger)
-
+        WriteStatAscii(parms, logger)

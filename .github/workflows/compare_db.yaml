@@ -17,12 +17,14 @@ defaults:
 
 jobs:
   run-shell-command:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: job_run
+    # Throwaway credentials for the temporary test databases on the runner. Not sensitive.
+    # Must match the values in METdbLoad/test/gha.cnf and load_met_gha_*.xml.
     env:
       DB_DATABASE: mv_ci_prod
-      DB_USER: root
-      DB_PASSWORD: 'root'
+      DB_USER: met_test
+      DB_PASSWORD: 'met_test_password'
       DB_HOST: localhost
     steps:
       - name: check out headnew code
@@ -36,35 +38,39 @@ jobs:
         with:
           path: baseold
           ref: ${{github.event.pull_request.base.ref}}
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
       - name: start mysql
         run: |
           sudo systemctl start mysql
           python3 -V
           pip3 --version
           mysql -e 'SELECT VERSION();' -uroot -proot
-          mysql -e 'CREATE DATABASE mv_ci_prod;' -uroot -proot
-          mysql -e 'SOURCE /home/runner/work/METdataio/METdataio/baseold/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_prod
-          mysql -e 'CREATE DATABASE mv_ci_new;' -uroot -proot
-          mysql -e 'SOURCE /home/runner/work/METdataio/METdataio/headnew/METdbLoad/sql/mv_mysql.sql;'  -uroot -proot mv_ci_new
+          mysql -e "CREATE USER '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASSWORD}';" -uroot -proot
+          mysql -e "GRANT ALL PRIVILEGES ON mv_ci_prod.* TO '${DB_USER}'@'%';" -uroot -proot
+          mysql -e "GRANT ALL PRIVILEGES ON mv_ci_new.* TO '${DB_USER}'@'%';" -uroot -proot
+          mysql -e 'CREATE DATABASE mv_ci_prod;' -u${DB_USER} -p${DB_PASSWORD}
+          mysql -e 'SOURCE /home/runner/work/METdataio/METdataio/baseold/METdbLoad/sql/mv_mysql.sql;'  -u${DB_USER} -p${DB_PASSWORD} mv_ci_prod
+          mysql -e 'CREATE DATABASE mv_ci_new;' -u${DB_USER} -p${DB_PASSWORD}
+          mysql -e 'SOURCE /home/runner/work/METdataio/METdataio/headnew/METdbLoad/sql/mv_mysql.sql;'  -u${DB_USER} -p${DB_PASSWORD} mv_ci_new
       - name: multiline script
         run: |
           pip3 install numpy
           pip3 install pandas
           pip3 install pymysql
+          pip3 install cryptography
           pip3 install lxml
           pip3 install pytest
-      - name: change default python to python 3
-        shell: bash
-        run: |
-          which python3
-          sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10
       - name: python command
         run: |
+          import os
           import pymysql
           import numpy
           import pandas
           import lxml
-          conn = pymysql.connect(host='localhost',port=3306,user='root',passwd='root',db='mv_ci_prod')
+          conn = pymysql.connect(host='localhost',port=3306,user=os.environ['DB_USER'],passwd=os.environ['DB_PASSWORD'],db='mv_ci_prod')
           cur = conn.cursor()
           cur.execute('select database();')
           print(cur.fetchall())
@@ -85,14 +91,14 @@ jobs:
           export PYTHONPATH=${GITHUB_WORKSPACE}/baseold
           cd ${GITHUB_WORKSPACE}/baseold/METdbLoad/ush
           python met_db_load.py ${GITHUB_WORKSPACE}/headnew/METdbLoad/test/load_met_gha_prod.xml
-          #mysql -e 'SHOW TABLE STATUS WHERE `rows` > 0;'  -uroot -proot mv_ci_prod
+          #mysql -e 'SHOW TABLE STATUS WHERE `rows` > 0;'  -u${DB_USER} -p${DB_PASSWORD} mv_ci_prod
       - name: run METdbload new
         shell: bash
         run: |
           export PYTHONPATH=${GITHUB_WORKSPACE}/headnew
           cd ${GITHUB_WORKSPACE}/headnew/METdbLoad/ush
           python met_db_load.py ${GITHUB_WORKSPACE}/headnew/METdbLoad/test/load_met_gha_new.xml
-          #mysql -e 'SHOW TABLE STATUS WHERE `rows` > 0;'  -uroot -proot mv_ci_new
+          #mysql -e 'SHOW TABLE STATUS WHERE `rows` > 0;'  -u${DB_USER} -p${DB_PASSWORD} mv_ci_new
       - name: run test_tables to compare tables in 2 databases
         shell: bash
         run: python ${GITHUB_WORKSPACE}/headnew/METdbLoad/test/test_tables.py

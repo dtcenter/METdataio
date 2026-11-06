@@ -10,7 +10,7 @@ METdataio database and the METviewer and METexpress display systems to enable
 users to create plots from their MET output statistics.
 
 The METdataio User's Guide is organized as follows.  Currently, the METdataio
-User's Guide only contains information about METdbload, a utility of
+User's Guide only contains information about METdbLoad, a utility of
 METdataio.  Eventually, there will be utilities to add and delete databases,
 delete duplicate records, etc.
 
@@ -18,7 +18,7 @@ The Developmental Testbed Center (DTC)
 ======================================
 
 METdataio has been developed, and will be maintained and enhanced, by the
-Developmental Testbed Center (DTC; http://www.dtcenter.org/ ).
+Developmental Testbed Center (`DTC <https://dtcenter.org/>`_).
 The main goal of the DTC is to serve as a bridge between operations and
 research, to facilitate the activities of these two important components of
 the numerical weather prediction (NWP) community. The DTC provides an
@@ -38,17 +38,19 @@ environments, and so on.
 METdataio Goals and Design Philosophy
 =====================================
 
-METdataio is a Python rewrite of the capabilities in METviewer. METdbload,
+METdataio provides Python tools to read, reformat, and load MET verification
+output, including capabilities previously provided by METviewer's data loader.
+METdbLoad,
 a METdataio utility, reads MET verification statistics ASCII files,
 and loads them into a database for plotting with METviewer and METexpress.
 The specification for which files to load is written in XML.
 
-The METdataio code and documentation is maintained by the DTC in Boulder,
-Colorado. The MET package is freely available to the modeling, verification,
+The METdataio code and documentation are maintained by the DTC in Boulder,
+Colorado. METdataio is freely available to the modeling, verification,
 and operational communities, including universities, governments,
 the private sector, and operational modeling and prediction centers.
 
-	     
+
 Future Development Plans
 ========================
 

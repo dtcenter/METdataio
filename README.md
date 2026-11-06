@@ -1,5 +1,5 @@
 # METdataio
-METdataio is a Python rewrite of capabilities in METviewer.
+METdataio provides Python tools to read, reformat, and load MET verification output, including capabilities previously provided by METviewer's data loader.
 
 requires Anaconda or miniconda, Python 3.10.4 (or above) and conda installs of the following: pymysql, lxml, pyyaml, pandas, and numpy.
 

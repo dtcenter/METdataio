@@ -7,6 +7,21 @@
 from collections import OrderedDict
 import numpy as np
 
+
+
+def build_select_query(id_column, table, keys):
+    """Build a SELECT query that matches a row in table where every key equals a placeholder."""
+    where_clause = " AND ".join(f"{key}=%s" for key in keys)
+    return f"SELECT {id_column} FROM {table} WHERE {where_clause}"
+
+
+def build_insert_query(table, fields):
+    """Build an INSERT query for table with a placeholder for each field."""
+    columns = ",".join(fields)
+    value_slots = ", ".join(["%s"] * len(fields))
+    return f"INSERT INTO {table} ({columns}) VALUES ({value_slots})"
+
+
 # name to use for a group when no group tag is included in load_spec
 DEFAULT_DATABASE_GROUP = "NO GROUP"
 
@@ -257,11 +272,9 @@ VSDB_HEADER = [VERSION, MODEL, FCST_LEAD, FCST_VALID_BEG, OBTYPE,
 Q_FILE = "SELECT data_file_id FROM data_file WHERE " + \
          "path=%s AND filename=%s"
 
-Q_HEADER = "SELECT stat_header_id FROM stat_header WHERE " + \
-           "=%s AND ".join(STAT_HEADER_KEYS[1:]) + "=%s"
+Q_HEADER = build_select_query('stat_header_id', 'stat_header', STAT_HEADER_KEYS[1:])
 
-Q_HEADER_TCST = "SELECT tcst_header_id FROM tcst_header WHERE " + \
-                "=%s AND ".join(TCST_HEADER_KEYS[1:]) + "=%s"
+Q_HEADER_TCST = build_select_query('tcst_header_id', 'tcst_header', TCST_HEADER_KEYS[1:])
 
 Q_METADATA = "SELECT category, description FROM metadata"
 
@@ -305,25 +318,16 @@ DATA_FILE_FIELDS = [DATA_FILE_ID, DATA_FILE_LU_ID, FILENAME, FILEPATH,
 STAT_HEADER_FIELDS = [STAT_HEADER_ID] + STAT_HEADER_KEYS
 TCST_HEADER_FIELDS = [TCST_HEADER_ID] + TCST_HEADER_KEYS
 
-VALUE_SLOTS = '%s, ' * len(STAT_HEADER_FIELDS)
-VALUE_SLOTS = VALUE_SLOTS[:-2]
+INS_HEADER = build_insert_query('stat_header', STAT_HEADER_FIELDS)
 
-VALUE_SLOTS_TCST = '%s, ' * len(TCST_HEADER_FIELDS)
-VALUE_SLOTS_TCST = VALUE_SLOTS_TCST[:-2]
+INS_HEADER_TCST = build_insert_query('tcst_header', TCST_HEADER_FIELDS)
 
-INS_HEADER = "INSERT INTO stat_header (" + ",".join(STAT_HEADER_FIELDS) + \
-             ") VALUES (" + VALUE_SLOTS + ")"
+INS_DATA_FILES = build_insert_query('data_file', DATA_FILE_FIELDS)
 
-INS_HEADER_TCST = "INSERT INTO tcst_header (" + ",".join(TCST_HEADER_FIELDS) + \
-                  ") VALUES (" + VALUE_SLOTS_TCST + ")"
+INS_METADATA = build_insert_query('metadata', ['category', 'description'])
 
-INS_DATA_FILES = "INSERT INTO data_file (" + ",".join(DATA_FILE_FIELDS) + \
-                 ") VALUES (%s, %s, %s, %s, %s, %s)"
-
-INS_METADATA = "INSERT INTO metadata (category, description) VALUES (%s, %s)"
-
-INS_INSTANCE = "INSERT INTO instance_info (instance_info_id, updater, update_date, " + \
-               "update_detail, load_xml) VALUES (%s, %s, %s, %s, %s)"
+INS_INSTANCE = build_insert_query('instance_info', ['instance_info_id', 'updater', 'update_date',
+                                                    'update_detail', 'load_xml'])
 
 UPD_METADATA = "UPDATE metadata SET category=%s, description=%s"
 
@@ -348,18 +352,18 @@ ALL_COUNT = len(ALL_LINE_DATA_FIELDS)
 
 ALL_COUNT_TCST = len(ALL_LINE_DATA_FIELDS_TCST)
 
-LINE_DATA_FIELDS = dict()
-LINE_DATA_VAR_FIELDS = dict()
-LINE_DATA_COLS = dict()
-LINE_DATA_COLS_TCST = dict()
-LINE_DATA_Q = dict()
-LINE_DATA_VAR_Q = dict()
-LINE_VAR_COUNTER = dict()
-LINE_VAR_REPEATS = dict()
-LINE_DATA_VAR_TABLES = dict()
-COLUMNS = dict()
+LINE_DATA_FIELDS = {}
+LINE_DATA_VAR_FIELDS = {}
+LINE_DATA_COLS = {}
+LINE_DATA_COLS_TCST = {}
+LINE_DATA_Q = {}
+LINE_DATA_VAR_Q = {}
+LINE_VAR_COUNTER = {}
+LINE_VAR_REPEATS = {}
+LINE_DATA_VAR_TABLES = {}
+COLUMNS = {}
 
-LINE_DATA_FIELDS_TO_REPLACE = dict()
+LINE_DATA_FIELDS_TO_REPLACE = {}
 
 LINE_DATA_VAR_TABLES[PCT] = 'line_data_pct_thresh'
 LINE_DATA_VAR_TABLES[PSTD] = 'line_data_pstd_thresh'
@@ -593,7 +597,7 @@ LINE_DATA_FIELDS[VL1L2] = TOT_LINE_DATA_FIELDS + \
 LINE_DATA_FIELDS[VAL1L2] = TOT_LINE_DATA_FIELDS + \
                            ['ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar',
                             'uvffabar',
-                            'uvooabar', 'fa_speed_bar', 'oa_speed_bar', 'dira_me', 'dira_mae', 'dira_mse']
+                            'uvooabar', 'fa_speed_bar', 'oa_speed_bar', 'total_dir', 'dira_me', 'dira_mae', 'dira_mse']
 
 LINE_DATA_FIELDS[VCNT] = ALPH_LINE_DATA_FIELDS + \
                          ['fbar', 'fbar_bcl', 'fbar_bcu', 'obar', 'obar_bcl',
@@ -730,26 +734,12 @@ for line_type in UC_LINE_TYPES_TCST:
         LINE_DATA_FIELDS[line_type] = [LINE_DATA_ID] + LINE_DATA_FIELDS[line_type]
 
     # For each line type, create insert queries
-    VALUE_SLOTS = '%s, ' * len(LINE_DATA_FIELDS[line_type])
-    VALUE_SLOTS = VALUE_SLOTS[:-2]
-
     line_table = LINE_TABLES_TCST[UC_LINE_TYPES_TCST.index(line_type)]
-
-    i_line = "INSERT INTO " + line_table + " (" + ",".join(
-        LINE_DATA_FIELDS[line_type]) + \
-             ") VALUES (" + VALUE_SLOTS + ")"
-
-    LINE_DATA_Q[line_type] = i_line
+    LINE_DATA_Q[line_type] = build_insert_query(line_table, LINE_DATA_FIELDS[line_type])
 
     if line_type in VAR_LINE_TYPES_TCST:
-        VALUE_SLOTS = '%s, ' * len(LINE_DATA_VAR_FIELDS[line_type])
-        VALUE_SLOTS = VALUE_SLOTS[:-2]
-
-        var_line_table = LINE_DATA_VAR_TABLES[line_type]
-        i_line = "INSERT INTO " + var_line_table + " (" + \
-                 ",".join(LINE_DATA_VAR_FIELDS[line_type]) + \
-                 ") VALUES (" + VALUE_SLOTS + ")"
-        LINE_DATA_VAR_Q[line_type] = i_line
+        LINE_DATA_VAR_Q[line_type] = build_insert_query(LINE_DATA_VAR_TABLES[line_type],
+                                                        LINE_DATA_VAR_FIELDS[line_type])
 
 for line_type in UC_LINE_TYPES:
     # for each line type, create a list of the columns in the dataframe
@@ -777,26 +767,12 @@ for line_type in UC_LINE_TYPES:
         LINE_DATA_FIELDS[line_type] = [LINE_DATA_ID] + LINE_DATA_FIELDS[line_type]
 
     # For each line type, create insert queries
-    VALUE_SLOTS = '%s, ' * len(LINE_DATA_FIELDS[line_type])
-    VALUE_SLOTS = VALUE_SLOTS[:-2]
-
     line_table = LINE_TABLES[UC_LINE_TYPES.index(line_type)]
-
-    i_line = "INSERT INTO " + line_table + " (" + ",".join(
-        LINE_DATA_FIELDS[line_type]) + \
-             ") VALUES (" + VALUE_SLOTS + ")"
-    LINE_DATA_Q[line_type] = i_line
+    LINE_DATA_Q[line_type] = build_insert_query(line_table, LINE_DATA_FIELDS[line_type])
 
     if line_type in VAR_LINE_TYPES:
-        VALUE_SLOTS = '%s, ' * len(LINE_DATA_VAR_FIELDS[line_type])
-        VALUE_SLOTS = VALUE_SLOTS[:-2]
-
-        var_line_table = LINE_DATA_VAR_TABLES[line_type]
-
-        i_line = "INSERT INTO " + var_line_table + " (" + \
-                 ",".join(LINE_DATA_VAR_FIELDS[line_type]) + \
-                 ") VALUES (" + VALUE_SLOTS + ")"
-        LINE_DATA_VAR_Q[line_type] = i_line
+        LINE_DATA_VAR_Q[line_type] = build_insert_query(LINE_DATA_VAR_TABLES[line_type],
+                                                        LINE_DATA_VAR_FIELDS[line_type])
 
 LINE_DATA_COLS[PERC] = LINE_DATA_COLS[PERC][0:-2] + [FCST_PERC, OBS_PERC]
 
@@ -833,6 +809,13 @@ RHIST_OLD = ['V7.0', 'V6.1', 'V6.0', 'V5.2', 'V5.1', 'V5.0',
 
 RHIST_5 = ['V5.2', 'V5.1']
 RHIST_6 = ['V6.1', 'V6.0', 'V7.0']
+
+# number of statistics between N_THRESH and the thresholds in PSTD lines
+# BRIERCL, BRIERCL_NCL, BRIERCL_NCU and BSS were added in V5.1, BSS_SMPL in V7.0
+PSTD_STAT_COUNT = 15
+PSTD_STAT_COUNT_OLD = {'V5.0': 10, 'V4.2': 10, 'V4.1': 10, 'V4.0': 10,
+                       'V3.1': 10, 'V3.0': 10,
+                       'V6.1': 14, 'V6.0': 14, 'V5.2': 14, 'V5.1': 14}
 
 X_POINTS_ECON = [0.952380952, 0.909090909, 0.800000000, 0.666666667, 0.500000000,
                  0.333333333, 0.200000000, 0.125000000, 0.100000000, 0.055555556,
@@ -929,8 +912,7 @@ MODE_PAIR_FIELDS = [MODE_OBJ_OBS_ID, MODE_OBJ_FCST_ID, MODE_HEADER_ID, OBJECT_ID
                     'intersection_over_area', CURV_RATIO, 'complexity_ratio',
                     'percentile_intensity_ratio', 'interest', SIMPLE_FLAG, MATCHED_FLAG]
 
-Q_MHEADER = "SELECT mode_header_id FROM mode_header WHERE " + \
-            "=%s AND ".join(MODE_HEADER_KEYS) + "=%s"
+Q_MHEADER = build_select_query('mode_header_id', 'mode_header', MODE_HEADER_KEYS)
 
 QN_MHEADER = "SELECT mode_header_id FROM mode_header WHERE " + \
              "version=%s AND model=%s AND n_valid is NULL AND grid_res is NULL " + \
@@ -940,26 +922,13 @@ QN_MHEADER = "SELECT mode_header_id FROM mode_header WHERE " + \
              "AND fcst_var=%s AND fcst_units=%s AND fcst_lev=%s AND obs_var=%s " + \
              "AND obs_units=%s AND obs_lev=%s"
 
-INS_MHEADER = "INSERT INTO mode_header (" + ",".join(MODE_HEADER_FIELDS) + \
-              ") VALUES (" + VALUE_SLOTS + ")"
+INS_MHEADER = build_insert_query('mode_header', MODE_HEADER_FIELDS)
 
-C_VALUE_SLOTS = '%s, ' * len(MODE_CTS_FIELDS)
-C_VALUE_SLOTS = C_VALUE_SLOTS[:-2]
+INS_CHEADER = build_insert_query('mode_cts', MODE_CTS_FIELDS)
 
-INS_CHEADER = "INSERT INTO mode_cts (" + ",".join(MODE_CTS_FIELDS) + \
-              ") VALUES (" + C_VALUE_SLOTS + ")"
+INS_SHEADER = build_insert_query('mode_obj_single', MODE_SINGLE_FIELDS)
 
-S_VALUE_SLOTS = '%s, ' * len(MODE_SINGLE_FIELDS)
-S_VALUE_SLOTS = S_VALUE_SLOTS[:-2]
-
-INS_SHEADER = "INSERT INTO mode_obj_single (" + ",".join(MODE_SINGLE_FIELDS) + \
-              ") VALUES (" + S_VALUE_SLOTS + ")"
-
-P_VALUE_SLOTS = '%s, ' * len(MODE_PAIR_FIELDS)
-P_VALUE_SLOTS = P_VALUE_SLOTS[:-2]
-
-INS_PHEADER = "INSERT INTO mode_obj_pair (" + ",".join(MODE_PAIR_FIELDS) + \
-              ") VALUES (" + P_VALUE_SLOTS + ")"
+INS_PHEADER = build_insert_query('mode_obj_pair', MODE_PAIR_FIELDS)
 
 # MTD file fields
 MTD_HEADER = 'mtd_header'
@@ -1016,30 +985,15 @@ MTD_3D_OBJ_PAIR_FIELDS = [MTD_HEADER_ID, OBJECT_ID, OBJECT_CAT,
                           'intersection_volume', 'duration_diff', 'interest',
                           SIMPLE_FLAG, MATCHED_FLAG]
 
-Q_MTDHEADER = "SELECT mtd_header_id FROM mtd_header WHERE " + \
-              "=%s AND ".join(MTD_HEADER_KEYS) + "=%s"
+Q_MTDHEADER = build_select_query('mtd_header_id', 'mtd_header', MTD_HEADER_KEYS)
 
-INS_MTDHEADER = "INSERT INTO mtd_header (" + ",".join(MTD_HEADER_FIELDS) + \
-                ") VALUES (" + VALUE_SLOTS + ")"
+INS_MTDHEADER = build_insert_query('mtd_header', MTD_HEADER_FIELDS)
 
-C_VALUE_SLOTS = '%s, ' * len(MTD_2D_OBJ_FIELDS)
-C_VALUE_SLOTS = C_VALUE_SLOTS[:-2]
+INS_M2HEADER = build_insert_query('mtd_2d_obj', MTD_2D_OBJ_FIELDS)
 
-INS_M2HEADER = "INSERT INTO mtd_2d_obj (" + ",".join(MTD_2D_OBJ_FIELDS) + \
-               ") VALUES (" + C_VALUE_SLOTS + ")"
+INS_M3SHEADER = build_insert_query('mtd_3d_obj_single', MTD_3D_OBJ_SINGLE_FIELDS)
 
-S_VALUE_SLOTS = '%s, ' * len(MTD_3D_OBJ_SINGLE_FIELDS)
-S_VALUE_SLOTS = S_VALUE_SLOTS[:-2]
-
-INS_M3SHEADER = "INSERT INTO mtd_3d_obj_single (" + ",".join(
-    MTD_3D_OBJ_SINGLE_FIELDS) + \
-                ") VALUES (" + S_VALUE_SLOTS + ")"
-
-P_VALUE_SLOTS = '%s, ' * len(MTD_3D_OBJ_PAIR_FIELDS)
-P_VALUE_SLOTS = P_VALUE_SLOTS[:-2]
-
-INS_M3PHEADER = "INSERT INTO mtd_3d_obj_pair (" + ",".join(MTD_3D_OBJ_PAIR_FIELDS) + \
-                ") VALUES (" + P_VALUE_SLOTS + ")"
+INS_M3PHEADER = build_insert_query('mtd_3d_obj_pair', MTD_3D_OBJ_PAIR_FIELDS)
 
 DROP_INDEXES_QUERIES = ["DROP INDEX stat_header_model_idx ON stat_header",
                         "DROP INDEX stat_header_fcst_var_idx ON stat_header",
@@ -1334,6 +1288,7 @@ NUM_STAT_CTC_COLS = 31
 NUM_STAT_SL1L2_COLS = 32
 NUM_STAT_SAL1L2_COLS = 32
 NUM_STAT_VL1L2_COLS = 39
+NUM_STAT_VAL1L2_COLS = 39
 NUM_STAT_CTS_COLS = 122
 NUM_STAT_MCTC_COLS = 28
 NUM_STAT_MCTS_COLS = 45
@@ -1608,27 +1563,30 @@ MCTC_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
 MCTC_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + MCTC_STATISTICS_HEADERS
 
 #### SL1L2 Line type ####
-
 LC_SL1L2_SPECIFIC = ['fbar', 'obar', 'fobar', 'ffbar', 'oobar', 'mae']
 SL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
                             LC_SL1L2_SPECIFIC]
 SL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + SL1L2_STATISTICS_HEADERS
 
 #### SAL1L2 Line type ####
-
 LC_SAL1L2_SPECIFIC = ['fabar', 'oabar', 'foabar', 'ffabar', 'ooabar', 'mae']
 SAL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
                              LC_SAL1L2_SPECIFIC]
 SAL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + SAL1L2_STATISTICS_HEADERS
 
 #### VL1L2 Line type ####
-
 LC_VL1L2_SPECIFIC = ['ufbar', 'vfbar', 'uobar', 'vobar', 'uvfobar', 'uvffbar',
                      'uvoobar', 'f_speed_bar', 'o_speed_bar', 'total_dir', 'dir_me', 'dir_mae', 'dir_mse']
 VL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
                             LC_VL1L2_SPECIFIC]
 VL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + VL1L2_STATISTICS_HEADERS
 
+#### VAL1L2 Line type ####
+LC_VAL1L2_SPECIFIC = ['ufabar', 'vfabar', 'uoabar', 'voabar', 'uvfoabar', 'uvffabar',
+                      'uvooabar', 'fa_speed_bar', 'oa_speed_bar', 'total_dir', 'dira_me', 'dira_mae', 'dira_mse']
+VAL1L2_STATISTICS_HEADERS = [cur_stat_header.upper() for cur_stat_header in
+                             LC_VAL1L2_SPECIFIC]
+VAL1L2_HEADERS = LC_COMMON_STAT_HEADER + ['total'] + VAL1L2_STATISTICS_HEADERS
 
 #### CTS Line type ####
 LC_CTS_SPECIFIC = [BASER, 'baser_ncl', 'baser_ncu', 'baser_bcl', 'baser_bcu',

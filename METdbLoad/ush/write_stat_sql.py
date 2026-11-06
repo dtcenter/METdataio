@@ -56,9 +56,9 @@ class WriteStatSql:
                 # find the unique headers for this current load job
                 # Do not include Version, as MVLoad does not
                 stat_headers = stat_data[CN.STAT_HEADER_KEYS].copy()
-                stat_headers.drop_duplicates(
-                    CN.STAT_HEADER_KEYS[1:], keep='first', inplace=True)
-                stat_headers.reset_index(drop=True, inplace=True)
+                stat_headers = stat_headers.drop_duplicates(
+                    CN.STAT_HEADER_KEYS[1:], keep='first')
+                stat_headers = stat_headers.reset_index(drop=True)
 
                 # At first, we do not know if the headers already exist, so we have no keys
                 stat_headers[CN.STAT_HEADER_ID] = CN.NO_KEY
@@ -113,7 +113,7 @@ class WriteStatSql:
             except (RuntimeError, TypeError, NameError, KeyError):
                 logger.error(
                     "*** %s in write_stat_data write headers ***", sys.exc_info()[0])
-                logger.debug("Exception details:", exc_info=True)
+                logger.debug("", exc_info=True)
                 sys.exit("*** Error writing stat SQL headers")
 
             try:
@@ -144,11 +144,10 @@ class WriteStatSql:
                                 str(len(line_data.index)))
 
                     # change all Not Available values to METviewer not available (-9999)
-                    pd.set_option('future.no_silent_downcasting', True)
                     line_data = line_data.replace(CN.NOTAV, CN.MV_NOTAV)
 
                     # Explicitly convert columns to numeric where possible
-                    line_data = line_data.infer_objects(copy=False)
+                    line_data = line_data.infer_objects()
 
                     # Only variable length lines have a line_data_id
                     if line_type in CN.VAR_LINE_TYPES:
@@ -169,12 +168,11 @@ class WriteStatSql:
                         var_index = line_data.columns.get_loc(
                             CN.LINE_VAR_COUNTER[line_type]) + 1
 
-                        # There are 10 extra variables after n_thresh in PSTD records
-                        if line_type == CN.PSTD:
-                            var_index = var_index + 10
-
-                        # need this later for old RHIST
+                        # need this later for old RHIST and PSTD
                         orig_index = var_index
+
+                        # rows of lines that are too long to load
+                        drop_rows = []
 
                         # process each variable line one at a time for different versions
                         for row_num, file_line in line_data.iterrows():
@@ -185,12 +183,15 @@ class WriteStatSql:
                             if line_type in [CN.PJC, CN.PRC]:
                                 var_count = var_count - 1
 
-                            # VSDB and STAT values for sets of repeating vars may be different
-                            if line_type == 'CN.ECLV':
-                                var_count = var_index - 1
-
                             # reset to original value
                             var_index = orig_index
+
+                            # PSTD has statistics between n_thresh and the thresholds
+                            # the number of statistics depends on the MET version
+                            if line_type == CN.PSTD:
+                                var_index = orig_index + \
+                                    CN.PSTD_STAT_COUNT_OLD.get(file_line[CN.VERSION],
+                                                               CN.PSTD_STAT_COUNT)
 
                             # older versions of RHIST have varying ECNT data in them
                             if line_type == CN.RHIST and file_line[CN.VERSION] in CN.RHIST_OLD:
@@ -219,8 +220,8 @@ class WriteStatSql:
                                 logger.error('*** Variable length record from file %s line %s '
                                              'type %s deleted as longer than %s ***',
                                              file_name, row_num, line_type, CN.MAX_COL + 25)
-                                line_data.drop(line_data[line_data.line_data_id == row_num].index,
-                                               inplace=True)
+                                # drop after the loop so row_num still matches the row position
+                                drop_rows.append(row_num)
                             else:
                                 # pull out just the repeating data
                                 list_var_data = file_line.iloc[var_index:var_index + repeat_width]
@@ -275,6 +276,8 @@ class WriteStatSql:
                                 list_var.append(var_data)
 
                         # end for row_num, file_line
+                        line_data = line_data.drop(drop_rows)
+
                         if list_var:
                             all_var = pd.concat(
                                 list_var, ignore_index=True, sort=False)
@@ -302,8 +305,9 @@ class WriteStatSql:
                                 line_data2 = line_data2.iloc[0:0]
 
                                 # copy the value of n_rank two columns earlier for old RHIST
-                                line_data.loc[line_data[CN.VERSION].isin(CN.RHIST_OLD), '1'] = \
-                                    line_data['3']
+                                rhist_old = line_data[CN.VERSION].isin(CN.RHIST_OLD)
+                                line_data.loc[rhist_old, '1'] = \
+                                    line_data.loc[rhist_old, '3'].astype(line_data['1'].dtype)
 
                     # write the lines out to a CSV file, and then load them into database
                     if not line_data.empty:
@@ -338,7 +342,7 @@ class WriteStatSql:
             except (RuntimeError, TypeError, NameError, KeyError):
                 logger.error(
                     "*** %s in write_stat_data write line data ***", sys.exc_info()[0])
-                logger.debug("Exception details:", exc_info=True)
+                logger.debug("", exc_info=True)
                 sys.exit("*** Error writing stat SQL line data")
 
             write_time_end = time.perf_counter()
@@ -351,5 +355,5 @@ class WriteStatSql:
         except (RuntimeError, TypeError, NameError, KeyError, AttributeError):
             logger.error(
                 "*** %s occurred in write_stat_data function ***", sys.exc_info()[0])
-            logger.debug("Exception details:", exc_info=True)
+            logger.debug("", exc_info=True)
             sys.exit("*** Error in write_stat_data function")

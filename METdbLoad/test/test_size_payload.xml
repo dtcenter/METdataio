@@ -4,8 +4,8 @@
         <!-- oversized payload -->
         <host>localhost-abcdefghijklmnopqrstuvwxyz-zyxwvutsrqponmlkjihgfedcba_999_123_rst_puytrewq:3306</host>
         <database>mv_test</database>
-        <user>root</user>
-        <password>root_password</password>
+        <user>met_test</user>
+        <password>met_test_password</password>
     </connection>
 
     <folder_tmpl>/METdataio/METreformat/test/data/point_stat</folder_tmpl>
