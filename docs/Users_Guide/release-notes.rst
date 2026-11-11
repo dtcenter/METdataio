@@ -37,21 +37,6 @@ METdataio Version 13.0.0-rc1 Release Notes (20261110)
    * Update the modulefiles (`#420 <https://github.com/dtcenter/METdataio/issues/420>`_)
    * Store the version number in a single location (`#459 <https://github.com/dtcenter/METdataio/issues/459>`_)
 
-METdataio Version 13.0.0-rc1 Release Notes (20261111)
--------------------------------------------------------
-
-.. dropdown:: Bugfixes
-
-   * **Use case fix when using pandas 3** (`#415 <https://github.com/dtcenter/METdataio/pull/415>`_)
-
-.. dropdown:: Documentation
-
-   * None
-
-.. dropdown:: Enhancements
-
-   * None
-
 .. dropdown:: Repository, build, and test
 
 METdataio Version 13.0.0-beta2 Release Notes (20260507)
