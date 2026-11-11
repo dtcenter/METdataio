@@ -8,7 +8,7 @@ describes the bugfix, enhancement, or new feature:
 
 METdataio Release Notes
 =======================
-METdataio Version 13.0.0-rc1 Release Notes (20261110)
+METdataio Version 13.0.0-rc1 Release Notes (2026111)
 -----------------------------------------------------
 
 .. dropdown:: Bugfixes
