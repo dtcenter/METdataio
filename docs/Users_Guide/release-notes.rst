@@ -36,6 +36,7 @@ METdataio Version 13.0.0-rc1 Release Notes (20261110)
    * Documentation: Automate link checking with Sphinx (`METplus#3247 <https://github.com/dtcenter/METplus/issues/3247>`_)
    * Update the modulefiles (`#420 <https://github.com/dtcenter/METdataio/issues/420>`_)
    * Store the version number in a single location (`#459 <https://github.com/dtcenter/METdataio/issues/459>`_)
+
 METdataio Version 13.0.0-rc1 Release Notes (20261111)
 -------------------------------------------------------
 
