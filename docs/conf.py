@@ -25,7 +25,7 @@ with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'version')) a
 verinfo = version
 release = f'{version}'
 release_year = '2026'
-release_date = f'{release_year}-05-08'
+release_date = f'{release_year}-11-11'
 copyright = f'{release_year}, {author}'
 
 # if set, adds "Last updated on " followed by
