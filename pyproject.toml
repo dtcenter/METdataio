@@ -12,7 +12,7 @@ description = "METplus component that loads data into a database"
 authors = [
     {name = "METplus"},
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 readme = "README.md"
 license = {text = "MIT"}
 classifiers = [
