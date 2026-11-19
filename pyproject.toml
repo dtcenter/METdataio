@@ -22,7 +22,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-test = ['pip', 'pytest>=9.0.3']
+test = ['pip>=26.0', 'pytest>=9.0.3']
 
 [project.urls]
 Homepage = "https://github.com/dtcenter/METdataio"
