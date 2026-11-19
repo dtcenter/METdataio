@@ -35,7 +35,7 @@ METdbLoad = [
 [tool.setuptools.dynamic]
 # single source of the version number
 version = {file = "docs/version"}
-#dependencies = {file = ["requirements.txt"]}
+dependencies = {file = ["requirements.txt"]}
 
 [tool.pytest.ini_options]
 addopts = "-q"
