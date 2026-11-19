@@ -1,7 +1,7 @@
 # METdataio
 METdataio provides Python tools to read, reformat, and load MET verification output, including capabilities previously provided by METviewer's data loader.
 
-requires Anaconda or miniconda, Python 3.11 (or above) and conda installs of the following: pymysql, lxml, pyyaml, pandas, and numpy.
+requires Anaconda or miniconda, Python 3.12 (or above) and conda installs of the following: pymysql, lxml, pyyaml, pandas, xarray, and numpy.
 
 Please see the [METdataio User's Guide](https://metdataio.readthedocs.io/en/latest) for more information.
 
