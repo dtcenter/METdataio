@@ -1,3 +1,5 @@
+.. _running_unit_tests_locally:
+
 **************************
 Running Unit Tests Locally
 **************************
