@@ -1,3 +1,5 @@
+.. _running_unit_tests_locally:
+
 **************************
 Running Unit Tests Locally
 **************************
@@ -66,13 +68,42 @@ The tests always use the database `mv_test`.
 Running Tests
 =============
 
-Tests can be run using `pytest`. If required, you can install using either `conda install pytest` or `pip install pytest`.
+Installing the Test Dependencies
+--------------------------------
+
+From the top of the repository, in your active conda (or virtual) environment, install METdataio in editable mode
+with the `test` extra. This installs the packages listed in `requirements.txt` plus `pytest`:
+
+.. code-block:: console
+
+    $ pip install -e ".[test]"
+
+The METreformat and METreadnc code, and their tests, import `metcalcpy`, which is **not** installed by the command
+above. Install METcalcpy before running the tests. The GitHub Actions workflows install it from the `develop` branch:
+
+.. code-block:: console
+
+    $ git clone https://github.com/dtcenter/METcalcpy
+    $ git -C METcalcpy checkout develop
+    $ pip install -e METcalcpy
+
+To check test coverage, also install `pytest-cov`:
+
+.. code-block:: console
+
+    $ pip install pytest-cov
+
+Running pytest
+--------------
+
+Tests can be run using `pytest`:
 
 .. code-block:: console
 
     $ pytest METdbLoad/test/
 
-To check test coverage `conda install pytest-cov`, and use the `--cov` commands. For example:
+To check test coverage, use the `--cov` options, which need `pytest-cov` (installed in
+**Installing the Test Dependencies** above). For example:
 
 .. code-block:: console
 

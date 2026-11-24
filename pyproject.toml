@@ -7,12 +7,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "metdataio"
-dynamic = ["version"]
+dynamic = ["version", "dependencies"]
 description = "METplus component that loads data into a database"
 authors = [
     {name = "METplus"},
 ]
-requires-python = ">=3.10.4"
+requires-python = ">=3.12"
 readme = "README.md"
 license = {text = "MIT"}
 classifiers = [
@@ -20,6 +20,9 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+
+[project.optional-dependencies]
+test = ['pip>=26.0', 'pytest>=9.0.3']
 
 [project.urls]
 Homepage = "https://github.com/dtcenter/METdataio"
@@ -35,7 +38,7 @@ METdbLoad = [
 [tool.setuptools.dynamic]
 # single source of the version number
 version = {file = "docs/version"}
-#dependencies = {file = ["requirements.txt"]}
+dependencies = {file = ["requirements.txt"]}
 
 [tool.pytest.ini_options]
 addopts = "-q"
