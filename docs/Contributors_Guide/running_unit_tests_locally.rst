@@ -66,7 +66,7 @@ The tests always use the database `mv_test`.
 Running Tests
 =============
 
-Tests can be run using `pytest`. If required, you can install using either `conda install pytest` or `pip install pytest`.
+Tests can be run using `pytest`. If required, you can install using either `conda install pytest` or `pip install -e ".[test]"`.
 
 .. code-block:: console
 
