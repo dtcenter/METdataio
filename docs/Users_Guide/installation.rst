@@ -37,7 +37,7 @@ Python Requirements
 **NOTE** Due to the lack of backwards compatibility in pandas 2.x, this code no longer works with Python 3.10.
 
 The runtime requirements below are listed in the **requirements.txt** file at the top level of the repository.
-They are installed automatically with METcalcpy through **pyproject.toml**. The test tools
+They are installed automatically with METdataio through **pyproject.toml**. The test tools
 (pytest and pip) are installed separately with the optional ``[test]`` extra described in
 **Install Package** below.
 
