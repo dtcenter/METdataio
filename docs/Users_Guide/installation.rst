@@ -39,7 +39,7 @@ Python Requirements
 The runtime requirements below are listed in the **requirements.txt** file at the top level of the repository.
 They are installed automatically with METdataio through **pyproject.toml**. The test tools
 (pytest and pip) are installed separately with the optional ``[test]`` extra described in
-**Install Package** below.
+:ref:`Installing the test tools <installation_test_tools>` below.
 
 .. literalinclude:: ../../requirements.txt
 
@@ -79,6 +79,18 @@ Instructions for installing the METdataio package locally via conda
 
  * The :code:`.` indicates that the user should search the current directory for
    the **pyproject.toml** file.
+
+.. _installation_test_tools:
+
+ * To also install the test tools (pytest and pip) needed to run the unit tests,
+   add the optional ``[test]`` extra:
+
+   .. code-block:: ini
+
+      pip install -e ".[test]"
+
+   The unit tests also need METcalcpy, which is not installed by this command. See
+   :ref:`running_unit_tests_locally` for the full set-up.
 
  * To use the modules in the *METdataio/METdbLoad/ush* directory, use the metdataio package via an import statement:
 
