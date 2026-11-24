@@ -58,5 +58,3 @@ source = [
 omit = [
     "METreformat/test/*"
 ]
-
-
