@@ -102,7 +102,8 @@ Tests can be run using `pytest`:
 
     $ pytest METdbLoad/test/
 
-To check test coverage `conda install pytest-cov`, and use the `--cov` commands. For example:
+To check test coverage, use the `--cov` options, which need `pytest-cov` (installed in
+**Installing the Test Dependencies** above). For example:
 
 .. code-block:: console
 
